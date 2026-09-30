@@ -22,17 +22,17 @@ class TailorResumeUseCase @Inject constructor(
             .flatMap { it.bullets }
             .associateBy { it.id }
         val proposed = tailor.tailor(profile, job, gap)
-        return TailoredResume(proposed.bullets.map { verified(it, confirmedSources, profile) })
+        return TailoredResume(proposed.bullets.mapNotNull { verified(it, confirmedSources, profile) })
     }
 
     private fun verified(
         bullet: TailoredBullet,
         confirmedSources: Map<String, EvidenceBullet>,
         profile: CandidateProfile,
-    ): TailoredBullet {
+    ): TailoredBullet? {
         val sources = bullet.sourceIds.mapNotNull(confirmedSources::get)
+        val sourceText = sources.firstOrNull()?.text ?: return null
         val violations = guard.check(bullet.proposedText, sources, profile)
-        val sourceText = sources.firstOrNull()?.text ?: bullet.originalText
         if (violations.isEmpty()) return bullet.copy(originalText = sourceText, violations = emptyList())
         return bullet.copy(
             originalText = sourceText,

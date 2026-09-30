@@ -86,27 +86,38 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletWithUnknownSourceIdFallsBackWithMissingSource() {
+    fun bulletWithUnknownSourceIdIsDropped() {
         val result = useCaseReturning(bullet("t1", "does-not-exist", "Original", "Changed text"))(
             sampleProfile,
             emptyJob,
             emptyGap,
         )
 
-        assertThat(result.bullets.single().proposedText).isEqualTo("Original")
-        assertThat(result.bullets.single().violations).containsExactly(GuardrailViolation.MissingSource)
+        assertThat(result.bullets).isEmpty()
     }
 
     @Test
-    fun bulletCitingAnUnconfirmedEntryGetsMissingSourceAndTheOriginalText() {
+    fun bulletCitingAnUnconfirmedEntryIsDropped() {
+        val text = "Deployed containers with Kubernetes on AWS"
+        val result = useCaseReturning(bullet("t1", "unconfirmed-1-b1", text, text))(
+            sampleProfile,
+            emptyJob,
+            emptyGap,
+        )
+
+        assertThat(result.bullets).isEmpty()
+    }
+
+    @Test
+    fun bulletWithNoSourceIdsIsDroppedAndOthersAreKept() {
+        val text = "Wrote unit tests with JUnit to improve reliability"
         val result = useCaseReturning(
-            bullet("t1", "unconfirmed-1-b1", "Deployed containers with Kubernetes on AWS", "Deployed containers with Kubernetes on AWS"),
+            bullet("t1", "exp-1-b2", text, text).copy(sourceIds = emptyList()),
+            bullet("t2", "does-not-exist", "x", "y"),
+            bullet("t3", "exp-1-b2", text, text),
         )(sampleProfile, emptyJob, emptyGap)
 
-        val fallback = result.bullets.single()
-        assertThat(fallback.violations).containsExactly(GuardrailViolation.MissingSource)
-        assertThat(fallback.proposedText).isEqualTo("Deployed containers with Kubernetes on AWS")
-        assertThat(fallback.editTypes).isEmpty()
+        assertThat(result.bullets.map { it.id }).containsExactly("t3")
     }
 
     @Test
