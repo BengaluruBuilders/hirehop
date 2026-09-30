@@ -43,6 +43,12 @@ class TestSettingsPaymentGateway(
         return currentEntitlement
     }
 
+    override suspend fun clearCredits(): PurchaseEntitlement {
+        if (shouldFail) throw IllegalStateException("entitlement unavailable")
+        currentEntitlement = PurchaseEntitlement(freeCredits = 0, purchasedCredits = 0, pendingPackIds = emptyList())
+        return currentEntitlement
+    }
+
     override suspend fun restorePurchases(): PurchaseEntitlement = entitlement()
 
     override suspend fun consumeCredit(): CreditSpend = if (currentEntitlement.totalCredits > 0) {

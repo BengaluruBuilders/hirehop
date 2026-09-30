@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -155,7 +153,7 @@ private fun WorkspaceTopBar(
         onNavigationClick = onBack,
         actions = {
             HhIconButton(
-                icon = Icons.Rounded.MoreVert,
+                icon = HhIcons.More,
                 contentDescription = stringResource(R.string.feature_applications_impl_workspace_more),
                 onClick = onMore,
                 modifier = Modifier.padding(end = HhTheme.spacing.d16),

@@ -60,4 +60,6 @@
     </plurals>
     <string name="feature_settings_impl_your_data_delete_dialog_keep">Keep application</string>
     <string name="feature_settings_impl_your_data_delete_dialog_confirm">Delete application</string>
+    <string name="feature_settings_impl_your_data_share_subject">Your HireHop data</string>
+    <string name="feature_settings_impl_your_data_share_chooser">Share your HireHop data</string>
 </resources>

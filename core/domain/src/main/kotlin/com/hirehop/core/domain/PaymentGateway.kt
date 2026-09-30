@@ -10,4 +10,6 @@ interface PaymentGateway {
     suspend fun restorePurchases(): PurchaseEntitlement
 
     suspend fun consumeCredit(): CreditSpend
+
+    suspend fun clearCredits(): PurchaseEntitlement
 }

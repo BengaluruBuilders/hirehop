@@ -22,6 +22,7 @@ import com.hirehop.feature.applications.impl.navigation.applicationDetailEntry
 import com.hirehop.feature.applications.impl.navigation.applicationsEntry
 import com.hirehop.feature.onboarding.impl.navigation.onboardingEntry
 import com.hirehop.feature.profile.impl.navigation.profileEntry
+import com.hirehop.feature.settings.impl.navigation.settingsEntry
 import com.hirehop.feature.tailor.impl.navigation.tailorEntry
 
 @Composable
@@ -55,6 +56,7 @@ private fun HhNavDisplay(
         profileEntry(navigator)
         analysisEntry(navigator)
         tailorEntry(navigator)
+        settingsEntry(navigator)
     }
 
     Box(modifier = modifier) {

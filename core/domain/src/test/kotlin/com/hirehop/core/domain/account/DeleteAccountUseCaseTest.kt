@@ -275,6 +275,11 @@ private class BalancePaymentGateway(
     } else {
         CreditSpend.NoCreditLeft
     }
+
+    override suspend fun clearCredits(): PurchaseEntitlement {
+        current = PurchaseEntitlement(freeCredits = 0, purchasedCredits = 0, pendingPackIds = emptyList())
+        return current
+    }
 }
 
 private class ThrowingPaymentGateway : PaymentGateway {
@@ -292,4 +297,6 @@ private class ThrowingPaymentGateway : PaymentGateway {
     override suspend fun restorePurchases(): PurchaseEntitlement = entitlement()
 
     override suspend fun consumeCredit(): CreditSpend = throw IllegalStateException("no credit service")
+
+    override suspend fun clearCredits(): PurchaseEntitlement = throw IllegalStateException("no credit service")
 }

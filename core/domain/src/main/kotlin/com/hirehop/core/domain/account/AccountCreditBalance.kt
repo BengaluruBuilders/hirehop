@@ -1,7 +1,7 @@
 package com.hirehop.core.domain.account
 
-import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
+import com.hirehop.core.domain.PurchaseEntitlement
 import javax.inject.Inject
 
 class AccountCreditBalance @Inject constructor(
@@ -10,17 +10,19 @@ class AccountCreditBalance @Inject constructor(
 
     suspend fun unusedCredits(): Int = paymentGateway.entitlement().totalCredits
 
-    suspend fun clearUnusedCredits() {
-        var attempts = 0
-        while (attempts < MAX_CLEAR_ATTEMPTS && unusedCredits() > 0) {
-            val spend = paymentGateway.consumeCredit()
-            attempts += 1
-            if (spend is CreditSpend.NoCreditLeft) break
-        }
-        check(unusedCredits() == 0) { CREDIT_CLEAR_FAILED }
+    suspend fun creditLine(): AccountCreditLine {
+        val entitlement = paymentGateway.entitlement()
+        return AccountCreditLine(
+            freeCredits = entitlement.freeCredits,
+            purchasedCredits = entitlement.purchasedCredits,
+        )
+    }
+
+    suspend fun clearUnusedCredits(): PurchaseEntitlement {
+        val cleared = paymentGateway.clearCredits()
+        check(cleared.totalCredits == 0) { CREDIT_CLEAR_FAILED }
+        return cleared
     }
 }
-
-private const val MAX_CLEAR_ATTEMPTS = 64
 
 private const val CREDIT_CLEAR_FAILED = "The credit balance did not reach zero."

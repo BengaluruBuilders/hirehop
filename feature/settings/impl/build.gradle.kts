@@ -11,8 +11,11 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(projects.core.ui)
+    implementation(projects.feature.applications.api)
     implementation(projects.feature.onboarding.api)
+    implementation(projects.feature.profile.api)
     implementation(projects.feature.settings.api)
+    implementation(projects.feature.tailor.api)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)

@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +35,7 @@ import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhSectionCard
 import com.hirehop.core.designsystem.component.HhStatusDisc
 import com.hirehop.core.designsystem.component.HhStatusKind
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.KeywordCoverage
@@ -216,7 +215,7 @@ internal fun WorkspacePrepTaskRow(
                 )
             }
             HhIconButton(
-                icon = Icons.Rounded.MoreVert,
+                icon = HhIcons.More,
                 contentDescription = stringResource(R.string.feature_applications_impl_workspace_more),
                 onClick = onOverflowToggle,
             )

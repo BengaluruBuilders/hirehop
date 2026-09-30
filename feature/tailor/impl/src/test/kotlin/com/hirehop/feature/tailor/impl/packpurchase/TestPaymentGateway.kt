@@ -112,6 +112,15 @@ class TestPaymentGateway : PaymentGateway {
         }
     }
 
+    override suspend fun clearCredits(): PurchaseEntitlement = mutex.withLock {
+        entitlement = PurchaseEntitlement(
+            freeCredits = 0,
+            purchasedCredits = 0,
+            pendingPackIds = emptyList(),
+        )
+        entitlement
+    }
+
     private companion object {
         const val DEFAULT_FREE_CREDITS = 1
     }

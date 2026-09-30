@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
@@ -24,6 +25,7 @@ object HhIcons {
     val Close = Icons.Rounded.Close
     val Delete = Icons.Rounded.Delete
     val Edit = Icons.Rounded.Edit
+    val More = Icons.Rounded.MoreVert
     val Profile = Icons.Rounded.Person
     val ProfileBorder = Icons.Outlined.Person
     val Settings = Icons.Rounded.Settings

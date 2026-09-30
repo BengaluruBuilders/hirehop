@@ -79,4 +79,6 @@ private class StuckPaymentGateway : PaymentGateway {
     override suspend fun restorePurchases(): PurchaseEntitlement = entitlement()
 
     override suspend fun consumeCredit(): CreditSpend = CreditSpend.Spent(entitlement())
+
+    override suspend fun clearCredits(): PurchaseEntitlement = entitlement()
 }
