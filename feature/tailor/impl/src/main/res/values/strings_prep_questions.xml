@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_tailor_impl_prep_questions_title">Prep questions</string>
+    <string name="feature_tailor_impl_prep_questions_navigation_back_description">Go back</string>
+    <string name="feature_tailor_impl_prep_questions_step_pick">Picking your facts for this job</string>
+    <string name="feature_tailor_impl_prep_questions_step_write">Writing likely questions</string>
+    <string name="feature_tailor_impl_prep_questions_step_check">Checking every question</string>
+    <string name="feature_tailor_impl_prep_questions_generating_note">This runs on your device. Nothing is sent anywhere.</string>
+    <plurals name="feature_tailor_impl_prep_questions_count">
+        <item quantity="one">%1$d question</item>
+        <item quantity="other">%1$d questions</item>
+    </plurals>
+    <string name="feature_tailor_impl_prep_questions_intro">Likely questions for this job. Each one names the requirement it came from.</string>
+    <plurals name="feature_tailor_impl_prep_questions_practised_count">
+        <item quantity="one">%1$d of %2$d practised</item>
+        <item quantity="other">%1$d of %2$d practised</item>
+    </plurals>
+    <string name="feature_tailor_impl_prep_questions_filter_all">All</string>
+    <string name="feature_tailor_impl_prep_questions_filter_strength">Strengths</string>
+    <string name="feature_tailor_impl_prep_questions_filter_clarify">Clarify</string>
+    <string name="feature_tailor_impl_prep_questions_filter_gap">Gaps</string>
+    <string name="feature_tailor_impl_prep_questions_filter_count">%1$s · %2$d</string>
+    <string name="feature_tailor_impl_prep_questions_group_strength">Strengths you already show</string>
+    <string name="feature_tailor_impl_prep_questions_group_clarify">Requirements you cover in part</string>
+    <string name="feature_tailor_impl_prep_questions_group_clarify_note">Say what you did and what you did not. That is a complete answer.</string>
+    <string name="feature_tailor_impl_prep_questions_group_gap">Requirements with nothing in your record yet</string>
+    <string name="feature_tailor_impl_prep_questions_group_gap_note">These are not questions. If one comes up, here is one honest way to answer it. Not having it in your record is normal and not a mistake.</string>
+    <string name="feature_tailor_impl_prep_questions_kind_strength">Strength</string>
+    <string name="feature_tailor_impl_prep_questions_kind_clarify">Clarify</string>
+    <string name="feature_tailor_impl_prep_questions_kind_gap">Gap</string>
+    <string name="feature_tailor_impl_prep_questions_ordinal">Q%1$d</string>
+    <string name="feature_tailor_impl_prep_questions_requirement_heading">From the job description</string>
+    <string name="feature_tailor_impl_prep_questions_requirement">%1$s</string>
+    <string name="feature_tailor_impl_prep_questions_fact_heading">Fact you can use</string>
+    <string name="feature_tailor_impl_prep_questions_fact_none">No fact in your record covers this yet.</string>
+    <string name="feature_tailor_impl_prep_questions_practise_action">Mark as practised</string>
+    <string name="feature_tailor_impl_prep_questions_unpractise_action">Mark as not practised</string>
+    <string name="feature_tailor_impl_prep_questions_practised_label">Practised</string>
+    <string name="feature_tailor_impl_prep_questions_report_action">Report inaccurate content</string>
+    <string name="feature_tailor_impl_prep_questions_report_unavailable">HireHop has not connected reports yet. Your question is unchanged.</string>
+    <string name="feature_tailor_impl_prep_questions_practised">Marked as practised.</string>
+    <string name="feature_tailor_impl_prep_questions_unpractised">Back in your list to practise.</string>
+    <string name="feature_tailor_impl_prep_questions_dismiss">Dismiss</string>
+    <string name="feature_tailor_impl_prep_questions_card_description">%1$s. %2$s From the job description: %3$s. %4$s</string>
+    <string name="feature_tailor_impl_prep_questions_offline_message">You are offline.</string>
+    <string name="feature_tailor_impl_prep_questions_offline_supporting">Your saved questions are all here. Marks you make sync when you are back.</string>
+    <string name="feature_tailor_impl_prep_questions_empty_analysis_heading">Nothing to prepare yet</string>
+    <string name="feature_tailor_impl_prep_questions_empty_analysis_body">This job description has no requirement we can prepare from. Check the job description, then come back.</string>
+    <string name="feature_tailor_impl_prep_questions_empty_profile_heading">Your profile has no confirmed facts yet</string>
+    <string name="feature_tailor_impl_prep_questions_empty_profile_body">We prepare questions from your confirmed facts. Add a fact, confirm it, and come back.</string>
+    <string name="feature_tailor_impl_prep_questions_error_heading">We could not write your questions.</string>
+    <string name="feature_tailor_impl_prep_questions_error_body">Your resume and analysis are safe. Try again.</string>
+    <string name="feature_tailor_impl_prep_questions_error_retry">Try again</string>
+</resources>

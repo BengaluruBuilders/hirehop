@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_tailor_impl_cover_letter_title">Cover letter</string>
+    <string name="feature_tailor_impl_cover_letter_navigation_back_description">Go back</string>
+    <string name="feature_tailor_impl_cover_letter_step_pick">Picking your facts for this job</string>
+    <string name="feature_tailor_impl_cover_letter_step_write">Writing the letter</string>
+    <string name="feature_tailor_impl_cover_letter_step_check">Checking every sentence</string>
+    <string name="feature_tailor_impl_cover_letter_generating_note">This runs on your device. Nothing is sent anywhere.</string>
+    <string name="feature_tailor_impl_cover_letter_words_caption">words</string>
+    <string name="feature_tailor_impl_cover_letter_word_count_target">A short letter runs 150 to 220 words.</string>
+    <string name="feature_tailor_impl_cover_letter_paragraph_heading">PARAGRAPH %1$d OF %2$d</string>
+    <string name="feature_tailor_impl_cover_letter_basis_fact">Every sentence here is quoted from a confirmed fact.</string>
+    <string name="feature_tailor_impl_cover_letter_basis_edited_fact">The version we wrote quoted your fact %1$s. What you wrote is yours.</string>
+    <string name="feature_tailor_impl_cover_letter_basis_job">Written from the job description. It makes no claim about you.</string>
+    <string name="feature_tailor_impl_cover_letter_basis_name">Written from your name in your profile.</string>
+    <string name="feature_tailor_impl_cover_letter_basis_plain">A standard line. It makes no claim about you.</string>
+    <string name="feature_tailor_impl_cover_letter_basis_no_evidence">This paragraph says plainly that no confirmed fact matches this posting yet.</string>
+    <string name="feature_tailor_impl_cover_letter_edit_note">Your own words. HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_cover_letter_edit_action">Edit this paragraph</string>
+    <string name="feature_tailor_impl_cover_letter_edit_sheet_title">Edit this paragraph</string>
+    <string name="feature_tailor_impl_cover_letter_edit_sheet_message">Change any line. HireHop keeps your words and does not check them.</string>
+    <string name="feature_tailor_impl_cover_letter_edit_field_label">Your version</string>
+    <string name="feature_tailor_impl_cover_letter_edit_save">Save</string>
+    <string name="feature_tailor_impl_cover_letter_edit_cancel">Cancel</string>
+    <string name="feature_tailor_impl_cover_letter_copy_action">Copy letter</string>
+    <string name="feature_tailor_impl_cover_letter_skip_action">Skip the letter</string>
+    <string name="feature_tailor_impl_cover_letter_copied">Your letter is on the clipboard.</string>
+    <string name="feature_tailor_impl_cover_letter_saved">Your paragraph is saved as your own words.</string>
+    <string name="feature_tailor_impl_cover_letter_report_action">Report inaccurate content</string>
+    <string name="feature_tailor_impl_cover_letter_report_unavailable">HireHop has not connected reports yet. Your paragraph is unchanged.</string>
+    <string name="feature_tailor_impl_cover_letter_dismiss">Dismiss</string>
+    <string name="feature_tailor_impl_cover_letter_offline_message">You are offline.</string>
+    <string name="feature_tailor_impl_cover_letter_offline_supporting">You can read and edit your letter. Changes sync when you are back.</string>
+    <string name="feature_tailor_impl_cover_letter_no_evidence_heading">No confirmed fact matches this posting</string>
+    <string name="feature_tailor_impl_cover_letter_no_evidence_note">This is a normal situation, not a problem with your profile. You can add a fact and write the letter again, or keep this letter as it is.</string>
+    <string name="feature_tailor_impl_cover_letter_empty_profile_heading">Your profile has no confirmed facts yet</string>
+    <string name="feature_tailor_impl_cover_letter_empty_profile_body">A letter here can only use what is already in your profile. Add a fact, confirm it, and come back.</string>
+    <string name="feature_tailor_impl_cover_letter_error_heading">We could not write your letter.</string>
+    <string name="feature_tailor_impl_cover_letter_error_body">Your resume and analysis are safe. Try again, or skip the letter.</string>
+    <string name="feature_tailor_impl_cover_letter_error_retry">Try again</string>
+</resources>
