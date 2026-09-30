@@ -94,9 +94,9 @@ internal fun AnalysisScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             HhTopAppBar(
-                title = stringResource(R.string.feature_analysis_title),
+                title = stringResource(R.string.feature_analysis_impl_title),
                 navigationIcon = HhIcons.ArrowBack,
-                navigationIconContentDescription = stringResource(R.string.feature_analysis_back),
+                navigationIconContentDescription = stringResource(R.string.feature_analysis_impl_back),
                 onNavigationClick = actions.onBackClick,
             )
         },
@@ -113,9 +113,9 @@ private fun AnalysisContent(
 ) {
     when (uiState) {
         AnalysisUiState.Loading, is AnalysisUiState.Saved ->
-            ProgressContent(R.string.feature_analysis_loading, modifier)
-        AnalysisUiState.Analyzing -> ProgressContent(R.string.feature_analysis_analyzing, modifier)
-        AnalysisUiState.Saving -> ProgressContent(R.string.feature_analysis_saving, modifier)
+            ProgressContent(R.string.feature_analysis_impl_loading, modifier)
+        AnalysisUiState.Analyzing -> ProgressContent(R.string.feature_analysis_impl_analyzing, modifier)
+        AnalysisUiState.Saving -> ProgressContent(R.string.feature_analysis_impl_saving, modifier)
         AnalysisUiState.NoProfile -> NoProfileContent(actions.onOpenProfile, modifier)
         is AnalysisUiState.Input -> InputContent(
             state = uiState,
@@ -143,9 +143,9 @@ private fun ProgressContent(@StringRes messageRes: Int, modifier: Modifier = Mod
 
 @StringRes
 private fun AnalysisError.messageRes(): Int = when (this) {
-    AnalysisError.AnalyzeFailed -> R.string.feature_analysis_error_analyze
-    AnalysisError.AddEvidenceFailed -> R.string.feature_analysis_error_add_evidence
-    AnalysisError.SaveFailed -> R.string.feature_analysis_error_save
+    AnalysisError.AnalyzeFailed -> R.string.feature_analysis_impl_error_analyze
+    AnalysisError.AddEvidenceFailed -> R.string.feature_analysis_impl_error_add_evidence
+    AnalysisError.SaveFailed -> R.string.feature_analysis_impl_error_save
 }
 
 internal val ScreenPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)

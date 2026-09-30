@@ -30,6 +30,8 @@ Voice mock interviews, broader job discovery, and professional profile photos ca
 
 ## Status
 
-Concept and validation stage. This repository contains the product brief; the application is not implemented yet.
+Offline prototype. The app runs PRD features F1, F2, F3, F4 (PDF only), and F5 with a deterministic, on-device engine. There is no backend yet.
+
+Rules and CI gates: `docs/CONSTITUTION.md`. Commands: `AGENTS.md`.
 
 OpenAI API credits are available for experimentation. Application packs and an active-job-search plan are monetization hypotheses to test with candidates.

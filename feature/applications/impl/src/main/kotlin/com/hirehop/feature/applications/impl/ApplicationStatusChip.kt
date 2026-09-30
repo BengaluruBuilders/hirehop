@@ -18,12 +18,12 @@ import com.hirehop.core.model.ApplicationStatus
 
 @StringRes
 internal fun ApplicationStatus.labelRes(): Int = when (this) {
-    ApplicationStatus.SAVED -> R.string.feature_applications_status_saved
-    ApplicationStatus.APPLIED -> R.string.feature_applications_status_applied
-    ApplicationStatus.INTERVIEW -> R.string.feature_applications_status_interview
-    ApplicationStatus.OFFER -> R.string.feature_applications_status_offer
-    ApplicationStatus.REJECTED -> R.string.feature_applications_status_rejected
-    ApplicationStatus.NO_RESPONSE -> R.string.feature_applications_status_no_response
+    ApplicationStatus.SAVED -> R.string.feature_applications_impl_status_saved
+    ApplicationStatus.APPLIED -> R.string.feature_applications_impl_status_applied
+    ApplicationStatus.INTERVIEW -> R.string.feature_applications_impl_status_interview
+    ApplicationStatus.OFFER -> R.string.feature_applications_impl_status_offer
+    ApplicationStatus.REJECTED -> R.string.feature_applications_impl_status_rejected
+    ApplicationStatus.NO_RESPONSE -> R.string.feature_applications_impl_status_no_response
 }
 
 private data class StatusChipColors(

@@ -32,7 +32,7 @@ class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val resumeTextParser: ResumeTextParser,
     idGenerator: IdGenerator,
-    @Dispatcher(HhDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @param:Dispatcher(HhDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val entryMapper = EntryDraftMapper(idGenerator)

@@ -27,7 +27,7 @@ internal fun Project.configureKotlinAndroid(
         }
     }
 
-    configureKotlin<KotlinAndroidProjectExtension>()
+    configureKotlin<KotlinAndroidProjectExtension>(optInToExperimentalCoroutines = true)
 }
 
 internal fun Project.configureKotlinJvm() {
@@ -36,10 +36,12 @@ internal fun Project.configureKotlinJvm() {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    configureKotlin<KotlinJvmProjectExtension>()
+    configureKotlin<KotlinJvmProjectExtension>(optInToExperimentalCoroutines = false)
 }
 
-private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configure<T> {
+private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin(
+    optInToExperimentalCoroutines: Boolean,
+) = configure<T> {
     val warningsAsErrors = providers.gradleProperty("warningsAsErrors").map {
         it.toBoolean()
     }.orElse(false)
@@ -50,7 +52,9 @@ private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() =
     }.apply {
         jvmTarget = JvmTarget.JVM_17
         allWarningsAsErrors = warningsAsErrors
-        freeCompilerArgs.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+        if (optInToExperimentalCoroutines) {
+            freeCompilerArgs.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+        }
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
     }
 }

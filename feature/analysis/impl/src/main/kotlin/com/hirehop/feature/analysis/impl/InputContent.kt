@@ -40,15 +40,15 @@ internal fun InputContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = stringResource(R.string.feature_analysis_input_hint),
+            text = stringResource(R.string.feature_analysis_impl_input_hint),
             style = MaterialTheme.typography.bodyMedium,
         )
         OutlinedTextField(
             value = state.jobText,
             onValueChange = onJobTextChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.feature_analysis_input_label)) },
-            placeholder = { Text(stringResource(R.string.feature_analysis_input_placeholder)) },
+            label = { Text(stringResource(R.string.feature_analysis_impl_input_label)) },
+            placeholder = { Text(stringResource(R.string.feature_analysis_impl_input_placeholder)) },
             minLines = 10,
             maxLines = 18,
         )
@@ -57,7 +57,7 @@ internal fun InputContent(
             onClick = onAnalyze,
             enabled = state.canAnalyze,
             modifier = Modifier.fillMaxWidth(),
-            text = { Text(stringResource(R.string.feature_analysis_analyze)) },
+            text = { Text(stringResource(R.string.feature_analysis_impl_analyze)) },
         )
     }
 }
@@ -71,7 +71,7 @@ private fun CountAndPasteRow(characterCount: Int, onPaste: (String) -> Unit) {
     ) {
         Text(
             text = stringResource(
-                R.string.feature_analysis_character_count,
+                R.string.feature_analysis_impl_character_count,
                 characterCount,
                 MAX_JOB_TEXT_LENGTH,
             ),
@@ -90,7 +90,7 @@ private fun PasteButton(onPaste: (String) -> Unit) {
             scope.launch { clipboard.readText()?.let(onPaste) }
         },
     ) {
-        Text(stringResource(R.string.feature_analysis_paste))
+        Text(stringResource(R.string.feature_analysis_impl_paste))
     }
 }
 

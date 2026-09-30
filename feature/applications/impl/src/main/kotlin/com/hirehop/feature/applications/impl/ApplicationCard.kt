@@ -56,7 +56,7 @@ internal fun ApplicationCard(
             application.gapAnalysis?.keywordCoverage?.let { coverage ->
                 Text(
                     text = stringResource(
-                        R.string.feature_applications_coverage,
+                        R.string.feature_applications_impl_coverage,
                         coverage.covered,
                         coverage.total,
                     ),
@@ -65,7 +65,7 @@ internal fun ApplicationCard(
             }
             Text(
                 text = stringResource(
-                    R.string.feature_applications_updated,
+                    R.string.feature_applications_impl_updated,
                     rememberRelativeTime(application.updatedAt),
                 ),
                 style = MaterialTheme.typography.labelMedium,

@@ -82,7 +82,7 @@ private fun EvidenceList(evidence: List<String>) {
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
-            text = stringResource(R.string.feature_analysis_evidence_header),
+            text = stringResource(R.string.feature_analysis_impl_evidence_header),
             style = MaterialTheme.typography.labelSmall,
         )
         evidence.forEach { text ->
@@ -98,13 +98,13 @@ private fun GapActions(
     onTogglePrepPlan: () -> Unit,
 ) {
     val requirementText = item.requirement.text
-    val iHaveThisDescription = stringResource(R.string.feature_analysis_i_have_this_description, requirementText)
-    val prepDescription = stringResource(R.string.feature_analysis_add_to_prep_plan_description, requirementText)
+    val iHaveThisDescription = stringResource(R.string.feature_analysis_impl_i_have_this_description, requirementText)
+    val prepDescription = stringResource(R.string.feature_analysis_impl_add_to_prep_plan_description, requirementText)
     val prepState = stringResource(
         if (item.isInPrepPlan) {
-            R.string.feature_analysis_prep_state_added
+            R.string.feature_analysis_impl_prep_state_added
         } else {
-            R.string.feature_analysis_prep_state_not_added
+            R.string.feature_analysis_impl_prep_state_not_added
         },
     )
     Row(
@@ -114,7 +114,7 @@ private fun GapActions(
         HhOutlinedButton(
             onClick = onIHaveThis,
             modifier = Modifier.semantics { contentDescription = iHaveThisDescription },
-            text = { Text(stringResource(R.string.feature_analysis_i_have_this)) },
+            text = { Text(stringResource(R.string.feature_analysis_impl_i_have_this)) },
         )
         TextButton(
             onClick = onTogglePrepPlan,
@@ -125,9 +125,9 @@ private fun GapActions(
             },
         ) {
             val labelRes = if (item.isInPrepPlan) {
-                R.string.feature_analysis_in_prep_plan
+                R.string.feature_analysis_impl_in_prep_plan
             } else {
-                R.string.feature_analysis_add_to_prep_plan
+                R.string.feature_analysis_impl_add_to_prep_plan
             }
             Text(stringResource(labelRes))
         }
@@ -136,16 +136,16 @@ private fun GapActions(
 
 @StringRes
 private fun MatchStatus.labelRes(): Int = when (this) {
-    MatchStatus.MET -> R.string.feature_analysis_status_met
-    MatchStatus.PARTIAL -> R.string.feature_analysis_status_partial
-    MatchStatus.GAP -> R.string.feature_analysis_status_gap
+    MatchStatus.MET -> R.string.feature_analysis_impl_status_met
+    MatchStatus.PARTIAL -> R.string.feature_analysis_impl_status_partial
+    MatchStatus.GAP -> R.string.feature_analysis_impl_status_gap
 }
 
 @StringRes
 private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
-    R.string.feature_analysis_priority_must_have
+    R.string.feature_analysis_impl_priority_must_have
 } else {
-    R.string.feature_analysis_priority_nice_to_have
+    R.string.feature_analysis_impl_priority_nice_to_have
 }
 
 private fun MatchStatus.icon(): ImageVector = when (this) {

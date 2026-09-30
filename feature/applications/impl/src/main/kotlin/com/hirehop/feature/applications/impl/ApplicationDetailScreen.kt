@@ -117,14 +117,14 @@ private fun ApplicationDetailTopBar(
     HhTopAppBar(
         title = title,
         navigationIcon = HhIcons.ArrowBack,
-        navigationIconContentDescription = stringResource(R.string.feature_applications_detail_back),
+        navigationIconContentDescription = stringResource(R.string.feature_applications_impl_detail_back),
         onNavigationClick = onBackClick,
         actions = {
             if (canDelete) {
                 IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = HhIcons.Delete,
-                        contentDescription = stringResource(R.string.feature_applications_detail_delete),
+                        contentDescription = stringResource(R.string.feature_applications_impl_detail_delete),
                     )
                 }
             }
@@ -143,11 +143,11 @@ private fun BoxScope.ApplicationDetailBody(
         ApplicationDetailUiState.Loading,
         ApplicationDetailUiState.Deleted,
         -> HhLoadingWheel(
-            contentDesc = stringResource(R.string.feature_applications_loading),
+            contentDesc = stringResource(R.string.feature_applications_impl_loading),
             modifier = Modifier.align(Alignment.Center),
         )
         ApplicationDetailUiState.NotFound -> Text(
-            text = stringResource(R.string.feature_applications_detail_not_found),
+            text = stringResource(R.string.feature_applications_impl_detail_not_found),
             modifier = Modifier.align(Alignment.Center).padding(32.dp),
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -205,9 +205,9 @@ private fun SectionHeading(@StringRes textRes: Int) {
 @Composable
 private fun GapSummarySection(summary: GapSummary?) {
     Column {
-        SectionHeading(R.string.feature_applications_detail_gap_heading)
+        SectionHeading(R.string.feature_applications_impl_detail_gap_heading)
         if (summary == null) {
-            Text(stringResource(R.string.feature_applications_detail_gap_unavailable))
+            Text(stringResource(R.string.feature_applications_impl_detail_gap_unavailable))
         } else {
             GapSummaryContent(summary)
         }
@@ -220,9 +220,9 @@ private fun GapSummaryContent(summary: GapSummary) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        GapCount(summary.met, R.string.feature_applications_detail_met)
-        GapCount(summary.partial, R.string.feature_applications_detail_partial)
-        GapCount(summary.gap, R.string.feature_applications_detail_gaps)
+        GapCount(summary.met, R.string.feature_applications_impl_detail_met)
+        GapCount(summary.partial, R.string.feature_applications_impl_detail_partial)
+        GapCount(summary.gap, R.string.feature_applications_impl_detail_gaps)
     }
     if (summary.mustHaveGaps.isNotEmpty()) {
         MustHaveGaps(summary.mustHaveGaps)
@@ -245,7 +245,7 @@ private fun GapCount(count: Int, @StringRes labelRes: Int) {
 private fun MustHaveGaps(gaps: List<String>) {
     Column(modifier = Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = stringResource(R.string.feature_applications_detail_must_have_gaps),
+            text = stringResource(R.string.feature_applications_impl_detail_must_have_gaps),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.error,
         )
@@ -259,21 +259,21 @@ private fun TailoredResumeSection(
     onReviewResumeClick: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeading(R.string.feature_applications_detail_resume_heading)
+        SectionHeading(R.string.feature_applications_impl_detail_resume_heading)
         Text(text = progress.describe(), style = MaterialTheme.typography.bodyMedium)
         HhButton(
             onClick = onReviewResumeClick,
             enabled = progress != null && progress.total > 0,
-            text = { Text(stringResource(R.string.feature_applications_detail_review_resume)) },
+            text = { Text(stringResource(R.string.feature_applications_impl_detail_review_resume)) },
         )
     }
 }
 
 @Composable
 private fun ReviewProgress?.describe(): String = when {
-    this == null -> stringResource(R.string.feature_applications_detail_resume_unavailable)
-    total == 0 -> stringResource(R.string.feature_applications_detail_resume_no_changes)
-    else -> stringResource(R.string.feature_applications_detail_resume_progress, reviewed, total)
+    this == null -> stringResource(R.string.feature_applications_impl_detail_resume_unavailable)
+    total == 0 -> stringResource(R.string.feature_applications_impl_detail_resume_no_changes)
+    else -> stringResource(R.string.feature_applications_impl_detail_resume_progress, reviewed, total)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -283,7 +283,7 @@ private fun StatusSection(
     onStatusSelected: (ApplicationStatus) -> Unit,
 ) {
     Column {
-        SectionHeading(R.string.feature_applications_detail_status_heading)
+        SectionHeading(R.string.feature_applications_impl_detail_status_heading)
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -306,7 +306,7 @@ private fun NotesSection(
 ) {
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
     Column {
-        SectionHeading(R.string.feature_applications_detail_notes_heading)
+        SectionHeading(R.string.feature_applications_impl_detail_notes_heading)
         OutlinedTextField(
             value = notes,
             onValueChange = {
@@ -314,7 +314,7 @@ private fun NotesSection(
                 onNotesChange(it)
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.feature_applications_detail_notes_label)) },
+            label = { Text(stringResource(R.string.feature_applications_impl_detail_notes_label)) },
             minLines = 3,
         )
     }
@@ -327,16 +327,16 @@ private fun DeleteApplicationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.feature_applications_detail_delete_title)) },
-        text = { Text(stringResource(R.string.feature_applications_detail_delete_message)) },
+        title = { Text(stringResource(R.string.feature_applications_impl_detail_delete_title)) },
+        text = { Text(stringResource(R.string.feature_applications_impl_detail_delete_message)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.feature_applications_detail_delete_confirm))
+                Text(stringResource(R.string.feature_applications_impl_detail_delete_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.feature_applications_detail_delete_cancel))
+                Text(stringResource(R.string.feature_applications_impl_detail_delete_cancel))
             }
         },
     )

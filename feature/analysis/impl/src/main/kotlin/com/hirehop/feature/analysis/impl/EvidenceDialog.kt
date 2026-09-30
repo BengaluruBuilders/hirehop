@@ -29,19 +29,19 @@ internal fun EvidenceDialog(
     var statement by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.feature_analysis_evidence_dialog_title)) },
+        title = { Text(stringResource(R.string.feature_analysis_impl_evidence_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(text = requirement.text, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    text = stringResource(R.string.feature_analysis_evidence_dialog_message),
+                    text = stringResource(R.string.feature_analysis_impl_evidence_dialog_message),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 OutlinedTextField(
                     value = statement,
                     onValueChange = { statement = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.feature_analysis_evidence_dialog_label)) },
+                    label = { Text(stringResource(R.string.feature_analysis_impl_evidence_dialog_label)) },
                     minLines = 2,
                 )
                 EvidenceDisclosure(requirement = requirement, statement = statement.trim())
@@ -52,12 +52,12 @@ internal fun EvidenceDialog(
                 onClick = { onConfirm(statement) },
                 enabled = statement.isNotBlank(),
             ) {
-                Text(stringResource(R.string.feature_analysis_evidence_dialog_confirm))
+                Text(stringResource(R.string.feature_analysis_impl_evidence_dialog_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.feature_analysis_cancel))
+                Text(stringResource(R.string.feature_analysis_impl_cancel))
             }
         },
     )
@@ -69,15 +69,15 @@ private fun EvidenceDisclosure(requirement: JobRequirement, statement: String) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = if (statedKeywords.isEmpty()) {
-                stringResource(R.string.feature_analysis_dialog_adds_no_skills)
+                stringResource(R.string.feature_analysis_impl_dialog_adds_no_skills)
             } else {
-                stringResource(R.string.feature_analysis_dialog_adds_skills, statedKeywords.joinToString())
+                stringResource(R.string.feature_analysis_impl_dialog_adds_skills, statedKeywords.joinToString())
             },
             style = MaterialTheme.typography.bodySmall,
         )
         if (statement.isNotEmpty()) {
             Text(
-                text = stringResource(R.string.feature_analysis_dialog_adds_line, statement),
+                text = stringResource(R.string.feature_analysis_impl_dialog_adds_line, statement),
                 style = MaterialTheme.typography.bodySmall,
             )
         }

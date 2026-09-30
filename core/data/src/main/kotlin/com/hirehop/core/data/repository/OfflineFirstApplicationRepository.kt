@@ -18,7 +18,7 @@ import kotlin.time.Clock
 internal class OfflineFirstApplicationRepository @Inject constructor(
     private val jobApplicationDao: JobApplicationDao,
     private val clock: Clock,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ApplicationRepository {
 
     override fun observeApplications(): Flow<List<JobApplication>> =

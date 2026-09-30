@@ -27,18 +27,18 @@ internal fun NoProfileContent(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
     ) {
         Text(
-            text = stringResource(R.string.feature_analysis_no_profile_title),
+            text = stringResource(R.string.feature_analysis_impl_no_profile_title),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
         Text(
-            text = stringResource(R.string.feature_analysis_no_profile_message),
+            text = stringResource(R.string.feature_analysis_impl_no_profile_message),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
         HhButton(
             onClick = onOpenProfile,
-            text = { Text(stringResource(R.string.feature_analysis_open_profile)) },
+            text = { Text(stringResource(R.string.feature_analysis_impl_open_profile)) },
         )
     }
 }
