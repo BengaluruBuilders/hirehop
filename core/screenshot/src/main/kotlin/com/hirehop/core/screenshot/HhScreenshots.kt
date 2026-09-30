@@ -41,6 +41,14 @@ suspend fun ComposeTestRule.captureMultiTheme(
     outputDirectory: String,
     screenName: String,
     device: HhTestDevice = HhTestDevices.board,
-): List<String> = listOf(HH_THEME_LIGHT, HH_THEME_DARK).map { theme ->
-    captureForDevice(outputDirectory, screenName, device, theme)
+    setTheme: suspend (Boolean) -> Unit,
+): List<String> {
+    val paths = mutableListOf<String>()
+    setTheme(false)
+    waitForIdle()
+    paths += captureForDevice(outputDirectory, screenName, device, HH_THEME_LIGHT)
+    setTheme(true)
+    waitForIdle()
+    paths += captureForDevice(outputDirectory, screenName, device, HH_THEME_DARK)
+    return paths
 }

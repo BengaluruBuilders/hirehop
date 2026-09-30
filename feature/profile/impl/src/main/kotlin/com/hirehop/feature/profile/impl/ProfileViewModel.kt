@@ -9,6 +9,7 @@ import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.DebugScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -16,8 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,16 +42,23 @@ class ProfileViewModel @Inject constructor(
     private val mutableImportState = MutableStateFlow(
         ResumeImportState(rawText = savedStateHandle.get<String>(RESUME_TEXT_KEY).orEmpty()),
     )
+    private val mutableScenario = MutableStateFlow(DebugScenario.defaultValue)
 
-    val uiState: StateFlow<ProfileUiState> = profileRepository.observeProfile()
-        .map { it.toUiState() }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ProfileUiState.Loading,
-        )
+    val scenario: StateFlow<DebugScenario> = mutableScenario.asStateFlow()
+
+    val uiState: StateFlow<ProfileUiState> =
+        combine(profileRepository.observeProfile(), mutableScenario) { profile, debug -> debug.toUiState(profile) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = ProfileUiState.Loading,
+            )
 
     val importState: StateFlow<ResumeImportState> = mutableImportState.asStateFlow()
+
+    fun selectScenario(debugScenario: DebugScenario) {
+        mutableScenario.value = debugScenario
+    }
 
     fun confirmEntry(entryId: String) = updateProfile { it.confirmEntry(entryId) }
 
@@ -125,11 +133,23 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun CandidateProfile?.toUiState(): ProfileUiState =
+    private fun DebugScenario.toUiState(profile: CandidateProfile?): ProfileUiState = when (this) {
+        DebugScenario.LOADING -> ProfileUiState.Loading
+        DebugScenario.EMPTY -> ProfileUiState.Empty
+        DebugScenario.ERROR -> ProfileUiState.Failure
+        DebugScenario.OFFLINE -> profile.toSuccessState(isOffline = true)
+        else -> profile.toSuccessState(isOffline = false)
+    }
+
+    private fun CandidateProfile?.toSuccessState(isOffline: Boolean): ProfileUiState =
         if (this == null) {
             ProfileUiState.Empty
         } else {
-            ProfileUiState.Success(profile = this, unconfirmedCount = unconfirmedCount())
+            ProfileUiState.Success(
+                profile = this,
+                unconfirmedCount = unconfirmedCount(),
+                isOffline = isOffline,
+            )
         }
 
     private fun blankProfile() = CandidateProfile(
