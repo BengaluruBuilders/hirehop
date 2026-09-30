@@ -23,6 +23,10 @@ internal object RequirementCues {
         ignoreCase,
     )
 
+    private val yearsQuantity = Regex("\\b(\\d+)\\s*(?:[-–]|to)?\\s*\\d*\\+?\\s*(?:years?|yrs?)\\b", ignoreCase)
+
+    fun minimumYears(text: String): Int? = yearsQuantity.find(text)?.groupValues?.get(1)?.toIntOrNull()
+
     fun isNotARequirement(text: String): Boolean = notARequirement.containsMatchIn(text)
 
     fun hasEducationCue(text: String): Boolean = education.containsMatchIn(text)

@@ -5,14 +5,17 @@ internal val databaseEntries: List<LexiconEntry> = listOf(
     tool("PostgreSQL", "postgres", implies = listOf("sql")),
     tool("MongoDB", "mongo"),
     tool("SQLite", implies = listOf("sql")),
-    tool("Oracle", loose = listOf("oracle db")),
+    tool("Oracle Database", "oracle db"),
     tool("Redis"),
     skill("NoSQL"),
 )
 
 internal val analyticsEntries: List<LexiconEntry> = listOf(
-    tool("Excel", "ms excel", "microsoft excel", loose = listOf("advanced excel"))
-        .copy(blockedPrefixes = listOf("to ", "will ", "can ")),
+    tool("Excel", "ms excel", "microsoft excel", loose = listOf("advanced excel")).copy(
+        exactForms = listOf("Excel"),
+        matchesCanonical = false,
+        blockedSuffixes = listOf("\\s+(?:in|at|under)\\b"),
+    ),
     tool("Google Sheets"),
     skill("VLOOKUP", "vlookups"),
     skill("Pivot Tables", "pivot table"),
@@ -39,7 +42,10 @@ internal val analyticsEntries: List<LexiconEntry> = listOf(
     skill("Data Visualization", "data visualisation"),
     skill("Statistics", loose = listOf("statistical analysis")),
     skill("ETL"),
-    tool("Apache Spark", "spark"),
+    tool("Apache Spark").copy(
+        exactForms = listOf("Spark"),
+        blockedSuffixes = listOf("\\s+(?:interest|curiosity|joy|creativity|innovation|passion|ideas?)\\b"),
+    ),
     tool("PySpark", implies = listOf("apache spark")),
     tool("Hadoop"),
     tool("Kafka", "apache kafka"),

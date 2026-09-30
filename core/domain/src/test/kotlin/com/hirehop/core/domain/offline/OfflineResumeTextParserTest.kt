@@ -257,4 +257,66 @@ class OfflineResumeTextParserTest {
         assertThat(profile.everything()).doesNotContain("Female")
         assertThat(profile.everything()).doesNotContain("General")
     }
+
+    @Test
+    fun indianSensitiveLabelsAreDropped() {
+        listOf(
+            "Birth Date: 12/05/2002" to "12/05/2002",
+            "Born on 12 May 2002" to "May 2002",
+            "Age: 22 years" to "22 years",
+            "Father's Occupation: Farmer" to "Farmer",
+            "Father: Ramesh Kumar" to "Ramesh",
+            "Mother Tongue: Hindi" to "Hindi",
+            "Category: OBC" to "OBC",
+            "Aadhaar No: 1234 5678 9012" to "1234 5678",
+            "Name: Rahul    DOB: 12/05/2002" to "12/05/2002",
+            "Name: Rahul\tDOB: 12/05/2002" to "12/05/2002",
+            "S/O Ramesh Kumar" to "Ramesh",
+            "PAN: ABCDE1234F" to "ABCDE1234F",
+            "Photo: attached" to "attached",
+            "Passport No: X1234567" to "X1234567",
+        ).forEach { (line, value) ->
+            val profile = parser.parse("Meera Shah\n$line\nSkills\nPython")
+            assertThat(profile.everything()).doesNotContain(value)
+            assertThat(profile.headline).isEmpty()
+        }
+    }
+
+    @Test
+    fun sensitiveLinesInsideSectionsDoNotBecomeEntryText() {
+        val profile = parser.parse(
+            "Meera Shah\nEducation\nB.Tech in IT | 2021 - 2025\nBorn on 12 May 2002\nCategory: OBC\nAge: 22 years",
+        )
+        assertThat(profile.everything()).doesNotContain("2002")
+        assertThat(profile.everything()).doesNotContain("OBC")
+        assertThat(profile.entries.single().bullets).isEmpty()
+    }
+
+    @Test
+    fun panIndiaAndAgileAreNotTreatedAsSensitive() {
+        val profile = parser.parse("Meera Shah\nExperience\nSales Intern\n- Pan-India campaign support\n- Agile sprint planning")
+        assertThat(profile.entries.single().bullets).hasSize(2)
+    }
+
+    @Test
+    fun lowercaseEntryLineAfterABulletStartsANewEntry() {
+        val profile = parser.parse(
+            "Meera Shah\nExperience\nSales Intern | Acme\n- Built a quiz app\niOS Developer Intern | Acme Corp\n- Shipped a release",
+        )
+        assertThat(profile.entries.map { it.title }).containsExactly("Sales Intern", "iOS Developer Intern").inOrder()
+        assertThat(profile.entries.first().bullets.map { it.text }).containsExactly("Built a quiz app")
+    }
+
+    @Test
+    fun lowercaseNameWithDashStartsANewEntry() {
+        val profile = parser.parse("Meera Shah\nExperience\nIntern\n- Built a quiz app\neBay - Analyst")
+        assertThat(profile.entries).hasSize(2)
+        assertThat(profile.entries.first().bullets.map { it.text }).containsExactly("Built a quiz app")
+    }
+
+    @Test
+    fun lowercaseWrappedLineStillJoinsAnUnfinishedBullet() {
+        val profile = parser.parse("Meera Shah\nExperience\nIntern\n- Built a quiz app for\nlocal schools")
+        assertThat(profile.entries.single().bullets.single().text).isEqualTo("Built a quiz app for local schools")
+    }
 }

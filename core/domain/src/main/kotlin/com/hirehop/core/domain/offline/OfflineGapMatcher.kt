@@ -24,16 +24,13 @@ internal class OfflineGapMatcher @Inject constructor() : GapMatcher {
         val supporting = sources.filter { source -> requirement.keywords.any { source.index.supports(it) } }
         return RequirementMatch(
             requirement = requirement,
-            status = statusOf(requirement, sources),
+            status = cappedByYears(requirement, statusOf(requirement, sources)),
             evidenceIds = supporting.map { it.id }.distinct(),
         )
     }
 
     private fun statusOf(requirement: JobRequirement, sources: List<EvidenceSource>): MatchStatus {
-        val (degreeKeywords, otherKeywords) = requirement.keywords.partition {
-            SkillLexicon.typeOf(it) == RequirementType.EDUCATION
-        }
-        val units = otherKeywords.map { listOf(it) } + listOfNotNull(degreeKeywords.takeIf { it.isNotEmpty() })
+        val units = unitsOf(requirement.keywords)
         val covered = units.count { alternatives ->
             alternatives.any { keyword -> sources.any { it.index.supports(keyword) } }
         }
@@ -42,5 +39,17 @@ internal class OfflineGapMatcher @Inject constructor() : GapMatcher {
             covered == units.size -> MatchStatus.MET
             else -> MatchStatus.PARTIAL
         }
+    }
+
+    private fun unitsOf(keywords: List<String>): List<List<String>> {
+        val education = keywords.filter { SkillLexicon.typeOf(it) == RequirementType.EDUCATION }
+        val (fields, levels) = education.partition(SkillLexicon::isFieldOfStudy)
+        val others = keywords.filterNot { it in education }
+        return others.map { listOf(it) } + listOfNotNull(levels.takeIf { it.isNotEmpty() }, fields.takeIf { it.isNotEmpty() })
+    }
+
+    private fun cappedByYears(requirement: JobRequirement, status: MatchStatus): MatchStatus {
+        val years = RequirementCues.minimumYears(requirement.text) ?: return status
+        return if (years >= 1 && status == MatchStatus.MET) MatchStatus.PARTIAL else status
     }
 }

@@ -25,10 +25,17 @@ class AddUserStatedFactUseCaseTest {
     )
 
     @Test
-    fun addsKeywordsToSkillsWithoutCaseInsensitiveDuplicates() = runTest {
-        useCase(requirement("sql", "docker", "Docker"), "Used Docker for a college project")
+    fun addsOnlyKeywordsTheStatementMentionsUsingDisplayNames() = runTest {
+        useCase(requirement("sql", "docker", "kubernetes"), "Used Docker for a college project")
 
-        assertThat(checkNotNull(repository.current()).skills).containsExactly("Kotlin", "SQL", "docker").inOrder()
+        assertThat(checkNotNull(repository.current()).skills).containsExactly("Kotlin", "SQL", "Docker").inOrder()
+    }
+
+    @Test
+    fun skillAlreadyPresentIsNotDuplicatedIgnoringCase() = runTest {
+        useCase(requirement("sql"), "Wrote sql queries for a class project")
+
+        assertThat(checkNotNull(repository.current()).skills).containsExactly("Kotlin", "SQL").inOrder()
     }
 
     @Test
@@ -68,12 +75,55 @@ class AddUserStatedFactUseCaseTest {
     }
 
     @Test
-    fun blankStatementAddsSkillsButNoBullet() = runTest {
-        useCase(requirement("docker"), "   ")
+    fun blankStatementSavesNothing() = runTest {
+        useCase(requirement("docker", "kubernetes"), "   ")
+        useCase(requirement("docker", "kubernetes"), "")
+
+        assertThat(repository.saveCount).isEqualTo(0)
+        assertThat(checkNotNull(repository.current())).isEqualTo(baseProfile)
+    }
+
+    @Test
+    fun unrelatedStatementAddsTheBulletButNoSkills() = runTest {
+        useCase(requirement("docker", "kubernetes"), "no")
 
         val profile = checkNotNull(repository.current())
-        assertThat(profile.skills).contains("docker")
-        assertThat(profile.entries).isEmpty()
+        assertThat(profile.skills).containsExactly("Kotlin", "SQL").inOrder()
+        assertThat(profile.entries.single().bullets.single().text).isEqualTo("no")
+    }
+
+    @Test
+    fun oneStatementDoesNotAddSiblingKeywords() = runTest {
+        useCase(requirement("kubernetes", "docker"), "Ran Docker containers locally")
+
+        assertThat(checkNotNull(repository.current()).skills).doesNotContain("Kubernetes")
+    }
+
+    @Test
+    fun keywordsStatedInIsAliasAwareAndUsesWordBoundaries() {
+        assertThat(keywordsStatedIn(requirement("kubernetes"), "I deployed on K8s")).containsExactly("Kubernetes")
+        assertThat(keywordsStatedIn(requirement("java"), "I used JavaScript daily")).isEmpty()
+        assertThat(keywordsStatedIn(requirement("java", "javascript"), "Java and JavaScript"))
+            .containsExactly("Java", "JavaScript").inOrder()
+        assertThat(keywordsStatedIn(requirement("c"), "Wrote C++ code")).isEmpty()
+    }
+
+    @Test
+    fun keywordsStatedInHandlesKeywordsOutsideTheLexiconByStem() {
+        assertThat(keywordsStatedIn(requirement("handling", "customer"), "I handled customer calls"))
+            .containsExactly("handling", "customer").inOrder()
+        assertThat(keywordsStatedIn(requirement("handling"), "I cooked dinner")).isEmpty()
+    }
+
+    @Test
+    fun keywordsStatedInPreviewsExactlyWhatTheUseCaseAdds() = runTest {
+        val requirement = requirement("docker", "kubernetes", "sql")
+        val statement = "Used Docker and MySQL"
+
+        useCase(requirement, statement)
+
+        val added = checkNotNull(repository.current()).skills - baseProfile.skills.toSet()
+        assertThat(added).containsExactlyElementsIn(keywordsStatedIn(requirement, statement))
     }
 
     @Test

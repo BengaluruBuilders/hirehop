@@ -1,6 +1,7 @@
 package com.hirehop.core.domain.offline
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.TailorResumeUseCase
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EditType
@@ -227,5 +228,55 @@ class OfflineResumeTailorTest {
         assertThat(FillerRemover.shorten("Responsible for various reports and dashboards"))
             .isEqualTo("Reports and dashboards")
         assertThat(FillerRemover.shorten("Studied in order to learn Kotlin")).isEqualTo("Studied to learn Kotlin")
+    }
+
+    @Test
+    fun unixIsNeverRewordedToLinux() {
+        val profile = profileOf(
+            emptyList(),
+            entry("e1", EntryCategory.EXPERIENCE, "Intern", "Administered Unix servers"),
+        )
+        val (job, resume) = tailorFor("Requirements\n- Linux", profile)
+        assertThat(resume.bullets.single().proposedText).isEqualTo("Administered Unix servers")
+        assertThat(resume.bullets.single().editTypes).isEmpty()
+
+        val gap = matcher.match(profile, job)
+        val guarded = TailorResumeUseCase(tailor, OfflineFabricationGuard())(profile, job, gap)
+        assertThat(guarded.bullets.single().proposedText).isEqualTo("Administered Unix servers")
+    }
+
+    @Test
+    fun onlyLooselyRelatedAliasesStayUntouched() {
+        listOf(
+            Triple("Managed SCM using Git", "Supply Chain", "Managed SCM using Git"),
+            Triple("Handled costing for orders", "Cost Accounting", "Handled costing for orders"),
+            Triple("Ran Spark jobs on a cluster", "Apache Spark", "Ran Spark jobs on a cluster"),
+            Triple("Cleared IPCC in 2023", "CA Inter", "Cleared IPCC in 2023"),
+            Triple("Prepared ITR forms", "Income Tax", "Prepared ITR forms"),
+        ).forEach { (bulletText, jobTerm, expected) ->
+            val profile = profileOf(emptyList(), entry("e1", EntryCategory.EXPERIENCE, "Intern", bulletText))
+            val (_, resume) = tailorFor("Requirements\n- $jobTerm", profile)
+            assertThat(resume.bullets.single().proposedText).isEqualTo(expected)
+        }
+    }
+
+    @Test
+    fun strictSameToolAliasesAreReworded() {
+        val profile = profileOf(
+            emptyList(),
+            entry(
+                "e1",
+                EntryCategory.EXPERIENCE,
+                "Intern",
+                "Wrote py scripts and ts modules deployed on k8s with postgres",
+            ),
+        )
+        val (_, resume) = tailorFor(
+            "Requirements\n- Python\n- TypeScript\n- Kubernetes\n- PostgreSQL",
+            profile,
+        )
+        assertThat(resume.bullets.single().proposedText)
+            .isEqualTo("Wrote Python scripts and TypeScript modules deployed on Kubernetes with PostgreSQL")
+        assertThat(resume.bullets.single().editTypes).containsExactly(EditType.REWORD)
     }
 }

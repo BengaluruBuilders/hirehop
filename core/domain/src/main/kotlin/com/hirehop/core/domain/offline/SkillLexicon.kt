@@ -10,6 +10,7 @@ internal object SkillLexicon {
         softSkillEntries + degreeEntries + fieldOfStudyEntries
 
     private val entriesByCanonical: Map<String, LexiconEntry> = entries.associateBy { it.canonical }
+    private val fieldOfStudyCanonicals: Set<String> = fieldOfStudyEntries.map { it.canonical }.toSet()
     private val entriesByKey: Map<String, LexiconEntry> = buildKeyIndex()
     private val patterns: List<TermPattern> = entries.flatMap(TermPattern::compileAll)
 
@@ -24,6 +25,8 @@ internal object SkillLexicon {
 
     fun normalise(term: String): String? = entriesByKey[keyOf(term)]?.canonical
 
+    fun isFieldOfStudy(canonical: String): Boolean = canonical in fieldOfStudyCanonicals
+
     fun isKnown(canonical: String): Boolean = canonical in entriesByCanonical
 
     fun displayName(canonical: String): String = entriesByCanonical[canonical]?.display ?: canonical
@@ -32,7 +35,9 @@ internal object SkillLexicon {
 
     fun isLooseSurface(term: LexiconTerm): Boolean {
         val entry = entriesByCanonical[term.canonical] ?: return true
-        return entry.looseAliases.any { keyOf(it) == keyOf(term.surface) }
+        val surface = keyOf(term.surface)
+        val ambiguousExactForm = entry.exactForms.any { keyOf(it) == surface && keyOf(it) != keyOf(entry.display) }
+        return ambiguousExactForm || entry.looseAliases.any { keyOf(it) == surface }
     }
 
     fun surfaceMatchesDisplay(term: LexiconTerm): Boolean {

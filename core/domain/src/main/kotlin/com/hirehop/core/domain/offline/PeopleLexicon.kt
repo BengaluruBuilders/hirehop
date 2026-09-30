@@ -32,22 +32,49 @@ internal val softSkillEntries: List<LexiconEntry> = listOf(
 
 internal val degreeEntries: List<LexiconEntry> = listOf(
     education("B.Tech", "btech", "b tech", "bachelor of technology", implies = listOf("bachelor's degree")),
-    education("B.E.", "b.e", "bachelor of engineering", implies = listOf("bachelor's degree"))
-        .copy(exactForms = listOf("BE")),
+    education("B.E.", "b.e", "bachelor of engineering", implies = listOf("bachelor's degree")),
     education("M.Tech", "mtech", "m tech", "master of technology", implies = listOf("master's degree")),
     education("B.Sc", "bsc", "b sc", "bachelor of science", implies = listOf("bachelor's degree")),
     education("M.Sc", "msc", "m sc", "master of science", implies = listOf("master's degree")),
-    education("BCA", "bachelor of computer applications", implies = listOf("bachelor's degree")),
-    education("MCA", "master of computer applications", implies = listOf("master's degree")),
-    education("B.Com", "bcom", "b com", "bachelor of commerce", implies = listOf("bachelor's degree")),
-    education("M.Com", "mcom", "m com", "master of commerce", implies = listOf("master's degree")),
-    education("BBA", "bachelor of business administration", implies = listOf("bachelor's degree")),
-    education("MBA", "master of business administration", implies = listOf("master's degree")),
+    education(
+        "BCA",
+        "bachelor of computer applications",
+        implies = listOf("bachelor's degree", "computer science"),
+    ),
+    education(
+        "MCA",
+        "master of computer applications",
+        implies = listOf("master's degree", "computer science"),
+    ),
+    education(
+        "B.Com",
+        "bcom",
+        "b com",
+        "bachelor of commerce",
+        implies = listOf("bachelor's degree", "commerce"),
+    ),
+    education(
+        "M.Com",
+        "mcom",
+        "m com",
+        "master of commerce",
+        implies = listOf("master's degree", "commerce"),
+    ),
+    education(
+        "BBA",
+        "bachelor of business administration",
+        implies = listOf("bachelor's degree", "business administration"),
+    ),
+    education(
+        "MBA",
+        "master of business administration",
+        implies = listOf("master's degree", "business administration"),
+    ),
     education("PGDM"),
-    education("CA Inter", "ca intermediate", "ipcc"),
+    education("CA Inter", "ca intermediate", loose = listOf("ipcc")),
     education("CA Final"),
-    education("Chartered Accountant", "chartered accountancy").copy(exactForms = listOf("CA")),
-    education("CMA", "cost and management accountant", "icwa"),
+    education("Chartered Accountant", loose = listOf("chartered accountancy")),
+    education("CMA", loose = listOf("cost and management accountant", "icwa")),
     education("CFA"),
     education(
         "Bachelor's Degree",
@@ -65,12 +92,14 @@ internal val degreeEntries: List<LexiconEntry> = listOf(
 )
 
 internal val fieldOfStudyEntries: List<LexiconEntry> = listOf(
-    education("Computer Science", "cse", "comp sci", loose = listOf("computer science engineering")),
+    education("Computer Science", "comp sci", loose = listOf("cse", "computer science engineering")),
     education("Information Technology"),
-    education("Electronics and Communication", "ece"),
-    education("Electrical Engineering", "eee"),
+    education("Electronics and Communication", loose = listOf("ece")),
+    education("Electrical Engineering", loose = listOf("eee")),
     education("Mechanical Engineering"),
     education("Civil Engineering"),
     education("Mathematics", "maths"),
     education("Economics"),
+    education("Commerce").copy(blockedPrefixes = listOf("e-", "e ")),
+    education("Business Administration"),
 )

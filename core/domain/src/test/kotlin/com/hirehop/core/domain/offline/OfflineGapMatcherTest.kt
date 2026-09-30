@@ -146,4 +146,64 @@ class OfflineGapMatcherTest {
         val (_, gap) = analyse("Requirements\n- Java", profile)
         assertThat(gap.matches.single().status).isEqualTo(MatchStatus.GAP)
     }
+
+    @Test
+    fun genericDegreeWithFieldIsNotMetByADegreeInAnotherField() {
+        val profile = profileOf(emptyList(), entry("e1", EntryCategory.EDUCATION, "B.Com in Finance"))
+        val (_, gap) = analyse("Requirements\n- Bachelor's degree in Computer Science", profile)
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.PARTIAL)
+    }
+
+    @Test
+    fun genericDegreeWithFieldIsMetByADegreeInThatField() {
+        val profile = profileOf(emptyList(), entry("e1", EntryCategory.EDUCATION, "B.Com in Finance"))
+        val (_, gap) = analyse("Requirements\n- Bachelor's degree in Commerce", profile)
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.MET)
+    }
+
+    @Test
+    fun fieldAlternativesNeedOnlyOneField() {
+        val (_, gap) = analyse("Requirements\n- B.Tech in Computer Science or Information Technology")
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.MET)
+    }
+
+    @Test
+    fun missingFieldOfStudyWithMatchingLevelIsPartial() {
+        val profile = profileOf(emptyList(), entry("e1", EntryCategory.EDUCATION, "B.Tech in Mechanical Engineering"))
+        val (_, gap) = analyse("Requirements\n- B.Tech in Computer Science", profile)
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.PARTIAL)
+    }
+
+    @Test
+    fun yearsRequirementIsAtMostPartialWithAProjectOnlyResume() {
+        val profile = profileOf(
+            emptyList(),
+            entry("p1", EntryCategory.PROJECT, "Quiz App", "Built a Java quiz app"),
+        )
+        val (_, gap) = analyse("Requirements\n- 5+ years of Java experience", profile)
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.PARTIAL)
+        assertThat(gap.matches.single().evidenceIds).contains("p1-b1")
+    }
+
+    @Test
+    fun yearsRequirementWithNoEvidenceStaysGap() {
+        val (_, gap) = analyse("Requirements\n- 3 years of Kubernetes experience")
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.GAP)
+    }
+
+    @Test
+    fun freshersRangeStartingAtZeroYearsCanBeMet() {
+        val (_, gap) = analyse("Requirements\n- 0-2 years of Kotlin experience")
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.MET)
+    }
+
+    @Test
+    fun excelVerbInResumeIsNotEvidenceForExcelTool() {
+        val profile = profileOf(
+            emptyList(),
+            entry("e1", EntryCategory.ACHIEVEMENT, "Awards", "Students who excel in academics get medals"),
+        )
+        val (_, gap) = analyse("Requirements\n- Excel", profile)
+        assertThat(gap.matches.single().status).isEqualTo(MatchStatus.GAP)
+    }
 }

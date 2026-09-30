@@ -17,22 +17,28 @@ class TailorResumeUseCase @Inject constructor(
         job: JobDescription,
         gap: GapAnalysis,
     ): TailoredResume {
-        val sourcesById = profile.entries.flatMap { it.bullets }.associateBy { it.id }
+        val confirmedSources = profile.entries
+            .filter { it.isConfirmed }
+            .flatMap { it.bullets }
+            .associateBy { it.id }
         val proposed = tailor.tailor(profile, job, gap)
-        return TailoredResume(proposed.bullets.map { verified(it, sourcesById, profile) })
+        return TailoredResume(proposed.bullets.map { verified(it, confirmedSources, profile) })
     }
 
     private fun verified(
         bullet: TailoredBullet,
-        sourcesById: Map<String, EvidenceBullet>,
+        confirmedSources: Map<String, EvidenceBullet>,
         profile: CandidateProfile,
     ): TailoredBullet {
-        val sources = bullet.sourceIds.mapNotNull(sourcesById::get)
+        val sources = bullet.sourceIds.mapNotNull(confirmedSources::get)
         val violations = guard.check(bullet.proposedText, sources, profile)
-        if (violations.isEmpty()) return bullet.copy(violations = emptyList())
+        val sourceText = sources.firstOrNull()?.text ?: bullet.originalText
+        if (violations.isEmpty()) return bullet.copy(originalText = sourceText, violations = emptyList())
         return bullet.copy(
-            proposedText = bullet.originalText,
+            originalText = sourceText,
+            proposedText = sourceText,
             editTypes = emptyList(),
+            keywordsUsed = emptyList(),
             violations = violations,
         )
     }

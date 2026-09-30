@@ -11,6 +11,7 @@ internal data class LexiconEntry(
     val matchesCanonical: Boolean = true,
     val implies: List<String> = emptyList(),
     val blockedPrefixes: List<String> = emptyList(),
+    val blockedSuffixes: List<String> = emptyList(),
 ) {
     val canonical: String = display.lowercase()
 

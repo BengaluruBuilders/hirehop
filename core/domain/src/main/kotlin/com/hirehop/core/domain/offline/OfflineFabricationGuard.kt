@@ -14,27 +14,27 @@ internal class OfflineFabricationGuard @Inject constructor() : FabricationGuard 
     ): List<GuardrailViolation> {
         if (sources.isEmpty()) return listOf(GuardrailViolation.MissingSource)
         val sourceTexts = sources.map { it.text }
-        return numberViolations(proposedText, sourceTexts) +
-            termViolations(proposedText, sourceTexts, profile) +
-            verbViolations(proposedText, sourceTexts) +
-            scaleViolations(proposedText, sourceTexts)
+        return (
+            numberViolations(proposedText, sourceTexts) +
+                termViolations(proposedText, sourceTexts) +
+                tokenViolations(proposedText, sourceTexts) +
+                verbViolations(proposedText, sourceTexts) +
+                scaleViolations(proposedText, sourceTexts)
+            ).distinct()
     }
 
     private fun numberViolations(proposed: String, sourceTexts: List<String>): List<GuardrailViolation> =
         NumberClaims.unsupported(proposed, sourceTexts).map { GuardrailViolation.UnsupportedNumber(it.raw) }
 
-    private fun termViolations(
-        proposed: String,
-        sourceTexts: List<String>,
-        profile: CandidateProfile,
-    ): List<GuardrailViolation> {
-        val supported = sourceTexts.flatMap { EvidenceIndex.ofText(it).canonicalTerms() } +
-            profile.skills.flatMap { EvidenceIndex.ofSkill(it).canonicalTerms() }
-        val supportedSet = supported.toSet()
+    private fun termViolations(proposed: String, sourceTexts: List<String>): List<GuardrailViolation> {
+        val supported = sourceTexts.flatMap { SkillLexicon.canonicalsIn(it) }.toSet()
         return SkillLexicon.canonicalsIn(proposed)
-            .filter { it !in supportedSet }
+            .filter { it !in supported }
             .map { GuardrailViolation.UnsupportedTerm(SkillLexicon.displayName(it)) }
     }
+
+    private fun tokenViolations(proposed: String, sourceTexts: List<String>): List<GuardrailViolation> =
+        TokenSubset.unsupported(proposed, sourceTexts).map { GuardrailViolation.UnsupportedTerm(it) }
 
     private fun verbViolations(proposed: String, sourceTexts: List<String>): List<GuardrailViolation> {
         val strongestViolation = strongestVerbViolation(proposed, sourceTexts)

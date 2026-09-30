@@ -82,7 +82,7 @@ class TailorResumeUseCaseTest {
 
         assertThat(result.bullets.single().proposedText).isEqualTo(original)
         assertThat(result.bullets.single().violations)
-            .containsExactly(GuardrailViolation.VerbEscalation(from = "assisted", to = "led"))
+            .contains(GuardrailViolation.VerbEscalation(from = "assisted", to = "led"))
     }
 
     @Test
@@ -95,6 +95,44 @@ class TailorResumeUseCaseTest {
 
         assertThat(result.bullets.single().proposedText).isEqualTo("Original")
         assertThat(result.bullets.single().violations).containsExactly(GuardrailViolation.MissingSource)
+    }
+
+    @Test
+    fun bulletCitingAnUnconfirmedEntryGetsMissingSourceAndTheOriginalText() {
+        val result = useCaseReturning(
+            bullet("t1", "unconfirmed-1-b1", "Deployed containers with Kubernetes on AWS", "Deployed containers with Kubernetes on AWS"),
+        )(sampleProfile, emptyJob, emptyGap)
+
+        val fallback = result.bullets.single()
+        assertThat(fallback.violations).containsExactly(GuardrailViolation.MissingSource)
+        assertThat(fallback.proposedText).isEqualTo("Deployed containers with Kubernetes on AWS")
+        assertThat(fallback.editTypes).isEmpty()
+    }
+
+    @Test
+    fun fallbackUsesTheProfileSourceTextNotTheTailorsOriginalText() {
+        val profileText = "Wrote unit tests with JUnit to improve reliability"
+        val lying = bullet("t1", "exp-1-b2", "Led a team of 5", "Led a team of 50 to write tests")
+            .copy(keywordsUsed = listOf("junit"))
+
+        val fallback = useCaseReturning(lying)(sampleProfile, emptyJob, emptyGap).bullets.single()
+
+        assertThat(fallback.originalText).isEqualTo(profileText)
+        assertThat(fallback.proposedText).isEqualTo(profileText)
+        assertThat(fallback.editTypes).isEmpty()
+        assertThat(fallback.keywordsUsed).isEmpty()
+        assertThat(fallback.violations).isNotEmpty()
+    }
+
+    @Test
+    fun cleanBulletTakesItsOriginalTextFromTheProfile() {
+        val profileText = "Wrote unit tests with JUnit to improve reliability"
+        val clean = bullet("t1", "exp-1-b2", "tailor supplied text", profileText)
+
+        val result = useCaseReturning(clean)(sampleProfile, emptyJob, emptyGap).bullets.single()
+
+        assertThat(result.originalText).isEqualTo(profileText)
+        assertThat(result.violations).isEmpty()
     }
 
     @Test

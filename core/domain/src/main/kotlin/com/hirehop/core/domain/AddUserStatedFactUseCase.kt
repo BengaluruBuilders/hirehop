@@ -15,18 +15,20 @@ class AddUserStatedFactUseCase @Inject constructor(
     private val idGenerator: IdGenerator,
 ) {
     suspend operator fun invoke(requirement: JobRequirement, statement: String) {
+        val trimmed = statement.trim()
+        if (trimmed.isEmpty()) return
         val profile = profileRepository.observeProfile().first() ?: return
-        val withSkills = profile.copy(skills = mergedSkills(profile.skills, requirement.keywords))
-        profileRepository.saveProfile(withSkills.withStatement(statement.trim()))
+        val stated = keywordsStatedIn(requirement, trimmed)
+        val updated = profile.copy(skills = mergedSkills(profile.skills, stated)).withStatement(trimmed)
+        profileRepository.saveProfile(updated)
     }
 
-    private fun mergedSkills(existing: List<String>, keywords: List<String>): List<String> {
+    private fun mergedSkills(existing: List<String>, stated: List<String>): List<String> {
         val known = existing.map { it.lowercase() }.toMutableSet()
-        return existing + keywords.filter { known.add(it.lowercase()) }
+        return existing + stated.filter { known.add(it.lowercase()) }
     }
 
     private fun CandidateProfile.withStatement(statement: String): CandidateProfile {
-        if (statement.isEmpty()) return this
         val bullet = EvidenceBullet(id = idGenerator.newId(), text = statement)
         val exists = entries.any { it.id == USER_STATED_ENTRY_ID }
         val updated = if (exists) entries.map { it.appendingTo(bullet) } else entries + newEntry(bullet)

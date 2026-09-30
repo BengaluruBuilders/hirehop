@@ -23,7 +23,7 @@ internal class EntrySectionParser(private val category: EntryCategory) {
         val current = drafts.lastOrNull()
         when {
             bullet.marked -> addBullet(bullet.text)
-            lastWasBullet && rawLine.first().isLowerCase() -> extendLastBullet(rawLine)
+            continuesLastBullet(rawLine) -> extendLastBullet(rawLine)
             current != null && detailLine.containsMatchIn(rawLine) -> addBullet(rawLine)
             category in singleLineCategories -> startEntry(rawLine)
             current != null && isMetaLine(current, rawLine) -> mergeMeta(current, rawLine)
@@ -63,6 +63,13 @@ internal class EntrySectionParser(private val category: EntryCategory) {
         lastWasBullet = true
     }
 
+    private fun continuesLastBullet(line: String): Boolean {
+        if (!lastWasBullet || !line.first().isLowerCase()) return false
+        val previous = drafts.lastOrNull()?.bullets?.lastOrNull().orEmpty()
+        val looksLikeEntryLine = DateRangeExtractor.find(line) != null || entrySeparator.containsMatchIn(line)
+        return !previous.endsWith('.') && !looksLikeEntryLine
+    }
+
     private fun extendLastBullet(text: String) {
         val bullets = drafts.last().bullets
         bullets[bullets.lastIndex] = "${bullets.last()} ${text.trim()}"
@@ -91,6 +98,7 @@ internal class EntrySectionParser(private val category: EntryCategory) {
         const val MAX_META_LENGTH = 90
         const val MAX_TITLE_LENGTH = 90
         val whitespace = Regex("\\s+")
+        val entrySeparator = Regex("\\s\\|\\s|\\s[-–—]\\s")
         val singleLineCategories = setOf(EntryCategory.CERTIFICATION, EntryCategory.ACHIEVEMENT)
         val detailLine = Regex(
             "^(?:cgpa|gpa|percentage|score|marks|grade|aggregate|technologies|technology|tech stack|tools|stack|environment|role|duration|link|github|domain|skills used)\\b\\s*[:\\-–]",
