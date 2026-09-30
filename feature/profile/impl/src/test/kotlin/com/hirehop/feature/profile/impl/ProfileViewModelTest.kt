@@ -50,10 +50,11 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun uiState_whenNoProfile_showsLoadingThenEmpty() = runTest {
+    fun uiState_whenNoProfile_startsLoadingThenShowsEmpty() = runTest {
+        assertThat(viewModel.uiState.value).isEqualTo(ProfileUiState.Loading)
+
         viewModel.uiState.test {
-            assertThat(awaitItem()).isEqualTo(ProfileUiState.Loading)
-            assertThat(awaitItem()).isEqualTo(ProfileUiState.Empty)
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Empty)
         }
     }
 
