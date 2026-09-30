@@ -30,7 +30,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextDecoration
 import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.domain.prep.PrepQuestionKind
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhOutlinedButton
@@ -42,6 +41,7 @@ import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.component.HhTopAppBar
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.domain.prep.PrepQuestionKind
 import com.hirehop.core.ui.FactIdTag
 import com.hirehop.feature.tailor.impl.R
 

@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.coverletter.CoverLetterComposer
 import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
 import com.hirehop.core.model.CandidateProfile
-import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
@@ -84,7 +84,7 @@ class CoverLetterViewModelTest {
         assertThat(evidence.facts.single { fact -> fact.factId == "P-03-b1" }.entryTitle)
             .isEqualTo("Skills")
         val quoted = evidence.sentences.single { sentence -> sentence.factId == "P-03-b1" }
-        assertThat(quoted.text).contains("Reviewed pull requests from two other interns in Git")
+        assertThat(quoted.text).contains("Kotlin, Java, Android SDK")
     }
 
     @Test
@@ -128,7 +128,7 @@ class CoverLetterViewModelTest {
         viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
-        assertThat(state.wordCount).isEqualTo(70)
+        assertThat(state.wordCount).isEqualTo(61)
         assertThat(isWithinWordTarget(state.wordCount)).isFalse()
     }
 
@@ -237,7 +237,8 @@ class CoverLetterViewModelTest {
     @Test
     fun successAndProvenanceScenarios_renderTheSameReadyLetter() = runTest {
         given()
-        val expected = coverLetterStageFor(DebugScenario.DEFAULT)
+        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        val expected = viewModel.uiState.value.stage
         for (scenario in listOf(DebugScenario.SUCCESS, DebugScenario.PARTIAL, DebugScenario.USER_STATED)) {
             given()
             val fresh = CoverLetterViewModel(

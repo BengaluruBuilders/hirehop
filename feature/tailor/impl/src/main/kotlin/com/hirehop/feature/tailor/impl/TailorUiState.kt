@@ -3,6 +3,7 @@ package com.hirehop.feature.tailor.impl
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
+import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import java.io.File
@@ -35,9 +36,16 @@ internal data class TailorEntryUi(
     val bullets: List<TailorBulletUi>,
 )
 
+internal data class TailoredBulletSource(
+    val id: String,
+    val text: String,
+    val source: FactSource,
+)
+
 internal data class TailorBulletUi(
     val bullet: TailoredBullet,
     val sourceTexts: List<String>,
+    val sources: List<TailoredBulletSource>,
     val isStale: Boolean,
 ) {
     val kind: BulletReviewKind = bullet.reviewKind(isStale)

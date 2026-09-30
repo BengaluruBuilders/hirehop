@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhButton
@@ -35,7 +35,9 @@ import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.EditType
+import com.hirehop.core.model.FactSource
 import com.hirehop.core.ui.FactIdTag
+import com.hirehop.core.ui.FactProvenanceChip
 import com.hirehop.feature.tailor.impl.diff.DiffSegment
 import com.hirehop.feature.tailor.impl.diff.WordDiff
 
@@ -265,6 +267,7 @@ private fun KeywordChips(keywords: List<String>) {
 
 @Composable
 private fun SourceFacts(item: TailorBulletUi) {
+    val aligned = item.sources
     val factIds = item.bullet.sourceIds
     val factTexts = item.sourceTexts
     if (factIds.isEmpty() && factTexts.isEmpty()) return
@@ -273,10 +276,14 @@ private fun SourceFacts(item: TailorBulletUi) {
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
     ) {
         HhDivider()
-        if (factIds.isNotEmpty() && factIds.size == factTexts.size) {
-            factIds.forEachIndexed { index, factId -> SourceFactRow(factId = factId, text = factTexts[index]) }
+        if (aligned.isNotEmpty() && aligned.size == factIds.size) {
+            aligned.forEach { source ->
+                SourceFactRow(factId = source.id, text = source.text, source = source.source)
+            }
+        } else if (factIds.isNotEmpty() && factIds.size == factTexts.size) {
+            factIds.forEachIndexed { index, factId -> SourceFactRow(factId = factId, text = factTexts[index], source = null) }
         } else {
-            factIds.forEach { factId -> SourceFactRow(factId = factId, text = null) }
+            factIds.forEach { factId -> SourceFactRow(factId = factId, text = null, source = null) }
             factTexts.forEach { factText ->
                 Text(
                     text = stringResource(R.string.feature_tailor_impl_based_on, factText),
@@ -292,6 +299,7 @@ private fun SourceFacts(item: TailorBulletUi) {
 private fun SourceFactRow(
     factId: String,
     text: String?,
+    source: FactSource?,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -300,6 +308,9 @@ private fun SourceFactRow(
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
         FactIdTag(factId = factId)
+        if (source != null) {
+            FactProvenanceChip(source = source)
+        }
         if (text != null) {
             Text(
                 text = text,

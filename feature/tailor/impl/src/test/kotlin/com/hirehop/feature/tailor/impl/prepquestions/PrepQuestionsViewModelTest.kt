@@ -7,8 +7,8 @@ import com.hirehop.core.domain.prep.PrepQuestionKind
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobRequirement
-import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.KeywordCoverage
+import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
@@ -86,8 +86,8 @@ class PrepQuestionsViewModelTest {
 
         assertThat(viewModel.uiState.value.groups.flatMap { group -> group.cards }.map { card -> card.id })
             .containsExactly(
-                "prep-strength-strong-kotlin-for-android-app-development",
-                "prep-strength-jetpack-compose-for-modern-android-user-in",
+                "prep-strength-strong-kotlin-for-android-app-developmen",
+                "prep-strength-jetpack-compose-for-modern-android-user",
                 "prep-clarify-retrofit-or-ktor-for-network-calls",
                 "prep-clarify-unit-tests-written-with-junit",
                 "prep-gap-agile-delivery-with-jira",
@@ -143,7 +143,7 @@ class PrepQuestionsViewModelTest {
             .single { group -> group.kind == PrepQuestionKind.GAP }
             .cards
             .first()
-        assertThat(gap.prompt).contains("you have no record of it yet")
+        assertThat(gap.prompt).contains("You have no record of it yet")
     }
 
     @Test

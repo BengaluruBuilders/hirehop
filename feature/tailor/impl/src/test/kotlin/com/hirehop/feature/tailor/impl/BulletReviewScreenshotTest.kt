@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.EditType
+import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.GuardrailViolation
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.core.screenshot.HhTestDevice
@@ -202,8 +203,16 @@ private fun bulletUi(
     tailored: TailoredBullet,
     sourceTexts: List<String>,
     isStale: Boolean = false,
+    sources: List<TailoredBulletSource> = sourceTexts.mapIndexed { index, text ->
+        TailoredBulletSource(
+            id = tailored.sourceIds.getOrElse(index) { "b-$index" },
+            text = text,
+            source = FactSource.IMPORTED,
+        )
+    },
 ): TailorBulletUi = TailorBulletUi(
     bullet = tailored,
     sourceTexts = sourceTexts,
+    sources = sources,
     isStale = isStale,
 )
