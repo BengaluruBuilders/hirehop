@@ -43,12 +43,14 @@ base_ref() {
 }
 
 forbid_new_violations() {
-  local article="$1" message="$2" pattern="$3" base
+  local article="$1" message="$2" pattern="$3"
+  shift 3
+  local base
   base="$(base_ref)"
   [[ -z "$base" ]] && return
   git rev-parse --verify -q "$base" >/dev/null || return
   local matches
-  matches="$(git diff -U0 "$base" -- '*.kt' '*.kts' '*.xml' |
+  matches="$(git diff -U0 "$base" -- "$@" |
     grep -E '^\+' | grep -vE '^\+\+\+' | sed -E 's/^\+//' | grep -E "$pattern")"
   if [[ -n "$matches" ]]; then
     echo "::error title=Constitution ${article}::${message}"
@@ -94,10 +96,12 @@ forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual ti
   'Thread\.sleep' '*.kt'
 forbid III.3 "Production code must not reference a test double or a fake." \
   '^import .*\.Fake[A-Za-z0-9_]+' '*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!core/testing/*'
-forbid_new_violations II.5 "A feature must build its UI from the shared Hh* components, not from raw Material components." \
-  '^import androidx\.compose\.material3\.(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|TextField|OutlinedTextField|Card|ElevatedCard|OutlinedCard|Surface|Scaffold|Snackbar|SnackbarHost|AlertDialog|BasicAlertDialog|TopAppBar|CenterAlignedTopAppBar|LargeTopAppBar|MediumTopAppBar|TopAppBarDefaults|ListItem|Checkbox|TriStateCheckbox|RadioButton|Switch|ModalBottomSheet|BottomSheetScaffold|Chip|AssistChip|FilterChip|InputChip|SuggestionChip|Badge|Divider|HorizontalDivider|VerticalDivider|LinearProgressIndicator|CircularProgressIndicator|MaterialTheme)'
+design_system_consumers=('feature/' 'app/' 'core/ui/')
+forbid_new_violations II.5 "A feature must build its UI from the shared Hh* components, not from raw Material components. core:designsystem is the one place raw Material is allowed, because wrapping it is its job." \
+  '^import androidx\.compose\.material3\.(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|TextField|OutlinedTextField|Card|ElevatedCard|OutlinedCard|Surface|Scaffold|Snackbar|SnackbarHost|AlertDialog|BasicAlertDialog|TopAppBar|CenterAlignedTopAppBar|LargeTopAppBar|MediumTopAppBar|TopAppBarDefaults|ListItem|Checkbox|TriStateCheckbox|RadioButton|Switch|ModalBottomSheet|BottomSheetScaffold|Chip|AssistChip|FilterChip|InputChip|SuggestionChip|Badge|Divider|HorizontalDivider|VerticalDivider|LinearProgressIndicator|CircularProgressIndicator|MaterialTheme)' \
+  "${design_system_consumers[@]}"
 forbid_new_violations II.5 "Read design-system tokens through HhTheme, not through MaterialTheme." \
-  'MaterialTheme\.(colorScheme|typography|shapes|dimens)'
+  'MaterialTheme\.(colorScheme|typography|shapes|dimens)' "${design_system_consumers[@]}"
 forbid_ungrounded_comments
 
 forbid_lint_baseline_growth() {

@@ -4,16 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ProfileEntry
 
 @Composable
@@ -22,17 +20,16 @@ fun FactIdTag(
     modifier: Modifier = Modifier,
 ) {
     val description = stringResource(id = R.string.core_ui_fact_id_content_description, factId)
-    val shape = RoundedCornerShape(4.dp)
+    val shape = RoundedCornerShape(HhTheme.shapes.xs)
     Text(
         text = factId,
         modifier = modifier
             .clearAndSetSemantics { contentDescription = description }
-            .background(color = MaterialTheme.colorScheme.surfaceVariant, shape = shape)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant, shape = shape)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        style = MaterialTheme.typography.labelSmall,
-        fontFamily = FontFamily.Monospace,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            .background(color = HhTheme.colors.spot, shape = shape)
+            .border(width = HhTheme.spacing.d2, color = HhTheme.colors.hairlineStrong, shape = shape)
+            .padding(horizontal = HhTheme.spacing.d12 / 2, vertical = HhTheme.spacing.d4 / 2),
+        style = HhTheme.typography.mono,
+        color = HhTheme.colors.spotInk,
         textAlign = TextAlign.Center,
     )
 }
