@@ -15,7 +15,7 @@ internal val jobDescriptionResources = listOf(
 )
 
 internal fun resourceText(name: String): String {
-    val stream = checkNotNull(TestResources::class.java.classLoader.getResourceAsStream(name)) { "Missing $name" }
+    val stream = checkNotNull(TestResources::class.java.classLoader?.getResourceAsStream(name)) { "Missing $name" }
     return stream.bufferedReader().use { it.readText() }
 }
 
