@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
+import com.hirehop.buildlogic.configureAndroidLint
 import com.hirehop.buildlogic.configureKotlinAndroid
 import com.hirehop.buildlogic.configureSpotlessForAndroid
 import com.hirehop.buildlogic.libs
@@ -15,6 +16,7 @@ abstract class AndroidLibraryConventionPlugin : Plugin<Project> {
 
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
+                configureAndroidLint(lint)
                 testOptions.targetSdk = 36
                 lint.targetSdk = 36
                 defaultConfig.testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

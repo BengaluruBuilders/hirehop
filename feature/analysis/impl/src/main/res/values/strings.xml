@@ -1,62 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_analysis_title">Analyze a job</string>
-    <string name="feature_analysis_back">Go back</string>
-    <string name="feature_analysis_loading">Loading</string>
-    <string name="feature_analysis_analyzing">Analyzing the job description</string>
-    <string name="feature_analysis_saving">Saving your application</string>
+    <string name="feature_analysis_impl_title">Analyze a job</string>
+    <string name="feature_analysis_impl_back">Go back</string>
+    <string name="feature_analysis_impl_loading">Loading</string>
+    <string name="feature_analysis_impl_analyzing">Analyzing the job description</string>
+    <string name="feature_analysis_impl_saving">Saving your application</string>
 
-    <string name="feature_analysis_no_profile_title">Build your profile first</string>
-    <string name="feature_analysis_no_profile_message">HireHop compares a job with facts you confirmed in your profile. Add and confirm at least one profile entry, then come back.</string>
-    <string name="feature_analysis_open_profile">Open profile</string>
+    <string name="feature_analysis_impl_no_profile_title">Build your profile first</string>
+    <string name="feature_analysis_impl_no_profile_message">HireHop compares a job with facts you confirmed in your profile. Add and confirm at least one profile entry, then come back.</string>
+    <string name="feature_analysis_impl_open_profile">Open profile</string>
 
-    <string name="feature_analysis_input_label">Job description</string>
-    <string name="feature_analysis_input_placeholder">Paste the full job description here</string>
-    <string name="feature_analysis_input_hint">Paste the whole text, including the requirements and the nice-to-have list.</string>
-    <string name="feature_analysis_character_count">%1$d / %2$d characters</string>
-    <string name="feature_analysis_paste">Paste</string>
-    <string name="feature_analysis_analyze">Analyze</string>
+    <string name="feature_analysis_impl_input_label">Job description</string>
+    <string name="feature_analysis_impl_input_placeholder">Paste the full job description here</string>
+    <string name="feature_analysis_impl_input_hint">Paste the whole text, including the requirements and the nice-to-have list.</string>
+    <string name="feature_analysis_impl_character_count">%1$d / %2$d characters</string>
+    <string name="feature_analysis_impl_paste">Paste</string>
+    <string name="feature_analysis_impl_analyze">Analyze</string>
 
-    <string name="feature_analysis_coverage_headline">You cover %1$d of %2$d key terms</string>
-    <string name="feature_analysis_coverage_explanation">This is keyword coverage. It is not an ATS score, and it does not predict any result.</string>
-    <string name="feature_analysis_coverage_empty">HireHop found no key terms. Go back and paste more of the job description.</string>
-    <string name="feature_analysis_edit_job_text">Edit job text</string>
-    <string name="feature_analysis_field_title">Job title</string>
-    <string name="feature_analysis_field_company">Company</string>
+    <string name="feature_analysis_impl_coverage_headline">You cover %1$d of %2$d key terms</string>
+    <string name="feature_analysis_impl_coverage_explanation">This is keyword coverage. It is not an ATS score, and it does not predict any result.</string>
+    <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms. Go back and paste more of the job description.</string>
+    <string name="feature_analysis_impl_edit_job_text">Edit job text</string>
+    <string name="feature_analysis_impl_field_title">Job title</string>
+    <string name="feature_analysis_impl_field_company">Company</string>
 
-    <string name="feature_analysis_group_must_have_gaps">Must-have gaps</string>
-    <string name="feature_analysis_group_partial">Partial</string>
-    <string name="feature_analysis_group_met">Met</string>
-    <string name="feature_analysis_group_nice_to_have_gaps">Nice-to-have gaps</string>
-    <string name="feature_analysis_group_header">%1$s (%2$d)</string>
+    <string name="feature_analysis_impl_group_must_have_gaps">Must-have gaps</string>
+    <string name="feature_analysis_impl_group_partial">Partial</string>
+    <string name="feature_analysis_impl_group_met">Met</string>
+    <string name="feature_analysis_impl_group_nice_to_have_gaps">Nice-to-have gaps</string>
+    <string name="feature_analysis_impl_group_header">%1$s (%2$d)</string>
 
-    <string name="feature_analysis_status_met">Met</string>
-    <string name="feature_analysis_status_partial">Partial</string>
-    <string name="feature_analysis_status_gap">Gap</string>
-    <string name="feature_analysis_priority_must_have">Must-have</string>
-    <string name="feature_analysis_priority_nice_to_have">Nice-to-have</string>
-    <string name="feature_analysis_evidence_header">Your evidence</string>
+    <string name="feature_analysis_impl_status_met">Met</string>
+    <string name="feature_analysis_impl_status_partial">Partial</string>
+    <string name="feature_analysis_impl_status_gap">Gap</string>
+    <string name="feature_analysis_impl_priority_must_have">Must-have</string>
+    <string name="feature_analysis_impl_priority_nice_to_have">Nice-to-have</string>
+    <string name="feature_analysis_impl_evidence_header">Your evidence</string>
 
-    <string name="feature_analysis_i_have_this">I have this</string>
-    <string name="feature_analysis_add_to_prep_plan">Add to prep plan</string>
-    <string name="feature_analysis_in_prep_plan">In prep plan</string>
+    <string name="feature_analysis_impl_i_have_this">I have this</string>
+    <string name="feature_analysis_impl_add_to_prep_plan">Add to prep plan</string>
+    <string name="feature_analysis_impl_in_prep_plan">In prep plan</string>
 
-    <string name="feature_analysis_evidence_dialog_title">Add your evidence</string>
-    <string name="feature_analysis_evidence_dialog_message">Write one true sentence that shows this. HireHop saves it in your profile as a fact you stated.</string>
-    <string name="feature_analysis_evidence_dialog_label">Your evidence</string>
-    <string name="feature_analysis_evidence_dialog_confirm">Add evidence</string>
-    <string name="feature_analysis_cancel">Cancel</string>
+    <string name="feature_analysis_impl_evidence_dialog_title">Add your evidence</string>
+    <string name="feature_analysis_impl_evidence_dialog_message">Write one true sentence that shows this. HireHop saves it in your profile as a fact you stated.</string>
+    <string name="feature_analysis_impl_evidence_dialog_label">Your evidence</string>
+    <string name="feature_analysis_impl_evidence_dialog_confirm">Add evidence</string>
+    <string name="feature_analysis_impl_cancel">Cancel</string>
 
-    <string name="feature_analysis_prep_plan_count">%1$d in your prep plan. HireHop saves them in the notes of the application.</string>
-    <string name="feature_analysis_error_analyze">HireHop could not analyze this text. Try again.</string>
-    <string name="feature_analysis_error_add_evidence">HireHop could not add your evidence. Try again.</string>
-    <string name="feature_analysis_error_save">HireHop could not save the application. Try again.</string>
-    <string name="feature_analysis_dialog_adds_skills">Adds to your skills: %1$s</string>
-    <string name="feature_analysis_dialog_adds_no_skills">Nothing to add to skills</string>
-    <string name="feature_analysis_dialog_adds_line">Adds this line to your profile: %1$s</string>
-    <string name="feature_analysis_i_have_this_description">I have this: %1$s</string>
-    <string name="feature_analysis_add_to_prep_plan_description">Add to prep plan: %1$s</string>
-    <string name="feature_analysis_prep_state_added">Added</string>
-    <string name="feature_analysis_prep_state_not_added">Not added</string>
-    <string name="feature_analysis_save_and_tailor">Save and tailor resume</string>
+    <string name="feature_analysis_impl_prep_plan_count">%1$d in your prep plan. HireHop saves them in the notes of the application.</string>
+    <string name="feature_analysis_impl_error_analyze">HireHop could not analyze this text. Try again.</string>
+    <string name="feature_analysis_impl_error_add_evidence">HireHop could not add your evidence. Try again.</string>
+    <string name="feature_analysis_impl_error_save">HireHop could not save the application. Try again.</string>
+    <string name="feature_analysis_impl_dialog_adds_skills">Adds to your skills: %1$s</string>
+    <string name="feature_analysis_impl_dialog_adds_no_skills">Nothing to add to skills</string>
+    <string name="feature_analysis_impl_dialog_adds_line">Adds this line to your profile: %1$s</string>
+    <string name="feature_analysis_impl_i_have_this_description">I have this: %1$s</string>
+    <string name="feature_analysis_impl_add_to_prep_plan_description">Add to prep plan: %1$s</string>
+    <string name="feature_analysis_impl_prep_state_added">Added</string>
+    <string name="feature_analysis_impl_prep_state_not_added">Not added</string>
+    <string name="feature_analysis_impl_save_and_tailor">Save and tailor resume</string>
 </resources>

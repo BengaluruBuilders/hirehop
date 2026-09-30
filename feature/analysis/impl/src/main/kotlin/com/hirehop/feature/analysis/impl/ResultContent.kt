@@ -73,13 +73,13 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
         ) {
             if (coverage.total == 0) {
                 Text(
-                    text = stringResource(R.string.feature_analysis_coverage_empty),
+                    text = stringResource(R.string.feature_analysis_impl_coverage_empty),
                     style = MaterialTheme.typography.titleMedium,
                 )
             } else {
                 Text(
                     text = stringResource(
-                        R.string.feature_analysis_coverage_headline,
+                        R.string.feature_analysis_impl_coverage_headline,
                         coverage.covered,
                         coverage.total,
                     ),
@@ -87,7 +87,7 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
                 )
             }
             Text(
-                text = stringResource(R.string.feature_analysis_coverage_explanation),
+                text = stringResource(R.string.feature_analysis_impl_coverage_explanation),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -101,7 +101,7 @@ private fun JobDetailsFields(state: AnalysisUiState.Result, actions: AnalysisAct
             value = state.title,
             onValueChange = actions.onTitleChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.feature_analysis_field_title)) },
+            label = { Text(stringResource(R.string.feature_analysis_impl_field_title)) },
             singleLine = true,
             isError = !state.canSave,
         )
@@ -109,11 +109,11 @@ private fun JobDetailsFields(state: AnalysisUiState.Result, actions: AnalysisAct
             value = state.company,
             onValueChange = actions.onCompanyChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.feature_analysis_field_company)) },
+            label = { Text(stringResource(R.string.feature_analysis_impl_field_company)) },
             singleLine = true,
         )
         TextButton(onClick = actions.onEditJobText) {
-            Text(stringResource(R.string.feature_analysis_edit_job_text))
+            Text(stringResource(R.string.feature_analysis_impl_edit_job_text))
         }
     }
 }
@@ -139,7 +139,7 @@ private fun LazyListScope.resultSections(
 private fun GroupHeader(section: RequirementSection) {
     Text(
         text = stringResource(
-            R.string.feature_analysis_group_header,
+            R.string.feature_analysis_impl_group_header,
             stringResource(section.group.titleRes()),
             section.items.size,
         ),
@@ -160,7 +160,7 @@ private fun SaveBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
     ) {
         if (state.prepPlanCount > 0) {
             Text(
-                text = stringResource(R.string.feature_analysis_prep_plan_count, state.prepPlanCount),
+                text = stringResource(R.string.feature_analysis_impl_prep_plan_count, state.prepPlanCount),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -168,15 +168,15 @@ private fun SaveBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
             onClick = actions.onSave,
             enabled = state.canSave,
             modifier = Modifier.fillMaxWidth(),
-            text = { Text(stringResource(R.string.feature_analysis_save_and_tailor)) },
+            text = { Text(stringResource(R.string.feature_analysis_impl_save_and_tailor)) },
         )
     }
 }
 
 @StringRes
 private fun RequirementGroup.titleRes(): Int = when (this) {
-    RequirementGroup.MustHaveGaps -> R.string.feature_analysis_group_must_have_gaps
-    RequirementGroup.Partial -> R.string.feature_analysis_group_partial
-    RequirementGroup.Met -> R.string.feature_analysis_group_met
-    RequirementGroup.NiceToHaveGaps -> R.string.feature_analysis_group_nice_to_have_gaps
+    RequirementGroup.MustHaveGaps -> R.string.feature_analysis_impl_group_must_have_gaps
+    RequirementGroup.Partial -> R.string.feature_analysis_impl_group_partial
+    RequirementGroup.Met -> R.string.feature_analysis_impl_group_met
+    RequirementGroup.NiceToHaveGaps -> R.string.feature_analysis_impl_group_nice_to_have_gaps
 }

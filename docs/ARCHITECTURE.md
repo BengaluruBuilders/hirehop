@@ -210,6 +210,6 @@ Applications (start) and Profile. Analysis and Tailor are pushed on top:
 - Gradle wrapper version: same as NiA (`gradle-9.7.1`). Put `org.gradle.workers.max=3` in
   `gradle.properties`. Other agents build at the same time on this shared CI host.
 - Run `./gradlew --stop` when you finish.
-- Do not add Firebase, benchmarks, baseline profiles, screenshot tests, jacoco, dependency-guard, flavors, or
-  the NiA lint module. Add Spotless with ktlint, as NiA does, but with no license header step.
-- Verify before you push: `./gradlew assembleDebug testDebugUnitTest spotlessCheck` must pass.
+- Add NiA production tooling only in the order that the adoption ledger in `docs/CONSTITUTION.md` gives.
+  Spotless with ktlint has no license header step.
+- Verify before you push: `tools/ci/verify-local.sh` must pass.

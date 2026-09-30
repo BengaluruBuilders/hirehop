@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
+import com.hirehop.buildlogic.configureAndroidLint
 import com.hirehop.buildlogic.configureKotlinAndroid
 import com.hirehop.buildlogic.configureSpotlessForAndroid
 import org.gradle.api.Plugin
@@ -13,6 +14,7 @@ abstract class AndroidApplicationConventionPlugin : Plugin<Project> {
 
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
+                configureAndroidLint(lint)
                 defaultConfig.targetSdk = 36
                 testOptions.animationsDisabled = true
             }

@@ -83,7 +83,7 @@ private fun BoxScope.ApplicationsBody(
 ) {
     when (uiState) {
         ApplicationsUiState.Loading -> HhLoadingWheel(
-            contentDesc = stringResource(R.string.feature_applications_loading),
+            contentDesc = stringResource(R.string.feature_applications_impl_loading),
             modifier = Modifier.align(Alignment.Center),
         )
         ApplicationsUiState.Empty -> ApplicationsEmptyState(
@@ -125,7 +125,7 @@ private fun NewApplicationButton(
         onClick = onClick,
         modifier = modifier,
         icon = { Icon(imageVector = HhIcons.Add, contentDescription = null) },
-        text = { Text(stringResource(R.string.feature_applications_new)) },
+        text = { Text(stringResource(R.string.feature_applications_impl_new)) },
     )
 }
 
@@ -139,14 +139,14 @@ private fun ApplicationsEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(R.string.feature_applications_empty_message),
+            text = stringResource(R.string.feature_applications_impl_empty_message),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(24.dp))
         HhButton(
             onClick = onAnalyzeClick,
-            text = { Text(stringResource(R.string.feature_applications_empty_action)) },
+            text = { Text(stringResource(R.string.feature_applications_impl_empty_action)) },
         )
     }
 }

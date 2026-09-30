@@ -1,0 +1,104 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: build-${{ github.ref }}-${{ github.event.action == 'edited' && 'title' || 'full' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: "Constitution policy"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check PR title
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|refactor|test|docs|build|ci|chore)(\([a-z0-9-]+\))?!?: .+'
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error title=Constitution VI.2::Use the PR title format type(scope): summary"
+            exit 1
+          fi
+
+      - name: Checkout
+        if: github.event.action != 'edited'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check constitution rules
+        if: github.event.action != 'edited'
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: tools/ci/check-constitution.sh
+
+      - name: Scan for secrets
+        if: github.event.action != 'edited'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: "Build, lint, and unit tests"
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check, test, lint, and build APKs
+        run: >-
+          ./gradlew
+          :build-logic:convention:check
+          spotlessCheck
+          testDebugUnitTest
+          lintRelease
+          assembleDebug
+          assembleRelease
+          --continue
+
+      - name: Check Room schema is committed
+        run: |
+          if [[ -n "$(git status --porcelain -- core/database/schemas)" ]]; then
+            git status --short -- core/database/schemas
+            echo "::error title=Constitution V.6::Room schema changed. Commit the exported schema and add a migration."
+            exit 1
+          fi
+
+      - name: Upload test reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-and-lint-reports
+          retention-days: 7
+          path: |
+            **/build/reports/tests/
+            **/build/reports/lint-results-*.html

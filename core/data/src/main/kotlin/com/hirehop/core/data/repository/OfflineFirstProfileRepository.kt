@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 internal class OfflineFirstProfileRepository @Inject constructor(
     private val profileDao: ProfileDao,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ProfileRepository {
 
     override fun observeProfile(): Flow<CandidateProfile?> =

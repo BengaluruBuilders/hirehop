@@ -5,7 +5,7 @@ import com.hirehop.core.model.EntryCategory
 
 internal enum class EntryTemplate(
     val category: EntryCategory,
-    @StringRes val labelRes: Int,
+    @param:StringRes val labelRes: Int,
 ) {
     PROJECT(EntryCategory.PROJECT, R.string.feature_profile_impl_add_project),
     INTERNSHIP(EntryCategory.EXPERIENCE, R.string.feature_profile_impl_add_internship),
