@@ -1,4 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_applications_impl_add_application">Analyze a new job</string>
+    <string name="feature_applications_title">Applications</string>
+    <string name="feature_applications_new">New application</string>
+    <string name="feature_applications_empty_message">Paste a job description to see how your profile matches it, then tailor your resume and track the application here.</string>
+    <string name="feature_applications_empty_action">Analyze a job description</string>
+    <string name="feature_applications_coverage">Covers %1$d of %2$d key terms</string>
+    <string name="feature_applications_updated">Updated %1$s</string>
+
+    <string name="feature_applications_status_saved">Saved</string>
+    <string name="feature_applications_status_applied">Applied</string>
+    <string name="feature_applications_status_interview">Interview</string>
+    <string name="feature_applications_status_offer">Offer</string>
+    <string name="feature_applications_status_rejected">Rejected</string>
+    <string name="feature_applications_status_no_response">No response</string>
+
+    <string name="feature_applications_detail_back">Back</string>
+    <string name="feature_applications_detail_delete">Delete</string>
+    <string name="feature_applications_detail_not_found">This application no longer exists.</string>
+    <string name="feature_applications_detail_gap_heading">Match summary</string>
+    <string name="feature_applications_detail_gap_unavailable">No gap analysis is saved for this application.</string>
+    <string name="feature_applications_detail_met">Met</string>
+    <string name="feature_applications_detail_partial">Partial</string>
+    <string name="feature_applications_detail_gaps">Gaps</string>
+    <string name="feature_applications_detail_must_have_gaps">Must-have gaps</string>
+    <string name="feature_applications_detail_resume_heading">Tailored resume</string>
+    <string name="feature_applications_detail_resume_progress">%1$d of %2$d changes reviewed</string>
+    <string name="feature_applications_detail_resume_no_changes">The tailored resume has no changes to review.</string>
+    <string name="feature_applications_detail_resume_unavailable">No tailored resume is saved for this application.</string>
+    <string name="feature_applications_detail_review_resume">Review tailored resume</string>
+    <string name="feature_applications_detail_status_heading">Status</string>
+    <string name="feature_applications_detail_notes_heading">Notes</string>
+    <string name="feature_applications_detail_notes_label">Your notes</string>
+    <string name="feature_applications_detail_delete_title">Delete this application?</string>
+    <string name="feature_applications_detail_delete_message">This removes the application, its match summary, and its tailored resume from this device.</string>
+    <string name="feature_applications_detail_delete_confirm">Delete</string>
+    <string name="feature_applications_detail_delete_cancel">Cancel</string>
 </resources>
