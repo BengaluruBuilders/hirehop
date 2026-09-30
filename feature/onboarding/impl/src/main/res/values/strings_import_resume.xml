@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_impl_import_resume_title">Import resume</string>
+    <string name="feature_onboarding_impl_import_resume_back_description">Back</string>
+    <string name="feature_onboarding_impl_import_resume_heading">Import your resume</string>
+    <string name="feature_onboarding_impl_import_resume_promise">We read it once for your facts, then delete the file. We keep only the facts you confirm.</string>
+    <string name="feature_onboarding_impl_import_resume_choose">Choose your resume (PDF or DOCX)</string>
+    <string name="feature_onboarding_impl_import_resume_choose_another">Choose another file</string>
+    <string name="feature_onboarding_impl_import_resume_try_again">Try again</string>
+    <string name="feature_onboarding_impl_import_resume_review_facts">Review my facts</string>
+    <string name="feature_onboarding_impl_import_resume_start_guided_form">Start the guided form</string>
+    <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission.</string>
+    <string name="feature_onboarding_impl_import_resume_picker_note">Opens Android\'s file picker</string>
+    <string name="feature_onboarding_impl_import_resume_guided_form_link">No resume? Build your profile step by step.</string>
+    <string name="feature_onboarding_impl_import_resume_waiting_picker">Waiting for Android\'s file picker</string>
+
+    <string name="feature_onboarding_impl_import_resume_reading_ordinal">Reading · up to 30 s</string>
+    <string name="feature_onboarding_impl_import_resume_step_read">Reading your resume</string>
+    <string name="feature_onboarding_impl_import_resume_step_sections">Finding your sections</string>
+    <string name="feature_onboarding_impl_import_resume_step_strip">Removing details we never keep</string>
+    <string name="feature_onboarding_impl_import_resume_lifted_heading">Facts lifted so far</string>
+
+    <string name="feature_onboarding_impl_import_resume_queued_waiting">%1$s · %2$s · waiting</string>
+    <string name="feature_onboarding_impl_import_resume_queued_offline">You\'re offline. We\'ll read it when you\'re back.</string>
+    <string name="feature_onboarding_impl_import_resume_unsupported_note">HireHop reads PDF and DOCX files. \"%1$s\" is a different type. Choose another file.</string>
+
+    <string name="feature_onboarding_impl_import_resume_success_body">Nothing is used until you confirm it.</string>
+    <plurals name="feature_onboarding_impl_import_resume_success_heading">
+        <item quantity="one">%1$d fact ready to check</item>
+        <item quantity="other">%1$d facts ready to check</item>
+    </plurals>
+
+    <string name="feature_onboarding_impl_import_resume_scanned_heading">This PDF looks like a scan, so we can\'t read its text.</string>
+    <string name="feature_onboarding_impl_import_resume_scanned_body">Build your profile step by step instead.</string>
+    <string name="feature_onboarding_impl_import_resume_no_facts_heading">We read the file and found no facts in it.</string>
+    <string name="feature_onboarding_impl_import_resume_no_facts_body">Some layouts carry no readable facts. Add your details step by step, or choose another file.</string>
+    <string name="feature_onboarding_impl_import_resume_empty_heading">This file is empty.</string>
+    <string name="feature_onboarding_impl_import_resume_empty_body">There was nothing to read. Nothing was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_too_large_heading">This file is too large to read.</string>
+    <string name="feature_onboarding_impl_import_resume_too_large_body">HireHop reads files up to %1$s. Nothing was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_failed_heading">We couldn\'t read this file.</string>
+    <string name="feature_onboarding_impl_import_resume_failed_body">Nothing was kept. Try again, or choose another file.</string>
+
+    <string name="feature_onboarding_impl_import_resume_spot_scanned_description">A scanned page with no text layer</string>
+    <string name="feature_onboarding_impl_import_resume_spot_empty_description">A page with no facts on it</string>
+    <string name="feature_onboarding_impl_import_resume_spot_error_description">A file HireHop could not read</string>
+    <string name="feature_onboarding_impl_import_resume_spot_done_description">Facts lifted from the file</string>
+
+    <string name="feature_onboarding_impl_import_resume_file_type_pdf">PDF</string>
+    <string name="feature_onboarding_impl_import_resume_file_type_docx">DOCX</string>
+    <string name="feature_onboarding_impl_import_resume_file_type_other">File</string>
+
+    <string name="feature_onboarding_impl_import_resume_section_education">Education</string>
+    <string name="feature_onboarding_impl_import_resume_section_experience">Experience</string>
+    <string name="feature_onboarding_impl_import_resume_section_project">Project</string>
+    <string name="feature_onboarding_impl_import_resume_section_certification">Certification</string>
+    <string name="feature_onboarding_impl_import_resume_section_achievement">Achievement</string>
+    <string name="feature_onboarding_impl_import_resume_lifted_card_description">%1$s. %2$s. Not confirmed yet.</string>
+</resources>
