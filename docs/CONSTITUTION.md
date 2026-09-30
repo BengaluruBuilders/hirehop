@@ -68,7 +68,7 @@ HireHop follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the detail.
 | V.4 | Keep the build cache, the configuration cache (problems fail the build), and isolated projects on. Keep `org.gradle.workers.max=3`, because this Mac also runs a shared CI runner pool. | Policy V.4 |
 | V.5 | JDK 17 toolchain. `minSdk` 26. `compileSdk` and `targetSdk` 36. | `build-logic` |
 | V.6 | The Room schema JSON in `core/database/schemas` is committed. If an entity changes, bump the database version, commit the new schema, and add a migration. | "Check Room schema is committed" step in `build.yml` |
-| V.7 | The release build uses R8 with resource shrinking. CI builds it on every PR. Release uses the debug signing key until a Play upload key exists. Replace the key before the first Play upload. | `assembleRelease` in `build.yml` |
+| V.7 | The release build uses R8 with resource shrinking. CI builds it on every PR that changes code, and on every push to `main`. If a PR changes only `docs/`, `design/`, or Markdown files, CI skips the Gradle job. The policy job always runs. Release uses the debug signing key until a Play upload key exists. Replace the key before the first Play upload. | `assembleRelease` in `build.yml` |
 
 ## Article VI — Change process
 
