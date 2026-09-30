@@ -22,7 +22,7 @@ ksp = "2.3.12"
 ktlint = "1.4.0"
 room = "2.8.3"
 spotless = "8.10.3"
-truth = "1.4.4"
+truth = "1.4.5"
 turbine = "1.2.1"
 
 [bundles]
