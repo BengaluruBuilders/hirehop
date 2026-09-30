@@ -35,7 +35,6 @@
     <string name="feature_analysis_status_gap">Gap</string>
     <string name="feature_analysis_priority_must_have">Must-have</string>
     <string name="feature_analysis_priority_nice_to_have">Nice-to-have</string>
-    <string name="feature_analysis_row_label">%1$s: %2$s</string>
     <string name="feature_analysis_evidence_header">Your evidence</string>
 
     <string name="feature_analysis_i_have_this">I have this</string>
@@ -49,5 +48,14 @@
     <string name="feature_analysis_cancel">Cancel</string>
 
     <string name="feature_analysis_prep_plan_count">%1$d in your prep plan. HireHop saves them in the notes of the application.</string>
+    <string name="feature_analysis_error_analyze">HireHop could not analyze this text. Try again.</string>
+    <string name="feature_analysis_error_add_evidence">HireHop could not add your evidence. Try again.</string>
+    <string name="feature_analysis_error_save">HireHop could not save the application. Try again.</string>
+    <string name="feature_analysis_dialog_adds_skills">Adds to your skills: %1$s</string>
+    <string name="feature_analysis_dialog_adds_line">Adds this line to your profile: %1$s</string>
+    <string name="feature_analysis_i_have_this_description">I have this: %1$s</string>
+    <string name="feature_analysis_add_to_prep_plan_description">Add to prep plan: %1$s</string>
+    <string name="feature_analysis_prep_state_added">Added</string>
+    <string name="feature_analysis_prep_state_not_added">Not added</string>
     <string name="feature_analysis_save_and_tailor">Save and tailor resume</string>
 </resources>

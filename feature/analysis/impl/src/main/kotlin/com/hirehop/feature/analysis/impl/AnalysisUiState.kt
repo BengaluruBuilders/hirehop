@@ -13,6 +13,7 @@ sealed interface AnalysisUiState {
     data class Input(
         val jobText: String,
         val canAnalyze: Boolean,
+        val error: AnalysisError? = null,
     ) : AnalysisUiState
 
     data object Analyzing : AnalysisUiState
@@ -24,11 +25,18 @@ sealed interface AnalysisUiState {
         val sections: List<RequirementSection>,
         val prepPlanCount: Int,
         val canSave: Boolean,
+        val error: AnalysisError? = null,
     ) : AnalysisUiState
 
     data object Saving : AnalysisUiState
 
     data class Saved(val applicationId: String) : AnalysisUiState
+}
+
+enum class AnalysisError {
+    AnalyzeFailed,
+    AddEvidenceFailed,
+    SaveFailed,
 }
 
 enum class RequirementGroup {
@@ -56,3 +64,10 @@ data class RequirementItem(
 
 const val MAX_JOB_TEXT_LENGTH = 20_000
 const val MIN_JOB_TEXT_LENGTH = 40
+
+val AnalysisUiState.errorOrNull: AnalysisError?
+    get() = when (this) {
+        is AnalysisUiState.Input -> error
+        is AnalysisUiState.Result -> error
+        else -> null
+    }

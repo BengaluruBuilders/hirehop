@@ -1,5 +1,7 @@
 package com.hirehop.feature.analysis.impl
 
+import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.FabricationGuard
 import com.hirehop.core.domain.GapMatcher
 import com.hirehop.core.domain.JobDescriptionAnalyzer
@@ -10,6 +12,7 @@ import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.GuardrailViolation
+import com.hirehop.core.model.JobApplication
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
@@ -69,7 +72,14 @@ fun unconfirmedProfile() = confirmedProfile().let { profile ->
 }
 
 class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
-    override fun analyze(rawText: String) = JobDescription(
+    var failing = false
+
+    override fun analyze(rawText: String): JobDescription {
+        check(!failing) { "analyzer failure" }
+        return describe(rawText)
+    }
+
+    private fun describe(rawText: String) = JobDescription(
         title = "Android Developer",
         company = "Acme",
         rawText = rawText,
@@ -78,7 +88,10 @@ class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
 }
 
 class KeywordGapMatcher : GapMatcher {
+    val receivedProfiles = mutableListOf<CandidateProfile>()
+
     override fun match(profile: CandidateProfile, job: JobDescription): GapAnalysis {
+        receivedProfiles += profile
         val matches = job.requirements.map { matchRequirement(profile, it) }
         return GapAnalysis(
             matches = matches,
@@ -118,4 +131,24 @@ class AcceptingFabricationGuard : FabricationGuard {
         sources: List<EvidenceBullet>,
         profile: CandidateProfile,
     ): List<GuardrailViolation> = emptyList()
+}
+
+class FlakyProfileRepository(private val delegate: ProfileRepository) : ProfileRepository by delegate {
+    var failOnSave = false
+
+    override suspend fun saveProfile(profile: CandidateProfile) {
+        check(!failOnSave) { "profile save failure" }
+        delegate.saveProfile(profile)
+    }
+}
+
+class FlakyApplicationRepository(
+    private val delegate: ApplicationRepository,
+) : ApplicationRepository by delegate {
+    var failOnUpsert = false
+
+    override suspend fun upsertApplication(application: JobApplication) {
+        check(!failOnUpsert) { "application save failure" }
+        delegate.upsertApplication(application)
+    }
 }

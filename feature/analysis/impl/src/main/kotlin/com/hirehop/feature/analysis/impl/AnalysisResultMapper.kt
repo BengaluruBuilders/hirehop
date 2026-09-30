@@ -6,7 +6,10 @@ import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 
-internal fun AnalysisSession.Ready.toResultState(profile: CandidateProfile): AnalysisUiState.Result {
+internal fun AnalysisSession.Ready.toResultState(
+    profile: CandidateProfile,
+    error: AnalysisError?,
+): AnalysisUiState.Result {
     val resolver = EvidenceResolver(profile)
     val items = analysis.gap.matches.map { match ->
         match.toItem(resolver, isInPrepPlan = match.requirement.id in prepRequirementIds)
@@ -18,6 +21,7 @@ internal fun AnalysisSession.Ready.toResultState(profile: CandidateProfile): Ana
         sections = items.toSections(),
         prepPlanCount = prepRequirements().size,
         canSave = title.isNotBlank(),
+        error = error,
     )
 }
 

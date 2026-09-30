@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun EvidenceDialog(
     requirementText: String,
+    keywords: List<String>,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
@@ -41,6 +42,7 @@ internal fun EvidenceDialog(
                     label = { Text(stringResource(R.string.feature_analysis_evidence_dialog_label)) },
                     minLines = 2,
                 )
+                EvidenceDisclosure(keywords = keywords, statement = statement.trim())
             }
         },
         confirmButton = {
@@ -57,4 +59,22 @@ internal fun EvidenceDialog(
             }
         },
     )
+}
+
+@Composable
+private fun EvidenceDisclosure(keywords: List<String>, statement: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (keywords.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.feature_analysis_dialog_adds_skills, keywords.joinToString()),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+        if (statement.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.feature_analysis_dialog_adds_line, statement),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
 }

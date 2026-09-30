@@ -5,7 +5,12 @@ import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.MatchStatus
 
 internal sealed interface AnalysisSession {
-    data object Idle : AnalysisSession
+    data class Idle(val previous: Ready? = null) : AnalysisSession {
+        fun resume(analysis: JobAnalysisResult): Ready {
+            val sameText = previous?.analysis?.job?.rawText == analysis.job.rawText
+            return if (previous != null && sameText) previous.withFreshAnalysis(analysis) else Ready.of(analysis)
+        }
+    }
 
     data object Analyzing : AnalysisSession
 

@@ -20,6 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhOutlinedButton
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -62,7 +67,7 @@ private fun RequirementHeader(item: RequirementItem) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(text = item.requirement.text, style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = stringResource(R.string.feature_analysis_row_label, priorityLabel, statusLabel),
+                text = priorityLabel,
                 style = MaterialTheme.typography.labelMedium,
                 color = color,
             )
@@ -92,15 +97,33 @@ private fun GapActions(
     onIHaveThis: () -> Unit,
     onTogglePrepPlan: () -> Unit,
 ) {
+    val requirementText = item.requirement.text
+    val iHaveThisDescription = stringResource(R.string.feature_analysis_i_have_this_description, requirementText)
+    val prepDescription = stringResource(R.string.feature_analysis_add_to_prep_plan_description, requirementText)
+    val prepState = stringResource(
+        if (item.isInPrepPlan) {
+            R.string.feature_analysis_prep_state_added
+        } else {
+            R.string.feature_analysis_prep_state_not_added
+        },
+    )
     Row(
         modifier = Modifier.padding(start = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         HhOutlinedButton(
             onClick = onIHaveThis,
+            modifier = Modifier.semantics { contentDescription = iHaveThisDescription },
             text = { Text(stringResource(R.string.feature_analysis_i_have_this)) },
         )
-        TextButton(onClick = onTogglePrepPlan) {
+        TextButton(
+            onClick = onTogglePrepPlan,
+            modifier = Modifier.semantics {
+                contentDescription = prepDescription
+                stateDescription = prepState
+                role = Role.Switch
+            },
+        ) {
             val labelRes = if (item.isInPrepPlan) {
                 R.string.feature_analysis_in_prep_plan
             } else {
