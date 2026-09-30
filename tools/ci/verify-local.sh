@@ -9,5 +9,6 @@ tools/ci/check-constitution.sh
   testDebugUnitTest \
   lintRelease \
   assembleDebug \
+  assembleRelease \
   -PwarningsAsErrors=true \
   --continue

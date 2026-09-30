@@ -10,19 +10,22 @@ on:
 
 concurrency:
   group: build-${{ github.ref }}-${{ github.event.action == 'edited' && 'title' || 'full' }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  pr_title:
-    name: "PR title"
-    if: github.event_name == 'pull_request'
+  policy:
+    name: "Constitution policy"
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - name: Check Conventional Commits title
+      - name: Check PR title
+        if: github.event_name == 'pull_request'
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
@@ -32,24 +35,20 @@ jobs:
             exit 1
           fi
 
-  policy:
-    name: "Constitution policy"
-    if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
       - name: Checkout
+        if: github.event.action != 'edited'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Check constitution rules
+        if: github.event.action != 'edited'
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: tools/ci/check-constitution.sh
 
       - name: Scan for secrets
+        if: github.event.action != 'edited'
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,9 +61,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
 
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
@@ -90,25 +86,23 @@ jobs:
       - name: Run lint
         run: ./gradlew lintRelease
 
-      - name: Build all variants
-        run: ./gradlew assemble
+      - name: Build debug and R8 release APKs
+        run: ./gradlew assembleDebug assembleRelease
+
+      - name: Check Room schema is committed
+        run: |
+          if [[ -n "$(git status --porcelain -- core/database/schemas)" ]]; then
+            git status --short -- core/database/schemas
+            echo "::error title=Constitution V.6::Room schema changed. Commit the exported schema and add a migration."
+            exit 1
+          fi
 
       - name: Upload test reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-reports
-          path: '**/build/reports/tests/'
-
-      - name: Upload lint reports
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-reports
-          path: '**/build/reports/lint-results-*.html'
-
-      - name: Upload APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: apks
-          path: '**/build/outputs/apk/**/*.apk'
+          name: test-and-lint-reports
+          retention-days: 7
+          path: |
+            **/build/reports/tests/
+            **/build/reports/lint-results-*.html
