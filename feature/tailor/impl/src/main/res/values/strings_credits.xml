@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_tailor_impl_credits_title">Credits</string>
+    <string name="feature_tailor_impl_credits_navigation_back_description">Go back</string>
+    <string name="feature_tailor_impl_credits_free_eyebrow">FREE ALLOWANCE</string>
+    <string name="feature_tailor_impl_credits_purchased_eyebrow">PURCHASED</string>
+    <string name="feature_tailor_impl_credits_purchases_eyebrow">PURCHASES</string>
+    <string name="feature_tailor_impl_credits_refunds_eyebrow">REFUNDS AND HELP</string>
+    <string name="feature_tailor_impl_credits_free_caption">free credits left</string>
+    <string name="feature_tailor_impl_credits_purchased_caption">purchased credits left</string>
+    <string name="feature_tailor_impl_credits_free_note">Free credits are a starting allowance, not a trial that runs out for good.</string>
+    <string name="feature_tailor_impl_credits_purchased_never_expire">Purchased credits from these packs do not expire.</string>
+    <string name="feature_tailor_impl_credits_purchased_may_expire">Some packs expire their credits. Check the pack you bought.</string>
+    <string name="feature_tailor_impl_credits_purchased_expiry_unknown">Expiry for purchased credits is set by each pack.</string>
+    <string name="feature_tailor_impl_credits_separate_note">Free and purchased credits are counted separately because they expire differently.</string>
+    <string name="feature_tailor_impl_credits_zero_heading">No credits right now.</string>
+    <string name="feature_tailor_impl_credits_zero_body">Nothing is owed and nothing is late. Add a pack whenever you want one.</string>
+    <string name="feature_tailor_impl_credits_no_purchases_body">No purchases recorded on this device.</string>
+    <string name="feature_tailor_impl_credits_no_purchases_free_body">No purchases recorded on this device. You still have free credits to use.</string>
+    <string name="feature_tailor_impl_credits_purchased_recorded_body">%1$s of purchased credits are recorded on this device. No payment was taken, so there is no receipt and no order date.</string>
+    <string name="feature_tailor_impl_credits_pending_body">This pack has not cleared yet. No credits have been added.</string>
+    <string name="feature_tailor_impl_credits_pending_status">Pending</string>
+    <string name="feature_tailor_impl_credits_offline_message">You are offline. This is your saved credit history.</string>
+    <string name="feature_tailor_impl_credits_offline_supporting">The numbers below were stored on this device.</string>
+    <string name="feature_tailor_impl_credits_loading">Reading the credits on this device</string>
+    <string name="feature_tailor_impl_credits_error_heading">We could not read your credits.</string>
+    <string name="feature_tailor_impl_credits_error_body">Nothing was charged and your saved applications are untouched.</string>
+    <string name="feature_tailor_impl_credits_error_retry">Try again</string>
+    <string name="feature_tailor_impl_credits_restoring">Rechecking the credits on this device</string>
+    <string name="feature_tailor_impl_credits_restored_heading">Checked. The credits on this device are unchanged.</string>
+    <string name="feature_tailor_impl_credits_restored_body">No payment was taken, so there is nothing to restore from a store account.</string>
+    <string name="feature_tailor_impl_credits_restore_action">Recheck the credits on this device</string>
+    <string name="feature_tailor_impl_credits_refunds_note">This build takes no payment, so there is no order to refund and no receipt to show.</string>
+    <string name="feature_tailor_impl_credits_no_guarantee">Credits buy exports. They do not promise a reply, an interview, or an offer.</string>
+    <plurals name="feature_tailor_impl_credits_free_count">
+        <item quantity="one">%1$d free credit</item>
+        <item quantity="other">%1$d free credits</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_credits_purchased_count">
+        <item quantity="one">%1$d purchased credit</item>
+        <item quantity="other">%1$d purchased credits</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_credits_pack_credits">
+        <item quantity="one">%1$d credit</item>
+        <item quantity="other">%1$d credits</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_credits_free_value_description">
+        <item quantity="one">%1$d free credit</item>
+        <item quantity="other">%1$d free credits</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_credits_purchased_value_description">
+        <item quantity="one">%1$d purchased credit</item>
+        <item quantity="other">%1$d purchased credits</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_credits_pending_pack_line">
+        <item quantity="one">%1$s · %2$d credit · waiting to clear</item>
+        <item quantity="other">%1$s · %2$d credits · waiting to clear</item>
+    </plurals>
+</resources>
