@@ -1,0 +1,33 @@
+package com.hirehop.core.data.repository
+
+import com.hirehop.core.common.network.Dispatcher
+import com.hirehop.core.common.network.HhDispatchers.IO
+import com.hirehop.core.data.model.asEntity
+import com.hirehop.core.data.model.asEntryEntities
+import com.hirehop.core.data.model.asExternalModel
+import com.hirehop.core.database.dao.ProfileDao
+import com.hirehop.core.model.CandidateProfile
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+internal class OfflineFirstProfileRepository @Inject constructor(
+    private val profileDao: ProfileDao,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : ProfileRepository {
+
+    override fun observeProfile(): Flow<CandidateProfile?> =
+        profileDao.observePopulatedProfile()
+            .map { populated -> populated?.asExternalModel() }
+            .flowOn(ioDispatcher)
+
+    override suspend fun saveProfile(profile: CandidateProfile) =
+        profileDao.replaceProfile(
+            profile = profile.asEntity(),
+            entries = profile.asEntryEntities(),
+        )
+
+    override suspend fun clearProfile() = profileDao.deleteProfile()
+}
