@@ -1,0 +1,8 @@
+Cloud Engineer Trainee at Acme Cloud
+Requirements:
+- MBA or equivalent postgraduate degree
+- Hands-on experience with Kubernetes and Docker
+- Must have working knowledge of AWS
+- Proficiency in Kotlin
+Preferred:
+- Knowledge of Terraform
