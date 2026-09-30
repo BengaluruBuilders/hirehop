@@ -1,7 +1,6 @@
 package com.hirehop.feature.tailor.impl
 
 import androidx.annotation.StringRes
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,6 +15,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.diff.DiffSegment
 import com.hirehop.feature.tailor.impl.diff.joinedText
 
@@ -26,8 +26,10 @@ internal fun DiffText(
     changeDecoration: TextDecoration,
     @StringRes changedWordsRes: Int,
     modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    style: TextStyle? = null,
+    changeReason: String? = null,
 ) {
+    val resolvedStyle = style ?: HhTheme.typography.bodyMedium
     val text = remember(segments, highlight, changeDecoration) {
         buildAnnotatedString {
             segments.forEachIndexed { index, segment ->
@@ -52,9 +54,11 @@ internal fun DiffText(
     } else {
         "${segments.joinedText()}. ${stringResource(changedWordsRes, changedWords)}"
     }
+    val spoken = if (changeReason.isNullOrBlank()) description else "$description. $changeReason"
     Text(
         text = text,
-        style = style,
-        modifier = modifier.semantics { contentDescription = description },
+        style = resolvedStyle,
+        color = HhTheme.colors.onSurface,
+        modifier = modifier.semantics { contentDescription = spoken },
     )
 }

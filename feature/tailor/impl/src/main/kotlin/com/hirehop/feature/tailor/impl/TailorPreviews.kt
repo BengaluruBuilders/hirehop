@@ -2,6 +2,7 @@ package com.hirehop.feature.tailor.impl
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.hirehop.core.designsystem.component.HhScaffold
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.BulletDecision
@@ -126,12 +127,15 @@ private fun previewSuccess(decision: BulletDecision): TailorUiState.Success {
 @Composable
 private fun ReviewPendingPreview() {
     HhTheme {
-        ReviewContent(
-            state = previewSuccess(BulletDecision.PENDING),
-            onAccept = {},
-            onReject = {},
-            onAcceptAllSafeChanges = {},
-        )
+        HhScaffold { padding ->
+            ReviewContent(
+                state = previewSuccess(BulletDecision.PENDING),
+                onAccept = {},
+                onReject = {},
+                onAcceptAllSafeChanges = {},
+                contentPadding = padding,
+            )
+        }
     }
 }
 
@@ -139,12 +143,31 @@ private fun ReviewPendingPreview() {
 @Composable
 private fun ReviewAcceptedPreview() {
     HhTheme {
-        ReviewContent(
-            state = previewSuccess(BulletDecision.ACCEPTED),
-            onAccept = {},
-            onReject = {},
-            onAcceptAllSafeChanges = {},
-        )
+        HhScaffold { padding ->
+            ReviewContent(
+                state = previewSuccess(BulletDecision.ACCEPTED),
+                onAccept = {},
+                onReject = {},
+                onAcceptAllSafeChanges = {},
+                contentPadding = padding,
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun ReviewRejectedPreview() {
+    HhTheme {
+        HhScaffold { padding ->
+            ReviewContent(
+                state = previewSuccess(BulletDecision.REJECTED),
+                onAccept = {},
+                onReject = {},
+                onAcceptAllSafeChanges = {},
+                contentPadding = padding,
+            )
+        }
     }
 }
 
@@ -152,7 +175,9 @@ private fun ReviewAcceptedPreview() {
 @Composable
 private fun ResumePreviewPreview() {
     HhTheme {
-        ResumePreviewContent(document = previewSuccess(BulletDecision.ACCEPTED).document)
+        HhScaffold { padding ->
+            ResumePreviewContent(document = previewSuccess(BulletDecision.ACCEPTED).document, contentPadding = padding)
+        }
     }
 }
 
