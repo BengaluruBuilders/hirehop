@@ -25,6 +25,8 @@ dependencies {
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     compileOnly(libs.spotless.gradlePlugin)
+    implementation(libs.kover.gradlePlugin)
+    implementation(libs.roborazzi.plugin)
 }
 
 tasks {
@@ -52,6 +54,10 @@ gradlePlugin {
             id = libs.plugins.hirehop.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
+        register("androidLibraryScreenshot") {
+            id = libs.plugins.hirehop.android.library.screenshot.get().pluginId
+            implementationClass = "HireHopAndroidLibraryScreenshotPlugin"
+        }
         register("androidFeatureImpl") {
             id = libs.plugins.hirehop.android.feature.impl.get().pluginId
             implementationClass = "AndroidFeatureImplConventionPlugin"
@@ -71,6 +77,10 @@ gradlePlugin {
         register("jvmLibrary") {
             id = libs.plugins.hirehop.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
+        }
+        register("kover") {
+            id = libs.plugins.hirehop.kover.get().pluginId
+            implementationClass = "HireHopKoverPlugin"
         }
         register("root") {
             id = libs.plugins.hirehop.root.get().pluginId

@@ -5,6 +5,13 @@ plugins {
 
 android {
     namespace = "com.hirehop.core.data"
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -16,5 +23,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.room.runtime)
+    testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 }

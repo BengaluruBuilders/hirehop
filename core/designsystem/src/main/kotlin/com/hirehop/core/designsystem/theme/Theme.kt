@@ -6,63 +6,111 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.unit.dp
 
+object HhTheme {
+    val colors: HhColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhColors.current
+
+    val typography: HhTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhTypography.current
+
+    val spacing: HhSpacing
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhSpacing.current
+
+    val shapes: HhShapes
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhShapes.current
+
+    val elevation: HhElevation
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhElevation.current
+
+    val motion: HhMotion
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhMotion.current
+}
+
 val LightColorScheme = lightColorScheme(
-    primary = Teal40,
-    onPrimary = Color.White,
-    primaryContainer = Teal90,
-    onPrimaryContainer = Teal10,
-    secondary = Slate40,
-    onSecondary = Color.White,
-    secondaryContainer = Slate90,
-    onSecondaryContainer = Slate10,
-    tertiary = Blue40,
-    onTertiary = Color.White,
-    tertiaryContainer = Blue90,
-    onTertiaryContainer = Blue10,
-    error = Red40,
-    onError = Color.White,
-    errorContainer = Red90,
-    onErrorContainer = Red10,
-    background = Neutral99,
-    onBackground = Neutral05,
-    surface = Neutral99,
-    onSurface = Neutral05,
-    surfaceVariant = NeutralVariant90,
-    onSurfaceVariant = NeutralVariant30,
-    inverseSurface = Neutral20,
-    inverseOnSurface = Neutral95,
-    outline = NeutralVariant50,
+    primary = HhLightPrimary,
+    onPrimary = HhLightColors.onPrimary,
+    primaryContainer = HhLightPrimaryContainer,
+    onPrimaryContainer = HhLightColors.onPrimaryContainer,
+    secondary = HhLightTeal,
+    onSecondary = HhLightColors.onSecondary,
+    secondaryContainer = HhLightSpot,
+    onSecondaryContainer = HhLightSpotInk,
+    tertiary = HhLightAccent,
+    onTertiary = HhLightColors.onTertiary,
+    tertiaryContainer = HhLightAccentContainer,
+    onTertiaryContainer = HhLightAccent,
+    error = HhLightError,
+    onError = HhLightColors.onError,
+    errorContainer = HhLightErrorContainer,
+    onErrorContainer = HhLightOnErrorContainer,
+    background = HhLightBackground,
+    onBackground = HhLightInk,
+    surface = HhLightSurface,
+    onSurface = HhLightInk,
+    surfaceVariant = HhLightSurface2,
+    onSurfaceVariant = HhLightInk2,
+    surfaceContainerLowest = HhLightSurface,
+    surfaceContainerLow = HhLightBackground,
+    surfaceContainer = HhLightSurface2,
+    surfaceContainerHigh = HhLightSurface3,
+    surfaceContainerHighest = HhLightSurface4,
+    inverseSurface = HhExtendedDarkSurface1,
+    inverseOnSurface = HhDarkInk,
+    inversePrimary = HhDarkPrimary,
+    outline = HhLightHairlineStrong,
+    outlineVariant = HhLightHairline,
+    scrim = HhScrim,
 )
 
 val DarkColorScheme = darkColorScheme(
-    primary = Teal80,
-    onPrimary = Teal20,
-    primaryContainer = Teal30,
-    onPrimaryContainer = Teal95,
-    secondary = Slate80,
-    onSecondary = Slate20,
-    secondaryContainer = Slate30,
-    onSecondaryContainer = Slate90,
-    tertiary = Blue80,
-    onTertiary = Blue20,
-    tertiaryContainer = Blue30,
-    onTertiaryContainer = Blue90,
-    error = Red80,
-    onError = Red20,
-    errorContainer = Red30,
-    onErrorContainer = Red90,
-    background = Neutral10,
-    onBackground = Neutral90,
-    surface = Neutral10,
-    onSurface = Neutral90,
-    surfaceVariant = NeutralVariant30,
-    onSurfaceVariant = NeutralVariant80,
-    inverseSurface = Neutral90,
-    inverseOnSurface = Neutral10,
-    outline = NeutralVariant60,
+    primary = HhDarkPrimary,
+    onPrimary = HhDarkBackground,
+    primaryContainer = HhDarkPrimaryContainer,
+    onPrimaryContainer = HhDarkInk,
+    secondary = HhDarkTeal,
+    onSecondary = HhDarkBackground,
+    secondaryContainer = HhDarkSpot,
+    onSecondaryContainer = HhDarkSpotInk,
+    tertiary = HhDarkAccent,
+    onTertiary = HhDarkBackground,
+    tertiaryContainer = HhDarkAccentContainer,
+    onTertiaryContainer = HhDarkAccent,
+    error = HhDarkError,
+    onError = HhDarkBackground,
+    errorContainer = HhDarkErrorContainer,
+    onErrorContainer = HhDarkError,
+    background = HhDarkBackground,
+    onBackground = HhDarkInk,
+    surface = HhDarkSurface,
+    onSurface = HhDarkInk,
+    surfaceVariant = HhDarkSurface2,
+    onSurfaceVariant = HhDarkInk2,
+    surfaceContainerLowest = HhDarkBackground,
+    surfaceContainerLow = HhDarkSurface,
+    surfaceContainer = HhDarkSurface2,
+    surfaceContainerHigh = HhDarkSurface3,
+    surfaceContainerHighest = HhDarkSurface4,
+    inverseSurface = HhLightInk,
+    inverseOnSurface = HhLightBackground,
+    inversePrimary = HhLightPrimary,
+    outline = HhDarkBorder,
+    outlineVariant = HhDarkDivider,
+    scrim = HhScrim,
 )
 
 @Composable
@@ -71,14 +119,19 @@ fun HhTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val hhColors = if (darkTheme) HhDarkColors else HhLightColors
     val backgroundTheme = BackgroundTheme(
-        color = colorScheme.surface,
-        tonalElevation = 2.dp,
+        color = hhColors.background,
+        tonalElevation = 0.dp,
     )
-    CompositionLocalProvider(LocalBackgroundTheme provides backgroundTheme) {
+    CompositionLocalProvider(
+        LocalHhColors provides hhColors,
+        LocalBackgroundTheme provides backgroundTheme,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = HhTypography,
+            typography = HhMaterialTypography,
+            shapes = HhMaterialShapes,
             content = content,
         )
     }

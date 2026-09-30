@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="debug_scenario_activity_label">Debug scenarios</string>
+    <string name="debug_scenario_title">Debug scenarios</string>
+    <string name="debug_scenario_intro">Pick a destination and a state. The choice travels in the navigation key.</string>
+    <string name="debug_scenario_destination_heading">Destination</string>
+    <string name="debug_scenario_state_heading">State</string>
+    <string name="debug_scenario_selected">Selected</string>
+    <string name="debug_scenario_reset">Reset to default</string>
+    <string name="debug_scenario_open">Open</string>
+    <string name="debug_scenario_back">Back to the debug menu</string>
+    <string name="debug_scenario_preview_title">State: %1$s</string>
+    <string name="debug_target_applications">Applications</string>
+    <string name="debug_target_application_detail">Application detail</string>
+    <string name="debug_target_profile">Profile</string>
+    <string name="debug_target_analysis">Analysis</string>
+    <string name="debug_target_tailor">Tailoring review</string>
+</resources>

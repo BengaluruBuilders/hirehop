@@ -11,6 +11,7 @@ class AndroidFeatureApiConventionPlugin : Plugin<Project> {
 
             dependencies {
                 "api"(project(":core:navigation"))
+                "api"(project(":core:model"))
             }
         }
     }

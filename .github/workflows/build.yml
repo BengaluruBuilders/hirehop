@@ -112,9 +112,13 @@ jobs:
           :build-logic:convention:check
           spotlessCheck
           testDebugUnitTest
+          :core:domain:koverVerify
+          :core:data:koverVerify
+          verifyRoborazziDebug
           lintRelease
           assembleDebug
           assembleRelease
+          -PwarningsAsErrors=true
           --continue
 
       - name: Check Room schema is committed
