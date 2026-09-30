@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Anek+Latin:wght@400;600&family=JetBrains+Mono:wght@400&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#E9E3D7;font-family:'Anek Latin',system-ui,sans-serif;color:#1B1A16}a{color:#353A78}a:hover{color:#1F2352}</style>
+</helmet>
+<div style="padding:40px; display:flex; flex-direction:column; gap:32px; width:max-content; background:#E9E3D7;">
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:#5B564C;">HIREHOP · FLOW 3 · EXPORT AND PAYMENT · PARTS A AND B</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:44px; letter-spacing:-.02em;">Export preview, pack, exported, credits and help</div>
+    <div style="font-size:15px; line-height:22px; color:#5B564C;">360 × 800 dp. Tokens from HireHop Board.dc.html. The top row of each screen is light and the one below is dark. State frames run left to right. The export page itself is plain black on white in both modes.</div>
+  </div>
+
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="2">
+    <div style="{{ row.vars }} background:var(--canvas); border-radius:20px; padding:28px 32px 32px; display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:baseline; gap:14px;">
+        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; letter-spacing:-.01em; color:var(--ink);">{{ row.title }}</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:var(--ink2);">{{ row.modeLabel }}</span>
+      </div>
+      <div style="display:flex; gap:32px; align-items:flex-start;">
+        <sc-for list="{{ row.frames }}" as="f" hint-placeholder-count="4">
+          <div style="width:360px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:16px; color:var(--ink);">{{ f.label }}</div>
+            <div style="width:360px; height:800px; background:var(--bg); color:var(--ink); border-radius:28px; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:var(--phone); font-family:'Anek Latin',system-ui,sans-serif;">
+              <div style="height:32px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 22px; font-size:13px; font-weight:600;">
+                <span>9:41</span>
+                <span style="display:flex; gap:5px; align-items:center;"><span style="width:3px; height:6px; background:var(--ink); display:block;"></span><span style="width:3px; height:9px; background:var(--ink); display:block;"></span><span style="width:3px; height:12px; background:var(--ink); display:block;"></span><span style="width:18px; height:10px; border:1.5px solid var(--ink); border-radius:3px; box-sizing:border-box; margin-left:4px; display:block;"></span></span>
+              </div>
+
+              <!-- 1 EXPORT PREVIEW -->
+              <sc-if value="{{ f.isE }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">Export preview</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">Associate Analyst · Northwind GCC</span></div>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; padding:0 16px 10px;">
+                    <div style="display:flex; gap:8px; flex:none;">
+                      <sc-for list="{{ f.tpls }}" as="c" hint-placeholder-count="3">
+                        <sc-if value="{{ c.sel }}" hint-placeholder-val="{{ false }}"><span style="min-height:48px; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:8px; background:var(--pric); color:var(--onpric); font-size:14px; font-weight:600; white-space:nowrap;">{{ c.t }}</span></span></sc-if>
+                        <sc-if value="{{ c.un }}" hint-placeholder-val="{{ true }}"><span style="min-height:48px; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:8px; border:1px solid var(--hair); box-sizing:border-box; font-size:14px; white-space:nowrap;">{{ c.t }}</span></span></sc-if>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ f.eOff }}" hint-placeholder-val="{{ false }}"><div style="flex:none; display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You can preview. Downloading needs a connection.</span></div></sc-if>
+
+                    <sc-if value="{{ f.ePage }}" hint-placeholder-val="{{ false }}">
+                      <div style="width:280px; height:{{ f.pageH }}; margin:0 auto; flex:none;"><div style="position:relative; width:280px; height:396px; transform:scale({{ f.pageS }}); transform-origin:top center;">
+                        <sc-for list="{{ f.pages }}" as="pg" hint-placeholder-count="1">
+                          <div style="position:absolute; inset:0; background:#FFFFFF; color:#111111; border:1px solid var(--hair); box-shadow:var(--sh2); box-sizing:border-box; overflow:hidden; display:flex; flex-direction:column; padding:{{ pg.pad }}; gap:{{ pg.gap }}; font-family:{{ pg.ff }}; font-size:{{ pg.fs }}; line-height:{{ pg.lh }}; opacity:{{ pg.op }};">
+                            <div style="display:flex; flex-direction:column; text-align:{{ pg.align }};"><span style="font-size:{{ pg.nameFs }}; line-height:1.3; font-weight:700; letter-spacing:.04em;">PRIYA DESHMUKH</span><span>Pune, Maharashtra · priya.d@example.com</span></div>
+                            <sc-for list="{{ pg.secs }}" as="s" hint-placeholder-count="4">
+                              <div style="display:flex; flex-direction:column; gap:{{ pg.igap }};">
+                                <div style="font-weight:700; letter-spacing:.05em; border-bottom:0.75px solid #111111; padding-bottom:1px;">{{ s.h }}</div>
+                                <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="2"><div style="{{ it.st }}">{{ it.t }}</div></sc-for>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-for>
+                      </div></div>
+                    </sc-if>
+
+                    <sc-if value="{{ f.eRender }}" hint-placeholder-val="{{ false }}">
+                      <div style="width:248px; height:{{ f.pageH }}; margin:0 auto; flex:none; background:#FFFFFF; border:1px solid var(--hair); box-sizing:border-box; padding:20px; display:flex; flex-direction:column; gap:10px;">
+                        <span style="align-self:center; width:110px; height:10px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="align-self:center; width:150px; height:7px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="margin-top:8px; height:7px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="height:7px; margin-right:40px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="margin-top:8px; height:7px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="height:7px; margin-right:20px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                        <span style="height:7px; margin-right:70px; border:1px dashed #9A9488; border-radius:3px; box-sizing:border-box; display:block;"></span>
+                      </div>
+                      <div style="display:flex; gap:14px; align-items:flex-start; min-height:48px; flex:none;">
+                        <span style="flex:none; width:22px; height:22px; margin-top:1px; border:2px solid var(--pri); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:var(--pri); display:block;"></span></span>
+                        <div style="flex:1; display:flex; flex-direction:column; gap:8px;"><div style="display:flex; justify-content:space-between;"><span style="font-size:16px; line-height:24px; font-weight:600;">Setting your resume in Plain</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:24px; font-variant-numeric:tabular-nums;">1.4 s</span></div><span style="height:1px; background:var(--hair); position:relative; display:block;"><span style="position:absolute; left:0; top:0; height:1px; width:55%; background:var(--pri);"></span></span></div>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{ f.eErr }}" hint-placeholder-val="{{ false }}">
+                      <div style="flex:1; display:flex; flex-direction:column; gap:16px; padding:24px 8px 8px;">
+                        <div style="width:64px; height:80px; border:1.5px solid var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:24px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:10px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:22px; top:48px; width:20px; height:20px; border:1.5px solid var(--err); border-radius:50%; color:var(--err); font-size:13px; text-align:center; line-height:18px; background:var(--doc); box-sizing:border-box;">!</span></div>
+                        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; line-height:30px; letter-spacing:-.02em;">We couldn't set your resume in Plain.</div>
+                        <div style="font-size:16px; line-height:24px; color:var(--ink2);">Your reviewed resume is safe. Try again, or pick another template.</div>
+                        <div style="flex:1;"></div>
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Try again</span>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{ f.eInfo }}" hint-placeholder-val="{{ false }}">
+                      <div style="flex:none; display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; line-height:15px;"><sc-for list="{{ f.fparts }}" as="fp" hint-placeholder-count="3"><span style="white-space:nowrap;">{{ fp }}</span><wbr></sc-for></span>
+                        <span style="font-size:13px; line-height:18px; color:var(--ink2);">Page 1 of 1 · Readable by common ATS parsers.</span>
+                      </div>
+                    </sc-if>
+                  </div>
+
+                  <sc-if value="{{ f.eBar }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:10px 16px 6px; display:flex; flex-direction:column; gap:8px;">
+                      <div style="display:flex; gap:8px; align-items:center;">
+                        <span style="font-size:13px; color:var(--ink2); margin-right:2px;">Format</span>
+                        <sc-for list="{{ f.fmts }}" as="c" hint-placeholder-count="2">
+                          <sc-if value="{{ c.sel }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 12px; border-radius:8px; background:var(--pric); color:var(--onpric); font-size:13px; font-weight:600; white-space:nowrap;">{{ c.t }}<sc-if value="{{ c.r2 }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:400;">R2</span></sc-if></span></sc-if>
+                          <sc-if value="{{ c.un }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--hair); box-sizing:border-box; font-size:13px; white-space:nowrap;">{{ c.t }}<sc-if value="{{ c.r2 }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink2);">R2</span></sc-if></span></sc-if>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ f.disc }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; font-weight:600;">{{ f.disc }}</div></sc-if>
+                      <sc-if value="{{ f.disc2 }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); margin-top:-6px;">{{ f.disc2 }}</div></sc-if>
+                      <sc-if value="{{ f.btnOn }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px; {{ f.btnFx }}">{{ f.btn }}</span></sc-if>
+                      <sc-if value="{{ f.saving }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:14px; align-items:flex-start; min-height:48px;"><span style="flex:none; width:22px; height:22px; margin-top:1px; border:2px solid var(--pri); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:var(--pri); display:block;"></span></span><div style="flex:1; display:flex; flex-direction:column; gap:8px;"><div style="display:flex; justify-content:space-between;"><span style="font-size:16px; line-height:24px; font-weight:600;">Saving your PDF</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:24px; font-variant-numeric:tabular-nums;">0.8 s</span></div><span style="height:1px; background:var(--hair); position:relative; display:block;"><span style="position:absolute; left:0; top:0; height:1px; width:55%; background:var(--pri);"></span></span></div></div></sc-if>
+                      <sc-if value="{{ f.btnOff }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--dis); color:var(--ink2); font-weight:600; font-size:15px;">{{ f.btn }}</span><span style="font-size:13px; line-height:18px; text-align:center;">{{ f.reason }}</span></sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- 2 APPLICATION PACK (sheet over dimmed preview) -->
+              <sc-if value="{{ f.pack }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.55); display:flex; flex-direction:column; justify-content:flex-end;">
+                  <div style="background:var(--tool); border-radius:28px 28px 0 0; padding:10px 20px 26px; display:flex; flex-direction:column; gap:12px;">
+                    <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">APPLICATION PACK</span>
+
+                    <sc-if value="{{ f.kCancel }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:10px; align-items:flex-start; background:var(--bg); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:18px; height:18px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--ink2); margin-top:1px;">i</span><span>No payment was made. Your resume stays saved in Applications.</span></div></sc-if>
+                    <sc-if value="{{ f.kFail }}" hint-placeholder-val="{{ false }}"><div style="background:var(--errc); color:var(--err); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px; font-weight:600;">Google Play couldn't complete the payment. No credits were added. You can try again.</div></sc-if>
+                    <sc-if value="{{ f.kOff }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--bg); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. Buying needs a connection. Your resume is saved.</span></div></sc-if>
+
+                    <sc-if value="{{ f.kMain }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:27px; letter-spacing:-.01em; text-wrap:pretty;">Your Northwind resume is ready. Download it with an application pack.</div>
+                      <div style="display:flex; align-items:flex-end; gap:12px;">
+                        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:60px; line-height:60px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">₹149</span>
+                        <span style="font-size:15px; line-height:20px; color:var(--ink2); padding-bottom:6px;">for 5 applications</span>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:6px; font-size:14px; line-height:20px;">
+                        <div style="display:flex; gap:10px;"><span style="flex:none; width:5px; height:5px; margin-top:8px; background:var(--ink); display:block;"></span><span>One-time payment through Google Play. Price includes GST.</span></div>
+                        <div style="display:flex; gap:10px;"><span style="flex:none; width:5px; height:5px; margin-top:8px; background:var(--ink); display:block;"></span><span>No subscription. Nothing renews.</span></div>
+                        <div style="display:flex; gap:10px;"><span style="flex:none; width:5px; height:5px; margin-top:8px; background:var(--ink); display:block;"></span><span>Each application: a tailored resume, its export, and prep questions.</span></div>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+                        <sc-if value="{{ f.kCtaOn }}" hint-placeholder-val="{{ false }}"><span style="display:flex; flex-wrap:wrap; justify-content:center; align-content:center; column-gap:5px; text-align:center; min-height:64px; padding:6px 20px; box-sizing:border-box; border-radius:999px; background:var(--spe); color:var(--onspe); font-weight:600; font-size:15px; line-height:20px; {{ f.ctaFx }}"><span style="white-space:nowrap;">5 applications · ₹149 ·</span><span style="white-space:nowrap;">credits never expire</span></span></sc-if>
+                        <sc-if value="{{ f.kCtaOff }}" hint-placeholder-val="{{ false }}"><span style="display:flex; flex-wrap:wrap; justify-content:center; align-content:center; column-gap:5px; text-align:center; min-height:64px; padding:6px 20px; box-sizing:border-box; border-radius:999px; background:var(--dis); color:var(--ink2); font-weight:600; font-size:15px; line-height:20px;"><span style="white-space:nowrap;">5 applications · ₹149 ·</span><span style="white-space:nowrap;">credits never expire</span></span></sc-if>
+                        <sc-if value="{{ f.kSingle }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; justify-content:center; min-height:48px; font-size:15px; font-weight:600; color:var(--pri);">Or 1 application · ₹49</span></sc-if>
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:64px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Not now</span>
+                      </div>
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                        <span style="font-size:12px; line-height:16px; color:var(--ink2);">Not now keeps your resume saved in Applications.</span>
+                        <span style="flex:none; min-height:44px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--pri); text-decoration:underline; text-underline-offset:3px;">Refunds and help</span>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{ f.kPend }}" hint-placeholder-val="{{ false }}">
+                      <span style="width:44px; height:44px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; position:relative; display:block;"><span style="position:absolute; left:20px; top:9px; height:12px; border-left:1.5px solid var(--ink);"></span><span style="position:absolute; left:20px; top:20px; width:9px; border-top:1.5px solid var(--ink);"></span></span>
+                      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:24px; line-height:28px; letter-spacing:-.01em;">Payment pending.</div>
+                      <div style="font-size:16px; line-height:24px;">We'll add your credits when Google Play confirms it.</div>
+                      <div style="display:flex; align-items:baseline; gap:10px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:10px 0;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:40px; font-variant-numeric:tabular-nums;">0</span><span style="font-size:14px; color:var(--ink2);">credits now · waiting for Google Play</span></div>
+                      <div style="font-size:14px; line-height:20px; color:var(--ink2);">You can leave this screen. Your resume stays saved in Applications.</div>
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Back to preview</span>
+                      <span style="align-self:center; min-height:44px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--pri); text-decoration:underline; text-underline-offset:3px;">Refunds and help</span>
+                    </sc-if>
+
+                    <sc-if value="{{ f.kDone }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:24px; line-height:28px; letter-spacing:-.01em;">Payment done. Your credits are in.</div>
+                      <div style="display:flex; align-items:flex-end; gap:12px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:12px 0;">
+                        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:64px; line-height:64px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--pri);">5</span>
+                        <div style="display:flex; flex-direction:column; padding-bottom:6px;"><span style="font-size:16px; font-weight:600;">credits left</span><span style="font-size:14px; color:var(--ink2);">Credits never expire.</span></div>
+                      </div>
+                      <div style="font-size:13px; line-height:18px; font-weight:600;">Uses 1 credit. You have 5.</div>
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Download PDF</span>
+                      <span style="align-self:center; min-height:44px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--pri); text-decoration:underline; text-underline-offset:3px;">Refunds and help</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- GOOGLE PLAY SHEET (system) -->
+              <sc-if value="{{ f.play }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:7; background:rgba(0,0,0,.35); display:flex; flex-direction:column; justify-content:flex-end;">
+                  <div style="background:var(--sysbg); color:var(--sysink); border-radius:24px 24px 0 0; padding:18px 24px 26px; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; display:flex; flex-direction:column; gap:14px;">
+                    <span style="font-size:14px; font-weight:600;">Google Play</span>
+                    <div style="display:flex; align-items:center; gap:14px;">
+                      <span style="width:40px; height:40px; border-radius:10px; background:var(--pri); flex:none; display:block;"></span>
+                      <div style="flex:1; display:flex; flex-direction:column;"><span style="font-size:16px; line-height:22px;">5 applications</span><span style="font-size:13px; line-height:18px; color:var(--sysink2);">HireHop</span></div>
+                      <span style="font-size:16px;">₹149.00</span>
+                    </div>
+                    <div style="border-top:1px solid var(--syshair);"></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; min-height:48px;"><div style="display:flex; flex-direction:column;"><span style="font-size:12px; color:var(--sysink2);">Payment method</span><span style="font-size:15px;">UPI</span></div><span style="width:8px; height:8px; border-right:1.5px solid var(--sysink2); border-top:1.5px solid var(--sysink2); transform:rotate(45deg); display:block;"></span></div>
+                    <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--sysink); color:var(--sysbg); font-size:15px; font-weight:600;">Buy</span>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--sysink2);">SYSTEM UI · Google Play purchase sheet, for context only</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- 3 EXPORTED -->
+              <sc-if value="{{ f.isX }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center; position:relative;"><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(45deg);"></span><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(-45deg);"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">Exported</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">Associate Analyst · Northwind GCC</span></div>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:0 16px 12px;">
+                    <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:14px; display:flex; flex-direction:column; gap:12px;">
+                      <div style="display:flex; gap:12px; align-items:flex-start;">
+                        <span style="flex:none; width:44px; height:58px; background:#FFFFFF; border:1px solid var(--hair); box-sizing:border-box; padding:8px 6px; display:flex; flex-direction:column; gap:4px;"><span style="height:3px; margin:0 6px; background:#9A9488; display:block;"></span><span style="height:2px; background:#C9C3B6; display:block;"></span><span style="height:2px; background:#C9C3B6; display:block;"></span><span style="height:2px; margin-right:8px; background:#C9C3B6; display:block;"></span><span style="height:2px; background:#C9C3B6; display:block;"></span></span>
+                        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:16px;"><sc-for list="{{ f.fparts }}" as="fp" hint-placeholder-count="3"><span style="white-space:nowrap;">{{ fp }}</span><wbr></sc-for></span><span style="font-size:13px; line-height:18px; color:var(--ink2);">1 page · PDF · Plain</span></div>
+                      </div>
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Share</span>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:20px;"><span style="flex:none; width:20px; height:20px; border:1.5px solid var(--ink); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:8px; border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); transform:rotate(45deg); margin-top:-2px; display:block;"></span></span><span>Saved to Applications · Associate Analyst · Northwind GCC</span></div>
+                    <sc-if value="{{ f.statusAsk }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:12px; padding:10px 12px 10px 14px; display:flex; align-items:center; gap:10px;"><span style="flex:1; font-size:15px; font-weight:600;">Did you apply?</span><span style="flex:none; display:flex; align-items:center; min-height:48px; padding:0 16px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:14px;">Mark as Applied</span></div>
+                    </sc-if>
+                    <sc-if value="{{ f.statusSet }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:12px; padding:10px 4px 10px 14px; display:flex; align-items:center; gap:10px; {{ f.setFx }}"><span style="font-size:14px; color:var(--ink2);">Status</span><span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); font-size:13px; font-weight:600; box-sizing:border-box;"><span style="width:8px; height:8px; border-radius:50%; border:1.5px solid var(--pri); box-sizing:border-box; display:block;"></span>Applied</span><span style="flex:1;"></span><span style="display:flex; align-items:center; min-height:48px; padding:0 14px; color:var(--pri); font-weight:600; font-size:14px;">Change</span></div>
+                    </sc-if>
+                    <sc-if value="{{ f.paid }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex; align-items:flex-end; gap:12px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:8px 0;">
+                        <sc-if value="{{ f.roll }}" hint-placeholder-val="{{ false }}"><span style="position:relative; width:28px; height:44px; overflow:hidden; display:block; flex:none;"><span style="position:absolute; left:0; top:-26px; font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:44px; line-height:44px; font-variant-numeric:tabular-nums; opacity:.25;">5</span><span style="position:absolute; left:0; top:6px; font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:44px; line-height:44px; font-variant-numeric:tabular-nums; color:var(--pri);">4</span></span></sc-if>
+                        <sc-if value="{{ f.still }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:44px; line-height:44px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">4</span></sc-if>
+                        <div style="display:flex; flex-direction:column; padding-bottom:4px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:20px; line-height:22px;">left</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">This export used 1 credit. Credits never expire.</span></div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ f.free }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:10px 0;"><span style="font-size:16px; line-height:22px; font-weight:600;">Free application used</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">You have 0 credits left.</span></div>
+                    </sc-if>
+                    <div style="display:flex; flex-direction:column;">
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">NEXT, IF YOU WANT</span>
+                      <div style="display:flex; align-items:center; justify-content:space-between; min-height:48px;"><span style="color:var(--pri); font-weight:600; font-size:14px;">Get prep questions</span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink2);">R2</span></div>
+                      <div style="display:flex; align-items:center; justify-content:space-between; min-height:48px; border-top:1px solid var(--hair);"><span style="color:var(--pri); font-weight:600; font-size:14px;">Write a cover letter (optional)</span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink2);">R2</span></div>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center; border-top:1px solid var(--hair); padding-top:8px;"><span style="flex:1; font-size:13px; line-height:18px; color:var(--ink2);">Invite a friend. When they finish their first application, you both get 1 free credit.</span><span style="flex:none; display:flex; align-items:center; min-height:48px; padding:0 8px; color:var(--pri); font-weight:600; font-size:14px;">Invite</span></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- 4 CREDITS AND HELP -->
+              <sc-if value="{{ f.isC }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <span style="flex:1; font-weight:600; font-size:18px;">Credits and help</span>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; position:relative; display:flex; flex-direction:column; gap:12px; padding:0 16px 12px;">
+                    <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. This is your saved history.</span></div></sc-if>
+                    <div style="display:flex; align-items:flex-end; gap:14px;">
+                      <div style="display:flex; align-items:baseline; gap:6px; flex:none;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:72px; line-height:72px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">{{ f.cN }}</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px;">left</span></div>
+                      <span style="font-size:15px; line-height:21px; font-weight:600; padding-bottom:10px;">Credits never expire.</span>
+                    </div>
+                    <sc-if value="{{ f.cSub }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px; line-height:20px; color:var(--ink2); margin-top:-6px;">{{ f.cSub }}</div></sc-if>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2); margin-top:2px;">PURCHASES</span>
+                    <sc-if value="{{ f.noP }}" hint-placeholder-val="{{ false }}"><div style="border:1px dashed var(--ink2); border-radius:10px; padding:12px 14px; font-size:14px; line-height:20px; color:var(--ink2);">No purchases yet. Your first application is free.</div></sc-if>
+                    <sc-if value="{{ f.hasP }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px;">
+                        <span style="font-size:15px; line-height:21px; font-weight:600;">5 applications · ₹149 · 14 Apr 2027 · Google Play</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">GPA.3318-4402-1187-55210</span>
+                          <sc-if value="{{ f.pPend }}" hint-placeholder-val="{{ false }}"><span style="flex:none; display:inline-flex; align-items:center; height:26px; padding:0 9px; border-radius:6px; border:1px dashed var(--ink2); box-sizing:border-box; font-size:12px; font-weight:600;">Pending</span></sc-if>
+                          <sc-if value="{{ f.pDone }}" hint-placeholder-val="{{ false }}"><span style="flex:none; font-size:12px; font-weight:600; color:var(--ink2);">+5 credits</span></sc-if>
+                        </div>
+                        <sc-if value="{{ f.pPend }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px; line-height:18px; color:var(--ink2);">We'll add your credits when Google Play confirms it.</span></sc-if>
+                      </div>
+                    </sc-if>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2); margin-top:2px;">REFUNDS AND HELP</span>
+                    <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:14px; display:flex; flex-direction:column; gap:10px;">
+                      <div style="border:1px dashed var(--ink2); border-radius:6px; padding:10px 12px; display:flex; flex-direction:column; gap:2px;"><span style="font-size:12px; color:var(--ink2);">Refund policy summary</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px;">{{ f.ph.refund }}</span></div>
+                      <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:14px;">Ask for a refund</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:14px;">Contact help</span></div>
+                      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:13px; color:var(--ink2);">Help contact<span style="font-family:'JetBrains Mono',monospace; font-size:11px; border:1px dashed var(--ink2); border-radius:4px; padding:2px 6px; color:var(--ink);">{{ f.ph.help }}</span></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:2px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">INVITE A FRIEND</span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink2);">R2</span></div>
+                    <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; padding:12px 14px 4px; display:flex; flex-direction:column; gap:8px;">
+                      <span style="font-size:13.5px; line-height:20px;">Invite a friend. When they finish their first application, you both get 1 free credit.</span>
+                      <div style="display:flex; justify-content:space-between; align-items:flex-end;"><div style="display:flex; flex-direction:column;"><span style="font-size:12px; color:var(--ink2);">Your invite code</span><span style="font-family:'JetBrains Mono',monospace; font-size:15px;">PRIYA-7K2Q</span></div><div style="display:flex; flex-direction:column; align-items:flex-end;"><span style="font-size:12px; color:var(--ink2);">Credits earned</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:24px; font-variant-numeric:tabular-nums;">0</span></div></div>
+                      <span style="align-self:flex-start; display:flex; align-items:center; min-height:48px; color:var(--pri); font-weight:600; font-size:14px;">Share invite</span>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:40px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- D7 STATUS SHEET -->
+              <sc-if value="{{ f.stSheet }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.45); display:flex; flex-direction:column; justify-content:flex-end;">
+                  <div style="background:var(--tool); border-radius:28px 28px 0 0; padding:10px 20px 26px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">ASSOCIATE ANALYST · NORTHWIND GCC</span>
+                    <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px;">Status for this application</div>
+                    <div style="display:flex; flex-direction:column;">
+                      <sc-for list="{{ f.opts }}" as="o" hint-placeholder-count="6">
+                        <div style="display:flex; align-items:center; gap:14px; min-height:52px; padding:0 8px; margin:0 -8px; {{ o.fx }}">
+                          <span style="flex:none; width:12px; display:flex; justify-content:center;">
+                            <sc-if value="{{ o.kS }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:1px; border:1.5px solid var(--ink2); box-sizing:border-box; display:block;"></span></sc-if>
+                            <sc-if value="{{ o.kA }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:50%; border:1.5px solid var(--pri); box-sizing:border-box; display:block;"></span></sc-if>
+                            <sc-if value="{{ o.kI }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:50%; background:linear-gradient(90deg, var(--pri) 50%, transparent 50%); border:1.5px solid var(--pri); box-sizing:border-box; display:block;"></span></sc-if>
+                            <sc-if value="{{ o.kO }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:50%; background:var(--pri); display:block;"></span></sc-if>
+                            <sc-if value="{{ o.kR }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:50%; background:var(--ink3); display:block;"></span></sc-if>
+                            <sc-if value="{{ o.kN }}" hint-placeholder-val="{{ false }}"><span style="width:9px; height:9px; border-radius:50%; border:1.5px dashed var(--ink3); box-sizing:border-box; display:block;"></span></sc-if>
+                          </span>
+                          <span style="flex:1; font-size:15px;">{{ o.t }}</span>
+                          <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><span style="width:20px; height:20px; border-radius:50%; border:2px solid var(--pri); box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-radius:50%; background:var(--pri); display:block;"></span></span></sc-if>
+                          <sc-if value="{{ o.off }}" hint-placeholder-val="{{ true }}"><span style="width:20px; height:20px; border-radius:50%; border:2px solid var(--ink2); box-sizing:border-box; display:block;"></span></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <span style="font-size:13px; line-height:18px; color:var(--ink2);">Only you set this. HireHop does not predict outcomes.</span>
+                    <div style="display:flex; gap:10px; margin-top:4px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Save</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Cancel</span></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- ANDROID SHARE SHEET (system) -->
+              <sc-if value="{{ f.share }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:7; background:rgba(0,0,0,.35); display:flex; flex-direction:column; justify-content:flex-end;">
+                  <div style="background:var(--sysbg); color:var(--sysink); border-radius:24px 24px 0 0; padding:18px 20px 26px; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; display:flex; flex-direction:column; gap:16px;">
+                    <div style="display:flex; align-items:center; gap:12px;"><span style="flex:none; width:32px; height:40px; border-radius:4px; background:var(--syshair); display:flex; align-items:center; justify-content:center; font-size:9px;">PDF</span><div style="display:flex; flex-direction:column; min-width:0;"><span style="font-size:13px; line-height:18px;"><span style="white-space:nowrap;">Priya-Deshmukh_</span><wbr><span style="white-space:nowrap;">Northwind-GCC_</span><wbr><span style="white-space:nowrap;">Associate-Analyst.pdf</span></span><span style="font-size:12px; color:var(--sysink2);">1 file · 64 KB</span></div></div>
+                    <div style="display:flex; justify-content:space-between;">
+                      <div style="width:64px; display:flex; flex-direction:column; align-items:center; gap:6px;"><span style="width:52px; height:52px; border-radius:50%; background:var(--syshair); display:block;"></span><span style="font-size:12px;">Email</span></div>
+                      <div style="width:64px; display:flex; flex-direction:column; align-items:center; gap:6px;"><span style="width:52px; height:52px; border-radius:50%; background:var(--syshair); display:block;"></span><span style="font-size:12px;">WhatsApp</span></div>
+                      <div style="width:64px; display:flex; flex-direction:column; align-items:center; gap:6px;"><span style="width:52px; height:52px; border-radius:50%; background:var(--syshair); display:block;"></span><span style="font-size:12px;">Drive</span></div>
+                      <div style="width:64px; display:flex; flex-direction:column; align-items:center; gap:6px;"><span style="width:52px; height:52px; border-radius:50%; background:var(--syshair); display:block;"></span><span style="font-size:12px;">Files</span></div>
+                    </div>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--sysink2);">SYSTEM UI · Android share sheet, for context only</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- 200% APPLICATION PACK -->
+              <sc-if value="{{ f.isK2 }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; overflow:hidden; background:var(--tool); display:flex; flex-direction:column; gap:12px; padding:8px 20px 0;">
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:20px; line-height:26px; color:var(--ink2);">APPLICATION PACK</span>
+                  <div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:84px; line-height:86px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">₹149</span><span style="font-size:28px; line-height:34px; color:var(--ink2);">for 5 applications</span></div>
+                  <div style="font-size:26px; line-height:34px;">One-time payment through Google Play. Price includes GST.</div>
+                  <div style="font-size:26px; line-height:34px;">No subscription. Nothing renews.</div>
+                  <span style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:112px; padding:12px 16px; box-sizing:border-box; border-radius:999px; background:var(--spe); color:var(--onspe); font-weight:600; font-size:27px; line-height:36px;"><span style="white-space:nowrap;">5 applications · ₹149 ·</span><span style="white-space:nowrap;">credits never expire</span></span>
+                  <span style="display:flex; align-items:center; justify-content:center; min-height:112px; border-radius:999px; border:1.5px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:27px;">Not now</span>
+                  <span style="align-self:center; min-height:48px; display:flex; align-items:center; font-size:24px; font-weight:600; color:var(--pri); text-decoration:underline; text-underline-offset:4px;">Refunds and help</span>
+                </div>
+              </sc-if>
+
+              <div style="height:22px; flex:none; display:flex; align-items:center; justify-content:center; position:relative; z-index:9;"><span style="width:108px; height:4px; border-radius:2px; background:var(--ink2); display:block;"></span></div>
+            </div>
+            <div style="font-size:13px; line-height:19px; color:var(--ink2); text-wrap:pretty;">{{ f.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const pal = {
+      light: { bg:'#F3EDE2', doc:'#FBF8F1', tool:'#FFFFFF', hair:'#DCD4C5', ink:'#1B1A16', ink2:'#5B564C', ink3:'#857E71',
+        pri:'#353A78', onpri:'#F7F4EC', pric:'#DFE0F6', onpric:'#1F2352', err:'#A3352B', errc:'#F8DAD5', gap:'#A8542F',
+        spe:'#F2B31C', onspe:'#1B1A16', dis:'#E6DFD2', canvas:'#E2DACB', met:'#276B45', metc:'#D9EDDF', doc2:'#FBF8F1',
+        sysbg:'#FFFFFF', sysink:'#1F1F1F', sysink2:'#5F6368', syshair:'#E3E3E3',
+        sh1:'0 1px 2px rgba(27,26,22,.06)', sh2:'0 1px 2px rgba(27,26,22,.05), 0 4px 12px rgba(27,26,22,.07)', phone:'0 0 0 1px #D2C9B8, 0 16px 40px rgba(27,26,22,.14)' },
+      dark: { bg:'#14130F', doc:'#1D1B16', tool:'#26231C', hair:'#3B372D', ink:'#EFE9DC', ink2:'#B5AD9C', ink3:'#8B8375',
+        pri:'#B7BBF2', onpri:'#14130F', pric:'#2C3070', onpric:'#E0E1FA', err:'#F08A7D', errc:'#4A1F1A', gap:'#EE9B78',
+        spe:'#F2B31C', onspe:'#1B1A16', dis:'#302D26', canvas:'#0B0A08', met:'#86CC9E', metc:'#1E3B2B', doc2:'#1D1B16',
+        sysbg:'#2B2C2F', sysink:'#E8EAED', sysink2:'#BDC1C6', syshair:'#3C4043',
+        sh1:'0 1px 2px rgba(0,0,0,.4)', sh2:'0 1px 2px rgba(0,0,0,.4), 0 6px 16px rgba(0,0,0,.45)', phone:'0 0 0 1px #2E2B24, 0 16px 40px rgba(0,0,0,.5)' }
+    };
+    const toVars = o => Object.keys(o).map(k => `--${k}:${o[k]};`).join(' ');
+
+    const it = (t, k) => ({ t, st: k === 'b' ? 'font-weight:700;' : k === 'li' ? 'padding-left:7px; text-indent:-7px;' : '' });
+    const SECS = [
+      { h:'EDUCATION', items:[it('B.Tech Computer Science · 2026 · CGPA 8.1', 'b'), it('Coursework: DBMS (SQL), Probability & Statistics')] },
+      { h:'EXPERIENCE', items:[it('Data intern at Kiran Agro Exports in Nashik from May 2025 to July 2025', 'b'), it('• Cleaned 12,000 rows of sales data in Excel and built weekly pivot reports', 'li')] },
+      { h:'PROJECTS', items:[it('Placement Stats Dashboard', 'b'), it('• Built a Power BI dashboard of 3 batches of placement data for the college T&P cell.', 'li'), it('Smart India Hackathon 2024 — internal-round finalist', 'b')] },
+      { h:'SKILLS', items:[it('SQL, Excel (pivot tables), Power BI, C++, HTML')] }
+    ];
+    const SERIF = "'Noto Serif',serif", SANS = "'Anek Latin',sans-serif";
+    const TPL = {
+      plain:    { name:'Plain',    ff:SERIF, fs:'7.4px', lh:'11px',   pad:'20px 20px', gap:'8px',  igap:'2px', nameFs:'12px', align:'center' },
+      compact:  { name:'Compact',  ff:SANS,  fs:'7px',   lh:'9.6px',  pad:'14px 16px', gap:'5px',  igap:'1px', nameFs:'11px', align:'left' },
+      spacious: { name:'Spacious', ff:SERIF, fs:'7.8px', lh:'12.6px', pad:'26px 24px', gap:'12px', igap:'3px', nameFs:'13px', align:'center' }
+    };
+    const page = (k, op) => ({ ...TPL[k], op:String(op), secs:SECS });
+    const FN = 'Priya-Deshmukh_Northwind-GCC_Associate-Analyst';
+
+    const exp = o => {
+      const f = { isE:true, ePage:true, eInfo:true, eBar:true, tpl:'plain', fmt:'pdf', disc:'Uses 1 credit. You have 1 free.', btnOn:true, btn:'Download PDF', btnFx:'', ...o };
+      f.pageH = f.eOff ? '312px' : f.eRender ? '336px' : '396px'; f.pageS = f.eOff ? '0.78' : f.eRender ? '0.85' : '1';
+      const sel = f.tplSel || TPL[f.tpl].name;
+      f.tpls = ['Plain','Compact','Spacious'].map(t => ({ t, sel:t === sel, un:t !== sel }));
+      f.pages = f.pagesOverride || [page(f.tpl, 1)];
+      f.fmts = [{ t:'PDF', sel:f.fmt === 'pdf', un:f.fmt !== 'pdf', r2:false }, { t:'DOCX', sel:f.fmt === 'docx', un:f.fmt !== 'docx', r2:true }];
+      f.fname = FN + (f.fmt === 'docx' ? '.docx' : '.pdf'); f.fparts = f.fname.split(/(?<=[_-])/);
+      return f;
+    };
+    const NOCRED = { disc:'You have 0 credits left.', disc2:'Downloading needs 1 credit. A pack of 5 applications is ₹149.' };
+
+    const E = [
+      exp({ state:'Rendering', ePage:false, eRender:true, btnOn:false, btnOff:true, reason:'Ready when the page is set.', note:'Up to 3 s. One named step, no bar. The paper skeleton is the export page, not app chrome.' }),
+      exp({ state:'Ready · 1 free credit', note:'The full resume, before any payment. Plain template in Noto Serif (system): single column, standard headings, black on white, no icons, photo, or colour. Spacious also uses Noto Serif (system); Compact uses Anek Latin. No template adds a bundled font. The disclosure sits next to Download. TalkBack reads the file name and “Page 1 of 1”.' }),
+      exp({ state:'No credit', ...NOCRED, note:'Download stays active and opens the application pack. The price shows before the tap, next to the action.' }),
+      exp({ state:'R1 beta', disc:'Downloads are free during the beta test.', note:'No price, no credit line, and no purchase control of any kind.' }),
+      exp({ state:'DOCX selected', fmt:'docx', btn:'Download DOCX', note:'DOCX is R2. The file name and button follow the format. The page preview is the same text.' }),
+      exp({ state:'Render error', ePage:false, eInfo:false, eBar:false, eErr:true, note:'A real failure, so the error spot is used. The reviewed resume is safe.' }),
+      exp({ state:'Offline', eOff:true, btnOn:false, btnOff:true, reason:'Needs a connection.', note:'The saved preview stays readable. Download is off, with the reason in words.' })
+    ];
+
+    const pk = o => exp({ ...NOCRED, pack:true, kMain:true, kCtaOn:true, ctaFx:'', ...o });
+    const K = [
+      pk({ state:'Default', note:'Only after “Download” with 0 credits. The preview stays dimmed behind. The special accent appears on this one CTA and nowhere else. “Not now” has the same size and shape. TalkBack: “Buy 5 applications for 149 rupees. Credits never expire. Button.”' }),
+      pk({ state:'Google Play purchase sheet', play:true, note:'Google Play’s own sheet, drawn as a neutral system frame for context only.' }),
+      pk({ state:'Purchase pending', kMain:false, kPend:true, note:'Calm and exact. No credits are shown as added until Google Play confirms. The user can leave.' }),
+      pk({ state:'Success', kMain:false, kDone:true, note:'The one hop moment here: the count goes 0 → 5 on the hop spring (0.62 / 380). TalkBack announces “5 credits left”. Next is Download, with the credit use stated.' }),
+      pk({ state:'Cancelled', kCancel:true, note:'Calm, with no guilt. The same two choices come back at equal weight.' }),
+      pk({ state:'Failed', kFail:true, note:'A real payment failure, so the error container is used. The CTA stays the way to retry.' }),
+      pk({ state:'Offline', kOff:true, kCtaOn:false, kCtaOff:true, note:'The CTA is off, so no special accent shows. The price stays visible.' }),
+      pk({ state:'Test variant · ₹49 single', kSingle:true, note:'Test variant: a second option at lower emphasis, as a text button. It is not a badge and has no “best value” label.' })
+    ];
+
+    const X = [
+      exp({ lab:'1 · Template switch · 1/3 Plain', note:'At rest in Plain.' }),
+      exp({ lab:'1 · Template switch · 2/3 mid cross-fade', tplSel:'Compact', pagesOverride:[page('plain', .45), page('compact', .55)], note:'Tap Compact: the page setting cross-fades (alpha, proof 200 ms). The text itself never changes. Fallback: instant swap.' }),
+      exp({ lab:'1 · Template switch · 3/3 Compact', tpl:'compact', note:'Settled in Compact: Anek Latin (bundled), tighter spacing, left-aligned name. The same words on one page.' }),
+      pk({ lab:'2 · Purchase · 1/4 pack screen', ctaFx:'box-shadow:inset 0 0 0 2px var(--onspe);', note:'The CTA shows its pressed state.' }),
+      pk({ lab:'2 · Purchase · 2/4 Google Play sheet', play:true, note:'The Google Play sheet rises over the pack sheet.' }),
+      pk({ lab:'2 · Purchase · 3/4 pending', kMain:false, kPend:true, note:'Google Play has not confirmed yet.' }),
+      pk({ lab:'2 · Purchase · 4/4 success, counter at 5', kMain:false, kDone:true, note:'Confirmed: the counter hops to 5, then “Download PDF” is one tap.' })
+    ];
+    const ph = { refund:'{{REFUND_POLICY_SUMMARY}}', help:'{{HELP_CONTACT}}' };
+    const xp = o => ({ isX:true, fname:FN + '.pdf', fparts:(FN + '.pdf').split(/(?<=[_-])/), still:!o.roll, setFx:'', ...o });
+    const STS = [['Saved','kS'],['Applied','kA'],['Interview','kI'],['Offer','kO'],['Rejected','kR'],['No response','kN']];
+    const opts = (sel, press) => STS.map(([t, k]) => ({ t, [k]:true, on:t === sel, off:t !== sel, fx:press && t === sel ? 'background:var(--pric); border-radius:10px;' : '' }));
+    const XS = [
+      xp({ state:'Free credit used', free:1, statusAsk:1, note:'The free application paid for this export. No price appears here; the credit line is plain.' }),
+      xp({ state:'Paid credit used', paid:1, statusAsk:1, note:'“4 left” in hero numerals. TalkBack announces “4 credits left” when the count changes. The next steps are low-emphasis text buttons.' }),
+      xp({ state:'Share sheet open', paid:1, statusAsk:1, share:1, note:'Android’s share sheet, drawn as a neutral system frame: Email, WhatsApp, Drive, Files.' }),
+      xp({ state:'Marked Applied', paid:1, statusSet:1, note:'After the status sheet: the prompt becomes the Applied chip with “Change”. The chip uses the board’s status style.' })
+    ];
+    const CR = [
+      { isC:true, ph, state:'No purchases', cN:'1', cSub:'Your free application.', noP:1, note:'Free application only. The count sits beside the plain promise. No expiry date, no countdown.' },
+      { isC:true, ph, state:'Purchases', cN:'4', hasP:1, pDone:1, note:'The purchase row with the order ID in mono. Refunds and help are one tap away. The placeholders are marked slots.' },
+      { isC:true, ph, state:'Pending purchase', cN:'0', cSub:'5 credits will be added when Google Play confirms your payment.', hasP:1, pPend:1, note:'Pending is shown in words and a dashed label. No credits are counted until Google Play confirms.' },
+      { isC:true, ph, state:'Offline', cN:'4', hasP:1, pDone:1, off:1, note:'The saved history stays readable. “Ask for a refund” opens when the connection returns.' }
+    ];
+    const X2 = [
+      exp({ lab:'1 · Export · 1/3 Download tapped', disc:'Uses 1 credit. You have 5.', btnFx:'box-shadow:inset 0 0 0 2px var(--onpri);', note:'After the purchase: the disclosure states the credit use before the tap.' }),
+      exp({ lab:'1 · Export · 2/3 rendering', disc:'Uses 1 credit. You have 5.', btnOn:false, saving:true, note:'One named step, no bar. The credit is spent only when the file is saved.' }),
+      xp({ lab:'3 · Export · 3/3 file card, counter 5 → 4', paid:1, statusAsk:1, roll:1, note:'The one hop moment here: the file card settles on proof, and the numeral rolls from 5 to 4 on the hop spring (translateY, tabular). Fallback: fade to the new number. TalkBack: “4 credits left”.' }),
+      xp({ lab:'3 · Status · 1/3 sheet open', paid:1, statusAsk:1, stSheet:1, opts:opts('Saved'), note:'“Mark as Applied” opens the status sheet (D7). The current value is Saved. Every status is neutral: “Offer” uses a filled primary dot, “Rejected” a grey dot. No status uses met, partial, gap, or error.' }),
+      xp({ lab:'3 · Status · 2/3 Applied chosen', paid:1, statusAsk:1, stSheet:1, opts:opts('Applied', true), note:'Applied is picked and takes the pressed state. Save and Cancel have equal weight.' }),
+      xp({ lab:'3 · Status · 3/3 chip updated', paid:1, statusSet:1, setFx:'background:var(--pric);', note:'The sheet closes on proof and the row washes in primary container once as the Applied chip lands.' })
+    ];
+    const Z = [{ lab:'2 · Application pack · 200% text', isK2:true, note:'The sheet is expanded and scrolled past the headline. The CTA wraps to two lines at a fixed break, so “₹149” is never cut. “Not now” keeps the same 112 dp height as the CTA.' }];
+
+    const rows = [];
+    const add = (title, list, modes) => modes.forEach(m => rows.push({
+      title, modeLabel:m.toUpperCase(), vars:toVars(pal[m]),
+      frames:list.map(fr => ({ ...fr, label:fr.lab || `${title.slice(1)} · ${fr.state}` }))
+    }));
+    add('01 · Export preview', E, ['light','dark']);
+    add('02 · Application pack', K, ['light','dark']);
+    add('Interaction frames · Template switch, purchase', X, ['light','dark']);
+    add('03 · Exported', XS, ['light','dark']);
+    add('04 · Credits and help', CR, ['light','dark']);
+    add('Interaction frames · Export, status sheet', X2, ['light','dark']);
+    add('200% text size', Z, ['light']);
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

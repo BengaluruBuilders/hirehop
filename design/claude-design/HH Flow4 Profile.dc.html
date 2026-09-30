@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Anek+Latin:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#E9E3D7;font-family:'Anek Latin',system-ui,sans-serif;color:#1B1A16}a{color:#353A78}a:hover{color:#1F2352}</style>
+</helmet>
+<div style="padding:40px; display:flex; flex-direction:column; gap:32px; width:max-content; background:#E9E3D7;">
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:#5B564C;">HIREHOP · FLOW 4 · PROFILE</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:44px; letter-spacing:-.02em;">Profile, fact editor, guided form, evidence path</div>
+    <div style="font-size:15px; line-height:22px; color:#5B564C;">360 × 800 dp. Tokens from HireHop Board.dc.html. The top row of each screen is light and the one below is dark. State frames run left to right. Priya Deshmukh · 18 facts.</div>
+  </div>
+
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="2">
+    <div style="{{ row.vars }} background:var(--canvas); border-radius:20px; padding:28px 32px 32px; display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:baseline; gap:14px;">
+        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; letter-spacing:-.01em; color:var(--ink);">{{ row.title }}</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:var(--ink2);">{{ row.modeLabel }}</span>
+      </div>
+      <div style="display:flex; gap:32px; align-items:flex-start;">
+        <sc-for list="{{ row.frames }}" as="f" hint-placeholder-count="4">
+          <div style="width:360px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:16px; color:var(--ink);">{{ f.label }}</div>
+            <div style="width:360px; height:800px; background:var(--bg); color:var(--ink); border-radius:28px; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:var(--phone); font-family:'Anek Latin',system-ui,sans-serif;">
+              <div style="height:32px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 22px; font-size:13px; font-weight:600;">
+                <span>9:41</span>
+                <span style="display:flex; gap:5px; align-items:center;"><span style="width:3px; height:6px; background:var(--ink); display:block;"></span><span style="width:3px; height:9px; background:var(--ink); display:block;"></span><span style="width:3px; height:12px; background:var(--ink); display:block;"></span><span style="width:18px; height:10px; border:1.5px solid var(--ink); border-radius:3px; box-sizing:border-box; margin-left:4px; display:block;"></span></span>
+              </div>
+
+              <!-- 1 PROFILE -->
+              <sc-if value="{{ f.isP }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; padding:0 8px 0 20px;"><span style="flex:1; font-weight:600; font-size:18px;">Profile</span></div>
+                  <sc-if value="{{ f.pEmpty }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:16px; padding:24px 24px 16px;">
+                      <div style="width:64px; height:80px; border:1.5px dashed var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:22px; height:8px; background:var(--evi);"></span><span style="position:absolute; left:10px; right:22px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:30px; top:50px; border-top:1.5px solid var(--ink2);"></span></div>
+                      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:32px; letter-spacing:-.02em;">Your profile is empty.</div>
+                      <div style="font-size:16px; line-height:24px; color:var(--ink2); text-wrap:pretty;">Every line HireHop writes comes from facts you put here. Start with your resume, or answer a few short questions.</div>
+                      <div style="flex:1;"></div>
+                      <div style="display:flex; flex-direction:column; gap:10px;">
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Import my resume</span>
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Build it step by step</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.pMain }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; position:relative; display:flex; flex-direction:column; gap:12px; padding:0 16px 12px;">
+                      <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="flex:none; display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. You can read and edit your facts. Changes sync when you're back.</span></div></sc-if>
+                      <div style="display:flex; flex-direction:column; gap:6px; flex:none;">
+                        <span style="font-size:15px; line-height:20px; font-weight:600;">Priya Deshmukh · B.Tech CS 2026</span>
+                        <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:48px; line-height:48px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">{{ f.n }}</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px;">facts</span></div>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                          <span style="display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 9px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap; font-variant-numeric:tabular-nums;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor; display:block;"></span>{{ f.nC }} confirmed</span>
+                          <span style="display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 9px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap; font-variant-numeric:tabular-nums;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>{{ f.nU }} user-stated</span>
+                          <sc-if value="{{ f.nP }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; height:28px; padding:0 9px; border-radius:6px; border:1px dashed var(--ink2); color:var(--ink2); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;">{{ f.nP }} not confirmed</span></sc-if>
+                        </div>
+                      </div>
+                      <sc-if value="{{ f.nP }}" hint-placeholder-val="{{ false }}"><div style="flex:none; display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:4px 4px 4px 12px; font-size:14px; line-height:20px;"><span style="flex:1;">{{ f.nP }} items are not confirmed. HireHop won't use them.</span><span style="flex:none; min-height:48px; padding:0 12px; display:flex; align-items:center; color:var(--pri); font-weight:600;">Review</span></div></sc-if>
+                      <div style="flex:none; display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:18px; color:var(--ink2); padding:2px 2px 0;"><span style="flex:none; width:16px; height:16px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; margin-top:1px;">i</span><span>Your uploaded file was deleted after reading. Only these facts are kept.</span></div>
+                      <div style="flex:none; display:flex; gap:8px;">
+                        <span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Add evidence</span>
+                        <span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Add a fact</span>
+                      </div>
+                      <sc-for list="{{ f.secs }}" as="s" hint-placeholder-count="4">
+                        <div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:10px 4px 10px 14px; display:flex; align-items:center; gap:10px; min-height:64px; box-sizing:border-box;">
+                          <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                            <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-size:15px; font-weight:600;">{{ s.t }}</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px; font-variant-numeric:tabular-nums;">{{ s.n }}</span></div>
+                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                              <sc-for list="{{ s.chips }}" as="c" hint-placeholder-count="2">
+                                <sc-if value="{{ c.cf }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 6px; border-radius:5px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:10px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:currentColor; display:block;"></span>{{ c.id }}</span></sc-if>
+                                <sc-if value="{{ c.us }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 6px; border-radius:5px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:10px; box-sizing:border-box; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>{{ c.id }}</span></sc-if>
+                                <sc-if value="{{ c.pd }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; height:22px; padding:0 6px; border-radius:5px; border:1px dashed var(--ink2); color:var(--ink2); font-family:'JetBrains Mono',monospace; font-size:10px; box-sizing:border-box; white-space:nowrap;">{{ c.id }} · not confirmed</span></sc-if>
+                              </sc-for>
+                            </div>
+                          </div>
+                          <span style="width:44px; height:44px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-right:1.5px solid var(--ink2); border-top:1.5px solid var(--ink2); transform:rotate(45deg); display:block;"></span></span>
+                        </div>
+                      </sc-for>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:36px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                    </div>
+                  </sc-if>
+                  <div style="flex:none; height:64px; background:var(--tool); border-top:1px solid var(--hair); display:flex; align-items:center; justify-content:space-around;">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; min-width:64px;"><span style="width:18px; height:14px; border:1.5px solid var(--ink2); border-radius:2px; box-sizing:border-box; display:block;"></span><span style="font-size:12px; color:var(--ink2);">Applications</span></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; min-width:64px;"><span style="width:56px; height:26px; border-radius:13px; background:var(--pric); display:flex; align-items:center; justify-content:center;"><span style="width:12px; height:12px; border-radius:50%; background:var(--onpric); display:block;"></span></span><span style="font-size:12px; font-weight:600;">Profile</span></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; min-width:64px;"><span style="width:16px; height:16px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:block;"></span><span style="font-size:12px; color:var(--ink2);">Settings</span></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- 2 FACT EDITOR -->
+              <sc-if value="{{ f.isE }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center; position:relative;"><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(45deg);"></span><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(-45deg);"></span></span>
+                    <span style="flex:1; font-weight:600; font-size:18px;">{{ f.bar }}</span>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; position:relative;">
+                    <div style="display:flex; flex-direction:column; gap:14px; padding:0 16px 16px; {{ f.scrollFx }}">
+                      <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. Your save will sync when you're back.</span></div></sc-if>
+                      <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;"><span style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--pri);">{{ f.fid }}</span><span style="font-size:13px; color:var(--ink2);">Project</span></div>
+                        <sc-if value="{{ f.chC }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor; display:block;"></span>confirmed</span></sc-if>
+                        <sc-if value="{{ f.chE }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px dashed var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px dashed currentColor; box-sizing:border-box; display:block;"></span>user-edited</span></sc-if>
+                        <sc-if value="{{ f.chU }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span></sc-if>
+                      </div>
+                      <div style="font-size:13px; line-height:18px; color:var(--ink2);">HireHop can use only the numbers, names, tools, and dates you put here.</div>
+                      <sc-for list="{{ f.fields }}" as="fd" hint-placeholder-count="2">
+                        <div style="position:relative; min-height:56px; border:{{ fd.bd }}; border-radius:8px; padding:14px 12px; box-sizing:border-box; font-size:15px; line-height:21px; {{ fd.tall }}">
+                          <span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">{{ fd.l }}</span>
+                          <sc-if value="{{ fd.v }}" hint-placeholder-val="{{ true }}"><span>{{ fd.v }}</span></sc-if><sc-if value="{{ fd.ph }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">{{ fd.ph }}</span></sc-if><sc-if value="{{ fd.caret }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:1px; vertical-align:-3px;"></span></sc-if>
+                        </div>
+                      </sc-for>
+                      <div style="position:relative; border:1px solid var(--ink2); border-radius:8px; padding:14px 8px 8px 10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                        <span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">Tools</span>
+                        <sc-for list="{{ f.tools }}" as="t" hint-placeholder-count="2"><span style="display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 4px 0 10px; border-radius:8px; border:1px solid var(--hair); background:var(--tool); font-size:14px; box-sizing:border-box; white-space:nowrap; flex:none;">{{ t }}<span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; position:relative;"><span style="position:absolute; width:8px; border-top:1.5px solid var(--ink2); transform:rotate(45deg);"></span><span style="position:absolute; width:8px; border-top:1.5px solid var(--ink2); transform:rotate(-45deg);"></span></span></span></sc-for>
+                        <span style="display:inline-flex; align-items:center; height:32px; padding:0 8px; font-size:14px; color:var(--pri); font-weight:600;">+ Add tool</span>
+                      </div>
+                      <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px;">
+                        <div style="position:relative; min-height:56px; border:1px solid var(--ink2); border-radius:8px; padding:0 12px; display:flex; align-items:center; font-size:15px; box-sizing:border-box;"><span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">Start</span><sc-if value="{{ f.dS }}" hint-placeholder-val="{{ true }}"><span>{{ f.dS }}</span></sc-if><sc-if value="{{ f.noDate }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">MMM YYYY</span></sc-if></div>
+                        <div style="position:relative; min-height:56px; border:{{ f.endBd }}; border-radius:8px; padding:0 12px; display:flex; align-items:center; font-size:15px; box-sizing:border-box;"><span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:{{ f.endLc }};">End</span><sc-if value="{{ f.dE }}" hint-placeholder-val="{{ true }}"><span>{{ f.dE }}</span></sc-if><sc-if value="{{ f.noDate }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">MMM YYYY</span></sc-if></div>
+                      </div>
+                      <sc-if value="{{ f.vErr }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:8px; align-items:flex-start; margin-top:-8px; font-size:13px; line-height:18px; color:var(--err); font-weight:600;"><span style="flex:none; width:16px; height:16px; border:1.5px solid var(--err); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:10px; margin-top:1px;">!</span><span>The end date is before the start date.</span></div></sc-if>
+                      <div style="position:relative; min-height:56px; border:1px solid var(--ink2); border-radius:8px; padding:0 12px; display:flex; align-items:center; font-size:15px; box-sizing:border-box;"><span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">Numbers</span><sc-if value="{{ f.num }}" hint-placeholder-val="{{ true }}"><span>{{ f.num }}</span></sc-if><sc-if value="{{ f.noNum }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">For example: 3 batches</span></sc-if></div>
+                      <div style="display:flex; flex-direction:column; gap:6px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">HOW THIS FACT READS</span>
+                        <div style="background:var(--doc); border:1px solid var(--hair); border-radius:10px; box-shadow:var(--sh1); padding:12px 14px; font-size:15px; line-height:23px; text-wrap:pretty; min-height:48px; box-sizing:border-box;">
+                          <sc-for list="{{ f.live }}" as="s" hint-placeholder-count="1"><sc-if value="{{ s.k }}" hint-placeholder-val="{{ false }}"><span style="background:var(--evic); padding:0 2px; border-radius:2px;">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for><sc-if value="{{ f.liveEmpty }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">Start typing. Your fact appears here as HireHop will read it.</span></sc-if>
+                        </div>
+                      </div>
+                      <sc-if value="{{ f.canDel }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start; display:flex; align-items:center; min-height:48px; padding:0 4px; color:var(--err); font-weight:600; font-size:14px; margin-top:4px;">Delete this fact</span></sc-if>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:32px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                  </div>
+                  <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; flex-direction:column; gap:8px;">
+                    <sc-if value="{{ f.saveNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; font-weight:600;">{{ f.saveNote }}</div></sc-if>
+                    <div style="display:flex; gap:10px;">
+                      <sc-if value="{{ f.saveOn }}" hint-placeholder-val="{{ true }}"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Save</span></sc-if>
+                      <sc-if value="{{ f.saveOff }}" hint-placeholder-val="{{ false }}"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--dis); color:var(--ink2); font-weight:600; font-size:15px;">Save</span></sc-if>
+                      <span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Cancel</span>
+                    </div>
+                  </div>
+                  <sc-if value="{{ f.delDlg }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute; inset:0; z-index:6; background:rgba(10,9,7,.45); display:flex; align-items:center; justify-content:center; padding:0 24px;">
+                      <div style="background:var(--tool); border-radius:28px; padding:24px; display:flex; flex-direction:column; gap:14px; width:100%; box-sizing:border-box;">
+                        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:27px; text-wrap:pretty;">Delete P-02 Placement Stats Dashboard from your profile?</div>
+                        <div style="font-size:15px; line-height:22px; color:var(--ink2);">HireHop won't use it in new resumes, letters, or prep questions. Resumes you already exported don't change.</div>
+                        <div style="font-size:14px; line-height:20px; font-weight:600;">Used in 1 application · Associate Analyst · Northwind GCC</div>
+                        <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Keep it</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--err); color:var(--onerr); font-weight:600; font-size:15px;">Delete</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- 200% FACT EDITOR -->
+              <sc-if value="{{ f.isE2 }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:64px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center; position:relative;"><span style="position:absolute; width:16px; border-top:2.5px solid var(--ink); transform:rotate(45deg);"></span><span style="position:absolute; width:16px; border-top:2.5px solid var(--ink); transform:rotate(-45deg);"></span></span>
+                    <span style="flex:1; font-weight:600; font-size:30px; line-height:36px;">Edit fact</span>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:16px; padding:4px 16px 12px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:24px; color:var(--pri);">P-02</span><span style="display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 12px; border-radius:8px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:20px; white-space:nowrap;"><span style="width:9px; height:9px; border-radius:50%; background:currentColor; display:block;"></span>confirmed</span></div>
+                    <div style="position:relative; border:1.5px solid var(--ink2); border-radius:10px; padding:20px 14px 14px; font-size:30px; line-height:40px;"><span style="position:absolute; top:-15px; left:10px; background:var(--bg); padding:0 6px; font-size:22px; line-height:28px; color:var(--ink2);">Title</span>Placement Stats Dashboard</div>
+                    <div style="position:relative; border:1.5px solid var(--ink2); border-radius:10px; padding:20px 10px 12px; display:flex; flex-wrap:wrap; gap:10px;"><span style="position:absolute; top:-15px; left:10px; background:var(--bg); padding:0 6px; font-size:22px; line-height:28px; color:var(--ink2);">Tools</span><span style="display:inline-flex; align-items:center; min-height:52px; padding:0 16px; border-radius:10px; border:1px solid var(--hair); background:var(--tool); font-size:28px;">Power BI</span><span style="display:inline-flex; align-items:center; min-height:52px; padding:0 16px; border-radius:10px; border:1px solid var(--hair); background:var(--tool); font-size:28px;">Excel</span><span style="display:inline-flex; align-items:center; min-height:52px; padding:0 8px; font-size:28px; color:var(--pri); font-weight:600;">+ Add tool</span></div>
+                    <div style="position:relative; border:1.5px solid var(--ink2); border-radius:10px; padding:20px 14px 14px; font-size:30px; line-height:40px;"><span style="position:absolute; top:-15px; left:10px; background:var(--bg); padding:0 6px; font-size:22px; line-height:28px; color:var(--ink2);">Start</span>Jan 2024</div>
+                    <div style="position:relative; border:1.5px solid var(--ink2); border-radius:10px; padding:20px 14px 14px; font-size:30px; line-height:40px;"><span style="position:absolute; top:-15px; left:10px; background:var(--bg); padding:0 6px; font-size:22px; line-height:28px; color:var(--ink2);">End</span>Apr 2024</div>
+                  </div>
+                  <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; flex-direction:column; gap:10px;">
+                    <span style="display:flex; align-items:center; justify-content:center; min-height:64px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:28px;">Save</span>
+                    <span style="display:flex; align-items:center; justify-content:center; min-height:64px; border-radius:999px; border:1.5px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:28px;">Cancel</span>
+                  </div>
+                </div>
+              </sc-if>
+
+
+              <!-- 3 GUIDED FORM -->
+              <sc-if value="{{ f.isG }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; gap:4px; padding:0 20px 0 8px;"><span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center; position:relative;"><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(45deg);"></span><span style="position:absolute; width:14px; border-top:2px solid var(--ink); transform:rotate(-45deg);"></span></span><span style="flex:1; font-weight:600; font-size:18px;">Build your profile</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;">{{ f.gN }} of 4</span></div>
+                  <div style="flex:none; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding:0 16px 12px;"><sc-for list="{{ f.gSegs }}" as="sg" hint-placeholder-count="4"><span style="height:4px; border-radius:2px; background:{{ sg.bg }}; display:block;"></span></sc-for></div>
+                  <sc-if value="{{ f.gMain }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:16px; padding:4px 16px 16px;">
+                      <sc-if value="{{ f.scan }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:30px; height:38px; border:1.5px dashed var(--ink2); border-radius:3px; box-sizing:border-box; position:relative; overflow:hidden; display:block;"><span style="position:absolute; left:-6px; right:-6px; top:12px; border-top:1.5px solid var(--ink2); transform:rotate(-35deg);"></span><span style="position:absolute; left:-6px; right:-6px; top:22px; border-top:1.5px solid var(--ink2); transform:rotate(-35deg);"></span><span style="position:absolute; left:5px; right:5px; top:5px; height:5px; background:var(--evi);"></span></span><span>Your PDF is a scan, so we couldn't read it. Let's build your profile here.</span></div></sc-if>
+                      <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. Your answers stay on this phone and sync when you're back.</span></div></sc-if>
+                      <div style="display:flex; flex-direction:column; gap:6px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:32px; letter-spacing:-.02em;">{{ f.gTitle }}</span><span style="font-size:15px; line-height:22px; color:var(--ink2); text-wrap:pretty;">{{ f.gSub }}</span></div>
+                      <sc-for list="{{ f.gFields }}" as="fd" hint-placeholder-count="2"><div style="position:relative; min-height:56px; border:{{ fd.bd }}; border-radius:8px; padding:14px 12px; box-sizing:border-box; font-size:15px; line-height:21px;">
+                          <span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">{{ fd.l }}</span>
+                          <sc-if value="{{ fd.v }}" hint-placeholder-val="{{ true }}"><span>{{ fd.v }}</span></sc-if><sc-if value="{{ fd.ph }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">{{ fd.ph }}</span></sc-if><sc-if value="{{ fd.caret }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:1px; vertical-align:-3px;"></span></sc-if>
+                        </div></sc-for>
+                      <sc-if value="{{ f.gChips }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:relative; border:1px solid var(--ink2); border-radius:8px; padding:14px 8px 8px 10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">Your skills</span><sc-for list="{{ f.gChips }}" as="t" hint-placeholder-count="3"><span style="display:inline-flex; align-items:center; height:32px; padding:0 10px; border-radius:8px; border:1px solid var(--hair); background:var(--tool); font-size:14px; box-sizing:border-box; white-space:nowrap; flex:none;">{{ t }}</span></sc-for></div>
+                        <div style="position:relative; min-height:56px; border:2px solid var(--pri); border-radius:8px; padding:0 12px; display:flex; align-items:center; font-size:15px; box-sizing:border-box;"><span style="position:absolute; top:-9px; left:9px; background:var(--bg); padding:0 4px; font-size:12px; line-height:16px; color:var(--ink2);">Add a skill</span><span style="color:var(--ink2);">Type a tool or method</span><span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:2px;"></span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.gExp }}" hint-placeholder-val="{{ false }}">
+                        <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:16px; font-size:17px; line-height:25px; text-wrap:pretty;">No work experience yet? That's normal. Next, we'll ask about your projects.</div>
+                        <div style="display:flex;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Add an internship or job</span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.gRule }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:18px; color:var(--ink2);"><span style="flex:none; width:16px; height:16px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; margin-top:1px;">i</span><span>HireHop never asks for your date of birth, photo, religion, caste, or marital status.</span></div></sc-if>
+                      <div style="font-size:13px; line-height:18px; color:var(--ink2);">What you enter here is saved as user-stated facts.</div>
+                    </div>
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 2px; display:flex; flex-direction:column; gap:2px;">
+                      <div style="display:flex; gap:10px;"><sc-if value="{{ f.gBack }}" hint-placeholder-val="{{ true }}"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Back</span></sc-if><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">{{ f.gNext }}</span></div>
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; color:var(--pri); font-weight:600; font-size:14px;">Save and finish later</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.gSaved }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; display:flex; flex-direction:column; gap:16px; padding:12px 24px 16px;">
+                      <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:32px; letter-spacing:-.02em;">Saved. Finish any time.</span>
+                      <span style="font-size:16px; line-height:24px; color:var(--ink2); text-wrap:pretty;">You finished 2 of 4 steps. Your contact details and education are on your profile. Pick up from Profile when you're ready.</span>
+                      <sc-for list="{{ f.cards }}" as="fc" hint-placeholder-count="1"><div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px; {{ fc.fx }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="display:flex; gap:8px; align-items:baseline; min-width:0;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); white-space:nowrap;">{{ fc.id }}</span><span style="font-size:12px; color:var(--ink2);">{{ fc.sec }}</span></span><span style="position:relative; flex:none; display:flex;"><span style="flex:none; display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span><sc-if value="{{ fc.stamp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:-5px; border:1.5px solid var(--pri); border-radius:10px; opacity:.4; display:block;"></span></sc-if></span></div>
+                            <div style="font-size:15px; line-height:21px; font-weight:600;">{{ fc.t }}</div>
+                            <sc-if value="{{ fc.d }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); text-wrap:pretty;">{{ fc.d }}</div></sc-if>
+                          </div></sc-for>
+                      <div style="flex:1;"></div>
+                      <div style="display:flex; flex-direction:column; gap:10px;"><div style="display:flex;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Back to Profile</span></div><div style="display:flex;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Continue now</span></div></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.gFold }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:4px 16px 16px;">
+                      <div style="opacity:.25; display:flex; flex-direction:column; gap:6px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:32px;">Experience</span><span style="font-size:15px; line-height:22px;">Internships, part-time jobs, or freelance work.</span></div>
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2); margin-top:8px;">{{ f.foldCap }}</span>
+                      <sc-for list="{{ f.cards }}" as="fc" hint-placeholder-count="2"><div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px; {{ fc.fx }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="display:flex; gap:8px; align-items:baseline; min-width:0;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); white-space:nowrap;">{{ fc.id }}</span><span style="font-size:12px; color:var(--ink2);">{{ fc.sec }}</span></span><span style="position:relative; flex:none; display:flex;"><span style="flex:none; display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span><sc-if value="{{ fc.stamp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:-5px; border:1.5px solid var(--pri); border-radius:10px; opacity:.4; display:block;"></span></sc-if></span></div>
+                            <div style="font-size:15px; line-height:21px; font-weight:600;">{{ fc.t }}</div>
+                            <sc-if value="{{ fc.d }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); text-wrap:pretty;">{{ fc.d }}</div></sc-if>
+                          </div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- 4 EVIDENCE PATH -->
+              <sc-if value="{{ f.isV }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; gap:4px; padding:0 20px 0 8px;"><span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span><span style="flex:1; font-weight:600; font-size:18px;">Add evidence</span><sc-if value="{{ f.vCnt }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;">{{ f.vCnt }}</span></sc-if></div>
+                  <sc-if value="{{ f.vPick }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; display:flex; flex-direction:column; gap:16px; padding:4px 16px 16px;">
+                      <sc-if value="{{ f.vLead }}" hint-placeholder-val="{{ false }}"><div style="background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;">{{ f.vLead }}</div></sc-if>
+                      <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:32px; letter-spacing:-.02em;">What have you done so far?</span>
+                      <span style="font-size:15px; line-height:22px; color:var(--ink2); text-wrap:pretty;">Pick everything that fits. We'll ask one short question at a time.</span>
+                      <div style="display:flex; flex-wrap:wrap; gap:8px;"><sc-for list="{{ f.cats }}" as="ct" hint-placeholder-count="5"><span style="display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 14px; border-radius:10px; border:{{ ct.bd }}; background:{{ ct.bg }}; color:{{ ct.fg }}; font-size:15px; font-weight:600; box-sizing:border-box;"><sc-if value="{{ ct.on }}" hint-placeholder-val="{{ false }}"><span style="width:10px; height:6px; border-left:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(-45deg); margin-top:-3px; display:block;"></span></sc-if>{{ ct.t }}</span></sc-for></div>
+                      <div style="display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:18px; color:var(--ink2);"><span style="flex:none; width:16px; height:16px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; margin-top:1px;">i</span><span>Write only what you did. HireHop uses your words as facts.</span></div>
+                      <div style="flex:1;"></div>
+                      <div style="display:flex;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Start with Projects</span></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.vQ }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:14px; padding:4px 16px 16px;">
+                      <sc-if value="{{ f.vSkipNote }}" hint-placeholder-val="{{ false }}"><div style="background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;">{{ f.vSkipNote }}</div></sc-if>
+                      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; color:var(--ink2);">{{ f.cat }}</span>
+                        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:24px; line-height:29px; letter-spacing:-.01em; text-wrap:pretty;">{{ f.q }}</span>
+                        <div style="background:var(--doc); border:{{ f.ansBd }}; border-radius:10px; padding:12px; min-height:148px; box-sizing:border-box; font-size:15px; line-height:23px; text-wrap:pretty;"><sc-if value="{{ f.ans }}" hint-placeholder-val="{{ false }}"><span>{{ f.ans }}</span></sc-if><sc-if value="{{ f.ansPh }}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);">{{ f.ansPh }}</span></sc-if><sc-if value="{{ f.caret }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:1px; vertical-align:-3px;"></span></sc-if></div>
+                        <sc-if value="{{ f.more }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; min-height:48px; color:var(--pri); font-weight:600; font-size:14px;">{{ f.more }}</span></sc-if>
+                      </div>
+                      <div style="display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:18px; color:var(--ink2);"><span style="flex:none; width:16px; height:16px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; margin-top:1px;">i</span><span>Write only what you did. HireHop uses your words as facts.</span></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.vStamp }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:14px; padding:4px 16px 16px;">
+                      <div style="opacity:.25; background:var(--tool); border:1px solid var(--hair); border-radius:16px; padding:12px 16px; font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:18px; line-height:23px; transform:scale(.96);">What did you build? Which tools? Who used it?</div>
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.cap }}</span>
+                      <sc-for list="{{ f.cards }}" as="fc" hint-placeholder-count="1"><div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px; {{ fc.fx }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="display:flex; gap:8px; align-items:baseline; min-width:0;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); white-space:nowrap;">{{ fc.id }}</span><span style="font-size:12px; color:var(--ink2);">{{ fc.sec }}</span></span><span style="position:relative; flex:none; display:flex;"><span style="flex:none; display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span><sc-if value="{{ fc.stamp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:-5px; border:1.5px solid var(--pri); border-radius:10px; opacity:.4; display:block;"></span></sc-if></span></div>
+                            <div style="font-size:15px; line-height:21px; font-weight:600;">{{ fc.t }}</div>
+                            <sc-if value="{{ fc.d }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); text-wrap:pretty;">{{ fc.d }}</div></sc-if>
+                          </div></sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.vFiled }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; padding:4px 16px 16px;">
+                      <sc-for list="{{ f.cards }}" as="fc" hint-placeholder-count="1"><div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px; {{ fc.fx }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="display:flex; gap:8px; align-items:baseline; min-width:0;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); white-space:nowrap;">{{ fc.id }}</span><span style="font-size:12px; color:var(--ink2);">{{ fc.sec }}</span></span><span style="position:relative; flex:none; display:flex;"><span style="flex:none; display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span><sc-if value="{{ fc.stamp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:-5px; border:1.5px solid var(--pri); border-radius:10px; opacity:.4; display:block;"></span></sc-if></span></div>
+                            <div style="font-size:15px; line-height:21px; font-weight:600;">{{ fc.t }}</div>
+                            <sc-if value="{{ fc.d }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); text-wrap:pretty;">{{ fc.d }}</div></sc-if>
+                          </div></sc-for>
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.cap }}</span>
+                      <sc-for list="{{ f.fsecs }}" as="s" hint-placeholder-count="3">
+                        <div style="flex:none; background:var(--doc); border:{{ s.bd }}; border-radius:12px; box-shadow:var(--sh1); padding:10px 14px; display:flex; flex-direction:column; gap:6px; min-height:60px; box-sizing:border-box;">
+                          <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-size:15px; font-weight:600;">{{ s.t }}</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px; font-variant-numeric:tabular-nums;">{{ s.n }}</span></div>
+                          <div style="display:flex; flex-wrap:wrap; gap:4px;"><sc-for list="{{ s.chips }}" as="c" hint-placeholder-count="2"><span style="display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 6px; border-radius:5px; border:1px solid var(--pri); background:{{ c.bg }}; color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:10px; box-sizing:border-box; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>{{ c.id }}</span></sc-for></div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.vDone }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; padding:4px 16px 16px;">
+                      <div style="display:flex; align-items:baseline; gap:10px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:56px; line-height:56px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">5</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px;">new facts added</span></div>
+                      <span style="font-size:14px; line-height:20px; color:var(--ink2);">All in your words, tagged user-stated. You can edit any of them in Profile. Internships skipped. Add one any time.</span>
+                      <sc-for list="{{ f.cards }}" as="fc" hint-placeholder-count="3"><div style="flex:none; background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:12px 14px; display:flex; flex-direction:column; gap:6px; {{ fc.fx }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="display:flex; gap:8px; align-items:baseline; min-width:0;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); white-space:nowrap;">{{ fc.id }}</span><span style="font-size:12px; color:var(--ink2);">{{ fc.sec }}</span></span><span style="position:relative; flex:none; display:flex;"><span style="flex:none; display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 8px; border-radius:6px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; box-sizing:border-box; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; border:1px solid currentColor; box-sizing:border-box; display:block;"></span>user-stated</span><sc-if value="{{ fc.stamp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:-5px; border:1.5px solid var(--pri); border-radius:10px; opacity:.4; display:block;"></span></sc-if></span></div>
+                            <div style="font-size:15px; line-height:21px; font-weight:600;">{{ fc.t }}</div>
+                            <sc-if value="{{ fc.d }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2); text-wrap:pretty;">{{ fc.d }}</div></sc-if>
+                          </div></sc-for>
+                    </div>
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Add more</span><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Go to my profile</span></div>
+                  </sc-if>
+                  <sc-if value="{{ f.vBar }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Skip</span><sc-if value="{{ f.vSaveOn }}" hint-placeholder-val="{{ true }}"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; padding:0 12px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Save</span></sc-if><sc-if value="{{ f.vSaveOff }}" hint-placeholder-val="{{ false }}"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--dis); color:var(--ink2); font-weight:600; font-size:15px;">Save</span></sc-if></div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <div style="height:22px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:108px; height:4px; border-radius:2px; background:var(--ink2); display:block;"></span></div>
+            </div>
+            <div style="font-size:13px; line-height:19px; color:var(--ink2); text-wrap:pretty;">{{ f.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const pal = {
+      light: { bg:'#F3EDE2', doc:'#FBF8F1', tool:'#FFFFFF', hair:'#DCD4C5', ink:'#1B1A16', ink2:'#5B564C', ink3:'#857E71',
+        pri:'#353A78', onpri:'#F7F4EC', pric:'#DFE0F6', onpric:'#1F2352', evi:'#F8E36F', evic:'#FCF3BF',
+        err:'#A3352B', onerr:'#FFFFFF', gap:'#A8542F', dis:'#E6DFD2', canvas:'#E2DACB',
+        sh1:'0 1px 2px rgba(27,26,22,.06)', sh2:'0 2px 10px rgba(27,26,22,.08)', phone:'0 0 0 1px #D2C9B8, 0 16px 40px rgba(27,26,22,.14)' },
+      dark: { bg:'#14130F', doc:'#1D1B16', tool:'#26231C', hair:'#3B372D', ink:'#EFE9DC', ink2:'#B5AD9C', ink3:'#8B8375',
+        pri:'#B7BBF2', onpri:'#14130F', pric:'#2C3070', onpric:'#E0E1FA', evi:'#5A4C12', evic:'#2E2810',
+        err:'#F08A7D', onerr:'#14130F', gap:'#EE9B78', dis:'#302D26', canvas:'#0B0A08',
+        sh1:'0 1px 2px rgba(0,0,0,.4)', sh2:'0 2px 10px rgba(0,0,0,.5)', phone:'0 0 0 1px #2E2B24, 0 16px 40px rgba(0,0,0,.5)' }
+    };
+    const toVars = o => Object.keys(o).map(k => `--${k}:${o[k]};`).join(' ');
+    const c = id => ({ id, cf:true, us:false, pd:false });
+    const u = id => ({ id, cf:false, us:true, pd:false });
+    const p = id => ({ id, cf:false, us:false, pd:true });
+    const FULL = [
+      { t:'Education', n:'3', chips:[c('E-01'), c('C-01'), u('C-02')] },
+      { t:'Experience', n:'1', chips:[c('I-01')] },
+      { t:'Projects', n:'2', chips:[c('P-02'), u('U-01')] },
+      { t:'Skills', n:'9', chips:[c('S-01'), c('S-02'), c('S-03'), c('S-04'), c('S-05'), c('S-06'), c('S-07'), c('S-08'), c('S-09')] },
+      { t:'Certifications', n:'1', chips:[c('K-01')] },
+      { t:'Extras', n:'2', chips:[c('X-01'), u('R-01')] }
+    ];
+    const PART = FULL.map(s => s.t === 'Skills' ? { ...s, chips:[...s.chips.slice(0, 8), p('S-09')] } : s.t === 'Certifications' ? { ...s, chips:[p('K-01')] } : s);
+    const prof = o => ({ isP:true, pMain:true, n:'18', nC:'15', nU:'3', nP:'', secs:FULL, ...o });
+    const P = [
+      { isP:true, pEmpty:true, state:'Empty', note:'Empty spot from the board. Both starts have equal size and shape. No field for date of birth, photo, religion, caste, or marital status anywhere in this flow.' },
+      prof({ state:'Partly confirmed', nC:'13', nP:'2', secs:PART, note:'The banner is calm and names the count. Each section card shows every fact’s provenance chip, so a dashed “not confirmed” chip is easy to spot.' }),
+      prof({ state:'Full', note:'Premium move: the row of chips shows the mix of confirmed (filled) and user-stated (outline) at a glance. TalkBack reads a section as “Projects. 3 facts. 2 confirmed, 1 user-stated. Button.”' }),
+      prof({ state:'Offline', off:true, note:'Everything stays readable and editable. Edits queue on the phone.' })
+    ];
+
+    const F = (l, v, o) => ({ l, v:v || '', ph:(o && o.ph) || '', caret:!!(o && o.caret), bd:(o && o.bd) || '1px solid var(--ink2)', tall:(o && o.tall) || '' });
+    const DID = 'Built a dashboard of 3 batches of placement data for the college T&P cell. The T&P cell used it for the 2024 placement report.';
+    const liveFull = [{ t:'Placement Stats Dashboard', k:1 }, ' · Built a dashboard of ', { t:'3 batches', k:1 }, ' of placement data for the college T&P cell, used for the 2024 placement report · ', { t:'Power BI, Excel', k:1 }, ' · ', { t:'Jan to Apr 2024', k:1 }];
+    const seg = a => a.map(s => typeof s === 'string' ? { t:s, p:true, k:false } : { t:s.t, k:true, p:false });
+    const ed = o => ({ isE:true, bar:'Edit fact', fid:'P-02', chC:true, tools:['Power BI','Excel'], dS:'Jan 2024', dE:'Apr 2024', num:'3 batches', endBd:'1px solid var(--ink2)', endLc:'var(--ink2)',
+      fields:[F('Title', 'Placement Stats Dashboard'), F('What you did', DID, { tall:'min-height:104px;' })], live:seg(liveFull), canDel:true, saveOn:true, scrollFx:'', ...o });
+    const E = [
+      ed({ state:'New', bar:'Add a fact', fid:'P-04', chC:false, chU:true, tools:[], dS:'', dE:'', noDate:true, num:'', noNum:true, canDel:false, live:[], liveEmpty:true, saveOn:false, saveOff:true, saveNote:'Add a title to save.',
+        fields:[F('Title', '', { ph:'Project name', caret:true, bd:'2px solid var(--pri)' }), F('What you did', '', { ph:'What you built, and who used it', tall:'min-height:104px;' })],
+        note:'A new fact gets the next free ID and is user-stated. Save is off until there is a title, and says why in words.' }),
+      ed({ state:'Editing', chC:false, chE:true, fields:[F('Title', 'Placement Stats Dashboard'), F('What you did', DID, { caret:true, bd:'2px solid var(--pri)', tall:'min-height:104px;' })],
+        note:'Premium move: the paper line under the form updates as the user types. The terms HireHop can match get a light evidence wash. An edited confirmed fact shows user-edited. TalkBack: “Project. Placement Stats Dashboard. User-edited. Fact P-02.”' }),
+      ed({ state:'Validation error', chC:false, chE:true, dE:'Dec 2023', endBd:'2px solid var(--err)', endLc:'var(--err)', vErr:true, saveOn:false, saveOff:true, saveNote:'Fix the dates to save.',
+        live:seg([{ t:'Placement Stats Dashboard', k:1 }, ' · Built a dashboard of ', { t:'3 batches', k:1 }, ' of placement data for the college T&P cell, used for the 2024 placement report · ', { t:'Power BI, Excel', k:1 }, ' · Jan 2024 to Dec 2023']),
+        note:'Error colour only on the field and its message. Save says why it is off.' }),
+      ed({ state:'Scrolled to delete', scrollFx:'transform:translateY(-210px);', note:'“Delete this fact” sits at the bottom of the form, in error, with no fill.' }),
+      ed({ state:'Delete dialog', scrollFx:'transform:translateY(-210px);', delDlg:true, note:'The dialog names exactly what goes. “Keep it” and “Delete” have equal size; error is only on Delete.' }),
+      ed({ state:'Offline', off:true, note:'Saves queue on the phone and sync later.' })
+    ];
+    const Z = [{ isE2:true, lab:'2 · Fact editor · 200% text', note:'Every field stacks full width, the tool chips wrap, and Save and Cancel stack at 64 dp. What you did, Numbers, the live line, and Delete scroll below.' }];
+
+
+    const US_ = 'transparent';
+    const sg = n => [1,2,3,4].map(i => ({ bg: i <= n ? 'var(--pri)' : 'var(--hair)' }));
+    const K = (id, sec, t, d, o) => ({ id, sec, t, d:d || '', fx:'', stamp:false, ...o });
+    const cE = K('E-01', 'Education', 'B.Tech Computer Science', '2026 · CGPA 8.1');
+    const cS = K('S-01–S-04', 'Skills', 'SQL, Excel, Power BI, Pivot tables');
+    const cP = K('P-02', 'Projects', 'Placement Stats Dashboard', 'Power BI and Excel. The T&P cell used it for the 2024 placement report.');
+    const DONE = [cP, K('C-01', 'Coursework', 'DBMS', 'SQL joins and GROUP BY in a library database project.'), K('C-02', 'Coursework', 'Probability & Statistics'),
+      K('X-01', 'Competitions', 'Smart India Hackathon 2024', 'Internal round finalist, team of 6.'), K('R-01', 'Positions of responsibility', 'Treasurer, college coding club, 2024–25', 'Managed a ₹40,000 event budget.')];
+    const ACT = '2px solid var(--pri)';
+    const gContact = [F('Full name', 'Priya Deshmukh'), F('Email', 'priya.d@example.com'), F('Mobile number', '', { ph:'10-digit number', caret:true, bd:ACT }), F('City', 'Pune')];
+    const gEdu = [F('Degree', 'B.Tech Computer Science'), F('College', '', { ph:"Your college's full name", caret:true, bd:ACT }), F('Graduation year', '2026'), F('CGPA', '8.1')];
+    const g = o => ({ isG:true, gMain:true, gBack:true, gNext:'Next', gFields:[], ...o });
+    const S1 = { gN:'1', gSegs:sg(1), gTitle:'Contact', gSub:'How employers reach you. This goes at the top of your resume.', gFields:gContact, gRule:true, gBack:false };
+    const S2 = { gN:'2', gSegs:sg(2), gTitle:'Education', gSub:'Your degree, as it should read on your resume.', gFields:gEdu };
+    const S4 = { gN:'4', gSegs:sg(4), gTitle:'Experience', gSub:'Internships, part-time jobs, or freelance work.', gExp:true, gNext:'Continue to projects' };
+    const G = [
+      g({ state:'Step 1 · Contact', ...S1, note:'No field for date of birth, photo, religion, caste, or marital status, and the step says so. TalkBack announces “Step 1 of 4”.' }),
+      g({ state:'Step 2 · Education', ...S2, note:'The tabular counter reads “2 of 4”. “Save and finish later” is on every step.' }),
+      g({ state:'Step 3 · Skills', gN:'3', gSegs:sg(3), gTitle:'Skills', gSub:"Tools and methods you have used. Next, you'll say where you used them.", gChips:['SQL','Excel','Power BI','Pivot tables'], note:'Chips wrap. Each skill becomes its own user-stated fact.' }),
+      g({ state:'Step 4 · Experience', ...S4, note:'Plain, warm guidance for a fresher. “Continue to projects” hands off to the evidence path.' }),
+      g({ state:'Arrived from a scanned PDF', ...S1, scan:true, note:'Reached from Import resume → scanned PDF → “Start the guided form”. Scan spot from the board.' }),
+      { isG:true, gSaved:true, gN:'2', gSegs:sg(2), state:'Saved for later', cards:[cE], note:'Nothing is lost and nothing nags. “Back to Profile” and “Continue now” have equal size.' },
+      g({ state:'Offline', ...S2, off:true, note:'Answers stay on the phone and sync later.' })
+    ];
+    const cats = on => ['Projects','Internships','Coursework','Competitions','Positions of responsibility'].map((t, i) => { const o = on[i];
+      return { t, on:o, bd: o ? '1px solid var(--pric)' : '1px solid var(--ink2)', bg: o ? 'var(--pric)' : 'transparent', fg: o ? 'var(--onpric)' : 'var(--ink)' }; });
+    const Q1 = 'What did you build? Which tools? Who used it?';
+    const A1 = 'Placement Stats Dashboard. Power BI and Excel. The T&P cell used it for the 2024 placement report.';
+    const v = o => ({ isV:true, ...o });
+    const vq = o => v({ vQ:true, vBar:true, vCnt:'1 of 5', cat:'PROJECTS · QUESTION 1 OF 5', q:Q1, ans:'', ansPh:'', caret:false, ansBd:'1px solid var(--hair)', vSaveOn:true, ...o });
+    const qEmpty = { ansPh:'For example: the name, the tools, and who used it.', caret:true, ansBd:ACT, vSaveOn:false, vSaveOff:true };
+    const V = [
+      v({ state:'Category picker', vPick:true, cats:cats([1,1,1,1,1]), note:'Filter chips at 48 dp with a check mark and fill, so the choice never relies on colour.' }),
+      vq({ state:'Question', ...qEmpty, note:'One short question at a time. “Skip” and “Save” have equal size. TalkBack: “Projects, question 1 of 5.”' }),
+      vq({ state:'Answered', ans:A1, note:'The answer is in Priya’s own words. Save turns it into a user-stated fact.' }),
+      vq({ state:'Skipped', vCnt:'3 of 5', cat:'COURSEWORK · QUESTION 3 OF 5', q:'Which course taught you something you can show? What did you do in it?', vSkipNote:'Internships skipped. You can add one any time from Profile.', ans:'DBMS — SQL joins and GROUP BY in a library database project.', more:'+ Add another course', note:'Skipping is calm and reversible. No count of what’s missing.' }),
+      v({ state:'All done', vDone:true, cards:DONE, note:'Five facts, all user-stated: P-02, C-01, C-02, X-01, R-01. C-02 Probability & Statistics came from the second course entry.' })
+    ];
+    const VI = [
+      vq({ lab:'Evidence path · 1/4 · question', ...qEmpty, note:'Resting. The field has focus and the keyboard would open.' }),
+      vq({ lab:'Evidence path · 2/4 · typed answer', ans:'Placement Stats Dashboard. Power BI and Excel. The T&P cell used it', caret:true, ansBd:ACT, note:'Save turns on at the first word.' }),
+      v({ lab:'Evidence path · 3/4 · stamped user-stated', vStamp:true, cap:'SAVED AS FACT P-02', cards:[{ ...cP, stamp:true }], note:'proof: the answer folds into a paper card (scaleY 1.08 → 1, alpha). The user-stated chip stamps in one stroke (scale 1.15 → 1, the ring fades). Reduce motion: the card and chip appear in place.' }),
+      v({ lab:'Evidence path · 4/4 · filed into Projects', vFiled:true, cap:'FILED INTO PROJECTS', cards:[{ ...cP, fx:'transform:scale(.8) translateY(40px); opacity:.35; transform-origin:top center;' }],
+        fsecs:[{ t:'Education', n:'1', bd:'1px solid var(--hair)', chips:[{ id:'E-01', bg:US_ }] }, { t:'Projects', n:'1', bd:'1.5px solid var(--pri)', chips:[{ id:'P-02', bg:'var(--evic)' }] }, { t:'Skills', n:'4', bd:'1px solid var(--hair)', chips:['S-01','S-02','S-03','S-04'].map(id => ({ id, bg:US_ })) }],
+        note:'proof: the card shrinks and moves into the Projects section. The count ticks 0 → 1 and the new chip keeps an evidence wash for 600 ms. Reduce motion: cross-fade.' })
+    ];
+    const GI = [
+      g({ lab:'Guided form → evidence · 1/3 · Experience step', ...S4, note:'“Continue to projects” is tapped.' }),
+      { isG:true, gFold:true, gN:'4', gSegs:sg(4), lab:'Guided form → evidence · 2/3 · steps fold into facts', foldCap:'FILING 5 FACTS INTO YOUR PROFILE', cards:[{ ...cE }, { ...cS, fx:'transform:translateY(-6px) scale(.97); opacity:.8;' }],
+        note:'proof: each finished step folds into paper fact cards, staggered 40 ms. They move down into the profile (translateY, scale 1 → .92, alpha). Reduce motion: the cards appear, then the next screen cross-fades in.' },
+      v({ lab:'Guided form → evidence · 3/3 · evidence path', vPick:true, vLead:'Your profile has 5 facts so far. Now, the evidence behind them.', cats:cats([1,0,1,1,1]), note:'The evidence path opens at the category picker. Internships starts unselected because Priya said she has no work experience yet.' })
+    ];
+    const rows = [];
+    const add = (title, list, modes) => modes.forEach(m => rows.push({ title, modeLabel:m.toUpperCase(), vars:toVars(pal[m]),
+      frames:list.map(fr => ({ ...fr, label:fr.lab || `${title.slice(1)} · ${fr.state}` })) }));
+    add('01 · Profile', P, ['light','dark']);
+    add('02 · Fact editor', E, ['light','dark']);
+    add('03 · Guided form', G, ['light','dark']);
+    add('04 · Evidence path', V, ['light','dark']);
+    add('Interaction · Evidence path', VI, ['light','dark']);
+    add('Interaction · Guided form to evidence path', GI, ['light','dark']);
+    add('200% text size', Z, ['light']);
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

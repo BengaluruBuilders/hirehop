@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Anek+Latin:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#E9E3D7;font-family:'Anek Latin',system-ui,sans-serif;color:#1B1A16}a{color:#353A78}a:hover{color:#1F2352}</style>
+</helmet>
+<div style="padding:40px; display:flex; flex-direction:column; gap:32px; width:max-content; background:#E9E3D7;">
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:#5B564C;">HIREHOP · FLOW 2 · TRUTH-LOCKED TAILORING · PARTS A AND B</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:44px; letter-spacing:-.02em;">Resume review, bullet review, cover letter, prep questions</div>
+    <div style="font-size:15px; line-height:22px; color:#5B564C;">360 × 800 dp. Tokens from HireHop Board.dc.html. The top row of each screen is light and the one below is dark. State frames run left to right. Priya Deshmukh · Associate Analyst · Northwind GCC.</div>
+  </div>
+
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="2">
+    <div style="{{ row.vars }} background:var(--canvas); border-radius:20px; padding:28px 32px 32px; display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:baseline; gap:14px;">
+        <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; letter-spacing:-.01em; color:var(--ink);">{{ row.title }}</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:var(--ink2);">{{ row.modeLabel }}</span>
+      </div>
+      <div style="display:flex; gap:32px; align-items:flex-start;">
+        <sc-for list="{{ row.frames }}" as="f" hint-placeholder-count="4">
+          <div style="width:360px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:16px; color:var(--ink);">{{ f.label }}</div>
+            <div style="width:360px; height:800px; background:var(--bg); color:var(--ink); border-radius:28px; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:var(--phone); font-family:'Anek Latin',system-ui,sans-serif;">
+              <div style="height:32px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 22px; font-size:13px; font-weight:600;">
+                <span>9:41</span>
+                <span style="display:flex; gap:5px; align-items:center;"><span style="width:3px; height:6px; background:var(--ink); display:block;"></span><span style="width:3px; height:9px; background:var(--ink); display:block;"></span><span style="width:3px; height:12px; background:var(--ink); display:block;"></span><span style="width:18px; height:10px; border:1.5px solid var(--ink); border-radius:3px; box-sizing:border-box; margin-left:4px; display:block;"></span></span>
+              </div>
+
+              <!-- 1 TAILORED RESUME REVIEW -->
+              <sc-if value="{{ f.isR }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <span style="flex:1; min-width:0; font-weight:600; font-size:16px; line-height:22px;">Associate Analyst · Northwind GCC</span>
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="display:flex; flex-direction:column; gap:3px;"><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span></span></span>
+                  </div>
+
+                  <sc-if value="{{ f.rLoad }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:4px 16px 16px;">
+                      <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">TAILORING · UP TO 60 S</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-variant-numeric:tabular-nums;">{{ f.elapsed }}</span></div>
+                      <div style="display:flex; flex-direction:column;">
+                        <sc-for list="{{ f.steps }}" as="s" hint-placeholder-count="3">
+                          <div style="display:flex; gap:14px; align-items:flex-start; min-height:48px;">
+                            <span style="flex:none; width:22px; height:22px; margin-top:1px; display:flex;">
+                              <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="width:22px; height:22px; border:1.5px solid var(--ink); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:8px; border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); transform:rotate(45deg); margin-top:-2px; display:block;"></span></span></sc-if>
+                              <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}"><span style="width:22px; height:22px; border:2px solid var(--pri); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:var(--pri); display:block;"></span></span></sc-if>
+                              <sc-if value="{{ s.pend }}" hint-placeholder-val="{{ true }}"><span style="width:22px; height:22px; border:1.5px dashed var(--ink2); border-radius:50%; box-sizing:border-box; display:block;"></span></sc-if>
+                            </span>
+                            <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+                              <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}"><span style="font-size:16px; line-height:24px; font-weight:600;">{{ s.t }}</span><span style="height:1px; background:var(--hair); position:relative; display:block;"><span style="position:absolute; left:0; top:0; height:1px; width:62%; background:var(--pri);"></span></span></sc-if>
+                              <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="font-size:16px; line-height:24px; color:var(--ink2);">{{ s.t }}</span></sc-if>
+                              <sc-if value="{{ s.pend }}" hint-placeholder-val="{{ true }}"><span style="font-size:16px; line-height:24px; color:var(--ink2);">{{ s.t }}</span></sc-if>
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:15px; line-height:22px; font-weight:600;">You can leave. We'll notify you when it's ready.</div>
+                      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:14px; display:flex; flex-direction:column; gap:12px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">YOUR RESUME, FOR THIS JD</span>
+                        <div style="display:flex; gap:8px; align-items:center;"><span style="flex:1; height:9px; border:1px dashed var(--ink2); border-radius:3px; box-sizing:border-box; display:block;"></span><span style="width:48px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">I-01</span></div>
+                        <div style="display:flex; gap:8px; align-items:center;"><span style="flex:1; height:9px; border:1px dashed var(--ink2); border-radius:3px; box-sizing:border-box; display:block; margin-right:30px;"></span><span style="width:48px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">I-01</span></div>
+                        <div style="display:flex; gap:8px; align-items:center;"><span style="flex:1; height:9px; border:1px dashed var(--ink2); border-radius:3px; box-sizing:border-box; display:block;"></span><span style="width:48px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">P-02</span></div>
+                        <div style="display:flex; gap:8px; align-items:center;"><span style="flex:1; height:9px; border:1px dashed var(--ink2); border-radius:3px; box-sizing:border-box; display:block; margin-right:60px;"></span><span style="width:48px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">…</span></div>
+                      </div>
+                    </div>
+                    <sc-if value="{{ f.notif }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.45); display:flex; flex-direction:column; justify-content:flex-end;">
+                        <div style="background:var(--tool); border-radius:28px 28px 0 0; padding:10px 20px 30px; display:flex; flex-direction:column; gap:14px;">
+                          <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">FIRST TIME ONLY</span>
+                          <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:24px; line-height:28px; letter-spacing:-.01em;">Get a notification when it's ready?</div>
+                          <div style="font-size:15px; line-height:22px; color:var(--ink2);">HireHop sends one notification when your tailored resume is ready. You can change this in Android settings.</div>
+                          <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Allow notifications</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Not now</span></div>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </sc-if>
+
+                  <sc-if value="{{ f.rStop }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:16px; padding:32px 24px 16px;">
+                      <div style="width:64px; height:80px; border:1.5px solid var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:24px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:10px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:22px; top:48px; width:20px; height:20px; border:1.5px solid var(--err); border-radius:50%; color:var(--err); font-size:13px; text-align:center; line-height:18px; background:var(--doc); box-sizing:border-box;">!</span></div>
+                      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; line-height:30px; letter-spacing:-.02em;">We couldn't finish.</div>
+                      <div style="font-size:16px; line-height:24px; color:var(--ink2);">Your profile and analysis are safe. Try again.</div>
+                      <div style="flex:1;"></div>
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Try again</span>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ f.rMain }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; position:relative; display:flex; flex-direction:column; gap:12px; padding:0 16px 12px;">
+                      <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. Review the saved result; your decisions sync when you're back.</span></div></sc-if>
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex:none;">
+                        <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:30px; line-height:32px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; white-space:nowrap;">{{ f.rv }} of 7</span><span style="font-size:14px; line-height:18px; color:var(--ink2);">changes reviewed</span></div>
+                        <sc-if value="{{ f.flagChip }}" hint-placeholder-val="{{ false }}"><span style="flex:none; display:inline-flex; align-items:center; gap:8px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--ink2); box-sizing:border-box; font-size:13px; font-weight:600; white-space:nowrap;"><span style="width:10px; height:13px; position:relative; display:block;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.5px solid var(--ink);"></span><span style="position:absolute; left:1.5px; top:0; width:8px; height:6px; background:var(--ink);"></span></span>1 flagged</span></sc-if>
+                      </div>
+                      <sc-if value="{{ f.panel }}" hint-placeholder-val="{{ false }}">
+                        <div style="flex:none; background:var(--tool); border:1px solid var(--hair); border-radius:12px; padding:12px 14px; display:flex; gap:12px; align-items:flex-start;">
+                          <span style="flex:none; width:20px; height:20px; border-radius:50%; border:2px dashed var(--gap); box-sizing:border-box; color:var(--gap); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; line-height:1;">+</span>
+                          <div style="display:flex; flex-direction:column; gap:4px;"><span style="font-size:14px; font-weight:600;">Not added to your resume</span><span style="font-size:13px; line-height:19px; color:var(--ink2); text-wrap:pretty;">4 JD needs have no evidence in your profile, so we left them out: cloud data warehouse, Python, Agile / JIRA, stakeholder communication. They are in your prep plan.</span></div>
+                        </div>
+                      </sc-if>
+                      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:14px 4px 14px 14px; display:flex; flex-direction:column; gap:12px; {{ f.paperFx }}">
+                        <sc-if value="{{ f.nameLine }}" hint-placeholder-val="{{ true }}"><div style="display:flex; flex-direction:column; gap:2px; padding-right:10px;"><span style="font-weight:600; font-size:17px; line-height:22px;">Priya Deshmukh</span><span style="font-size:12px; color:var(--ink2);">Pune · priya.d@example.com</span></div></sc-if>
+                        <sc-for list="{{ f.secs }}" as="sec" hint-placeholder-count="2">
+                          <div style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--hair); height:28px;">
+                              <span style="font-size:12px; font-weight:600; letter-spacing:.06em;">{{ sec.h }}</span>
+                              <span style="width:44px; height:44px; display:flex; align-items:center; justify-content:center;"><span style="display:flex; gap:3px;"><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span></span></span>
+                            </div>
+                            <sc-for list="{{ sec.lines }}" as="l" hint-placeholder-count="2">
+                              <div style="display:flex; gap:8px; align-items:flex-start; {{ l.fx }}">
+                                <span style="flex:1; min-width:0; font-size:13.5px; line-height:20px; text-wrap:pretty;">{{ l.t }}</span>
+                                <span style="flex:none; width:58px; display:flex; flex-direction:column; gap:2px; padding-top:1px;">
+                                  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; line-height:14px; color:var(--pri); white-space:nowrap;">{{ l.m }}</span>
+                                  <span style="display:flex; align-items:center; gap:4px; font-family:'JetBrains Mono',monospace; font-size:10px; line-height:13px; color:var(--ink2); white-space:nowrap;">{{ l.stT }}<sc-if value="{{ l.flag }}" hint-placeholder-val="{{ false }}"><span style="width:8px; height:10px; position:relative; display:block;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.2px solid var(--ink);"></span><span style="position:absolute; left:1.2px; top:0; width:6px; height:5px; background:var(--ink);"></span></span></sc-if></span>
+                                </span>
+                                <sc-if value="{{ l.thr }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; left:calc(100% - 50px); top:17px; width:1px; height:{{ l.thrH }}; background:var(--pri); z-index:1;"><span style="position:absolute; left:-3px; top:-3px; width:7px; height:7px; border-radius:50%; background:var(--pri);"></span></span></sc-if>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:40px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                    </div>
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; flex-direction:column; gap:8px;">
+                      <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2);">Decide on every change before you export. We never export a line you haven't reviewed.</div><span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px; font-variant-numeric:tabular-nums;">{{ f.btn }}</span></sc-if>
+                      <sc-if value="{{ f.done }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Preview export</span></sc-if>
+                    </div>
+                    <sc-if value="{{ f.menu }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; right:22px; top:{{ f.menuTop }}; z-index:6; width:260px; background:var(--tool); border:1px solid var(--hair); border-radius:10px; box-shadow:var(--sh2); padding:6px 0; display:flex; flex-direction:column;">
+                        <sc-if value="{{ f.regenOn }}" hint-placeholder-val="{{ false }}"><div style="min-height:56px; padding:8px 16px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center;"><span style="font-size:15px; line-height:20px;">Regenerate this section</span><span style="font-size:13px; line-height:18px; color:var(--ink2); font-variant-numeric:tabular-nums;">2 of 2 included left</span></div></sc-if>
+                        <sc-if value="{{ f.regenOff }}" hint-placeholder-val="{{ false }}"><div style="min-height:56px; padding:8px 16px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center;"><span style="font-size:15px; line-height:20px; color:var(--ink2);">Regenerate this section</span><span style="font-size:13px; line-height:18px; color:var(--ink2); font-variant-numeric:tabular-nums;">0 of 2 included left</span></div><div style="margin:0 12px 6px; padding:10px 12px; border-radius:8px; background:var(--bg); font-size:13px; line-height:18px;">You've used both included regenerations for this application. You can still edit any line by hand.</div></sc-if>
+                        <div style="min-height:48px; padding:0 16px; display:flex; align-items:center; font-size:15px; border-top:1px solid var(--hair);">Report inaccurate content</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ f.dialog }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; inset:0; z-index:6; background:rgba(10,9,7,.45); display:flex; align-items:center; justify-content:center; padding:0 24px;">
+                        <div style="background:var(--tool); border-radius:28px; padding:24px; display:flex; flex-direction:column; gap:14px; width:100%; box-sizing:border-box;">
+                          <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px;">Regenerate Projects?</div>
+                          <div style="font-size:15px; line-height:22px; color:var(--ink2);">HireHop rewrites this section again from your confirmed facts. You'll review each new change.</div>
+                          <div style="font-size:14px; line-height:20px; font-weight:600; font-variant-numeric:tabular-nums;">2 of 2 included regenerations left. This uses 1.</div>
+                          <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Cancel</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Regenerate</span></div>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- 2 BULLET REVIEW -->
+              <sc-if value="{{ f.isB }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:56px; flex:none; display:flex; align-items:center; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:2px;">
+                      <span style="width:44px; height:44px; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-left:1.5px solid var(--ink2); border-bottom:1.5px solid var(--ink2); transform:rotate(45deg); display:block;"></span></span>
+                      <span style="font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;">{{ f.pg }}</span>
+                      <span style="width:44px; height:44px; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-right:1.5px solid var(--ink2); border-top:1.5px solid var(--ink2); transform:rotate(45deg); display:block;"></span></span>
+                    </div>
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="display:flex; flex-direction:column; gap:3px;"><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span><span style="width:4px; height:4px; border-radius:50%; background:var(--ink); display:block;"></span></span></span>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; padding:0 16px 16px; display:flex; flex-direction:column;">
+                    <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                      <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                        <span style="font-size:12px; font-weight:600; letter-spacing:.06em; margin-right:4px;">{{ f.sec }}</span>
+                        <sc-for list="{{ f.tags }}" as="tg" hint-placeholder-count="2"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; padding:3px 7px; border-radius:4px; border:1px solid var(--hair); color:var(--ink2);">{{ tg }}</span></sc-for>
+                      </div>
+                      <sc-if value="{{ f.showOg }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">ORIGINAL</span>
+                          <div style="font-size:15px; line-height:22px; color:var(--ink2);"><sc-for list="{{ f.og }}" as="s" hint-placeholder-count="2"><sc-if value="{{ s.x }}" hint-placeholder-val="{{ false }}"><span style="text-decoration:line-through; text-decoration-color:var(--ink); text-decoration-thickness:1.5px; color:var(--ink);">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ f.showNew }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                          <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.newLabel }}</span><sc-if value="{{ f.edited }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 8px; border-radius:6px; border:1px dashed var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;">user-edited</span></sc-if></div>
+                          <div style="background:var(--doc); border:1px solid var(--hair); border-radius:10px; padding:12px 14px; min-height:74px; box-sizing:border-box; font-size:16px; line-height:24px; text-wrap:pretty;">
+                            <sc-for list="{{ f.nw }}" as="s" hint-placeholder-count="2"><sc-if value="{{ s.k }}" hint-placeholder-val="{{ false }}"><span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for><sc-if value="{{ f.caret }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:2px; vertical-align:-3px;"></span></sc-if>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ f.newEmpty }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; flex-direction:column; gap:4px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">NEW</span><div style="border:1px dashed var(--hair); border-radius:10px; min-height:74px;"></div></div>
+                      </sc-if>
+                      <sc-if value="{{ f.hasKw }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:13px; color:var(--ink2);">JD keywords used<sc-for list="{{ f.kw }}" as="k" hint-placeholder-count="2"><span style="background:var(--evi); color:var(--onevi); padding:1px 6px; border-radius:3px; font-size:13px;">{{ k }}</span></sc-for></div>
+                      </sc-if>
+                      <sc-for list="{{ f.flags }}" as="fl" hint-placeholder-count="0">
+                        <div style="display:flex; gap:10px; align-items:flex-start; border:1px solid var(--ink2); border-radius:8px; padding:9px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:11px; height:14px; position:relative; margin-top:3px; display:block;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.5px solid var(--ink);"></span><span style="position:absolute; left:1.5px; top:0; width:9px; height:7px; background:var(--ink);"></span></span><span>{{ fl }}</span></div>
+                      </sc-for>
+                      <sc-if value="{{ f.repair }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; gap:10px; align-items:flex-start; background:var(--bg); border:1px solid var(--hair); border-radius:8px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:18px; height:18px; border:1.5px solid var(--ink2); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--ink2); margin-top:1px;">i</span><span>We kept your original line. The rewrite added something we couldn't match to your facts.</span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.editNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; line-height:18px; color:var(--ink2);">Your own words. HireHop does not check hand edits.</div></sc-if>
+                      <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.srcLabel }}</span>
+                        <sc-for list="{{ f.src }}" as="sr" hint-placeholder-count="1">
+                          <div style="display:flex; align-items:center; gap:8px; min-height:44px; font-size:14px;">
+                            <span style="width:14px; border-top:1px solid var(--pri); flex:none;"></span>
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri); flex:none;">{{ sr.id }}</span>
+                            <span style="flex:1; min-width:0;">{{ sr.n }}</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 7px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:10.5px; flex:none;"><span style="width:5px; height:5px; border-radius:50%; background:currentColor; display:block;"></span>confirmed</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ f.stAcc }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--hair); padding-top:6px;"><span style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600;"><span style="width:5px; height:10px; border-right:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin:-3px 3px 0; display:block;"></span>Accepted · filed into Projects</span><span style="min-height:48px; padding:0 12px; display:flex; align-items:center; color:var(--pri); font-weight:600; font-size:14px;">Undo</span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.stKept }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--hair); padding-top:6px;"><span style="font-size:14px; font-weight:600;">Original kept · the new text is not used</span><span style="min-height:48px; padding:0 12px; display:flex; align-items:center; color:var(--pri); font-weight:600; font-size:14px;">Undo</span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.stRepair }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--hair); padding-top:6px;"><span style="font-size:14px; font-weight:600;">Counts as reviewed</span><span style="min-height:48px; padding:0 12px; display:flex; align-items:center; color:var(--pri); font-weight:600; font-size:14px;">Edit by hand</span></div>
+                      </sc-if>
+                      <sc-if value="{{ f.bAct }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--hair); padding-top:12px;">
+                          <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Accept</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Keep original</span></div>
+                          <span style="align-self:center; min-height:48px; padding:0 16px; display:flex; align-items:center; color:var(--pri); font-weight:600; font-size:14px;">Edit by hand</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <sc-if value="{{ f.editSheet }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.45); display:flex; flex-direction:column; justify-content:flex-end;">
+                      <div style="background:var(--tool); border-radius:28px 28px 0 0; padding:10px 20px 30px; display:flex; flex-direction:column; gap:14px;">
+                        <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">EDIT BY HAND · CHANGE 3 OF 7</span>
+                        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px;">Write this line yourself</div>
+                        <div style="background:var(--doc); border:1.5px solid var(--pri); border-radius:8px; padding:12px; min-height:96px; box-sizing:border-box; font-size:15px; line-height:22px;">Built a Power BI dashboard for the college T&amp;P cell, using 3 batches of placement data.<span style="display:inline-block; width:2px; height:18px; background:var(--pri); margin-left:2px; vertical-align:-3px;"></span></div>
+                        <div style="font-size:14px; line-height:20px;">Your own words. HireHop does not check hand edits.</div>
+                        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink2);">Saves as<span style="display:inline-flex; align-items:center; height:26px; padding:0 8px; border-radius:6px; border:1px dashed var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;">user-edited</span></div>
+                        <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Save</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Cancel</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- D2 SOURCE FACT SHEET (resume) -->
+              <sc-if value="{{ f.srcSheet }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.12); display:flex; flex-direction:column; justify-content:flex-end;">
+                  <div style="background:var(--tool); border-radius:28px 28px 0 0; box-shadow:0 -1px 0 var(--hair), 0 -6px 20px rgba(0,0,0,.12); padding:10px 20px 30px; display:flex; flex-direction:column; gap:12px;">
+                    <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">SOURCE FACT</span><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 8px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor; display:block;"></span>confirmed</span></div>
+                    <div style="display:flex; align-items:baseline; gap:10px;"><span style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--pri); flex:none;">P-02</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px;">Placement Stats Dashboard</span></div>
+                    <div style="background:var(--evic); border:1px solid var(--hair); border-radius:10px; padding:12px 14px; font-size:15px; line-height:23px;">Project · <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">Power BI</span> · <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">3 batches</span> of placement data · built for the college <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">T&amp;P cell</span></div>
+                    <div style="font-size:13px; line-height:18px; color:var(--ink2);">Used in Projects · change 3 of 7</div>
+                    <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Edit in profile</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Close</span></div>
+                    <span style="align-self:center; min-height:40px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--ink2); text-decoration:underline; text-underline-offset:3px;">Report inaccurate content</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- GENERIC WAIT -->
+              <sc-if value="{{ f.isGen }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">{{ f.barT }}</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">{{ f.barS }}</span></div>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:4px 16px 16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.genLabel }}</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-variant-numeric:tabular-nums;">{{ f.elapsed }}</span></div>
+                    <div style="display:flex; flex-direction:column;">
+                      <sc-for list="{{ f.steps }}" as="s" hint-placeholder-count="3">
+                        <div style="display:flex; gap:14px; align-items:flex-start; min-height:48px;">
+                          <span style="flex:none; width:22px; height:22px; margin-top:1px; display:flex;">
+                            <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="width:22px; height:22px; border:1.5px solid var(--ink); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:8px; border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); transform:rotate(45deg); margin-top:-2px; display:block;"></span></span></sc-if>
+                            <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}"><span style="width:22px; height:22px; border:2px solid var(--pri); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:var(--pri); display:block;"></span></span></sc-if>
+                            <sc-if value="{{ s.pend }}" hint-placeholder-val="{{ true }}"><span style="width:22px; height:22px; border:1.5px dashed var(--ink2); border-radius:50%; box-sizing:border-box; display:block;"></span></sc-if>
+                          </span>
+                          <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+                            <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}"><span style="font-size:16px; line-height:24px; font-weight:600;">{{ s.t }}</span><span style="height:1px; background:var(--hair); position:relative; display:block;"><span style="position:absolute; left:0; top:0; height:1px; width:62%; background:var(--pri);"></span></span></sc-if>
+                            <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="font-size:16px; line-height:24px; color:var(--ink2);">{{ s.t }}</span></sc-if>
+                            <sc-if value="{{ s.pend }}" hint-placeholder-val="{{ true }}"><span style="font-size:16px; line-height:24px; color:var(--ink2);">{{ s.t }}</span></sc-if>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:15px; line-height:22px; font-weight:600;">You can leave. We'll notify you when it's ready.</div>
+                    <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:14px; display:flex; flex-direction:column; gap:12px;">
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ f.skelLabel }}</span>
+                      <sc-for list="{{ f.skel }}" as="sk" hint-placeholder-count="4">
+                        <div style="display:flex; gap:8px; align-items:center;"><span style="flex:1; height:9px; border:1px dashed var(--ink2); border-radius:3px; box-sizing:border-box; display:block; margin-right:{{ sk.mr }};"></span><span style="width:48px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">{{ sk.id }}</span></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- GENERIC STOP -->
+              <sc-if value="{{ f.isStop }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">{{ f.barT }}</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">{{ f.barS }}</span></div>
+                  </div>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:16px; padding:32px 24px 16px;">
+                    <div style="width:64px; height:80px; border:1.5px solid var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:24px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:10px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:22px; top:48px; width:20px; height:20px; border:1.5px solid var(--err); border-radius:50%; color:var(--err); font-size:13px; text-align:center; line-height:18px; background:var(--doc); box-sizing:border-box;">!</span></div>
+                    <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; line-height:30px; letter-spacing:-.02em; text-wrap:pretty;">{{ f.sHead }}</div>
+                    <div style="font-size:16px; line-height:24px; color:var(--ink2);">{{ f.sBody }}</div>
+                    <div style="flex:1;"></div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">{{ f.sA }}</span>
+                      <sc-if value="{{ f.sB }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">{{ f.sB }}</span></sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- 3 COVER LETTER -->
+              <sc-if value="{{ f.isL }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">Cover letter</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">Associate Analyst · Northwind GCC</span></div>
+                  </div>
+                  <sc-if value="{{ f.lOffer }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:14px; padding:4px 16px 16px;">
+                      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:14px 16px; display:flex; flex-direction:column; gap:8px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">YOUR TAILORED RESUME</span>
+                        <div style="display:flex; align-items:center; gap:10px;"><span style="width:22px; height:22px; border:1.5px solid var(--ink); border-radius:50%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; flex:none;"><span style="width:4px; height:8px; border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); transform:rotate(45deg); margin-top:-2px; display:block;"></span></span><span style="font-size:16px; font-weight:600; font-variant-numeric:tabular-nums;">7 of 7 changes reviewed</span></div>
+                        <span style="font-size:14px; line-height:20px; color:var(--ink2);">Ready to preview and export.</span>
+                      </div>
+                      <div style="flex:1;"></div>
+                      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:20px; display:flex; flex-direction:column; gap:12px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">OPTIONAL</span>
+                        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; line-height:30px; letter-spacing:-.02em; text-wrap:pretty;">Want a short cover letter? It's optional.</div>
+                        <div style="font-size:15px; line-height:22px; color:var(--ink2);">150 to 220 words. Every paragraph links to your facts, and you can edit any line.</div>
+                        <div style="display:flex; gap:10px; margin-top:4px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Write one</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">No thanks</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.lMain }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1; min-height:0; overflow:hidden; position:relative;">
+                      <div style="display:flex; flex-direction:column; gap:12px; padding:0 16px 16px; {{ f.scrollFx }}">
+                        <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. You can read and edit your letter. Changes sync when you're back.</span></div></sc-if>
+                        <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:30px; line-height:32px; letter-spacing:-.02em; font-variant-numeric:tabular-nums;">{{ f.wc }}</span><span style="font-size:14px; color:var(--ink2);">words</span><span style="margin-left:auto; font-size:12px; color:var(--ink2);">150 to 220</span></div>
+                        <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:16px 4px 16px 16px; display:flex; flex-direction:column; gap:14px;">
+                          <div style="font-size:13.5px; line-height:21px; padding-right:12px;">Dear Hiring Team at Northwind GCC,</div>
+                          <sc-for list="{{ f.paras }}" as="p" hint-placeholder-count="3">
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                              <div style="display:flex; gap:8px; align-items:flex-start; {{ p.fx }}">
+                                <div style="flex:1; min-width:0; font-size:13.5px; line-height:21px; text-wrap:pretty;"><sc-for list="{{ p.segs }}" as="s" hint-placeholder-count="1"><sc-if value="{{ s.k }}" hint-placeholder-val="{{ false }}"><span style="background:var(--evi); color:var(--onevi); padding:0 2px; border-radius:2px;">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div>
+                                <div style="flex:none; width:56px; display:flex; flex-direction:column; align-items:flex-start; gap:2px;">
+                                  <div style="display:flex; flex-direction:column; gap:1px; padding:2px 4px; margin-left:-4px; border-radius:4px; {{ p.citeFx }}"><sc-for list="{{ p.cites }}" as="c" hint-placeholder-count="1"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; line-height:15px; color:var(--pri); white-space:nowrap;">{{ c }}</span></sc-for></div>
+                                  <sc-if value="{{ p.edited }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; line-height:13px; color:var(--ink2);">edited</span></sc-if>
+                                  <sc-if value="{{ p.flag }}" hint-placeholder-val="{{ false }}"><span style="width:8px; height:10px; position:relative; display:block; margin:2px 0 0 1px;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.2px solid var(--ink);"></span><span style="position:absolute; left:1.2px; top:0; width:6px; height:5px; background:var(--ink);"></span></span></sc-if>
+                                  <span style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; margin-left:-12px;"><span style="display:flex; flex-direction:column; gap:3px;"><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span><span style="width:3px; height:3px; border-radius:50%; background:var(--ink2); display:block;"></span></span></span>
+                                </div>
+                              </div>
+                              <sc-if value="{{ p.flagNote }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:10px; align-items:flex-start; border:1px solid var(--ink2); border-radius:8px; padding:9px 12px; margin-right:12px; font-size:13.5px; line-height:20px;"><span style="flex:none; width:11px; height:14px; position:relative; margin-top:3px; display:block;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.5px solid var(--ink);"></span><span style="position:absolute; left:1.5px; top:0; width:9px; height:7px; background:var(--ink);"></span></span><span>{{ p.flagNote }}</span></div></sc-if>
+                              <sc-if value="{{ p.editNote }}" hint-placeholder-val="{{ false }}"><div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-right:12px; font-size:13px; line-height:18px; color:var(--ink2);"><span style="display:inline-flex; align-items:center; height:24px; padding:0 8px; border-radius:6px; border:1px dashed var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;">user-edited</span>Your own words. HireHop does not check hand edits.</div></sc-if>
+                            </div>
+                          </sc-for>
+                          <div style="display:flex; flex-direction:column; font-size:13.5px; line-height:21px; padding-right:12px;"><span>Yours sincerely,</span><span>Priya Deshmukh</span></div>
+                        </div>
+                      </div>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:40px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                    </div>
+                    <div style="flex:none; background:var(--tool); border-top:1px solid var(--hair); padding:12px 16px 6px; display:flex; flex-direction:column; gap:8px;">
+                      <span style="display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Preview export</span>
+                    </div>
+                    <sc-if value="{{ f.pMenu }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; right:20px; top:{{ f.menuTop }}; z-index:6; width:240px; background:var(--tool); border:1px solid var(--hair); border-radius:10px; box-shadow:var(--sh2); padding:6px 0; display:flex; flex-direction:column;">
+                        <div style="min-height:48px; padding:0 16px; display:flex; align-items:center; font-size:15px;">Edit this paragraph</div>
+                        <div style="min-height:48px; padding:0 16px; display:flex; align-items:center; font-size:15px; border-top:1px solid var(--hair);">Report inaccurate content</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ f.citeSheet }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; inset:0; z-index:5; background:rgba(10,9,7,.12); display:flex; flex-direction:column; justify-content:flex-end;">
+                        <div style="background:var(--tool); border-radius:28px 28px 0 0; box-shadow:0 -1px 0 var(--hair), 0 -6px 20px rgba(0,0,0,.12); padding:10px 20px 28px; display:flex; flex-direction:column; gap:12px;">
+                          <div style="align-self:center; width:32px; height:4px; border-radius:2px; background:var(--ink2);"></div>
+                          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">SOURCES · PARAGRAPH 1</span>
+                          <sc-for list="{{ f.citeFacts }}" as="cf" hint-placeholder-count="2">
+                            <div style="background:var(--evic); border:1px solid var(--hair); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:6px;">
+                              <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--pri);">{{ cf.id }}</span><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 8px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor; display:block;"></span>confirmed</span></div>
+                              <span style="font-size:15px; line-height:21px; font-weight:600;">{{ cf.t }}</span>
+                              <div style="font-size:14px; line-height:22px;"><sc-for list="{{ cf.segs }}" as="s" hint-placeholder-count="1"><sc-if value="{{ s.k }}" hint-placeholder-val="{{ false }}"><span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div>
+                            </div>
+                          </sc-for>
+                          <div style="display:flex; gap:10px;"><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; border:1px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:15px;">Edit in profile</span><span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Close</span></div>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- 4 PREP QUESTIONS -->
+              <sc-if value="{{ f.isQ }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:60px; flex:none; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:10px; height:10px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:600; font-size:17px; line-height:22px;">Prep questions</span><span style="font-size:13px; line-height:18px; color:var(--ink2);">Associate Analyst · Northwind GCC</span></div>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; position:relative;">
+                    <div style="display:flex; flex-direction:column; gap:12px; padding:0 16px 16px;">
+                      <sc-if value="{{ f.off }}" hint-placeholder-val="{{ false }}"><div style="display:flex; gap:12px; align-items:center; background:var(--tool); border:1px solid var(--hair); border-radius:10px; padding:10px 12px; font-size:14px; line-height:20px;"><span style="flex:none; width:22px; height:22px; border:1.5px solid var(--ink2); border-radius:50%; position:relative; box-sizing:border-box; display:block;"><span style="position:absolute; left:-2px; right:-2px; top:9px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></span><span>You're offline. Your saved questions are all here.</span></div></sc-if>
+                      <div style="display:flex; flex-direction:column; gap:4px;">
+                        <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:30px; line-height:32px; letter-spacing:-.02em; font-variant-numeric:tabular-nums;">10</span><span style="font-size:14px; color:var(--ink2);">questions</span></div>
+                        <span style="font-size:14px; line-height:20px; color:var(--ink2);">Likely questions for this JD. Each one is tied to facts in your profile.</span>
+                      </div>
+                      <div style="display:flex; gap:8px;">
+                        <sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2">
+                          <sc-if value="{{ c.sel }}" hint-placeholder-val="{{ false }}"><span style="min-height:48px; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:8px; background:var(--pric); color:var(--onpric); font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;">{{ c.t }}</span></span></sc-if>
+                          <sc-if value="{{ c.un }}" hint-placeholder-val="{{ true }}"><span style="min-height:48px; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:8px; border:1px solid var(--hair); font-size:14px; font-variant-numeric:tabular-nums; box-sizing:border-box; white-space:nowrap;">{{ c.t }}</span></span></sc-if>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ f.tabQ }}" hint-placeholder-val="{{ false }}">
+                        <sc-for list="{{ f.qs }}" as="q" hint-placeholder-count="2">
+                          <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:14px 16px 4px; display:flex; flex-direction:column; gap:10px;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ q.n }}</span>
+                            <span style="font-size:16px; line-height:23px; font-weight:600; text-wrap:pretty;">{{ q.t }}</span>
+                            <div style="font-size:13.5px; line-height:21px; color:var(--ink2); text-wrap:pretty;"><span style="font-weight:600; color:var(--ink);">Why they may ask: </span><sc-for list="{{ q.why }}" as="s" hint-placeholder-count="1"><sc-if value="{{ s.k }}" hint-placeholder-val="{{ false }}"><span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">{{ s.t }}</span></sc-if><sc-if value="{{ s.p }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div>
+                            <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><span style="font-size:13px; color:var(--ink2); margin-right:2px;">Facts you can use</span><sc-for list="{{ q.facts }}" as="id" hint-placeholder-count="1"><span style="display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 8px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:currentColor; display:block;"></span>{{ id }}</span></sc-for></div>
+                            <span style="align-self:flex-start; min-height:44px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--ink2); text-decoration:underline; text-underline-offset:3px;">Report inaccurate content</span>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                      <sc-if value="{{ f.tabG }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:14px; line-height:20px; color:var(--ink2);">These are not questions. If a gap comes up, here is one honest way to answer.</span>
+                        <sc-for list="{{ f.gaps }}" as="g" hint-placeholder-count="2">
+                          <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:14px 16px 4px; display:flex; flex-direction:column; gap:10px;">
+                            <div style="display:flex; gap:10px; align-items:flex-start;"><span style="flex:none; width:22px; height:22px; border-radius:50%; border:2px dashed var(--gap); box-sizing:border-box; color:var(--gap); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; line-height:1;">+</span><div style="display:flex; flex-direction:column; gap:2px;"><span style="font-size:15px; line-height:21px; font-weight:600;">{{ g.t }}</span><span style="font-size:13px; font-weight:600; color:var(--gap);">Gap</span></div></div>
+                            <div style="font-size:14px; line-height:21px; text-wrap:pretty;"><span style="font-weight:600;">{{ g.lead }}</span>{{ g.ans }}</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><span style="font-size:13px; color:var(--ink2); margin-right:2px;">Facts you can use</span><sc-for list="{{ g.facts }}" as="id" hint-placeholder-count="1"><span style="display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 8px; border-radius:6px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:currentColor; display:block;"></span>{{ id }}</span></sc-for></div>
+                            <span style="align-self:flex-start; min-height:44px; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--ink2); text-decoration:underline; text-underline-offset:3px;">Report inaccurate content</span>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:40px; background:linear-gradient(to bottom, transparent, var(--bg));"></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- ANDROID HOME (system) -->
+              <sc-if value="{{ f.isHome }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; z-index:8; background:var(--sysbg2); color:var(--sysink); font-family:system-ui,-apple-system,'Segoe UI',sans-serif; display:flex; flex-direction:column;">
+                  <div style="height:32px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 22px; font-size:13px; font-weight:600;">
+                    <span style="display:flex; align-items:center; gap:8px;">9:42<sc-if value="{{ f.hNotif }}" hint-placeholder-val="{{ false }}"><span style="width:8px; height:8px; border-radius:50%; background:var(--sysink); display:block;"></span></sc-if></span>
+                    <span style="display:flex; gap:5px; align-items:center;"><span style="width:3px; height:6px; background:var(--sysink); display:block;"></span><span style="width:3px; height:9px; background:var(--sysink); display:block;"></span><span style="width:3px; height:12px; background:var(--sysink); display:block;"></span><span style="width:18px; height:10px; border:1.5px solid var(--sysink); border-radius:3px; box-sizing:border-box; margin-left:4px; display:block;"></span></span>
+                  </div>
+                  <sc-if value="{{ f.hNotif }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin:6px 8px 0; background:var(--sysbg); border-radius:24px; padding:14px 16px 4px; display:flex; flex-direction:column; gap:4px; box-shadow:0 4px 16px rgba(0,0,0,.18);">
+                      <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--sysink2);"><span style="width:18px; height:18px; border-radius:50%; background:var(--pri); display:block;"></span>HireHop · now</div>
+                      <span style="font-size:15px; line-height:20px; font-weight:600;">Your Northwind resume is ready to review</span>
+                      <span style="font-size:14px; line-height:20px; color:var(--sysink2);">7 changes are waiting for your decision.</span>
+                      <span style="align-self:flex-start; min-height:48px; padding:0 12px; margin-left:-12px; display:flex; align-items:center; font-size:14px; font-weight:600;">Review</span>
+                    </div>
+                  </sc-if>
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:2px; padding-top:72px;"><span style="font-size:64px; line-height:68px; font-weight:300;">9:42</span><span style="font-size:14px; color:var(--sysink2);">Wednesday, 14 April</span></div>
+                  <div style="flex:1;"></div>
+                  <div style="display:flex; justify-content:space-around; padding:0 28px 18px;"><span style="width:52px; height:52px; border-radius:50%; background:var(--sysbg); display:block;"></span><span style="width:52px; height:52px; border-radius:50%; background:var(--sysbg); display:block;"></span><span style="width:52px; height:52px; border-radius:50%; background:var(--sysbg); display:block;"></span><span style="width:52px; height:52px; border-radius:50%; background:var(--sysbg); display:block;"></span></div>
+                  <div style="margin:0 20px 10px; height:48px; border-radius:999px; background:var(--sysbg); display:flex; align-items:center; padding:0 18px; font-size:14px; color:var(--sysink2);">Search</div>
+                  <div style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--sysink2); padding-bottom:6px;">SYSTEM UI · Android home screen, for context only</div>
+                  <div style="height:22px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:108px; height:4px; border-radius:2px; background:var(--sysink2); display:block;"></span></div>
+                </div>
+              </sc-if>
+
+              <!-- 200% BULLET REVIEW -->
+              <sc-if value="{{ f.isB2 }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                  <div style="min-height:64px; flex:none; display:flex; align-items:center; padding:0 0 0 8px;">
+                    <span style="width:48px; height:48px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:12px; height:12px; border-left:2.5px solid var(--ink); border-bottom:2.5px solid var(--ink); transform:rotate(45deg); margin-left:4px; display:block;"></span></span>
+                    <span style="flex:1; text-align:center; font-size:28px; line-height:34px; font-weight:600; font-variant-numeric:tabular-nums;">Change 3 of 7</span>
+                    <span style="width:48px; height:48px; flex:none;"></span>
+                  </div>
+                  <div style="flex:1; min-height:0; overflow:hidden; padding:0 12px;">
+                    <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:14px; display:flex; flex-direction:column; gap:12px; transform:translateY(-12px);">
+                      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"><span style="font-size:22px; font-weight:600; letter-spacing:.04em;">PROJECTS</span><span style="font-family:'JetBrains Mono',monospace; font-size:20px; padding:3px 8px; border-radius:5px; border:1px solid var(--hair); color:var(--ink2);">reword</span><span style="font-family:'JetBrains Mono',monospace; font-size:20px; padding:3px 8px; border-radius:5px; border:1px solid var(--hair); color:var(--ink2);">emphasise</span></div>
+                      <div style="display:flex; flex-direction:column; gap:4px;"><span style="font-family:'JetBrains Mono',monospace; font-size:20px; color:var(--ink2);">ORIGINAL</span><div style="font-size:28px; line-height:38px; color:var(--ink2);"><span style="text-decoration:line-through; color:var(--ink);">Made</span> a dashboard for placement data <span style="text-decoration:line-through; color:var(--ink);">using Power BI</span>.</div></div>
+                      <div style="display:flex; flex-direction:column; gap:4px;"><span style="font-family:'JetBrains Mono',monospace; font-size:20px; color:var(--ink2);">NEW</span><div style="background:var(--doc); border:1px solid var(--hair); border-radius:10px; padding:12px; font-size:30px; line-height:40px;">Built a <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">Power BI</span> <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">dashboard</span> of 3 batches of placement data for the college T&amp;P cell.</div></div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:10px;">
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:64px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:28px;">Accept</span>
+                        <span style="display:flex; align-items:center; justify-content:center; min-height:64px; border-radius:999px; border:1.5px solid var(--ink); box-sizing:border-box; font-weight:600; font-size:28px;">Keep original</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="height:22px; flex:none; display:flex; align-items:center; justify-content:center;"><span style="width:108px; height:4px; border-radius:2px; background:var(--ink2); display:block;"></span></div>
+            </div>
+            <div style="font-size:13px; line-height:19px; color:var(--ink2); text-wrap:pretty;">{{ f.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const pal = {
+      light: { bg:'#F3EDE2', doc:'#FBF8F1', tool:'#FFFFFF', hair:'#DCD4C5', ink:'#1B1A16', ink2:'#5B564C', ink3:'#857E71',
+        pri:'#353A78', onpri:'#F7F4EC', pric:'#DFE0F6', onpric:'#1F2352', evi:'#F8E36F', evic:'#FCF3BF', onevi:'#1B1A16',
+        err:'#A3352B', errc:'#F8DAD5', gap:'#A8542F', gapc:'#F7DED2', dis:'#E6DFD2', canvas:'#E2DACB',
+        sysbg:'#FFFFFF', sysbg2:'#D5D7DB', sysink:'#1F1F1F', sysink2:'#5F6368',
+        sh1:'0 1px 2px rgba(27,26,22,.06)', sh2:'0 1px 2px rgba(27,26,22,.05), 0 4px 12px rgba(27,26,22,.07)', phone:'0 0 0 1px #D2C9B8, 0 16px 40px rgba(27,26,22,.14)' },
+      dark: { bg:'#14130F', doc:'#1D1B16', tool:'#26231C', hair:'#3B372D', ink:'#EFE9DC', ink2:'#B5AD9C', ink3:'#8B8375',
+        pri:'#B7BBF2', onpri:'#14130F', pric:'#2C3070', onpric:'#E0E1FA', evi:'#5A4C12', evic:'#2E2810', onevi:'#EFE9DC',
+        err:'#F08A7D', errc:'#4A1F1A', gap:'#EE9B78', gapc:'#46281B', dis:'#302D26', canvas:'#0B0A08',
+        sysbg:'#2B2C2F', sysbg2:'#1B1C1E', sysink:'#E8EAED', sysink2:'#BDC1C6',
+        sh1:'0 1px 2px rgba(0,0,0,.4)', sh2:'0 1px 2px rgba(0,0,0,.4), 0 6px 16px rgba(0,0,0,.45)', phone:'0 0 0 1px #2E2B24, 0 16px 40px rgba(0,0,0,.5)' }
+    };
+    const toVars = o => Object.keys(o).map(k => `--${k}:${o[k]};`).join(' ');
+    const steps = (arr, a) => arr.map((t, i) => ({ t, done:i < a, active:i === a, pend:i > a }));
+    const RST = ['Picking your facts for this JD', 'Rewriting for this JD', 'Checking every line'];
+
+    const L = {
+      c1:{ m:'I-01 +1', nw:'Cleaned 12,000 rows of sales data in Excel and built weekly pivot reports', og:'Cleaned 12,000 rows of sales data in Excel. Built weekly pivot reports.' },
+      c2:{ m:'I-01', nw:'Data intern, Kiran Agro Exports, Nashik · May to Jul 2025', og:'Data intern at Kiran Agro Exports in Nashik from May 2025 to July 2025' },
+      c3:{ m:'P-02', flag:1, nw:'Built a Power BI dashboard of 3 batches of placement data for the college T&P cell.', og:'Made a dashboard for placement data using Power BI.' },
+      c4:{ m:'X-01', nw:'Smart India Hackathon 2024 — internal-round finalist', og:'Smart India Hackathon 2024 — internal-round finalist' },
+      c5:{ m:'C-01 +2', nw:'SQL, Excel (pivot tables), Power BI, C++, HTML', og:'Excel, SQL, Power BI, C++, HTML' },
+      c6:{ m:'C-01 +1', nw:'Relevant coursework: DBMS (SQL), Probability & Statistics', og:'Relevant coursework: DBMS, OS, Probability & Statistics, Computer Networks', ed:'Coursework: DBMS (SQL), Probability & Statistics' },
+      c7:{ m:'E-01', nw:'B.Tech Computer Science · 2026 · CGPA 8.1', og:'B.Tech in Computer Science, CGPA 8.1/10, 2026' }
+    };
+    const RULE = 'border-left:2px solid var(--pri); padding-left:8px; margin-left:-10px;';
+    const NORULE = 'border-left:2px solid transparent; padding-left:8px; margin-left:-10px;';
+    const FLASH = 'border-left:2px solid var(--pri); padding-left:8px; margin-left:-10px; background:var(--pric); border-radius:0 4px 4px 0;';
+    const stLabel = { review:'to review', acc:'accepted', kept:'kept', auto:'kept', edit:'edited' };
+    const line = (k, st, o) => { const c = L[k]; o = typeof o === 'string' ? { fx:o } : (o || {});
+      return { t: st === 'kept' || st === 'auto' ? c.og : st === 'edit' ? c.ed : c.nw, m:c.m, stT:stLabel[st], flag:!!c.flag && st === 'review', fx: o.fx || (st === 'review' ? RULE : NORULE), thr:!!o.thr, thrH:o.thrH || '0px' }; };
+    const secs = (s, only, fx) => [
+      { h:'EXPERIENCE', lines:[line('c2', s[2]), line('c1', s[1])] },
+      { h:'PROJECTS', lines:[line('c3', s[3], fx), line('c4', s[4])] },
+      { h:'SKILLS', lines:[line('c5', s[5])] },
+      { h:'EDUCATION', lines:[line('c7', s[7]), line('c6', s[6])] }
+    ].filter(x => !only || only.includes(x.h));
+    const S_READY = { 1:'review', 2:'review', 3:'review', 4:'auto', 5:'review', 6:'review', 7:'review' };
+    const S_PART  = { 1:'acc', 2:'review', 3:'review', 4:'auto', 5:'review', 6:'edit', 7:'review' };
+    const S_DONE  = { 1:'acc', 2:'kept', 3:'acc', 4:'auto', 5:'acc', 6:'edit', 7:'acc' };
+    const main = o => ({ rMain:1, panel:1, nameLine:1, paperFx:'', flagChip:1, ...o });
+
+    const R = [
+      { state:'Loading', rLoad:1, elapsed:'24 s', steps:steps(RST, 1), note:'The job runs in the background for up to 60 s. Named steps only, with no bar. The paper shows margin citations arriving.' },
+      { state:'Notification priming sheet (D10)', rLoad:1, notif:1, elapsed:'6 s', steps:steps(RST, 0), note:'First time only. “Not now” has equal size and shape. Android’s own permission dialog follows only after “Allow”.' },
+      main({ state:'Ready', rv:'1', secs:secs(S_READY), open:1, btn:'Review next change · 6 left', note:'Change 4 counts as reviewed already: the repair failed, so the original was kept. To-review lines carry a primary rule, and every changed line has a margin citation with its fact ID. The bottom button jumps to the next open change.' }),
+      main({ state:'Partly reviewed', rv:'3', secs:secs(S_PART), open:1, btn:'Review next change · 4 left', note:'The margin states read to review, accepted, kept and edited. “Review next change” jumps to the next open change. “Preview export” appears only when all 7 are decided. There is no “Accept all”.' }),
+      main({ state:'Section menu', rv:'3', secs:secs(S_PART), open:1, btn:'Review next change · 4 left', menu:1, regenOn:1, menuTop:'450px', note:'The Projects ⋮ menu states the included count before the tap: “2 of 2 included left”.' }),
+      main({ state:'Regenerate dialog (D4)', rv:'3', secs:secs(S_PART), open:1, btn:'Review next change · 4 left', dialog:1, note:'The dialog confirms and repeats the count. Cancel and Regenerate have equal weight.' }),
+      main({ state:'Regenerations used', rv:'3', secs:secs(S_PART), open:1, btn:'Review next change · 4 left', menu:1, regenOff:1, menuTop:'430px', note:'The menu item is off at 0 of 2, and the reason sits directly under it. Hand edits stay open.' }),
+      main({ state:'All reviewed', rv:'7', flagChip:0, secs:secs(S_DONE), done:1, note:'The one hop moment in this flow: “7 of 7” lands on the hop spring (0.62 / 380) and Preview export turns on. Fallback: 120 ms fade.' }),
+      { state:'Job failed', rStop:1, note:'A real failure, so the error spot is used. The copy states what is safe.' },
+      main({ state:'Offline', rv:'3', off:1, secs:secs(S_PART), open:1, btn:'Review next change · 4 left', note:'The saved result can still be reviewed. Decisions queue on the phone and sync later.' })
+    ];
+
+    const src = { P02:{ id:'P-02', n:'Placement Stats Dashboard' }, I01:{ id:'I-01', n:'Data intern, Kiran Agro Exports' }, C01:{ id:'C-01', n:'DBMS coursework' }, X01:{ id:'X-01', n:'Smart India Hackathon 2024' } };
+    const seg = arr => arr.map(s => typeof s === 'string' ? { t:s, p:true, x:false, k:false } : { t:s.t, x:!!s.x, k:!!s.k, p:!s.x && !s.k });
+    const C3OG = seg([{ t:'Made', x:1 }, ' a dashboard for placement data ', { t:'using Power BI', x:1 }, '.']);
+    const C3OG0 = seg(['Made a dashboard for placement data using Power BI.']);
+    const C3NW = seg(['Built a ', { t:'Power BI', k:1 }, ' ', { t:'dashboard', k:1 }, ' of 3 batches of placement data for the college T&P cell.']);
+    const card = o => ({ pg:'Change 3 of 7', sec:'PROJECTS', tags:['reword','emphasise'], showOg:true, og:C3OG, showNew:true, newLabel:'NEW', nw:C3NW, hasKw:true, kw:['Power BI','dashboard'], flags:[], srcLabel:'SOURCE', src:[src.P02], bAct:true, ...o });
+    const VERB = 'Verb changed: made → built. Check that this is true for you.';
+    const SCALE = "Scale: '3 batches' — from P-02";
+    const B = [
+      card({ state:'Normal', pg:'Change 5 of 7', sec:'SKILLS', tags:['reorder','emphasise'],
+        og:seg([{ t:'Excel, SQL', x:1 }, ', Power BI, C++, HTML']), nw:seg([{ t:'SQL', k:1 }, ', ', { t:'Excel', k:1 }, ' (pivot tables), ', { t:'Power BI', k:1 }, ', C++, HTML']),
+        kw:['SQL','Excel','Power BI'], srcLabel:'SOURCES', src:[src.C01, src.I01, src.P02],
+        note:'An unflagged change. TalkBack reads the card as one unit: “Change 5 of 7. Original: … New: … Sources C-01, I-01, P-02, confirmed.” The buttons read “Accept change 5” and “Keep original for change 5”.' }),
+      card({ state:'Flagged verb', flags:[VERB], note:'The flag informs in neutral ink with the board’s flag icon, never error. TalkBack: “… Source P-02, confirmed. Flag: verb changed from made to built.”' }),
+      card({ state:'Flagged scale word', flags:[SCALE], note:'Change 3 carries both flags. These two frames show one flag each so they can be reviewed apart; in the build they stack in one list.' }),
+      card({ state:'Repair failed', pg:'Change 4 of 7', tags:['emphasise'], og:seg(['Smart India Hackathon 2024 — internal-round finalist']), showNew:false, hasKw:false, src:[src.X01], bAct:false, repair:true, stRepair:true, note:'No decision needed. The card counts as reviewed, and the original stays. Hand edits stay available.' }),
+      card({ state:'Accepted', bAct:false, stAcc:true, flags:[VERB], note:'After Accept: the card shows its state, and Undo is one tap away.' }),
+      card({ state:'Original kept', showOg:false, newLabel:'YOUR ORIGINAL · KEPT', nw:C3OG0, hasKw:false, bAct:false, stKept:true, note:'After “Keep original”: the original text is restored in the document box.' }),
+      card({ state:'User-edited', newLabel:'YOUR EDIT', edited:true, nw:seg(['Built a Power BI dashboard for the college T&P cell, using 3 batches of placement data.']), hasKw:false, editNote:true, note:'Hand edits always show user-edited and the note that HireHop does not check them. The source link stays.' }),
+      card({ state:'Merged sources', pg:'Change 1 of 7', sec:'EXPERIENCE', tags:['merge','emphasise'],
+        og:seg(['Cleaned 12,000 rows of sales data in Excel', { t:'. Built', x:1 }, ' weekly pivot reports.']), nw:seg(['Cleaned 12,000 rows of sales data in ', { t:'Excel', k:1 }, ' and built weekly pivot ', { t:'reports', k:1 }]),
+        kw:['Excel','reports'], srcLabel:'SOURCES · MERGED', src:[src.I01, src.C01], note:'Two lines merged into one. Both sources are listed, and each opens the source fact sheet.' }),
+      card({ state:'“Edit by hand” sheet (D3)', flags:[VERB], editSheet:true, note:'The note sits inside the sheet next to Save. The line saves as user-edited.' })
+    ];
+
+    const X = [
+      card({ lab:'2 · Bullet review · 1/4 resting', note:'The full card at rest, as in Normal: original with changed words struck, new text, keywords, source, and all three actions live.' }),
+      card({ lab:'2 · Bullet review · 2/4 diff writing in', nw:seg(['Built a ', { t:'Power BI', k:1 }, ' ', { t:'dashboard', k:1 }, ' of 3 batches']), caret:true, hasKw:false, bAct:false, note:'When a card opens, changed words strike on the original first (120 ms). The new text writes in phrase by phrase (proof tween, 200 ms), with keywords marking as they land. The actions fade out (alpha 120 ms) and return when the write-in ends.' }),
+      main({ lab:'2 · Bullet review · 3/4 accepted and filed', rv:'4', panel:0, nameLine:0, secs:secs({ ...S_PART, 3:'acc' }, ['PROJECTS','SKILLS'], FLASH), open:1, btn:'Review next change · 3 left', flagChip:0, isR:true, note:'Accept files the card into the document in one stroke: it scales to the line and fades (proof, 280 ms). The line flashes in primary container, and the margin reads accepted.' }),
+      main({ lab:'2 · Bullet review · 4/4 “Keep original”, snapped back', rv:'4', panel:0, nameLine:0, secs:secs({ ...S_PART, 3:'kept' }, ['PROJECTS','SKILLS'], FLASH), open:1, btn:'Review next change · 3 left', flagChip:0, isR:true, note:'Keep original snaps the original back into place (proof spring, no overshoot). The margin reads kept. Fallback: instant swap.' })
+    ];
+    const TAP = 'border-left:2px solid var(--pri); padding-left:8px; margin-left:-10px; background:var(--pric); border-radius:0 4px 4px 0; position:relative;';
+    const skelL = [{ id:'C-01', mr:'0px' }, { id:'P-02', mr:'40px' }, { id:'I-01', mr:'0px' }, { id:'X-01', mr:'80px' }];
+    const skelQ = [{ id:'P-02', mr:'0px' }, { id:'I-01', mr:'50px' }, { id:'C-01', mr:'10px' }, { id:'C-02', mr:'70px' }];
+    const QST = ['Picking your facts for this JD', 'Writing likely questions', 'Checking every line'];
+    const BAR = 'Associate Analyst · Northwind GCC';
+    const lseg = (arr, lit) => arr.map(s => typeof s === 'string' ? { t:s, p:true, k:false } : { t:s.t, k:!!lit, p:!lit });
+    const words = arr => arr.map(s => typeof s === 'string' ? s : s.t).join('').trim().split(/\s+/).length;
+    const P1 = ['I am writing to apply for the Associate Analyst, Business Intelligence role at Northwind GCC in Bengaluru. In my DBMS coursework, I wrote ', { t:'SQL queries' }, ' against a course database project. I then built a ', { t:'Power BI dashboard of 3 batches of placement data' }, " for my college's T&P cell. Your job description asks for SQL and Power BI, and I have used both on real data."];
+    const P2 = ['From May to July 2025, I worked as a data intern at Kiran Agro Exports in Nashik. I cleaned 12,000 rows of sales data in Excel and built weekly pivot reports from it. Your job description asks for Advanced Excel and clear weekly reports, which is the kind of work I did every week of this internship.'];
+    const P3 = ['I was an internal-round finalist at Smart India Hackathon 2024. I would welcome the chance to learn and contribute to the business intelligence work at Northwind GCC. I would be glad to walk you through any of this work in an interview. Thank you for your time and for considering my application.'];
+    const P3E = ['I was an internal-round finalist at Smart India Hackathon 2024, in a team of six. I would like to learn and grow with the business intelligence team at Northwind GCC. Thank you for your time.'];
+    const FIXED = words(['Dear Hiring Team at Northwind GCC,']) + words(['Yours sincerely, Priya Deshmukh']);
+    const CITE = [
+      { id:'C-01', t:'DBMS coursework', segs:[{ t:'Coursework · ', p:true, k:false }, { t:'SQL', k:true, p:false }] },
+      { id:'P-02', t:'Placement Stats Dashboard', segs:[{ t:'Project · ', p:true, k:false }, { t:'Power BI', k:true, p:false }, { t:' · ', p:true, k:false }, { t:'3 batches', k:true, p:false }, { t:' of placement data · built for the college T&P cell', p:true, k:false }] }
+    ];
+    const letter = o => { o = o || {};
+      const ps = [{ i:1, cites:['C-01','P-02'], arr:P1 }, { i:2, cites:['I-01'], arr:P2 }, { i:3, cites:['X-01'], arr:o.edit3 ? P3E : P3 }];
+      const paras = ps.map(p => ({ cites:p.cites, segs:lseg(p.arr, o.lit && p.i === 1), fx:p.i === o.rule ? RULE : NORULE, citeFx:p.i === o.press ? 'background:var(--pric);' : '',
+        edited:!!(o.edit3 && p.i === 3), editNote:!!(o.edit3 && p.i === 3), flag:!!(o.flag2 && p.i === 2),
+        flagNote:o.flag2 && p.i === 2 ? "Scale: 'every week' — from I-01 (weekly pivot reports). Check that this is true for you." : '' }));
+      return { isL:true, lMain:true, paras, citeFacts:CITE, wc:String(FIXED + ps.reduce((n, p) => n + words(p.arr), 0)), scrollFx:'', ...o };
+    };
+    const citeFacts = [
+      { id:'C-01', t:'DBMS coursework', segs:lseg(['Coursework · ', { t:'SQL' }], true).map((s, i) => i === 0 ? { t:s.t, p:true, k:false } : s) },
+      { id:'P-02', t:'Placement Stats Dashboard', segs:[{ t:'Project · ', p:true, k:false }, { t:'Power BI', k:true, p:false }, { t:' · ', p:true, k:false }, { t:'3 batches', k:true, p:false }, { t:' of placement data · built for the college T&P cell', p:true, k:false }] }
+    ];
+    const LT = [
+      { state:'Offer', lOffer:1, note:'Shown only after all 7 changes are reviewed. “Write one” and “No thanks” have equal size and shape. “No thanks” goes straight to the export preview.' },
+      { state:'Generating', isGen:1, barT:'Cover letter', barS:BAR, genLabel:'WRITING · UP TO 60 S', elapsed:'18 s', steps:steps(RST, 1), skelLabel:'YOUR LETTER', skel:skelL, note:'The same named steps as the resume. It runs in the background, so the user can leave.' },
+      letter({ state:'Ready', note:'Each paragraph has a margin citation: 1 → C-01, P-02; 2 → I-01; 3 → X-01. The tabular count covers the whole letter. No sentence claims a gap skill.' }),
+      letter({ state:'Paragraph menu (⋮)', rule:1, pMenu:1, menuTop:'272px', note:'Each paragraph’s ⋮ holds “Edit this paragraph” and “Report inaccurate content”.' }),
+      letter({ state:'Paragraph flagged', flag2:1, scrollFx:'transform:translateY(-250px);', note:'The flag informs in neutral ink with the board’s flag icon, never error. The margin shows the flag too.' }),
+      letter({ state:'User-edited', edit3:1, scrollFx:'transform:translateY(-440px);', note:'Edited in place. The paragraph keeps its citation, shows user-edited, and carries the note. The count updates.' }),
+      { state:'Error', isStop:1, barT:'Cover letter', barS:BAR, sHead:"We couldn't write your letter.", sBody:'Your resume and analysis are safe. Try again, or skip the letter.', sA:'Try again', sB:'Skip the letter', note:'A real failure, so the error spot is used. Skipping has equal size and shape.' },
+      letter({ state:'Offline', off:1, note:'The saved letter stays readable and editable. Edits sync later.' })
+    ];
+
+    const qseg = arr => arr.map(s => typeof s === 'string' ? { t:s, p:true, k:false } : { t:s.t, k:true, p:false });
+    const qs = [
+      { n:'Q1', t:'Walk me through your Placement Stats Dashboard. Where did the data come from?', why:qseg(['the JD asks for ', { t:'Power BI or Tableau' }, ' and ', { t:'clear weekly reports' }, '.']), facts:['P-02','I-01'] },
+      { n:'Q2', t:'You cleaned 12,000 rows of sales data in Excel. What did you check first?', why:qseg(['the JD asks for ', { t:'Advanced Excel: pivot tables, lookups' }, '.']), facts:['I-01'] },
+      { n:'Q3', t:'Write a SQL query that finds the top 5 products by monthly sales.', why:qseg(['the JD asks for ', { t:'SQL: joins, aggregations' }, '.']), facts:['C-01','I-01'] },
+      { n:'Q4', t:'Which numbers would you look at first in a weekly sales report, and why?', why:qseg(['the JD lists ', { t:'statistics' }, ' and asks for ', { t:'clear weekly reports' }, '.']), facts:['C-02','I-01'] }
+    ];
+    const gaps = [
+      { t:'Cloud data warehouse (Snowflake or BigQuery)', lead:'If they ask about Snowflake or BigQuery: ', ans:"say you haven't used them yet. Link it to what you have — SQL from DBMS coursework and the Kiran Agro internship.", facts:['C-01','I-01'] },
+      { t:'Python', lead:'If they ask about Python: ', ans:"say you haven't used it yet. Link it to what you have — cleaning 12,000 rows of sales data in Excel at Kiran Agro.", facts:['I-01'] },
+      { t:'Agile / JIRA', lead:'If they ask about Agile or JIRA: ', ans:"say you haven't worked in an Agile team yet. Link it to what you have — building to a deadline at Smart India Hackathon 2024.", facts:['X-01'] },
+      { t:'Stakeholder communication', lead:'If they ask how you work with stakeholders: ', ans:"say you haven't had a formal stakeholder role yet. Link it to what you have — you built the placement dashboard for the college T&P cell.", facts:['P-02'] }
+    ];
+    const prep = o => ({ isQ:true, qs, gaps, tabQ:false, tabG:false, ...o, chips:[{ t:'Questions · 10', sel:!!o.tabQ, un:!o.tabQ }, { t:'Your gaps · 4', sel:!!o.tabG, un:!o.tabG }] });
+    const QT = [
+      { state:'Generating', isGen:1, barT:'Prep questions', barS:BAR, genLabel:'WRITING · UP TO 60 S', elapsed:'11 s', steps:steps(QST, 1), skelLabel:'YOUR QUESTIONS', skel:skelQ, note:'Named steps only. The middle step names the real job (“Writing likely questions”).' },
+      prep({ state:'Ready', tabQ:1, note:'Each card: the question, “Why they may ask” with the exact JD phrase in evidence, fact chips, and “Report inaccurate content”. No voice, no recording, no scores.' }),
+      prep({ state:'Ready · Your gaps', tabG:1, note:'A separate group. Gaps are never a question’s premise; each gets one honest answer linked to real facts, with the gap icon and label.' }),
+      { state:'Error', isStop:1, barT:'Prep questions', barS:BAR, sHead:"We couldn't write your questions.", sBody:'Your resume and analysis are safe. Try again.', sA:'Try again', sB:'', note:'A real failure, so the error spot is used.' },
+      prep({ state:'Offline', tabQ:1, off:1, note:'The saved list stays readable offline.' })
+    ];
+
+    const partSecs = o => secs(S_PART, ['PROJECTS','SKILLS'], o);
+    const XB = [
+      main({ lab:'1 · Source link · 1/3 tap a line', isR:true, rv:'3', panel:0, nameLine:0, secs:partSecs({ fx:TAP }), open:1, btn:'Review next change · 4 left', note:'Tap any changed line: it takes the pressed primary-container state.' }),
+      main({ lab:'1 · Source link · 2/3 thread draws', isR:true, rv:'3', panel:0, nameLine:0, secs:partSecs({ fx:TAP, thr:1, thrH:'170px' }), open:1, btn:'Review next change · 4 left', note:'A 1 dp primary thread draws down from the margin citation (scaleY, proof 200 ms).' }),
+      main({ lab:'1 · Source link · 3/3 source fact sheet (D2)', isR:true, rv:'3', panel:0, nameLine:0, secs:partSecs({ fx:TAP, thr:1, thrH:'900px' }), open:1, btn:'Review next change · 4 left', srcSheet:1, note:'The thread meets the sheet as it rises. P-02 opens washed in evidence, with the matched terms marked. Fallback: the sheet appears, no thread.' }),
+      letter({ lab:'3 · Citation tap · 1/2 tap', rule:1, press:1, note:'Tap paragraph 1’s margin citation: the citation takes the pressed state and the paragraph gets a primary rule.' }),
+      letter({ lab:'3 · Citation tap · 2/2 source facts light', rule:1, press:1, lit:1, citeSheet:1, note:'The words each fact supports mark in evidence in the letter, and C-01 and P-02 open washed in evidence (proof 200 ms).' }),
+      { lab:'Background job · 1/4 waiting', isR:true, rLoad:1, elapsed:'9 s', steps:steps(RST, 0), note:'The tailoring job starts. “You can leave” is stated plainly.' },
+      { lab:'Background job · 2/4 you left', isHome:1, note:'The user leaves HireHop. The job keeps running with no progress notification.' },
+      { lab:'Background job · 3/4 notification', isHome:1, hNotif:1, note:'Android notification, drawn as a neutral system frame. A tap on it or on “Review” opens the review.' },
+      main({ lab:'Background job · 4/4 ready', isR:true, rv:'1', secs:secs(S_READY), open:1, btn:'Review next change · 6 left', note:'The review opens in the Ready state.' })
+    ];
+    const Z = [{ lab:'2 · Bullet review · 200% text', isB2:1, note:'Scrolled so the stacked actions show. Original stacks above New, tags wrap (the tags sit just above the view), and Accept and Keep original stack full width at 64 dp. The verb flag sits between New and the actions in the build, so the list scrolls. Source and “Edit by hand” scroll below.' }];
+
+    const rows = [];
+    const add = (title, flag, list, modes) => modes.forEach(m => rows.push({
+      title, modeLabel:m.toUpperCase(), vars:toVars(pal[m]),
+      frames:list.map(fr => ({ ...fr, ...(flag && !(fr.isR || fr.isGen || fr.isStop || fr.isHome || fr.isL || fr.isQ) ? { [flag]:true } : {}), label:fr.lab || `${title.slice(1).replace(/^(\d) · /, '$1 · ')} · ${fr.state}` }))
+    }));
+    add('01 · Tailored resume review', 'isR', R, ['light','dark']);
+    add('02 · Bullet review', 'isB', B, ['light','dark']);
+    add('Interaction frames · Bullet review', 'isB', X, ['light','dark']);
+    add('03 · Cover letter', 'isL', LT, ['light','dark']);
+    add('04 · Prep questions', 'isQ', QT, ['light','dark']);
+    add('Interaction frames · Source link, citation tap, background job', null, XB, ['light','dark']);
+    add('200% text size', null, Z, ['light']);
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

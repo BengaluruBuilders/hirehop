@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Anek+Latin:wght@400;600&family=JetBrains+Mono:wght@400&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@keyframes hhProof{from{transform:translateX(0)}to{transform:translateX(220px)}}
+@keyframes hhHop{from{transform:translateX(0)}to{transform:translateX(220px)}}
+@keyframes hhReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hhCount{0%{transform:translateY(0);opacity:1}40%{transform:translateY(-14px);opacity:0}41%{transform:translateY(14px)}100%{transform:translateY(0);opacity:1}}
+</style>
+</helmet>
+<div style="{{ vars }} width:1120px; background:var(--bg,#F3EDE2); color:var(--ink,#1B1A16); font-family:'Anek Latin',system-ui,sans-serif; padding:48px 56px 64px; box-sizing:border-box; display:flex; flex-direction:column; gap:56px; border:1px solid var(--hair,#DDD5C6);">
+
+  <!-- Board header -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--ink); padding-bottom:20px;">
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; color:var(--ink2);">HIREHOP · FOUNDATIONS · {{ modeLabel }}</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:56px; line-height:1; letter-spacing:-.02em;">Evidence-editorial</div>
+      <div style="font-size:18px; line-height:1.4; color:var(--ink2); max-width:620px;">A sharp senior who checks every line with you and never lets you lie. Warm paper, confident ink, highlighter on the JD, margin citations on every rewritten line.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div style="display:inline-flex; align-items:center; gap:8px; border:1px solid var(--hair); background:var(--tool); border-radius:999px; padding:8px 14px; font-size:14px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:var(--pri);display:inline-block;"></span>We never invent anything about you.</div>
+      <div style="font-size:14px; color:var(--ink3);">Your next move, better prepared.</div>
+    </div>
+  </div>
+
+  <!-- 01 TYPOGRAPHY -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">01</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Typography</span><span style="font-size:14px; color:var(--ink2);">Bricolage Grotesque 600 · Anek Latin 400/600 · JetBrains Mono 400 — 4 weights, ~310 KB, all with ₹ U+20B9. Anek Devanagari is the Hindi sibling.</span></div>
+    <div style="display:grid; grid-template-columns:1.25fr .75fr; gap:24px;">
+      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; padding:28px 32px; display:flex; flex-direction:column; gap:22px; box-shadow:var(--sh1);">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">displayLarge · Bricolage 600 · 44/48 · -0.02em</div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:44px; line-height:48px; letter-spacing:-.02em;">You cover 9 of 14 key terms.</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">headlineMedium · Bricolage 600 · 28/34 · -0.01em</div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:28px; line-height:34px; letter-spacing:-.01em;">Junior Data Analyst — 2 gaps to prepare for</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">titleMedium · Anek 600 · 18/24</div>
+          <div style="font-weight:600; font-size:18px; line-height:24px;">Summer intern, Pune logistics startup</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">bodyLarge · Anek 400 · 17/26 (resume and JD text)</div>
+          <div style="font-size:17px; line-height:26px; max-width:560px; text-wrap:pretty;">Wrote weekly SQL reports in PostgreSQL for the operations team, covering 3 warehouses and about 1,200 shipments a week. Cut report preparation from 4 hours to 40 minutes.</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">bodyMedium · Anek 400 · 15/22 · labelLarge · Anek 600 · 14/20 · labelSmall · Anek 600 · 12/16 +0.02em</div>
+          <div style="display:flex; gap:24px; align-items:baseline; flex-wrap:wrap;"><span style="font-size:15px; line-height:22px;">Requirements: SQL, Python with pandas, Excel dashboards.</span><span style="font-weight:600; font-size:14px; line-height:20px;">Add to my prep plan</span><span style="font-weight:600; font-size:12px; line-height:16px; letter-spacing:.02em; text-transform:uppercase;">Must-have</span></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">mono · JetBrains Mono 400 · 13/18 (fact IDs, source tags, token names)</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:13px; line-height:18px; color:var(--ink2);">fact F-07 · source: resume/experience[1] · confirmed 12 Sep</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; padding:24px 28px; box-shadow:var(--sh1); display:flex; flex-direction:column; gap:14px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">heroNumeral · Bricolage 600 · 64/64 · tabular-nums · -0.03em</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px 12px;">
+            <div style="display:flex; flex-direction:column; gap:2px;"><div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:64px; line-height:64px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">9<span style="color:var(--ink3);">/</span>14</div><div style="font-size:14px; color:var(--ink2);">key terms covered</div></div>
+            <div style="display:flex; flex-direction:column; gap:2px;"><div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:64px; line-height:64px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">₹149</div><div style="font-size:14px; color:var(--ink2);">5 applications</div></div>
+            <div style="display:flex; flex-direction:column; gap:2px;"><div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:64px; line-height:64px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">4 <span style="font-size:28px; letter-spacing:0;">left</span></div><div style="font-size:14px; color:var(--ink2);">credits, never expire</div></div>
+            <div style="display:flex; gap:14px; align-items:flex-end;"><div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:40px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--met);">6</span><span style="font-size:12px; color:var(--ink2);">met</span></div><div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:40px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--par);">3</span><span style="font-size:12px; color:var(--ink2);">partial</span></div><div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:40px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--gap);">2</span><span style="font-size:12px; color:var(--ink2);">gaps</span></div></div>
+          </div>
+        </div>
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:12px; padding:20px 24px; box-shadow:var(--sh2); display:flex; flex-direction:column; gap:10px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">GLYPH + LANGUAGE CHECK</div>
+          <div style="display:flex; gap:18px; align-items:baseline;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:34px;">₹</span><span style="font-size:34px;">₹</span><span style="font-family:'JetBrains Mono',monospace; font-size:30px;">₹</span><span style="font-size:22px; color:var(--ink2);">₹149 · ₹29 each</span></div>
+          <div style="font-size:14px; line-height:20px; color:var(--ink);"><b>₹ in the font's glyph set, screen check pending.</b> A width test shows Bricolage 600 draws its own ₹ (same width whatever fallback sits behind it). Confirm “₹149” by eye before sign-off.</div>
+          <div style="font-size:14px; line-height:20px; color:var(--ink2);">Hindi later: swap Anek Latin → Anek Devanagari (same designer, matched x-height and weights). Bricolage stays for Latin heroes; Devanagari heroes fall back to Anek Devanagari 600. Dynamic text 200%: every text box grows, no fixed heights.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 COLOR -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">02</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Color</span><span style="font-size:14px; color:var(--ink2);">Warm paper, deep ink, one inky primary. Status never relies on colour alone: each role carries a shape and a word.</span></div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--bg);"></div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">background</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.bg }} · surface</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--doc);"></div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">document</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.doc }} · surfaceContainerLow</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--tool); border-bottom:1px solid var(--hair);"></div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">tool</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.tool }} · surfaceContainerHigh</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--ink);"></div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">ink</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.ink }} · onSurface · outline {{ t.hair }}</span></div></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--pri); display:flex; align-items:center; justify-content:center; color:var(--onpri); font-weight:600; font-size:14px;">Analyse this JD</div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">primary · {{ t.priName }}</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.pri }} · container {{ t.pric }}</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--evic); display:flex; align-items:center; justify-content:center; font-size:16px;"><span style="background:var(--evi); padding:2px 6px; border-radius:3px; color:var(--onevi);">PostgreSQL</span></div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">evidence · tertiary</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">mark {{ t.evi }} · wash {{ t.evic }}</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--spe); display:flex; align-items:center; justify-content:center; color:var(--onspe); font-weight:600; font-size:14px;">Get 5 applications · ₹149</div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">special · marigold</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.spe }} · pack purchase only</span></div></div>
+      <div style="border:1px solid var(--hair); border-radius:12px; overflow:hidden; background:var(--tool);"><div style="height:72px; background:var(--errc); display:flex; align-items:center; justify-content:center; color:var(--err); font-weight:600; font-size:14px;">Delete account</div><div style="padding:12px 14px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600; font-size:14px;">error</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">{{ t.err }} · container {{ t.errc }} · real errors only</span></div></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+      <div style="border:1px solid var(--hair); border-radius:12px; background:var(--tool); padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:22px; height:22px; border-radius:50%; background:var(--met); color:var(--onstat); display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">✓</span><span style="font-weight:600; font-size:16px; color:var(--met);">Met</span></div>
+        <div style="display:flex; gap:6px;"><span style="flex:1; height:28px; border-radius:6px; background:var(--met);"></span><span style="flex:1; height:28px; border-radius:6px; background:var(--metc);"></span></div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">met {{ t.met }} · metContainer {{ t.metc }} · filled circle, tick</div>
+        <div style="font-size:14px; color:var(--ink2);">“You have this.” Links to the fact that proves it.</div>
+      </div>
+      <div style="border:1px solid var(--hair); border-radius:12px; background:var(--tool); padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(90deg,var(--par) 50%,transparent 50%); border:2px solid var(--par); box-sizing:border-box; display:inline-block;"></span><span style="font-weight:600; font-size:16px; color:var(--par);">Partly met</span></div>
+        <div style="display:flex; gap:6px;"><span style="flex:1; height:28px; border-radius:6px; background:var(--par);"></span><span style="flex:1; height:28px; border-radius:6px; background:var(--parc);"></span></div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">partial {{ t.par }} · partialContainer {{ t.parc }} · half circle</div>
+        <div style="font-size:14px; color:var(--ink2);">“Close. Here is what would make it full.”</div>
+      </div>
+      <div style="border:1px solid var(--hair); border-radius:12px; background:var(--tool); padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:22px; height:22px; border-radius:50%; border:2px dashed var(--gap); box-sizing:border-box; color:var(--gap); display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; line-height:1;">+</span><span style="font-weight:600; font-size:16px; color:var(--gap);">Gap</span></div>
+        <div style="display:flex; gap:6px;"><span style="flex:1; height:28px; border-radius:6px; background:var(--gap);"></span><span style="flex:1; height:28px; border-radius:6px; background:var(--gapc);"></span></div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">gap {{ t.gap }} · gapContainer {{ t.gapc }} · dashed circle, plus</div>
+        <div style="font-size:14px; color:var(--ink2);">Warm clay, never red. A gap is a task, not a fault.</div>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+      <div style="border:1px solid var(--hair); border-radius:12px; background:var(--tool); padding:16px 18px; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">MATERIAL 3 MAPPING (HhTheme)</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:19px; color:var(--ink2); white-space:pre-wrap;">primary / onPrimary / primaryContainer    → pri {{ t.pri }} / {{ t.onpri }} / {{ t.pric }}
+secondary / secondaryContainer            → ink2 {{ t.ink2 }} / doc {{ t.doc }}
+tertiary / tertiaryContainer              → evidence {{ t.evi }} / {{ t.evic }}
+surface / surfaceContainerLow / High      → bg / doc / tool
+outline / outlineVariant                  → {{ t.hair }} / {{ t.hair }} @ 60%
+error / errorContainer                    → {{ t.err }} / {{ t.errc }}
+HhColors.met / partial / gap / special    → custom roles, fixed, dynamicColor = false</div>
+      </div>
+      <div style="border:1px solid var(--hair); border-radius:12px; background:var(--tool); padding:16px 18px; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">CONTRAST (WCAG AA, computed)</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:19px; color:var(--ink2); white-space:pre-wrap;">{{ contrastReport }}</div>
+        <div style="font-size:13px; color:var(--ink2); line-height:18px;">Evidence highlighter: body ink stays the text colour; the mark sits behind at full opacity, so contrast is ink-on-mark, not tinted text.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 SURFACE & ELEVATION -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">03</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Surface &amp; elevation</span><span style="font-size:14px; color:var(--ink2);">Three layers, read apart at a glance. Hairlines do the work; shadows stay faint.</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+      <div style="position:relative; height:300px; border:1px solid var(--hair); border-radius:12px; background:var(--bg); overflow:hidden;">
+        <div style="position:absolute; left:20px; top:20px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">L0 · background · 0dp · {{ t.bg }}</div>
+        <div style="position:absolute; left:24px; right:120px; top:52px; bottom:24px; background:var(--doc); border:1px solid var(--hair); border-radius:10px; box-shadow:var(--sh1); padding:16px 18px; font-size:15px; line-height:22px; color:var(--ink);">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3); margin-bottom:8px;">L1 · document · 1dp + hairline · {{ t.doc }}</div>
+          Built a hostel mess feedback app in Flutter used by <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">340 students</span>; cut paper forms to zero.
+        </div>
+        <div style="position:absolute; right:20px; top:110px; width:260px; background:var(--tool); border:1px solid var(--hair); border-radius:14px; box-shadow:var(--sh2); padding:14px 16px; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">L2 · tool · 3dp + hairline · {{ t.tool }}</div>
+          <div style="font-weight:600; font-size:15px;">Source fact F-03</div>
+          <div style="font-size:14px; color:var(--ink2); line-height:20px;">Confirmed by you on 12 Sep.</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:10px 16px; font-size:14px; line-height:20px; align-items:center;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">L0</span><span style="font-weight:600;">background</span><span style="color:var(--ink2);">surface · 0dp · no border</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">L1</span><span style="font-weight:600;">document</span><span style="color:var(--ink2);">surfaceContainerLow · 1dp · hairline outlineVariant · 12dp radius</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">L2</span><span style="font-weight:600;">tool</span><span style="color:var(--ink2);">surfaceContainerHigh · 3dp · hairline · 16dp radius (cards, bottom bars)</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">L3</span><span style="font-weight:600;">sheet / dialog</span><span style="color:var(--ink2);">surfaceContainerHighest · 6dp · 28dp top radius · scrim ink @ 40%</span>
+        </div>
+        <div style="border-top:1px solid var(--hair); padding-top:12px; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">SHAPE SCALE · SPACING</div>
+          <div style="display:flex; gap:12px; align-items:flex-end;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="width:40px; height:40px; border:1.5px solid var(--ink); border-radius:4px; display:block;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">xs 4</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="width:40px; height:40px; border:1.5px solid var(--ink); border-radius:8px; display:block;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">sm 8</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="width:40px; height:40px; border:1.5px solid var(--ink); border-radius:12px; display:block;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">md 12</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="width:40px; height:40px; border:1.5px solid var(--ink); border-radius:16px; display:block;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">lg 16</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="width:40px; height:40px; border:1.5px solid var(--ink); border-radius:999px; display:block;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink2);">full</span></div>
+            <div style="font-size:13px; color:var(--ink2); line-height:18px; margin-left:12px;">4dp grid. Steps 4 · 8 · 12 · 16 · 24 · 32 · 48. Screen gutter 16dp, card padding 16dp, list row min-height 56dp, touch target 48dp.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 ILLUSTRATION -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">04</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Illustration</span><span style="font-size:14px; color:var(--ink2);">Recommended: the document is the illustration. Real lines, highlighted, tied by provenance threads.</span></div>
+    <div style="display:grid; grid-template-columns:1.3fr .7fr; gap:24px;">
+      <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:24px 28px; display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; justify-content:space-between;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">A · RECOMMENDED · document-as-illustration</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">provenance thread = 1dp primary, margin cite = mono</span></div>
+        <div style="display:grid; grid-template-columns:1fr 28px 1fr; gap:0; align-items:start;">
+          <div style="display:flex; flex-direction:column; gap:10px; font-size:15px; line-height:23px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">JOB DESCRIPTION</div>
+            <div style="text-wrap:pretty;">Junior Data Analyst, Bengaluru. You will write <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">SQL</span> queries against our warehouse, build <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">Python (pandas)</span> pipelines for weekly <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">reports</span>, and present findings to <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">business teams</span>. Power BI or Tableau is a plus.</div>
+          </div>
+          <div style="position:relative; height:100%; min-height:120px;"><span style="position:absolute; left:13px; top:44px; bottom:20px; border-left:1px solid var(--pri);"></span><span style="position:absolute; left:6px; top:44px; width:14px; border-top:1px solid var(--pri);"></span><span style="position:absolute; left:13px; bottom:20px; width:14px; border-top:1px solid var(--pri);"></span></div>
+          <div style="display:flex; flex-direction:column; gap:10px; font-size:15px; line-height:23px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">YOUR CONFIRMED FACTS</div>
+            <div style="border-left:2px solid var(--pri); padding-left:12px; text-wrap:pretty;">Wrote weekly <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">SQL reports</span> in PostgreSQL for the operations team.<div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri); margin-top:4px;">F-07 · confirmed</div></div>
+            <div style="border-left:2px solid var(--pri); padding-left:12px; text-wrap:pretty;">Crop price prediction in <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">Python, scikit-learn</span>; MAE 6.2% on 3 years of Agmarknet data.<div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri); margin-top:4px;">F-02 · confirmed</div></div>
+          </div>
+        </div>
+        <div style="border-top:1px dashed var(--hair); padding-top:14px; display:flex; gap:14px;">
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;"><div style="width:64px; height:80px; border:1.5px dashed var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:22px; height:8px; background:var(--evi);"></span><span style="position:absolute; left:10px; right:22px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:30px; top:50px; border-top:1.5px solid var(--ink2);"></span></div><span style="font-size:12px; color:var(--ink2);">empty · “Paste a JD to start”</span></div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;"><div style="width:64px; height:80px; border:1.5px solid var(--ink2); border-radius:6px; position:relative; background:repeating-linear-gradient(135deg,transparent 0 6px,var(--hair) 6px 8px);"><span style="position:absolute; left:8px; right:8px; bottom:10px; font-family:'JetBrains Mono',monospace; font-size:9px; text-align:center; background:var(--doc); color:var(--ink2); border-radius:3px; padding:2px 0;">scan</span></div><span style="font-size:12px; color:var(--ink2);">scanned PDF · guided form</span></div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;"><div style="width:72px; height:80px; position:relative;"><span style="position:absolute; left:8px; top:12px; width:52px; height:52px; border:1.5px solid var(--ink2); border-radius:50%;"></span><span style="position:absolute; left:14px; top:38px; width:44px; border-top:1.5px solid var(--gap); transform:rotate(-45deg);"></span></div><span style="font-size:12px; color:var(--ink2);">offline · “Saved. Will sync.”</span></div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;"><div style="width:64px; height:80px; border:1.5px solid var(--ink2); border-radius:6px; position:relative;"><span style="position:absolute; left:10px; right:10px; top:24px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:10px; right:10px; top:38px; border-top:1.5px solid var(--ink2);"></span><span style="position:absolute; left:22px; top:48px; width:20px; height:20px; border:1.5px solid var(--err); border-radius:50%; color:var(--err); font-size:13px; text-align:center; line-height:19px; background:var(--doc);">!</span></div><span style="font-size:12px; color:var(--ink2);">error · plain words, retry</span></div>
+        </div>
+        <div style="font-size:13px; color:var(--ink2); line-height:18px;">Spot set: 1.5dp ink strokes, one highlighter mark max, 64×80 dp, vector drawables only. Same threads and marks appear on the share card, so app and card read as one family.</div>
+      </div>
+      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh2); padding:24px 28px; display:flex; flex-direction:column; gap:14px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">B · ALTERNATIVE · ledger &amp; tally</div>
+        <div style="display:flex; flex-direction:column; border-top:1px solid var(--ink);">
+          <div style="display:grid; grid-template-columns:1fr auto; gap:12px; padding:10px 0; border-bottom:1px solid var(--hair); font-size:15px;"><span>SQL</span><span style="font-family:'JetBrains Mono',monospace; color:var(--met);">|| met</span></div>
+          <div style="display:grid; grid-template-columns:1fr auto; gap:12px; padding:10px 0; border-bottom:1px solid var(--hair); font-size:15px;"><span>Python, pandas</span><span style="font-family:'JetBrains Mono',monospace; color:var(--par);">|  partly</span></div>
+          <div style="display:grid; grid-template-columns:1fr auto; gap:12px; padding:10px 0; border-bottom:1px solid var(--hair); font-size:15px;"><span>Power BI</span><span style="font-family:'JetBrains Mono',monospace; color:var(--gap);">·  gap</span></div>
+          <div style="display:grid; grid-template-columns:1fr auto; gap:12px; padding:10px 0; border-bottom:1px solid var(--ink); font-size:15px; font-weight:600;"><span>Coverage</span><span style="font-family:'JetBrains Mono',monospace;">9 / 14</span></div>
+        </div>
+        <div style="font-size:13px; color:var(--ink2); line-height:18px;">Ruled ledger lines, tally marks and mono counts instead of highlighter. Precise and calm, but colder, and it loses the thread from line to source fact. Keep as a table style for dense lists; not the lead.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 MOTION -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">05</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Motion</span><span style="font-size:14px; color:var(--ink2);">Two registers. <b>proof</b> is the default pen stroke; <b>hop</b> is for progress moments only. Transform and alpha only.</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+      <div style="background:var(--tool); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh2); padding:20px 24px; display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">REGISTERS</span><button onClick="{{ replay }}" style="font-family:'Anek Latin',sans-serif; font-weight:600; font-size:13px; color:var(--pri); background:none; border:1px solid var(--hair); border-radius:999px; padding:6px 12px; cursor:pointer;">Replay</button></div>
+        {{ motionDemo }}
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:19px; color:var(--ink2); white-space:pre-wrap;">proof   spring(dampingRatio 0.95, stiffness 1400)
+        tween 200ms · cubic-bezier(0.2, 0, 0, 1)
+        short 120ms · long 280ms
+hop     spring(dampingRatio 0.62, stiffness 380)
+        one overshoot, settles ≤ 480ms
+fade    alpha 120ms linear (reduced-motion fallback for everything)</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; line-height:20px;">
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px; border-bottom:1px solid var(--hair); padding-bottom:10px;"><span style="font-weight:600;">Gap reveal</span><span style="color:var(--ink2);"><b style="color:var(--ink);">proof</b>. Groups slide in 8dp + fade, 40ms stagger; must-have gaps first, then partial, then met. Fallback: fade only.</span></div>
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px; border-bottom:1px solid var(--hair); padding-bottom:10px;"><span style="font-weight:600;">Bullet review</span><span style="color:var(--ink2);"><b style="color:var(--ink);">proof</b>. Original text greys, new text crossfades under it 200ms; accept slides card left 280ms, reject slides right. Fallback: instant swap.</span></div>
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px; border-bottom:1px solid var(--hair); padding-bottom:10px;"><span style="font-weight:600;">Source link</span><span style="color:var(--ink2);"><b style="color:var(--ink);">proof</b>. Tap a line: evidence wash draws left→right over the fact in 200ms (scaleX), thread fades in 120ms. Fallback: wash appears.</span></div>
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px; border-bottom:1px solid var(--hair); padding-bottom:10px;"><span style="font-weight:600;">Honest waiting</span><span style="color:var(--ink2);">Named steps, no percentage. Each step: mono label fades in, hairline draws under it (scaleX 280ms). “Reading the JD” → “Matching your facts” → “Checking every line”. Elapsed time shown after 10 s.</span></div>
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px; border-bottom:1px solid var(--hair); padding-bottom:10px;"><span style="font-weight:600;">Export · credit</span><span style="color:var(--ink2);"><b style="color:var(--pri);">hop</b>. Preview frame settles with one overshoot; the credit numeral rolls down by one (translateY, tabular). Fallback: fade to new number.</span></div>
+        <div style="display:grid; grid-template-columns:150px 1fr; gap:4px 14px;"><span style="font-weight:600;">Lists · screens</span><span style="color:var(--ink2);"><b style="color:var(--ink);">proof</b>. Enter: fade + 8dp rise 200ms. Exit: fade 120ms. Screens: shared-axis X, 280ms. Fallback: crossfade 100ms.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 COMPONENTS -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:baseline; gap:14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink3);">06</span><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.01em;">Core components</span><span style="font-size:14px; color:var(--ink2);">All rows ≥ 48dp. Every status has icon + word. TalkBack labels noted in mono.</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Buttons -->
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">BUTTONS · 48dp · radius full</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <span style="display:inline-flex; align-items:center; height:48px; padding:0 22px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Analyse this JD</span>
+            <span style="display:inline-flex; align-items:center; height:48px; padding:0 22px; border-radius:999px; border:1px solid var(--ink); color:var(--ink); font-weight:600; font-size:15px;">Edit fact</span>
+            <span style="display:inline-flex; align-items:center; height:48px; padding:0 12px; color:var(--pri); font-weight:600; font-size:15px;">Not now</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; border-top:1px dashed var(--hair); padding-top:14px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">SPECIAL · pack CTA (only place the marigold appears)</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <span style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; height:52px; padding:0 20px; border-radius:999px; background:var(--spe); color:var(--onspe); font-weight:600; font-size:15px;">5 applications · ₹149 · credits never expire</span>
+              <span style="display:inline-flex; align-items:center; justify-content:center; height:52px; padding:0 22px; border-radius:999px; border:1px solid var(--ink); color:var(--ink); font-weight:600; font-size:15px;">Not now</span>
+            </div>
+            <div style="font-size:13px; color:var(--ink2);">Equal weight. Price is visible before any tap. No countdown, no “only today”.</div>
+          </div>
+        </div>
+        <!-- Requirement rows -->
+        <div style="background:var(--doc); border:1px solid var(--hair); border-radius:12px; box-shadow:var(--sh1); padding:6px 0; display:flex; flex-direction:column;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3); padding:12px 20px 6px;">REQUIREMENT ROW · min 56dp</div>
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 20px; border-top:1px solid var(--hair);">
+            <span style="flex:none; margin-top:2px; width:22px; height:22px; border-radius:50%; background:var(--met); color:var(--onstat); display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">✓</span>
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><span style="font-size:16px; line-height:22px;">SQL for reporting</span><span style="font-weight:600; font-size:11px; letter-spacing:.02em; text-transform:uppercase; padding:3px 8px; border-radius:4px; background:var(--ink); color:var(--bg);">Must-have</span></div>
+              <div style="font-size:14px; color:var(--met); font-weight:600;">Met · <span style="font-family:'JetBrains Mono',monospace; font-weight:400; color:var(--pri);">F-07 SQL reports in PostgreSQL</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 20px; border-top:1px solid var(--hair);">
+            <span style="flex:none; margin-top:2px; width:22px; height:22px; border-radius:50%; background:linear-gradient(90deg,var(--par) 50%,transparent 50%); border:2px solid var(--par); box-sizing:border-box;"></span>
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><span style="font-size:16px; line-height:22px;">Python with pandas</span><span style="font-weight:600; font-size:11px; letter-spacing:.02em; text-transform:uppercase; padding:3px 8px; border-radius:4px; background:var(--ink); color:var(--bg);">Must-have</span></div>
+              <div style="font-size:14px; color:var(--par); font-weight:600;">Partly met · <span style="font-weight:400; color:var(--ink2);">you used scikit-learn; pandas is not named</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 20px; border-top:1px solid var(--hair);">
+            <span style="flex:none; margin-top:2px; width:22px; height:22px; border-radius:50%; border:2px dashed var(--gap); box-sizing:border-box; color:var(--gap); display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; line-height:1;">+</span>
+            <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><span style="font-size:16px; line-height:22px;">Power BI or Tableau</span><span style="font-weight:600; font-size:11px; letter-spacing:.02em; text-transform:uppercase; padding:3px 8px; border-radius:4px; border:1px solid var(--hair); color:var(--ink2);">Nice-to-have</span></div>
+              <div style="font-size:14px; color:var(--gap); font-weight:600;">Gap</div>
+              <div style="display:flex; gap:8px;"><span style="display:inline-flex; align-items:center; height:40px; padding:0 16px; border-radius:999px; border:1px solid var(--ink); font-weight:600; font-size:14px;">I have this</span><span style="display:inline-flex; align-items:center; height:40px; padding:0 16px; border-radius:999px; background:var(--gapc); color:var(--gap); font-weight:600; font-size:14px;">Add to my prep plan</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Coverage meter -->
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:20px; display:flex; flex-direction:column; gap:12px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">KEYWORD COVERAGE · plain fraction, segmented, never a gauge</div>
+          <div style="display:flex; align-items:baseline; gap:12px;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:40px; letter-spacing:-.03em; font-variant-numeric:tabular-nums;">9<span style="color:var(--ink3);">/</span>14</span><span style="font-size:15px; color:var(--ink2);">key terms covered</span></div>
+          <div style="display:flex; gap:4px;">
+            <span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; background:var(--pri);"></span><span style="flex:1; height:10px; border-radius:2px; border:1px solid var(--ink3); box-sizing:border-box;"></span><span style="flex:1; height:10px; border-radius:2px; border:1px solid var(--ink3); box-sizing:border-box;"></span><span style="flex:1; height:10px; border-radius:2px; border:1px solid var(--ink3); box-sizing:border-box;"></span><span style="flex:1; height:10px; border-radius:2px; border:1px solid var(--ink3); box-sizing:border-box;"></span><span style="flex:1; height:10px; border-radius:2px; border:1px solid var(--ink3); box-sizing:border-box;"></span>
+          </div>
+          <div style="font-size:13px; color:var(--ink2);">9 covered (filled primary) · 5 not yet (1dp outline). Key terms are not requirements, so the bar never uses status colours. <span style="font-family:'JetBrains Mono',monospace;">TalkBack: “Nine of fourteen key terms covered.”</span></div>
+        </div>
+        <!-- Chips -->
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">FACT PROVENANCE · radius sm · mono label</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 10px; border-radius:8px; background:var(--pric); color:var(--onpric); font-family:'JetBrains Mono',monospace; font-size:12px;"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>confirmed</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 10px; border-radius:8px; border:1px solid var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:12px;"><span style="width:6px;height:6px;border-radius:50%;border:1px solid currentColor;display:inline-block;"></span>user-stated</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 10px; border-radius:8px; border:1px dashed var(--pri); color:var(--pri); font-family:'JetBrains Mono',monospace; font-size:12px;"><span style="width:6px;height:6px;border-radius:50%;border:1px dashed currentColor;display:inline-block;"></span>user-edited</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">TRUST · CREDITS · REPORT</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span style="display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); background:var(--doc); font-weight:600; font-size:13px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--pri);display:inline-block;"></span>Never invents</span>
+            <span style="display:inline-flex; align-items:baseline; gap:6px; height:36px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); background:var(--doc);"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:20px; font-variant-numeric:tabular-nums; line-height:36px;">4</span><span style="font-size:13px; color:var(--ink2); line-height:36px;">credits left</span></span>
+            <span style="display:inline-flex; align-items:center; height:36px; padding:0 8px; color:var(--ink2); font-weight:600; font-size:13px; text-decoration:underline; text-underline-offset:3px;">Report inaccurate content</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">APPLICATION STATUS · neutral outline chips, the dot varies by shape. met / partial / gap are for JD requirements only</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:1px;border:1.5px solid var(--ink2);display:inline-block;"></span>Saved</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid var(--pri);display:inline-block;"></span>Applied</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(90deg,var(--pri) 50%,transparent 50%);border:1.5px solid var(--pri);box-sizing:border-box;display:inline-block;"></span>Interview</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:var(--pri);display:inline-block;"></span>Offer</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--hair); color:var(--ink2); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink3);display:inline-block;"></span>Rejected</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px; border:1px dashed var(--hair); color:var(--ink2); font-size:13px; font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--ink3);display:inline-block;"></span>No response</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Bullet review card -->
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">BULLET REVIEW CARD · 2 of 7</span><div style="display:flex; gap:6px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; padding:3px 7px; border-radius:4px; border:1px solid var(--hair); color:var(--ink2);">reword</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; padding:3px 7px; border-radius:4px; border:1px solid var(--hair); color:var(--ink2);">emphasise</span></div></div>
+          <div style="display:flex; flex-direction:column; gap:4px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">ORIGINAL</span><div style="font-size:15px; line-height:23px; color:var(--ink2); text-decoration:line-through; text-decoration-color:var(--hair);">Wrote weekly SQL reports in PostgreSQL for the operations team.</div></div>
+          <div style="display:flex; flex-direction:column; gap:4px; background:var(--doc); border:1px solid var(--hair); border-radius:10px; padding:12px 14px;"><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">NEW</span><div style="font-size:16px; line-height:24px; text-wrap:pretty;">Built <span style="background:var(--evi); color:var(--onevi); padding:0 3px; border-radius:2px;">weekly SQL reports</span> in PostgreSQL for a 3-warehouse operations team, cutting preparation time from 4 hours to <span style="border-bottom:2px solid var(--ink); padding-bottom:1px;">40 minutes</span>.</div></div>
+          <div style="display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:18px; color:var(--ink); border:1px solid var(--ink2); border-radius:8px; padding:8px 12px;"><span style="flex:none; width:11px; height:14px; position:relative; margin-top:2px; display:block;"><span style="position:absolute; left:0; top:0; bottom:0; border-left:1.5px solid var(--ink);"></span><span style="position:absolute; left:1.5px; top:0; width:9px; height:7px; background:var(--ink);"></span></span><span><b>Changed scale word:</b> “40 minutes” comes from fact F-07. Check it is still true.</span></div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink2);"><span style="width:12px; border-top:1px solid var(--pri);"></span><span style="font-family:'JetBrains Mono',monospace; color:var(--pri);">F-07</span><span>Summer intern · confirmed 12 Sep</span></div>
+          <div style="display:flex; gap:8px; border-top:1px solid var(--hair); padding-top:14px;"><span style="flex:1; display:inline-flex; align-items:center; justify-content:center; height:48px; border-radius:999px; background:var(--pri); color:var(--onpri); font-weight:600; font-size:15px;">Accept</span><span style="flex:1; display:inline-flex; align-items:center; justify-content:center; height:48px; border-radius:999px; border:1px solid var(--ink); font-weight:600; font-size:15px;">Keep original</span></div>
+        </div>
+        <!-- Consent -->
+        <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:6px 0; display:flex; flex-direction:column;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3); padding:14px 20px 8px;">CONSENT · one purpose per row · DPDP</div>
+          <div style="display:flex; align-items:center; gap:14px; padding:12px 20px; border-top:1px solid var(--hair); min-height:56px; box-sizing:border-box;"><div style="flex:1; display:flex; flex-direction:column; gap:2px;"><span style="font-size:15px; font-weight:600;">Read my resume to build my profile</span><span style="font-size:13px; color:var(--ink2);">Needed to use HireHop. Stored on this phone.</span></div><span style="width:52px; height:32px; border-radius:999px; background:var(--pri); position:relative; flex:none;"><span style="position:absolute; right:3px; top:3px; width:26px; height:26px; border-radius:50%; background:var(--onpri);"></span></span></div>
+          <div style="display:flex; align-items:center; gap:14px; padding:12px 20px; border-top:1px solid var(--hair); min-height:56px; box-sizing:border-box;"><div style="flex:1; display:flex; flex-direction:column; gap:2px;"><span style="font-size:15px; font-weight:600;">Send anonymous usage counts</span><span style="font-size:13px; color:var(--ink2);">Optional. Which screens are used, never your text.</span></div><span style="width:52px; height:32px; border-radius:999px; border:2px solid var(--ink3); box-sizing:border-box; position:relative; flex:none;"><span style="position:absolute; left:4px; top:4px; width:20px; height:20px; border-radius:50%; background:var(--ink3);"></span></span></div>
+        </div>
+        <!-- Export frame + share card -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div style="background:var(--tool); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh2); padding:14px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">EXPORT PREVIEW FRAME</div>
+            <div style="background:#FFFFFF; color:#111111; border:1px solid var(--hair); padding:16px 14px; font-family:'Noto Serif',serif; font-size:9px; line-height:13px; display:flex; flex-direction:column; gap:6px; aspect-ratio:1/1.3;">
+              <div style="font-size:12px; font-weight:700; text-align:center;">CANDIDATE NAME</div>
+              <div style="text-align:center; font-size:8px;">Nagpur · email · phone</div>
+              <div style="font-weight:700; border-bottom:1px solid #111; margin-top:4px;">EXPERIENCE</div>
+              <div>Summer Intern, Logistics Startup, Pune · Jun–Jul 2025</div>
+              <div>• Built weekly SQL reports in PostgreSQL for a 3-warehouse operations team, cutting preparation time from 4 hours to 40 minutes.</div>
+              <div style="font-weight:700; border-bottom:1px solid #111; margin-top:4px;">PROJECTS</div>
+              <div>• Crop price prediction with scikit-learn, MAE 6.2% on 3 years of Agmarknet data.</div>
+              <div style="font-weight:700; border-bottom:1px solid #111; margin-top:4px;">EDUCATION</div>
+              <div>B.Tech Computer Science, 2026</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:var(--ink2);">Readable by common ATS parsers.</span><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--pri);">7 lines · 7 sources</span></div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; line-height:15px; color:var(--ink);">Priya-Deshmukh_<wbr>Northwind-<wbr>GCC_<wbr>Associate-<wbr>Analyst.pdf</div>
+            <div style="font-size:11px; line-height:15px; color:var(--ink2);">File names break only after “_” or “-”, never inside a word.</div>
+          </div>
+          <div style="background:var(--doc); border:1px solid var(--hair); border-radius:16px; box-shadow:var(--sh1); padding:18px; display:flex; flex-direction:column; gap:12px; aspect-ratio:1/1.25;">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink3);">JD FIT CARD · shareable · no personal data</div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; line-height:26px; letter-spacing:-.01em;">Junior Data Analyst<br><span style="color:var(--ink2); font-size:16px;">Bengaluru</span></div>
+            <div style="display:flex; gap:14px; margin-top:auto;">
+              <div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:36px; line-height:36px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--met);">6</span><span style="font-size:12px; font-weight:600; color:var(--met);">✓ met</span></div>
+              <div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:36px; line-height:36px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--par);">3</span><span style="font-size:12px; font-weight:600; color:var(--par);">◑ partly</span></div>
+              <div style="display:flex; flex-direction:column;"><span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:36px; line-height:36px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; color:var(--gap);">2</span><span style="font-size:12px; font-weight:600; color:var(--gap);">+ gap</span></div>
+            </div>
+            <div style="display:flex; gap:3px;"><span style="flex:6; height:6px; border-radius:2px; background:var(--met);"></span><span style="flex:3; height:6px; border-radius:2px; background:var(--par);"></span><span style="flex:2; height:6px; border-radius:2px; border:1px dashed var(--gap); box-sizing:border-box;"></span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--hair); padding-top:10px;"><span style="font-weight:600; font-size:13px; display:inline-flex; align-items:center; gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--pri);display:inline-block;"></span>HireHop</span><span style="font-size:11px; color:var(--ink2);">Never invents anything about you</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1120,&quot;height&quot;:3600},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;primaryHue&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;indigo&quot;,&quot;options&quot;:[&quot;indigo&quot;,&quot;green&quot;],&quot;tsType&quot;:&quot;'indigo'|'green'&quot;}}">
+class Component extends DCLogic {
+  state = { replay: 0 };
+  static palettes() {
+    return {
+      light: { bg:'#F3EDE2', doc:'#FBF8F1', tool:'#FFFFFF', hair:'#DCD4C5', ink:'#1B1A16', ink2:'#5B564C', ink3:'#857E71',
+        onpri:'#F7F4EC', met:'#276B45', metc:'#D9EDDF', par:'#8A5A0B', parc:'#F6E7C5', gap:'#A8542F', gapc:'#F7DED2',
+        evi:'#F8E36F', evic:'#FCF3BF', onevi:'#1B1A16', err:'#A3352B', errc:'#F8DAD5', spe:'#F2B31C', onspe:'#1B1A16', onstat:'#FFFFFF',
+        sh1:'0 1px 2px rgba(27,26,22,.06)', sh2:'0 1px 2px rgba(27,26,22,.05), 0 4px 12px rgba(27,26,22,.07)' },
+      dark: { bg:'#14130F', doc:'#1D1B16', tool:'#26231C', hair:'#3B372D', ink:'#EFE9DC', ink2:'#B5AD9C', ink3:'#8B8375',
+        onpri:'#14130F', met:'#86CC9E', metc:'#1E3B2B', par:'#E2B45A', parc:'#3E3015', gap:'#EE9B78', gapc:'#46281B',
+        evi:'#5A4C12', evic:'#2E2810', onevi:'#EFE9DC', err:'#F08A7D', errc:'#4A1F1A', spe:'#F2B31C', onspe:'#1B1A16', onstat:'#14130F',
+        sh1:'0 1px 2px rgba(0,0,0,.4)', sh2:'0 1px 2px rgba(0,0,0,.4), 0 6px 16px rgba(0,0,0,.45)' }
+    };
+  }
+  static primaries() {
+    return {
+      indigo: { name:'ink indigo', light:{ pri:'#353A78', pric:'#DFE0F6', onpric:'#1F2352' }, dark:{ pri:'#B7BBF2', pric:'#2C3070', onpric:'#E0E1FA' } },
+      green:  { name:'ink green',  light:{ pri:'#1F5C48', pric:'#D6EBDF', onpric:'#0E3A2C' }, dark:{ pri:'#8FCDB4', pric:'#224A3A', onpric:'#DDF2E7' } }
+    };
+  }
+  static lum(hex) {
+    const c = hex.replace('#','');
+    const f = i => { let v = parseInt(c.substr(i,2),16)/255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); };
+    return .2126*f(0) + .7152*f(2) + .0722*f(4);
+  }
+  static ratio(a, b) { const la = Component.lum(a), lb = Component.lum(b); return ((Math.max(la,lb)+.05)/(Math.min(la,lb)+.05)); }
+  renderVals() {
+    const mode = this.props.mode === 'dark' ? 'dark' : 'light';
+    const hue = this.props.primaryHue === 'green' ? 'green' : 'indigo';
+    const p = Component.palettes()[mode];
+    const pr = Component.primaries()[hue];
+    const t = Object.assign({}, p, pr[mode], { priName: pr.name });
+    const vars = Object.keys(t).filter(k => k !== 'priName').map(k => `--${k}:${t[k]};`).join(' ');
+    const r = (a, b) => Component.ratio(a, b).toFixed(1);
+    const pf = (a, b, big) => { const v = Component.ratio(a, b); return (v >= (big ? 3 : 4.5) ? 'AA ' : 'FAIL ') + v.toFixed(1) + ':1'; };
+    const contrastReport = [
+      `ink on background     ${pf(t.ink, t.bg)}`,
+      `ink on document       ${pf(t.ink, t.doc)}`,
+      `ink2 on tool          ${pf(t.ink2, t.tool)}`,
+      `onPrimary on primary  ${pf(t.onpri, t.pri)}`,
+      `ink on evidence mark  ${pf(t.onevi, t.evi)}`,
+      `met / partial / gap   ${r(t.met, t.doc)} / ${r(t.par, t.doc)} / ${r(t.gap, t.doc)} on document`,
+      `onSpecial on special  ${pf(t.onspe, t.spe)}`,
+      `error on errorCont.   ${pf(t.err, t.errc)}`
+    ].join('\n');
+    const track = (label, anim, ease, dur, color) => React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:12 } },
+      React.createElement('span', { style:{ fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:'var(--ink3)', width:48 } }, label),
+      React.createElement('div', { style:{ position:'relative', flex:1, height:28, borderBottom:'1px solid var(--hair)' } },
+        React.createElement('span', { key: this.state.replay, style:{ position:'absolute', left:0, top:4, width:20, height:20, borderRadius:'50%', background:color, animation:`${anim} ${dur} ${ease} forwards` } })));
+    const motionDemo = React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:10 } },
+      track('proof', 'hhProof', 'cubic-bezier(0.2,0,0,1)', '280ms', 'var(--ink)'),
+      track('hop', 'hhHop', 'cubic-bezier(0.34,1.45,0.64,1)', '480ms', 'var(--pri)'));
+    return {
+      vars, t, contrastReport, motionDemo,
+      modeLabel: mode.toUpperCase(),
+      replay: () => this.setState(s => ({ replay: s.replay + 1 }))
+    };
+  }
+}
+</script>
+</body>
+</html>
