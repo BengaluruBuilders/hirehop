@@ -1,13 +1,21 @@
 package com.hirehop.feature.applications.impl
 
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -24,11 +32,25 @@ class ApplicationDetailViewModelTest {
         gapAnalysis = testGapAnalysis(),
         tailoredResume = testTailoredResume(),
     )
+    private val applicationScope = CoroutineScope(UnconfinedTestDispatcher())
+    private val viewModelStore = ViewModelStore()
     private lateinit var viewModel: ApplicationDetailViewModel
 
     @Before
     fun setUp() {
-        viewModel = ApplicationDetailViewModel(applicationRepository, APPLICATION_ID)
+        viewModel = ViewModelProvider.create(
+            store = viewModelStore,
+            factory = viewModelFactory {
+                initializer {
+                    ApplicationDetailViewModel(applicationRepository, applicationScope, APPLICATION_ID)
+                }
+            },
+        )[ApplicationDetailViewModel::class]
+    }
+
+    @After
+    fun tearDown() {
+        applicationScope.cancel()
     }
 
     @Test
@@ -136,6 +158,40 @@ class ApplicationDetailViewModelTest {
         runCurrent()
 
         assertThat(applicationRepository.notesWrites).containsExactly("Dra")
+    }
+
+    @Test
+    fun onCleared_whenNotesAreNotSavedYet_savesLatestNotes() = runTest {
+        applicationRepository.sendApplications(listOf(application))
+
+        viewModel.updateNotes("Draft")
+        advanceTimeBy(NOTES_DEBOUNCE_MILLIS / 2)
+        viewModelStore.clear()
+
+        assertThat(applicationRepository.notesWrites).containsExactly("Draft")
+        val stored = applicationRepository.observeApplication(APPLICATION_ID).first()
+        assertThat(stored?.notes).isEqualTo("Draft")
+    }
+
+    @Test
+    fun onCleared_whenNotesAreAlreadySaved_doesNotSaveAgain() = runTest {
+        applicationRepository.sendApplications(listOf(application))
+
+        viewModel.updateNotes("Draft")
+        advanceTimeBy(NOTES_DEBOUNCE_MILLIS)
+        runCurrent()
+        viewModelStore.clear()
+
+        assertThat(applicationRepository.notesWrites).containsExactly("Draft")
+    }
+
+    @Test
+    fun onCleared_whenNotesWereNeverEdited_savesNothing() = runTest {
+        applicationRepository.sendApplications(listOf(application))
+
+        viewModelStore.clear()
+
+        assertThat(applicationRepository.notesWrites).isEmpty()
     }
 
     @Test

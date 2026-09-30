@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_applications_title">Applications</string>
+    <string name="feature_applications_loading">Loading applications</string>
     <string name="feature_applications_new">New application</string>
     <string name="feature_applications_empty_message">Paste a job description to see how your profile matches it, then tailor your resume and track the application here.</string>
     <string name="feature_applications_empty_action">Analyze a job description</string>

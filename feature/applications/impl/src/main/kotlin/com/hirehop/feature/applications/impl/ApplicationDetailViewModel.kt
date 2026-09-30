@@ -2,6 +2,7 @@ package com.hirehop.feature.applications.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.common.network.di.ApplicationScope
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.JobApplication
@@ -9,6 +10,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,11 +26,13 @@ internal const val NOTES_DEBOUNCE_MILLIS = 500L
 @HiltViewModel(assistedFactory = ApplicationDetailViewModel.Factory::class)
 class ApplicationDetailViewModel @AssistedInject constructor(
     private val applicationRepository: ApplicationRepository,
+    @ApplicationScope private val applicationScope: CoroutineScope,
     @Assisted val applicationId: String,
 ) : ViewModel() {
 
     private val draftNotes = MutableStateFlow<String?>(null)
     private val isDeleted = MutableStateFlow(false)
+    private var unsavedNotes: String? = null
 
     val uiState: StateFlow<ApplicationDetailUiState> = combine(
         applicationRepository.observeApplication(applicationId),
@@ -50,10 +54,12 @@ class ApplicationDetailViewModel @AssistedInject constructor(
     }
 
     fun updateNotes(notes: String) {
+        unsavedNotes = notes
         draftNotes.value = notes
     }
 
     fun deleteApplication() {
+        unsavedNotes = null
         viewModelScope.launch {
             applicationRepository.deleteApplication(applicationId)
             isDeleted.value = true
@@ -66,8 +72,18 @@ class ApplicationDetailViewModel @AssistedInject constructor(
             draftNotes
                 .filterNotNull()
                 .debounce(NOTES_DEBOUNCE_MILLIS)
-                .collect { applicationRepository.updateNotes(applicationId, it) }
+                .collect(::saveNotes)
         }
+    }
+
+    private suspend fun saveNotes(notes: String) {
+        applicationRepository.updateNotes(applicationId, notes)
+        if (unsavedNotes == notes) unsavedNotes = null
+    }
+
+    override fun onCleared() {
+        val pendingNotes = unsavedNotes ?: return
+        applicationScope.launch { applicationRepository.updateNotes(applicationId, pendingNotes) }
     }
 
     private fun toUiState(

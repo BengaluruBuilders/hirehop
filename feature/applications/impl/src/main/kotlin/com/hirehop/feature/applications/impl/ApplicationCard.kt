@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.JobApplication
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -86,7 +87,7 @@ private fun rememberRelativeTime(instant: Instant): String = remember(instant) {
 @Preview(showBackground = true)
 @Composable
 private fun ApplicationCardPreview() {
-    MaterialTheme {
+    HhTheme {
         ApplicationCard(application = previewApplication(), onClick = {})
     }
 }

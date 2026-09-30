@@ -18,6 +18,7 @@ import com.hirehop.core.designsystem.component.HhNavigationSuiteScope
 import com.hirehop.core.navigation.Navigator
 import com.hirehop.core.navigation.toEntries
 import com.hirehop.feature.analysis.impl.navigation.analysisEntry
+import com.hirehop.feature.applications.impl.navigation.applicationDetailEntry
 import com.hirehop.feature.applications.impl.navigation.applicationsEntry
 import com.hirehop.feature.profile.impl.navigation.profileEntry
 import com.hirehop.feature.tailor.impl.navigation.tailorEntry
@@ -48,6 +49,7 @@ private fun HhNavDisplay(
 ) {
     val entryProvider = entryProvider {
         applicationsEntry(navigator)
+        applicationDetailEntry(navigator)
         profileEntry(navigator)
         analysisEntry(navigator)
         tailorEntry(navigator)
