@@ -8,8 +8,6 @@ internal fun Project.configureAndroidLint(lint: Lint) {
         warningsAsErrors = true
         abortOnError = true
         checkReleaseBuilds = true
-        xmlReport = true
-        sarifReport = true
         baseline = file("lint-baseline.xml").takeIf { it.exists() }
         disable += setOf(
             "GradleDependency",
