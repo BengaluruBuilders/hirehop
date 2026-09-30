@@ -6,6 +6,7 @@ import com.hirehop.core.data.model.testBareApplication
 import com.hirehop.core.model.ApplicationStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -19,14 +20,15 @@ class OfflineFirstApplicationRepositoryTest {
     private val fixedClock = object : Clock {
         override fun now(): Instant = now
     }
-    private val repository = OfflineFirstApplicationRepository(
+    private fun TestScope.newRepository() = OfflineFirstApplicationRepository(
         jobApplicationDao = FakeJobApplicationDao(),
         clock = fixedClock,
-        ioDispatcher = UnconfinedTestDispatcher(),
+        ioDispatcher = UnconfinedTestDispatcher(testScheduler),
     )
 
     @Test
     fun upsertedApplicationIsObserved() = runTest {
+        val repository = newRepository()
         repository.upsertApplication(testApplication)
 
         assertThat(repository.observeApplication(testApplication.id).first())
@@ -35,11 +37,13 @@ class OfflineFirstApplicationRepositoryTest {
 
     @Test
     fun unknownApplicationIsObservedAsNull() = runTest {
+        val repository = newRepository()
         assertThat(repository.observeApplication("missing").first()).isNull()
     }
 
     @Test
     fun applicationsAreOrderedByMostRecentUpdate() = runTest {
+        val repository = newRepository()
         val older = testBareApplication.copy(updatedAt = Instant.fromEpochMilliseconds(1))
         repository.upsertApplication(older)
         repository.upsertApplication(testApplication)
@@ -50,6 +54,7 @@ class OfflineFirstApplicationRepositoryTest {
 
     @Test
     fun updateStatusChangesStatusAndStampsUpdatedAt() = runTest {
+        val repository = newRepository()
         repository.upsertApplication(testApplication)
 
         repository.updateStatus(testApplication.id, ApplicationStatus.OFFER)
@@ -62,6 +67,7 @@ class OfflineFirstApplicationRepositoryTest {
 
     @Test
     fun updateNotesChangesNotesAndStampsUpdatedAt() = runTest {
+        val repository = newRepository()
         repository.upsertApplication(testApplication)
 
         repository.updateNotes(testApplication.id, "Follow up on Monday")
@@ -73,6 +79,7 @@ class OfflineFirstApplicationRepositoryTest {
 
     @Test
     fun deletedApplicationIsGone() = runTest {
+        val repository = newRepository()
         repository.upsertApplication(testApplication)
 
         repository.deleteApplication(testApplication.id)
