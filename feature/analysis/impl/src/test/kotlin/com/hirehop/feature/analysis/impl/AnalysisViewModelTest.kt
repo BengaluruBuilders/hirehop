@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Clock
@@ -30,7 +31,14 @@ class AnalysisViewModelTest {
     private val applicationRepository = TestApplicationRepository()
     private var nextId = 0
 
-    private val viewModel = AnalysisViewModel(
+    private lateinit var viewModel: AnalysisViewModel
+
+    @Before
+    fun setUp() {
+        viewModel = createViewModel()
+    }
+
+    private fun createViewModel() = AnalysisViewModel(
         profileRepository = profileRepository,
         applicationRepository = applicationRepository,
         analyzeJob = AnalyzeJobUseCase(FixedJobDescriptionAnalyzer(), KeywordGapMatcher()),
@@ -48,7 +56,7 @@ class AnalysisViewModelTest {
     private fun newId(): String = "id-${nextId++}"
 
     private fun TestScope.collectUiState() =
-        backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
 
     private fun resultState() = viewModel.uiState.value as AnalysisUiState.Result
 

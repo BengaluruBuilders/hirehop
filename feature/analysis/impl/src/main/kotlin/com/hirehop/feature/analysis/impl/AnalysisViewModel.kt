@@ -33,7 +33,7 @@ class AnalysisViewModel @Inject constructor(
     private val addUserStatedFact: AddUserStatedFactUseCase,
     private val createApplication: CreateApplicationUseCase,
     private val savedStateHandle: SavedStateHandle,
-    @Dispatcher(HhDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
+    @param:Dispatcher(HhDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val jobText = savedStateHandle.getStateFlow(JOB_TEXT_KEY, "")

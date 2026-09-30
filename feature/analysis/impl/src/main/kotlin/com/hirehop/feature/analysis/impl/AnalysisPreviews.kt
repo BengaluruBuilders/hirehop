@@ -1,8 +1,8 @@
 package com.hirehop.feature.analysis.impl
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
@@ -12,7 +12,7 @@ import com.hirehop.core.model.RequirementType
 @Preview(showBackground = true)
 @Composable
 private fun AnalysisInputPreview() {
-    MaterialTheme {
+    HhTheme {
         AnalysisScreen(
             uiState = AnalysisUiState.Input(
                 jobText = "Android developer. You know Kotlin, Jetpack Compose and Room.",
@@ -26,7 +26,7 @@ private fun AnalysisInputPreview() {
 @Preview(showBackground = true, heightDp = 1000)
 @Composable
 private fun AnalysisResultPreview() {
-    MaterialTheme {
+    HhTheme {
         AnalysisScreen(uiState = previewResultState, actions = AnalysisActions())
     }
 }

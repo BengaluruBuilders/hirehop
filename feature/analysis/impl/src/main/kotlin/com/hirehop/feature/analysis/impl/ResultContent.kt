@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButton
 
 @Composable
 internal fun ResultContent(
@@ -160,13 +160,12 @@ private fun SaveBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        Button(
+        HhButton(
             onClick = actions.onSave,
             enabled = state.canSave,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(R.string.feature_analysis_save_and_tailor))
-        }
+            text = { Text(stringResource(R.string.feature_analysis_save_and_tailor)) },
+        )
     }
 }
 

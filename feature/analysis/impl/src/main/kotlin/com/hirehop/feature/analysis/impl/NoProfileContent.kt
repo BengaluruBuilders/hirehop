@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButton
 
 @Composable
 internal fun NoProfileContent(
@@ -36,8 +36,9 @@ internal fun NoProfileContent(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
-        Button(onClick = onOpenProfile) {
-            Text(stringResource(R.string.feature_analysis_open_profile))
-        }
+        HhButton(
+            onClick = onOpenProfile,
+            text = { Text(stringResource(R.string.feature_analysis_open_profile)) },
+        )
     }
 }

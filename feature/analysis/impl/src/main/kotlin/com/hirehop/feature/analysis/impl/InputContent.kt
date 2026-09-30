@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,6 +21,7 @@ import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,13 +53,12 @@ internal fun InputContent(
             maxLines = 18,
         )
         CountAndPasteRow(state.jobText.length, onPaste = onJobTextChange)
-        Button(
+        HhButton(
             onClick = onAnalyze,
             enabled = state.canAnalyze,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(R.string.feature_analysis_analyze))
-        }
+            text = { Text(stringResource(R.string.feature_analysis_analyze)) },
+        )
     }
 }
 

@@ -6,14 +6,14 @@ import com.hirehop.core.navigation.Navigator
 import com.hirehop.feature.analysis.api.navigation.AnalysisNavKey
 import com.hirehop.feature.analysis.impl.AnalysisRoute
 import com.hirehop.feature.profile.api.navigation.ProfileNavKey
-import com.hirehop.feature.tailor.api.navigation.TailorNavKey
+import com.hirehop.feature.tailor.api.navigation.navigateToTailor
 
 fun EntryProviderScope<NavKey>.analysisEntry(navigator: Navigator) {
     entry<AnalysisNavKey> {
         AnalysisRoute(
             onBackClick = { navigator.goBack() },
             onOpenProfile = { navigator.navigate(ProfileNavKey) },
-            onOpenTailor = { applicationId -> navigator.navigate(TailorNavKey(applicationId)) },
+            onOpenTailor = navigator::navigateToTailor,
         )
     }
 }

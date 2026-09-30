@@ -8,13 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhOutlinedButton
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.model.MatchStatus
 
 @Composable
@@ -97,9 +96,10 @@ private fun GapActions(
         modifier = Modifier.padding(start = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        OutlinedButton(onClick = onIHaveThis) {
-            Text(stringResource(R.string.feature_analysis_i_have_this))
-        }
+        HhOutlinedButton(
+            onClick = onIHaveThis,
+            text = { Text(stringResource(R.string.feature_analysis_i_have_this)) },
+        )
         TextButton(onClick = onTogglePrepPlan) {
             val labelRes = if (item.isInPrepPlan) {
                 R.string.feature_analysis_in_prep_plan
@@ -126,9 +126,9 @@ private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
 }
 
 private fun MatchStatus.icon(): ImageVector = when (this) {
-    MatchStatus.MET -> Icons.Filled.Check
-    MatchStatus.PARTIAL -> Icons.Filled.Warning
-    MatchStatus.GAP -> Icons.Filled.Close
+    MatchStatus.MET -> HhIcons.Check
+    MatchStatus.PARTIAL -> Icons.Rounded.Warning
+    MatchStatus.GAP -> HhIcons.Close
 }
 
 @Composable
