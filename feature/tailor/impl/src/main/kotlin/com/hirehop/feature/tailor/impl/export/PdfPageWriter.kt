@@ -13,16 +13,11 @@ internal class PdfPageWriter(private val pdf: PdfDocument) {
     val contentWidth: Int get() = (PAGE_WIDTH - 2 * MARGIN).toInt()
 
     fun drawBlock(layout: StaticLayout, keepWithNext: Float = 0f) {
-        ensureRoom(layout.height + keepWithNext)
-        drawLayoutAt(layout, MARGIN)
-        cursorY += layout.height
+        drawLines(layout, MARGIN, marker = null, keepWithNext = keepWithNext)
     }
 
     fun drawHanging(marker: StaticLayout, body: StaticLayout, indent: Float) {
-        ensureRoom(body.height.toFloat())
-        drawLayoutAt(marker, MARGIN)
-        drawLayoutAt(body, MARGIN + indent)
-        cursorY += body.height
+        drawLines(body, MARGIN + indent, marker = marker, keepWithNext = 0f)
     }
 
     fun drawRule(paint: Paint) {
@@ -37,21 +32,48 @@ internal class PdfPageWriter(private val pdf: PdfDocument) {
         pdf.finishPage(page)
     }
 
-    private fun drawLayoutAt(layout: StaticLayout, x: Float) {
-        val canvas = page.canvas
-        canvas.save()
-        canvas.translate(x, cursorY)
-        layout.draw(canvas)
-        canvas.restore()
+    private fun drawLines(layout: StaticLayout, x: Float, marker: StaticLayout?, keepWithNext: Float) {
+        if (layout.lineCount == 0) return
+        if (Pagination.shouldBreakBefore(pageSpace(), layout.height.toFloat(), keepWithNext)) nextPage()
+        val chunks = Pagination.planChunks(
+            lineCount = layout.lineCount,
+            space = pageSpace(),
+            lineTop = { layout.getLineTop(it).toFloat() },
+            lineBottom = { layout.getLineBottom(it).toFloat() },
+        )
+        chunks.forEachIndexed { index, chunk ->
+            if (chunk.startsNewPage) nextPage()
+            drawChunk(layout, chunk, x, if (index == 0) marker else null)
+        }
     }
 
-    private fun ensureRoom(height: Float) {
-        val fitsOnPage = cursorY + height <= PAGE_HEIGHT - MARGIN
-        val pageIsEmpty = cursorY <= MARGIN
-        if (!fitsOnPage && !pageIsEmpty) {
-            pdf.finishPage(page)
-            page = startPage()
+    private fun drawChunk(layout: StaticLayout, chunk: LineChunk, x: Float, marker: StaticLayout?) {
+        val top = layout.getLineTop(chunk.firstLine).toFloat()
+        val bottom = layout.getLineBottom(chunk.endLine - 1).toFloat()
+        val canvas = page.canvas
+        marker?.let {
+            canvas.save()
+            canvas.translate(MARGIN, cursorY)
+            it.draw(canvas)
+            canvas.restore()
         }
+        canvas.save()
+        canvas.translate(x, cursorY - top)
+        canvas.clipRect(0f, top, layout.width.toFloat(), bottom)
+        layout.draw(canvas)
+        canvas.restore()
+        cursorY += bottom - top
+    }
+
+    private fun pageSpace(): PageSpace = PageSpace(
+        cursorY = cursorY,
+        pageTop = MARGIN,
+        pageBottom = PAGE_HEIGHT - MARGIN,
+    )
+
+    private fun nextPage() {
+        pdf.finishPage(page)
+        page = startPage()
     }
 
     private fun startPage(): PdfDocument.Page {

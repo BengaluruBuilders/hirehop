@@ -18,22 +18,14 @@ internal class AndroidPdfResumeRenderer @Inject constructor(
 
     override suspend fun render(document: ResumeDocument, fileName: String): File =
         withContext(ioDispatcher) {
-            val target = exportFile(fileName)
             val pdf = PdfDocument()
             try {
                 ResumePdfComposer(PdfPageWriter(pdf), PdfResumeStyle()).compose(document)
-                target.outputStream().use { pdf.writeTo(it) }
+                ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY)).write(fileName) { pdf.writeTo(it) }
             } finally {
                 pdf.close()
             }
-            target
         }
-
-    private fun exportFile(fileName: String): File {
-        val directory = File(context.cacheDir, EXPORT_DIRECTORY)
-        directory.mkdirs()
-        return File(directory, fileName)
-    }
 
     private companion object {
         const val EXPORT_DIRECTORY = "exports"

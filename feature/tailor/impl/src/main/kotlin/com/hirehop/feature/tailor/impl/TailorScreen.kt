@@ -1,5 +1,6 @@
 package com.hirehop.feature.tailor.impl
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +42,7 @@ internal fun TailorScreen(
 ) {
     var showPreview by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    BackHandler(enabled = showPreview) { showPreview = false }
     val failureMessage = stringResource(R.string.feature_tailor_impl_export_failed)
     LaunchedEffect(exportState) {
         if (exportState == ExportUiState.Failed) {
@@ -54,7 +56,7 @@ internal fun TailorScreen(
             TailorTopBar(
                 showPreview = showPreview,
                 canPreview = uiState is TailorUiState.Success,
-                onBackClick = onBackClick,
+                onBackClick = { if (showPreview) showPreview = false else onBackClick() },
                 onTogglePreview = { showPreview = !showPreview },
             )
         },

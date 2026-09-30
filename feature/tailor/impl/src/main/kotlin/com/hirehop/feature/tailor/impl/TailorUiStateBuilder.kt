@@ -7,6 +7,7 @@ import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.core.model.TailoredResume
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
+import com.hirehop.feature.tailor.impl.document.isFreshFor
 import com.hirehop.feature.tailor.impl.export.ExportFileName
 
 internal fun buildTailorUiState(
@@ -52,6 +53,7 @@ private fun ProfileEntry.toUi(
         TailorBulletUi(
             bullet = bullet,
             sourceTexts = bullet.sourceIds.mapNotNull { sourceTextById[it] },
+            isStale = !bullet.isFreshFor(this),
         )
     },
 )

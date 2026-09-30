@@ -3,7 +3,9 @@ package com.hirehop.feature.tailor.impl
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.UpdateBulletDecisionUseCase
 import com.hirehop.core.model.BulletDecision
+import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
+import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.GuardrailViolation
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.core.testing.repository.TestApplicationRepository
@@ -48,12 +50,19 @@ class TailorViewModelTest {
         proposed = "Led a team of 30",
         violations = listOf(GuardrailViolation.UnsupportedNumber("30")),
     )
+    private val moveOnly = testBullet(
+        id = "m1",
+        original = "Presented at the fest",
+        proposed = "Presented at the fest",
+        editTypes = listOf(EditType.REORDER),
+    )
+    private val staleSource = testBullet("s1", original = "Text before the edit", proposed = "Reworded text")
     private val hidden = testBullet("h1", entryId = "exp-hidden", original = "Old job", proposed = "Older job")
 
     private val profile = testProfile(
         listOf(
-            testEntry("exp-1", bullets = sourceBullets("r1", "r2", "u1", "v1")),
-            testEntry("exp-hidden", isConfirmed = false, bullets = sourceBullets("h1")),
+            entryFor("exp-1", reviewable, alreadyRejected, unchanged, violating, moveOnly, staleSource),
+            testEntry("exp-hidden", isConfirmed = false, bullets = listOf(evidenceOf(hidden))),
             testEntry("edu-1", EntryCategory.EDUCATION),
         ),
     )
@@ -72,6 +81,20 @@ class TailorViewModelTest {
 
     private fun TestScope.collectUiState() {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
+    }
+
+    private fun sendDataWithEditedSource() {
+        val editedProfile = profile.copy(
+            entries = profile.entries.map { entry ->
+                entry.copy(
+                    bullets = entry.bullets.map {
+                        if (it.id == "src-s1") EvidenceBullet(it.id, "Text after the edit") else it
+                    },
+                )
+            },
+        )
+        applicationRepository.sendApplications(listOf(testApplication(listOf(reviewable, staleSource))))
+        profileRepository.sendProfile(editedProfile)
     }
 
     private fun sendData(bullets: List<TailoredBullet>) {
@@ -134,7 +157,7 @@ class TailorViewModelTest {
 
         sendData(listOf(reviewable))
 
-        assertThat(success().entries.single().bullets.single().sourceTexts).containsExactly("Source text of r1")
+        assertThat(success().entries.single().bullets.single().sourceTexts).containsExactly("Built a tool")
     }
 
     @Test
@@ -192,6 +215,19 @@ class TailorViewModelTest {
     }
 
     @Test
+    fun onAcceptAllSafeChanges_acceptsMoveOnlyBulletsAndSkipsStaleOnes() = runTest {
+        collectUiState()
+        sendDataWithEditedSource()
+        applicationRepository.sendApplications(listOf(testApplication(listOf(reviewable, moveOnly, staleSource))))
+
+        viewModel.onAcceptAllSafeChanges()
+
+        assertThat(decisionOf("m1")).isEqualTo(BulletDecision.ACCEPTED)
+        assertThat(decisionOf("r1")).isEqualTo(BulletDecision.ACCEPTED)
+        assertThat(decisionOf("s1")).isEqualTo(BulletDecision.PENDING)
+    }
+
+    @Test
     fun documentInState_followsTheCurrentDecisions() = runTest {
         collectUiState()
         sendData(listOf(reviewable))
@@ -229,6 +265,17 @@ class TailorViewModelTest {
     }
 
     @Test
+    fun onExport_reportsFailureForAnyRuntimeError() = runTest {
+        collectUiState()
+        sendData(listOf(reviewable))
+        renderer.failWithRuntime = IllegalStateException("page already open")
+
+        viewModel.onExport()
+
+        assertThat(viewModel.exportState.value).isEqualTo(ExportUiState.Failed)
+    }
+
+    @Test
     fun onExportHandled_resetsTheExportState() = runTest {
         collectUiState()
         sendData(listOf(reviewable))
@@ -253,9 +300,11 @@ class TailorViewModelTest {
 private class FakeResumePdfRenderer : ResumePdfRenderer {
     var lastDocument: ResumeDocument? = null
     var failWith: IOException? = null
+    var failWithRuntime: RuntimeException? = null
 
     override suspend fun render(document: ResumeDocument, fileName: String): File {
         failWith?.let { throw it }
+        failWithRuntime?.let { throw it }
         lastDocument = document
         return File(fileName)
     }

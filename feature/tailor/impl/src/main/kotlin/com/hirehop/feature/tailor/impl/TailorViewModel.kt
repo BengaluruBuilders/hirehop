@@ -12,23 +12,28 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.IOException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel(assistedFactory = TailorViewModel.Factory::class)
 internal class TailorViewModel @AssistedInject constructor(
-    applicationRepository: ApplicationRepository,
-    profileRepository: ProfileRepository,
+    private val applicationRepository: ApplicationRepository,
+    private val profileRepository: ProfileRepository,
     private val updateBulletDecision: UpdateBulletDecisionUseCase,
-    assembler: ResumeDocumentAssembler,
+    private val assembler: ResumeDocumentAssembler,
     private val pdfRenderer: ResumePdfRenderer,
     @Assisted val applicationId: String,
 ) : ViewModel() {
+
+    private val decisionMutex = Mutex()
 
     val uiState: StateFlow<TailorUiState> = combine(
         applicationRepository.observeApplication(applicationId),
@@ -49,10 +54,12 @@ internal class TailorViewModel @AssistedInject constructor(
     fun onReject(bulletId: String) = setDecision(bulletId, BulletDecision.REJECTED)
 
     fun onAcceptAllSafeChanges() {
-        val success = uiState.value as? TailorUiState.Success ?: return
-        val bulletIds = success.safeChangeBulletIds
         viewModelScope.launch {
-            bulletIds.forEach { updateBulletDecision(applicationId, it, BulletDecision.ACCEPTED) }
+            decisionMutex.withLock {
+                latestSafeBulletIds().forEach {
+                    updateBulletDecision(applicationId, it, BulletDecision.ACCEPTED)
+                }
+            }
         }
     }
 
@@ -63,7 +70,9 @@ internal class TailorViewModel @AssistedInject constructor(
         viewModelScope.launch {
             mutableExportState.value = try {
                 ExportUiState.Ready(pdfRenderer.render(success.document, success.exportFileName))
-            } catch (exception: IOException) {
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (exception: Exception) {
                 ExportUiState.Failed
             }
         }
@@ -74,7 +83,16 @@ internal class TailorViewModel @AssistedInject constructor(
     }
 
     private fun setDecision(bulletId: String, decision: BulletDecision) {
-        viewModelScope.launch { updateBulletDecision(applicationId, bulletId, decision) }
+        viewModelScope.launch {
+            decisionMutex.withLock { updateBulletDecision(applicationId, bulletId, decision) }
+        }
+    }
+
+    private suspend fun latestSafeBulletIds(): List<String> {
+        val application = applicationRepository.observeApplication(applicationId).first()
+        val profile = profileRepository.observeProfile().first()
+        val state = buildTailorUiState(application, profile, assembler)
+        return (state as? TailorUiState.Success)?.safeChangeBulletIds.orEmpty()
     }
 
     @AssistedFactory

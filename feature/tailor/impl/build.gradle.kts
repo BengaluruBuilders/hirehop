@@ -14,6 +14,7 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.navigation)
     implementation(projects.feature.tailor.api)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core)
     implementation(libs.kotlinx.coroutines.core)
 

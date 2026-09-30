@@ -23,13 +23,14 @@ internal fun testBullet(
     sourceIds: List<String> = listOf("src-$id"),
     violations: List<GuardrailViolation> = emptyList(),
     decision: BulletDecision = BulletDecision.PENDING,
+    editTypes: List<EditType> = if (original == proposed) emptyList() else listOf(EditType.REWORD),
 ): TailoredBullet = TailoredBullet(
     id = id,
     entryId = entryId,
     originalText = original,
     proposedText = proposed,
     sourceIds = sourceIds,
-    editTypes = if (original == proposed) emptyList() else listOf(EditType.REWORD),
+    editTypes = editTypes,
     keywordsUsed = emptyList(),
     violations = violations,
     decision = decision,
@@ -81,3 +82,12 @@ internal fun testApplication(bullets: List<TailoredBullet>): JobApplication = Jo
 
 internal fun sourceBullets(vararg ids: String): List<EvidenceBullet> =
     ids.map { EvidenceBullet(id = "src-$it", text = "Source text of $it") }
+
+internal fun evidenceOf(bullet: TailoredBullet): EvidenceBullet =
+    EvidenceBullet(id = bullet.sourceIds.first(), text = bullet.originalText)
+
+internal fun entryFor(
+    id: String,
+    vararg bullets: TailoredBullet,
+    category: EntryCategory = EntryCategory.EXPERIENCE,
+): ProfileEntry = testEntry(id, category, bullets = bullets.map(::evidenceOf))

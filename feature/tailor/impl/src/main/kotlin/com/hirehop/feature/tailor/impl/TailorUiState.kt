@@ -1,6 +1,7 @@
 package com.hirehop.feature.tailor.impl
 
 import com.hirehop.core.model.BulletDecision
+import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
@@ -37,15 +38,17 @@ internal data class TailorEntryUi(
 internal data class TailorBulletUi(
     val bullet: TailoredBullet,
     val sourceTexts: List<String>,
+    val isStale: Boolean,
 ) {
-    val kind: BulletReviewKind = bullet.reviewKind()
+    val kind: BulletReviewKind = bullet.reviewKind(isStale)
 }
 
-internal enum class BulletReviewKind { VIOLATION, UNCHANGED, REVIEWABLE }
+internal enum class BulletReviewKind { STALE, VIOLATION, UNCHANGED, REVIEWABLE }
 
-internal fun TailoredBullet.reviewKind(): BulletReviewKind = when {
+internal fun TailoredBullet.reviewKind(isStale: Boolean): BulletReviewKind = when {
+    isStale -> BulletReviewKind.STALE
     violations.isNotEmpty() -> BulletReviewKind.VIOLATION
-    proposedText.trim() == originalText.trim() -> BulletReviewKind.UNCHANGED
+    proposedText.trim() == originalText.trim() && EditType.REORDER !in editTypes -> BulletReviewKind.UNCHANGED
     else -> BulletReviewKind.REVIEWABLE
 }
 

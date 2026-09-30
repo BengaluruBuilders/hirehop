@@ -21,6 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhButton
 import com.hirehop.core.designsystem.component.HhOutlinedButton
@@ -38,6 +42,7 @@ internal fun BulletCard(
     modifier: Modifier = Modifier,
 ) {
     when (item.kind) {
+        BulletReviewKind.STALE -> StaleBulletCard(item, modifier)
         BulletReviewKind.VIOLATION -> ViolationBulletCard(item, modifier)
         BulletReviewKind.UNCHANGED -> UnchangedBulletCard(item, modifier)
         BulletReviewKind.REVIEWABLE -> ReviewableBulletCard(item, onAccept, onReject, modifier)
@@ -52,19 +57,75 @@ private fun ReviewableBulletCard(
     modifier: Modifier = Modifier,
 ) {
     val bullet = item.bullet
-    val diff = remember(bullet.originalText, bullet.proposedText) {
-        WordDiff.diff(bullet.originalText, bullet.proposedText)
-    }
     Card(modifier = modifier) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            LabeledDiff(R.string.feature_tailor_impl_original, diff.original, MaterialTheme.colorScheme.errorContainer)
-            LabeledDiff(R.string.feature_tailor_impl_proposed, diff.proposed, MaterialTheme.colorScheme.tertiaryContainer)
+            if (bullet.originalText.trim() == bullet.proposedText.trim()) {
+                PositionOnlyChange(bullet.originalText)
+            } else {
+                TextChange(bullet.originalText, bullet.proposedText)
+            }
             EditTypeChips(bullet.editTypes)
             SourceLines(item.sourceTexts)
-            DecisionSection(bullet.decision, onAccept, onReject)
+            DecisionSection(bullet.proposedText, bullet.decision, onAccept, onReject)
+        }
+    }
+}
+
+@Composable
+private fun TextChange(original: String, proposed: String) {
+    val diff = remember(original, proposed) { WordDiff.diff(original, proposed) }
+    val colors = MaterialTheme.colorScheme
+    LabeledDiff(
+        labelRes = R.string.feature_tailor_impl_original,
+        segments = diff.original,
+        highlight = colors.errorContainer,
+        changeDecoration = TextDecoration.LineThrough,
+        changedWordsRes = R.string.feature_tailor_impl_removed_words,
+    )
+    LabeledDiff(
+        labelRes = R.string.feature_tailor_impl_proposed,
+        segments = diff.proposed,
+        highlight = colors.tertiaryContainer,
+        changeDecoration = TextDecoration.Underline,
+        changedWordsRes = R.string.feature_tailor_impl_changed_words,
+    )
+}
+
+@Composable
+private fun PositionOnlyChange(text: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = text, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_position_only),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun StaleBulletCard(item: TailorBulletUi, modifier: Modifier = Modifier) {
+    OutlinedCard(modifier = modifier) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_stale_title),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_stale_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = item.bullet.originalText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -116,14 +177,25 @@ private fun ViolationBulletCard(item: TailorBulletUi, modifier: Modifier = Modif
 }
 
 @Composable
-private fun LabeledDiff(@StringRes labelRes: Int, segments: List<DiffSegment>, highlight: Color) {
+private fun LabeledDiff(
+    @StringRes labelRes: Int,
+    segments: List<DiffSegment>,
+    highlight: Color,
+    changeDecoration: TextDecoration,
+    @StringRes changedWordsRes: Int,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = stringResource(labelRes),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        DiffText(segments = segments, highlight = highlight)
+        DiffText(
+            segments = segments,
+            highlight = highlight,
+            changeDecoration = changeDecoration,
+            changedWordsRes = changedWordsRes,
+        )
     }
 }
 
@@ -159,7 +231,13 @@ private fun SourceLines(sourceTexts: List<String>) {
 }
 
 @Composable
-private fun DecisionSection(decision: BulletDecision, onAccept: () -> Unit, onReject: () -> Unit) {
+private fun DecisionSection(
+    bulletText: String,
+    decision: BulletDecision,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+) {
+    val firstWords = bulletText.trim().split(WHITESPACE).take(DESCRIPTION_WORDS).joinToString(" ")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(decision.statusRes()),
@@ -168,12 +246,14 @@ private fun DecisionSection(decision: BulletDecision, onAccept: () -> Unit, onRe
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DecisionButton(
                 labelRes = R.string.feature_tailor_impl_accept,
+                description = stringResource(R.string.feature_tailor_impl_accept_description, firstWords),
                 icon = HhIcons.Check,
                 selected = decision == BulletDecision.ACCEPTED,
                 onClick = onAccept,
             )
             DecisionButton(
                 labelRes = R.string.feature_tailor_impl_reject,
+                description = stringResource(R.string.feature_tailor_impl_reject_description, firstWords),
                 icon = HhIcons.Close,
                 selected = decision == BulletDecision.REJECTED,
                 onClick = onReject,
@@ -185,15 +265,23 @@ private fun DecisionSection(decision: BulletDecision, onAccept: () -> Unit, onRe
 @Composable
 private fun DecisionButton(
     @StringRes labelRes: Int,
+    description: String,
     icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val modifier = Modifier.semantics {
+        contentDescription = description
+        this.selected = selected
+    }
     val text: @Composable () -> Unit = { Text(stringResource(labelRes)) }
     val leadingIcon: @Composable () -> Unit = { Icon(imageVector = icon, contentDescription = null) }
     if (selected) {
-        HhButton(onClick = onClick, text = text, leadingIcon = leadingIcon)
+        HhButton(onClick = onClick, modifier = modifier, text = text, leadingIcon = leadingIcon)
     } else {
-        HhOutlinedButton(onClick = onClick, text = text, leadingIcon = leadingIcon)
+        HhOutlinedButton(onClick = onClick, modifier = modifier, text = text, leadingIcon = leadingIcon)
     }
 }
+
+private const val DESCRIPTION_WORDS = 6
+private val WHITESPACE = Regex("\\s+")
