@@ -32,7 +32,7 @@ internal fun ResumePreviewContent(
     ) {
         item(key = "note") {
             Text(
-                text = stringResource(R.string.feature_tailor_preview_note),
+                text = stringResource(R.string.feature_tailor_impl_preview_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),

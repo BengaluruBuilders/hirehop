@@ -1,8 +1,8 @@
 package com.hirehop.feature.tailor.impl
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.CandidateProfile
@@ -102,7 +102,7 @@ private fun previewSuccess(decision: BulletDecision): TailorUiState.Success {
 @Preview(showBackground = true, heightDp = 900)
 @Composable
 private fun ReviewPendingPreview() {
-    MaterialTheme {
+    HhTheme {
         ReviewContent(
             state = previewSuccess(BulletDecision.PENDING),
             onAccept = {},
@@ -115,7 +115,7 @@ private fun ReviewPendingPreview() {
 @Preview(showBackground = true, heightDp = 900)
 @Composable
 private fun ReviewAcceptedPreview() {
-    MaterialTheme {
+    HhTheme {
         ReviewContent(
             state = previewSuccess(BulletDecision.ACCEPTED),
             onAccept = {},
@@ -128,7 +128,7 @@ private fun ReviewAcceptedPreview() {
 @Preview(showBackground = true, heightDp = 700)
 @Composable
 private fun ResumePreviewPreview() {
-    MaterialTheme {
+    HhTheme {
         ResumePreviewContent(document = previewSuccess(BulletDecision.ACCEPTED).document)
     }
 }
@@ -136,7 +136,7 @@ private fun ResumePreviewPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun TailorScreenLoadingPreview() {
-    MaterialTheme {
+    HhTheme {
         TailorScreen(
             uiState = TailorUiState.Loading,
             exportState = ExportUiState.Idle,
@@ -153,7 +153,7 @@ private fun TailorScreenLoadingPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun TailorScreenNotFoundPreview() {
-    MaterialTheme {
+    HhTheme {
         TailorScreen(
             uiState = TailorUiState.NotFound,
             exportState = ExportUiState.Idle,

@@ -43,8 +43,8 @@ private fun ShareOnReady(
             val intent = createPdfShareIntent(
                 context = context,
                 file = exportState.file,
-                subject = context.getString(R.string.feature_tailor_share_subject, subjectName),
-                chooserTitle = context.getString(R.string.feature_tailor_share_chooser),
+                subject = context.getString(R.string.feature_tailor_impl_share_subject, subjectName),
+                chooserTitle = context.getString(R.string.feature_tailor_impl_share_chooser),
             )
             context.startActivity(intent)
             onHandled()

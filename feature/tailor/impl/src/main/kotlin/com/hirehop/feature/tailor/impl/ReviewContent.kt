@@ -9,12 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhOutlinedButton
 
 @Composable
 internal fun ReviewContent(
@@ -61,7 +61,7 @@ private fun ReviewSummary(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = stringResource(R.string.feature_tailor_progress, state.reviewedCount, state.totalCount),
+            text = stringResource(R.string.feature_tailor_impl_progress, state.reviewedCount, state.totalCount),
             style = MaterialTheme.typography.titleMedium,
         )
         LinearProgressIndicator(
@@ -69,16 +69,15 @@ private fun ReviewSummary(
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            text = stringResource(R.string.feature_tailor_honesty),
+            text = stringResource(R.string.feature_tailor_impl_honesty),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedButton(
+        HhOutlinedButton(
             onClick = onAcceptAllSafeChanges,
             enabled = state.safeChangeBulletIds.isNotEmpty(),
-        ) {
-            Text(stringResource(R.string.feature_tailor_accept_all))
-        }
+            text = { Text(stringResource(R.string.feature_tailor_impl_accept_all)) },
+        )
     }
 }
 

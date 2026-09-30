@@ -12,8 +12,8 @@ import java.io.File
 import javax.inject.Inject
 
 internal class AndroidPdfResumeRenderer @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @Dispatcher(HhDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
+    @param:Dispatcher(HhDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ResumePdfRenderer {
 
     override suspend fun render(document: ResumeDocument, fileName: String): File =

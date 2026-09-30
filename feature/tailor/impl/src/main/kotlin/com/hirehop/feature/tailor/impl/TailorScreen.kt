@@ -5,20 +5,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButton
+import com.hirehop.core.designsystem.component.HhLoadingWheel
+import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.icon.HhIcons
 
 @Composable
 internal fun TailorScreen(
@@ -45,7 +41,7 @@ internal fun TailorScreen(
 ) {
     var showPreview by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val failureMessage = stringResource(R.string.feature_tailor_export_failed)
+    val failureMessage = stringResource(R.string.feature_tailor_impl_export_failed)
     LaunchedEffect(exportState) {
         if (exportState == ExportUiState.Failed) {
             snackbarHostState.showSnackbar(failureMessage)
@@ -90,9 +86,11 @@ private fun TailorBody(
     contentPadding: PaddingValues,
 ) {
     when (uiState) {
-        TailorUiState.Loading -> CenteredContent(contentPadding) { CircularProgressIndicator() }
+        TailorUiState.Loading -> CenteredContent(contentPadding) {
+            HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_loading))
+        }
         TailorUiState.NotFound -> CenteredContent(contentPadding) {
-            Text(text = stringResource(R.string.feature_tailor_not_found))
+            Text(text = stringResource(R.string.feature_tailor_impl_not_found))
         }
         is TailorUiState.Success -> if (showPreview) {
             ResumePreviewContent(
@@ -129,7 +127,6 @@ private fun CenteredContent(contentPadding: PaddingValues, content: @Composable 
     ) { content() }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TailorTopBar(
     showPreview: Boolean,
@@ -137,27 +134,22 @@ private fun TailorTopBar(
     onBackClick: () -> Unit,
     onTogglePreview: () -> Unit,
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                stringResource(
-                    if (showPreview) R.string.feature_tailor_title_preview else R.string.feature_tailor_title_review,
-                ),
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.feature_tailor_back),
-                )
-            }
-        },
+    HhTopAppBar(
+        title = stringResource(
+            if (showPreview) R.string.feature_tailor_impl_title_preview else R.string.feature_tailor_impl_title_review,
+        ),
+        navigationIcon = HhIcons.ArrowBack,
+        navigationIconContentDescription = stringResource(R.string.feature_tailor_impl_back),
+        onNavigationClick = onBackClick,
         actions = {
             TextButton(onClick = onTogglePreview, enabled = canPreview) {
                 Text(
                     stringResource(
-                        if (showPreview) R.string.feature_tailor_review_action else R.string.feature_tailor_preview_action,
+                        if (showPreview) {
+                            R.string.feature_tailor_impl_review_action
+                        } else {
+                            R.string.feature_tailor_impl_preview_action
+                        },
                     ),
                 )
             }
@@ -168,18 +160,19 @@ private fun TailorTopBar(
 @Composable
 private fun ExportBar(canExport: Boolean, exporting: Boolean, onExport: () -> Unit) {
     Surface(tonalElevation = 3.dp) {
-        Button(
+        HhButton(
             onClick = onExport,
             enabled = canExport && !exporting,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-        ) {
-            Text(
-                stringResource(
-                    if (exporting) R.string.feature_tailor_exporting else R.string.feature_tailor_export,
-                ),
-            )
-        }
+            text = {
+                Text(
+                    stringResource(
+                        if (exporting) R.string.feature_tailor_impl_exporting else R.string.feature_tailor_impl_export,
+                    ),
+                )
+            },
+        )
     }
 }

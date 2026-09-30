@@ -145,9 +145,12 @@ class TailorViewModelTest {
 
         val kinds = success().entries.single().bullets.associate { it.bullet.id to it.kind }
         assertThat(kinds).containsExactly(
-            "r1", BulletReviewKind.REVIEWABLE,
-            "u1", BulletReviewKind.UNCHANGED,
-            "v1", BulletReviewKind.VIOLATION,
+            "r1",
+            BulletReviewKind.REVIEWABLE,
+            "u1",
+            BulletReviewKind.UNCHANGED,
+            "v1",
+            BulletReviewKind.VIOLATION,
         )
     }
 
