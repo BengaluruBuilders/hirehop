@@ -8,6 +8,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -70,7 +71,6 @@ class ApplicationDetailViewModelTest {
 
             val state = expectMostRecentItem() as ApplicationDetailUiState.Success
             assertThat(state.application).isEqualTo(application)
-            assertThat(state.notes).isEqualTo("Saved notes")
             assertThat(state.gapSummary)
                 .isEqualTo(GapSummary(met = 2, partial = 1, gap = 2, mustHaveGaps = listOf("Requirement d")))
             assertThat(state.reviewProgress).isEqualTo(ReviewProgress(reviewed = 2, total = 3))
@@ -107,18 +107,6 @@ class ApplicationDetailViewModelTest {
 
         val stored = applicationRepository.observeApplication(APPLICATION_ID).first()
         assertThat(stored?.status).isEqualTo(ApplicationStatus.INTERVIEW)
-    }
-
-    @Test
-    fun updateNotes_showsDraftImmediately() = runTest {
-        applicationRepository.sendApplications(listOf(application))
-
-        viewModel.uiState.test {
-            viewModel.updateNotes("Draft")
-
-            val state = expectMostRecentItem() as ApplicationDetailUiState.Success
-            assertThat(state.notes).isEqualTo("Draft")
-        }
     }
 
     @Test
@@ -192,6 +180,39 @@ class ApplicationDetailViewModelTest {
         viewModelStore.clear()
 
         assertThat(applicationRepository.notesWrites).isEmpty()
+    }
+
+    @Test
+    fun onCleared_whenKeyIsPressedDuringRunningSave_savesLatestNotes() = runTest {
+        applicationRepository.sendApplications(listOf(application))
+        val gate = CompletableDeferred<Unit>()
+        applicationRepository.notesWriteGate = gate
+
+        viewModel.updateNotes("Dra")
+        advanceTimeBy(NOTES_DEBOUNCE_MILLIS)
+        runCurrent()
+        viewModel.updateNotes("Draft")
+        gate.complete(Unit)
+        runCurrent()
+        viewModelStore.clear()
+
+        assertThat(applicationRepository.notesWrites).containsExactly("Dra", "Draft").inOrder()
+        val stored = applicationRepository.observeApplication(APPLICATION_ID).first()
+        assertThat(stored?.notes).isEqualTo("Draft")
+    }
+
+    @Test
+    fun deleteApplication_withPendingNotes_doesNotWriteNotesAfterDelete() = runTest {
+        applicationRepository.sendApplications(listOf(application))
+
+        viewModel.updateNotes("Draft")
+        viewModel.deleteApplication()
+        advanceTimeBy(NOTES_DEBOUNCE_MILLIS)
+        runCurrent()
+        viewModelStore.clear()
+
+        assertThat(applicationRepository.notesWrites).isEmpty()
+        assertThat(applicationRepository.observeApplications().first()).isEmpty()
     }
 
     @Test

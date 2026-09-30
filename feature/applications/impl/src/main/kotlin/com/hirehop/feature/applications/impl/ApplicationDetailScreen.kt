@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -169,6 +170,7 @@ private fun ApplicationDetailContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(PaddingValues(horizontal = 16.dp, vertical = 8.dp)),
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -187,7 +189,7 @@ private fun ApplicationDetailContent(
             onReviewResumeClick = onReviewResumeClick,
         )
         StatusSection(selected = state.application.status, onStatusSelected = onStatusSelected)
-        NotesSection(notes = state.notes, onNotesChange = onNotesChange)
+        NotesSection(initialNotes = state.application.notes, onNotesChange = onNotesChange)
     }
 }
 
@@ -261,7 +263,7 @@ private fun TailoredResumeSection(
         Text(text = progress.describe(), style = MaterialTheme.typography.bodyMedium)
         HhButton(
             onClick = onReviewResumeClick,
-            enabled = progress != null,
+            enabled = progress != null && progress.total > 0,
             text = { Text(stringResource(R.string.feature_applications_detail_review_resume)) },
         )
     }
@@ -289,7 +291,7 @@ private fun StatusSection(
             ApplicationStatus.entries.forEach { status ->
                 FilterChip(
                     selected = status == selected,
-                    onClick = { onStatusSelected(status) },
+                    onClick = { if (status != selected) onStatusSelected(status) },
                     label = { Text(stringResource(status.labelRes())) },
                 )
             }
@@ -299,14 +301,18 @@ private fun StatusSection(
 
 @Composable
 private fun NotesSection(
-    notes: String,
+    initialNotes: String,
     onNotesChange: (String) -> Unit,
 ) {
+    var notes by rememberSaveable { mutableStateOf(initialNotes) }
     Column {
         SectionHeading(R.string.feature_applications_detail_notes_heading)
         OutlinedTextField(
             value = notes,
-            onValueChange = onNotesChange,
+            onValueChange = {
+                notes = it
+                onNotesChange(it)
+            },
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.feature_applications_detail_notes_label)) },
             minLines = 3,
@@ -357,7 +363,6 @@ private fun ApplicationDetailSuccessPreview() {
     PreviewDetail(
         ApplicationDetailUiState.Success(
             application = application,
-            notes = application.notes,
             gapSummary = application.gapSummaryOrNull(),
             reviewProgress = application.reviewProgressOrNull(),
         ),
@@ -371,7 +376,6 @@ private fun ApplicationDetailNoAnalysisPreview() {
     PreviewDetail(
         ApplicationDetailUiState.Success(
             application = application,
-            notes = "",
             gapSummary = null,
             reviewProgress = null,
         ),
