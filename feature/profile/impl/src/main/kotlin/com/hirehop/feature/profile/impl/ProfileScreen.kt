@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,10 +42,19 @@ internal fun ProfileScreen(
     actions: ProfileActions,
     modifier: Modifier = Modifier,
 ) {
-    var sheet by remember { mutableStateOf<ProfileSheet?>(null) }
+    var sheet by rememberSaveable(stateSaver = ProfileSheetSaver) { mutableStateOf<ProfileSheet?>(null) }
     Scaffold(
         modifier = modifier,
-        topBar = { HhTopAppBar(title = stringResource(apiR.string.feature_profile_api_title)) },
+        topBar = {
+            HhTopAppBar(
+                title = stringResource(apiR.string.feature_profile_api_title),
+                actions = {
+                    if (uiState is ProfileUiState.Success) {
+                        ProfileOverflowMenu(onClearProfile = { sheet = ProfileSheet.ClearProfile })
+                    }
+                },
+            )
+        },
     ) { padding ->
         Box(
             modifier = Modifier

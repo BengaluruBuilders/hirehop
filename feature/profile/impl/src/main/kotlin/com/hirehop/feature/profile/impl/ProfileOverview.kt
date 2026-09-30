@@ -37,7 +37,7 @@ internal fun ProfileOverview(
             item {
                 ConfirmationBanner(
                     unconfirmedCount = state.unconfirmedCount,
-                    onConfirmAll = actions.onConfirmAll,
+                    onConfirmAll = { onOpenSheet(ProfileSheet.ConfirmAll) },
                 )
             }
         }
@@ -50,8 +50,9 @@ internal fun ProfileOverview(
         }
         entryGroups(
             entries = profile.entries,
-            actions = actions,
+            onConfirm = actions.onConfirmEntry,
             onEdit = { onOpenSheet(ProfileSheet.EditEntry(it.id, it.category)) },
+            onDelete = { onOpenSheet(ProfileSheet.DeleteEntry(it)) },
         )
         item {
             AddEntryMenu(
@@ -71,8 +72,9 @@ internal fun ProfileOverview(
 
 private fun LazyListScope.entryGroups(
     entries: List<ProfileEntry>,
-    actions: ProfileActions,
+    onConfirm: (String) -> Unit,
     onEdit: (ProfileEntry) -> Unit,
+    onDelete: (String) -> Unit,
 ) {
     EntryCategory.entries.forEach { category ->
         val group = entries.filter { it.category == category }
@@ -86,9 +88,9 @@ private fun LazyListScope.entryGroups(
             items(items = group, key = { it.id }) { entry ->
                 EntryCard(
                     entry = entry,
-                    onConfirm = { actions.onConfirmEntry(entry.id) },
+                    onConfirm = { onConfirm(entry.id) },
                     onEdit = { onEdit(entry) },
-                    onDelete = { actions.onDeleteEntry(entry.id) },
+                    onDelete = { onDelete(entry.id) },
                 )
             }
         }

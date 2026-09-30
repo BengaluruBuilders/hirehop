@@ -24,7 +24,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +42,7 @@ internal fun EntryEditorSheet(
     onSave: (EntryDraft) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var draft by remember { mutableStateOf(initial) }
+    var draft by rememberSaveable(stateSaver = EntryDraftSaver) { mutableStateOf(initial) }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),

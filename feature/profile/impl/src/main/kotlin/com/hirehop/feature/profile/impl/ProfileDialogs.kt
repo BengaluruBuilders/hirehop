@@ -12,7 +12,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,7 +25,7 @@ internal fun ContactEditorDialog(
     onSave: (ContactDraft) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var draft by remember { mutableStateOf(initial) }
+    var draft by rememberSaveable(stateSaver = ContactDraftSaver) { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.feature_profile_impl_contact_title)) },
@@ -90,7 +90,7 @@ internal fun SkillInputDialog(
     onAdd: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var skill by remember { mutableStateOf("") }
+    var skill by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.feature_profile_impl_add_skill)) },
@@ -107,6 +107,29 @@ internal fun SkillInputDialog(
             TextButton(onClick = { onAdd(skill) }, enabled = skill.isNotBlank()) {
                 Text(stringResource(R.string.feature_profile_impl_add))
             }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.feature_profile_impl_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+internal fun ConfirmationDialog(
+    title: String,
+    message: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(confirmLabel) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {

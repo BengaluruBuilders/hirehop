@@ -1,5 +1,6 @@
 package com.hirehop.feature.profile.impl
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -7,10 +8,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,6 +61,9 @@ internal fun ProfileHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (DemoProfileProvider.isDemo(profile)) {
+                DemoBadge()
+            }
         }
         IconButton(onClick = onEdit) {
             Icon(
@@ -67,6 +71,21 @@ internal fun ProfileHeader(
                 contentDescription = stringResource(R.string.feature_profile_impl_edit_contact),
             )
         }
+    }
+}
+
+@Composable
+private fun DemoBadge() {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ) {
+        Text(
+            text = stringResource(R.string.feature_profile_impl_demo_label),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
     }
 }
 
@@ -140,15 +159,23 @@ private fun SkillChip(
     skill: String,
     onRemove: () -> Unit,
 ) {
-    InputChip(
-        selected = false,
-        onClick = onRemove,
-        label = { Text(skill) },
-        trailingIcon = {
-            Icon(
-                imageVector = HhIcons.Close,
-                contentDescription = stringResource(R.string.feature_profile_impl_remove_skill, skill),
-            )
-        },
-    )
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = skill, style = MaterialTheme.typography.labelLarge)
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = HhIcons.Close,
+                    contentDescription = stringResource(R.string.feature_profile_impl_remove_skill, skill),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+    }
 }

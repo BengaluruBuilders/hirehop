@@ -1,7 +1,9 @@
 package com.hirehop.feature.profile.impl
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.model.CandidateProfile
@@ -13,8 +15,12 @@ import com.hirehop.core.testing.data.sampleProfile
 import com.hirehop.core.testing.data.sampleProjectEntry
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -41,13 +47,20 @@ class ProfileViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = ProfileViewModel(
-            profileRepository = repository,
-            resumeTextParser = parser,
-            idGenerator = idGenerator,
-            defaultDispatcher = UnconfinedTestDispatcher(),
-        )
+        viewModel = createViewModel()
     }
+
+    private fun createViewModel(
+        profileRepository: ProfileRepository = repository,
+        savedStateHandle: SavedStateHandle = SavedStateHandle(),
+        defaultDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(),
+    ) = ProfileViewModel(
+        savedStateHandle = savedStateHandle,
+        profileRepository = profileRepository,
+        resumeTextParser = parser,
+        idGenerator = idGenerator,
+        defaultDispatcher = defaultDispatcher,
+    )
 
     @Test
     fun uiState_whenNoProfile_startsLoadingThenShowsEmpty() = runTest {
@@ -330,6 +343,144 @@ class ProfileViewModelTest {
         assertThat(viewModel.importState.value).isEqualTo(ResumeImportState())
     }
 
+    @Test
+    fun confirmAll_onMixedProfile_confirmsOnlyUnconfirmedEntries() = runTest {
+        repository.sendProfile(profileWithImportedEntry)
+
+        viewModel.confirmAll()
+
+        val saved = savedProfile()
+        assertThat(saved.entries.map { it.id }).containsExactly(sampleEducationEntry.id, importedEntry.id).inOrder()
+        assertThat(saved.entries.all { it.isConfirmed }).isTrue()
+        assertThat(saved.entries.first { it.id == importedEntry.id }.source).isEqualTo(FactSource.IMPORTED)
+    }
+
+    @Test
+    fun deleteThenConfirm_whenSavesAreSlow_doesNotBringBackDeletedEntry() = runTest {
+        val gatedRepository = GatedProfileRepository(repository)
+        val other = importedEntry.copy(id = "other")
+        repository.sendProfile(sampleProfile.copy(entries = listOf(importedEntry, other)))
+        val gatedViewModel = createViewModel(profileRepository = gatedRepository)
+        val gate = CompletableDeferred<Unit>()
+        gatedRepository.gate = gate
+
+        gatedViewModel.deleteEntry(importedEntry.id)
+        gatedViewModel.confirmEntry(other.id)
+        gate.complete(Unit)
+
+        val saved = savedProfile()
+        assertThat(saved.entries.map { it.id }).containsExactly("other")
+        assertThat(saved.entries.single().isConfirmed).isTrue()
+    }
+
+    @Test
+    fun skillAndContactEdits_whenSavesAreSlow_areBothKept() = runTest {
+        val gatedRepository = GatedProfileRepository(repository)
+        repository.sendProfile(sampleProfile.copy(skills = listOf("Kotlin")))
+        val gatedViewModel = createViewModel(profileRepository = gatedRepository)
+        val gate = CompletableDeferred<Unit>()
+        gatedRepository.gate = gate
+
+        gatedViewModel.addSkill("Compose")
+        gatedViewModel.updateContact(ContactDraft("Asha R", "asha@example.com", "1", "Developer"))
+        gate.complete(Unit)
+
+        val saved = savedProfile()
+        assertThat(saved.skills).containsExactly("Kotlin", "Compose").inOrder()
+        assertThat(saved.fullName).isEqualTo("Asha R")
+    }
+
+    @Test
+    fun clearProfile_removesProfileAndResetsImport() = runTest {
+        repository.sendProfile(sampleProfile)
+        viewModel.onResumeTextChange("draft text")
+
+        viewModel.clearProfile()
+
+        assertThat(repository.observeProfile().first()).isNull()
+        assertThat(viewModel.importState.value).isEqualTo(ResumeImportState())
+        viewModel.uiState.test {
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Empty)
+        }
+    }
+
+    @Test
+    fun loadDemoProfile_whenProfileExists_replacesItAndIsRecognisedAsDemo() = runTest {
+        repository.sendProfile(sampleProfile)
+
+        viewModel.loadDemoProfile()
+
+        val saved = savedProfile()
+        assertThat(saved.fullName).isNotEqualTo(sampleProfile.fullName)
+        assertThat(DemoProfileProvider.isDemo(saved)).isTrue()
+        assertThat(DemoProfileProvider.isDemo(sampleProfile)).isFalse()
+    }
+
+    @Test
+    fun parseResume_whenTextChangesWhileParsing_dropsTheOldResult() = runTest {
+        val slowViewModel = createViewModel(defaultDispatcher = StandardTestDispatcher(testScheduler))
+        parser.result = parsedProfile()
+        slowViewModel.onResumeTextChange("old text")
+
+        slowViewModel.parseResume()
+        assertThat(slowViewModel.importState.value.isParsing).isTrue()
+        slowViewModel.onResumeTextChange("new text")
+        advanceUntilIdle()
+
+        val state = slowViewModel.importState.value
+        assertThat(state.rawText).isEqualTo("new text")
+        assertThat(state.preview).isNull()
+        assertThat(state.isParsing).isFalse()
+    }
+
+    @Test
+    fun parseResume_whenImportIsResetWhileParsing_leavesNoPreview() = runTest {
+        val slowViewModel = createViewModel(defaultDispatcher = StandardTestDispatcher(testScheduler))
+        parser.result = parsedProfile()
+        slowViewModel.onResumeTextChange("text")
+
+        slowViewModel.parseResume()
+        slowViewModel.resetImport()
+        advanceUntilIdle()
+
+        assertThat(slowViewModel.importState.value).isEqualTo(ResumeImportState())
+    }
+
+    @Test
+    fun parseResume_whenAlreadyParsing_callsParserOnce() = runTest {
+        val slowViewModel = createViewModel(defaultDispatcher = StandardTestDispatcher(testScheduler))
+        parser.result = parsedProfile()
+        slowViewModel.onResumeTextChange("text")
+
+        slowViewModel.parseResume()
+        slowViewModel.parseResume()
+        advanceUntilIdle()
+
+        assertThat(parser.callCount).isEqualTo(1)
+        assertThat(slowViewModel.importState.value.preview).isEqualTo(parsedProfile())
+    }
+
+    @Test
+    fun onResumeTextChange_isRestoredFromSavedStateHandle() = runTest {
+        val handle = SavedStateHandle()
+        createViewModel(savedStateHandle = handle).onResumeTextChange("typed before rotation")
+
+        val restored = createViewModel(savedStateHandle = handle)
+
+        assertThat(restored.importState.value.rawText).isEqualTo("typed before rotation")
+    }
+
+    @Test
+    fun resetImport_clearsSavedResumeText() = runTest {
+        val handle = SavedStateHandle()
+        val first = createViewModel(savedStateHandle = handle)
+        first.onResumeTextChange("typed")
+
+        first.resetImport()
+
+        assertThat(createViewModel(savedStateHandle = handle).importState.value.rawText).isEmpty()
+    }
+
     private suspend fun savedProfile(): CandidateProfile =
         checkNotNull(repository.observeProfile().first()) { "Expected a saved profile" }
 
@@ -358,9 +509,22 @@ class ProfileViewModelTest {
 private class FakeResumeTextParser : ResumeTextParser {
     var result: CandidateProfile = sampleProfile
     var receivedText: String? = null
+    var callCount = 0
 
     override fun parse(rawText: String): CandidateProfile {
+        callCount++
         receivedText = rawText
         return result
+    }
+}
+
+private class GatedProfileRepository(
+    private val delegate: TestProfileRepository,
+) : ProfileRepository by delegate {
+    var gate: CompletableDeferred<Unit>? = null
+
+    override suspend fun saveProfile(profile: CandidateProfile) {
+        gate?.await()
+        delegate.saveProfile(profile)
     }
 }

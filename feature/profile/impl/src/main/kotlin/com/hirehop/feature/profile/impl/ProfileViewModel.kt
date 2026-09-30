@@ -1,5 +1,6 @@
 package com.hirehop.feature.profile.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.common.network.Dispatcher
@@ -10,6 +11,7 @@ import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.model.CandidateProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +21,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val profileRepository: ProfileRepository,
     private val resumeTextParser: ResumeTextParser,
     idGenerator: IdGenerator,
@@ -31,7 +36,11 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val entryMapper = EntryDraftMapper(idGenerator)
-    private val mutableImportState = MutableStateFlow(ResumeImportState())
+    private val profileMutex = Mutex()
+    private var parseJob: Job? = null
+    private val mutableImportState = MutableStateFlow(
+        ResumeImportState(rawText = savedStateHandle.get<String>(RESUME_TEXT_KEY).orEmpty()),
+    )
 
     val uiState: StateFlow<ProfileUiState> = profileRepository.observeProfile()
         .map { it.toUiState() }
@@ -60,44 +69,59 @@ class ProfileViewModel @Inject constructor(
 
     fun removeSkill(skill: String) = updateProfile { it.withoutSkill(skill) }
 
-    fun loadDemoProfile() {
-        viewModelScope.launch { profileRepository.saveProfile(DemoProfileProvider.profile()) }
-    }
+    fun loadDemoProfile() = replaceProfile { DemoProfileProvider.profile() }
 
-    fun startManualProfile() {
-        viewModelScope.launch { profileRepository.saveProfile(blankProfile()) }
+    fun startManualProfile() = replaceProfile { blankProfile() }
+
+    fun clearProfile() {
+        resetImport()
+        viewModelScope.launch {
+            profileMutex.withLock { profileRepository.clearProfile() }
+        }
     }
 
     fun onResumeTextChange(text: String) {
-        mutableImportState.update { it.copy(rawText = text, preview = null) }
+        parseJob?.cancel()
+        savedStateHandle[RESUME_TEXT_KEY] = text
+        mutableImportState.value = ResumeImportState(rawText = text)
     }
 
     fun parseResume() {
-        val text = mutableImportState.value.rawText
-        if (text.isBlank()) return
-        mutableImportState.update { it.copy(isParsing = true) }
-        viewModelScope.launch {
-            val parsed = withContext(defaultDispatcher) { resumeTextParser.parse(text) }
-            mutableImportState.update { it.copy(preview = parsed, isParsing = false) }
+        val current = mutableImportState.value
+        if (current.rawText.isBlank() || current.isParsing) return
+        mutableImportState.value = current.copy(isParsing = true)
+        parseJob = viewModelScope.launch {
+            val parsed = withContext(defaultDispatcher) { resumeTextParser.parse(current.rawText) }
+            mutableImportState.update {
+                if (it.rawText == current.rawText) it.copy(preview = parsed, isParsing = false) else it
+            }
         }
     }
 
     fun savePreview() {
         val preview = mutableImportState.value.preview ?: return
-        viewModelScope.launch {
-            profileRepository.saveProfile(preview.asUnconfirmedImport())
-            mutableImportState.value = ResumeImportState()
-        }
+        replaceProfile { preview.asUnconfirmedImport() }
+        resetImport()
     }
 
     fun resetImport() {
+        parseJob?.cancel()
+        savedStateHandle[RESUME_TEXT_KEY] = ""
         mutableImportState.value = ResumeImportState()
+    }
+
+    private fun replaceProfile(create: () -> CandidateProfile) {
+        viewModelScope.launch {
+            profileMutex.withLock { profileRepository.saveProfile(create()) }
+        }
     }
 
     private fun updateProfile(transform: (CandidateProfile) -> CandidateProfile) {
         viewModelScope.launch {
-            val current = profileRepository.observeProfile().first() ?: return@launch
-            profileRepository.saveProfile(transform(current))
+            profileMutex.withLock {
+                val current = profileRepository.observeProfile().first() ?: return@withLock
+                profileRepository.saveProfile(transform(current))
+            }
         }
     }
 
@@ -116,4 +140,8 @@ class ProfileViewModel @Inject constructor(
         skills = emptyList(),
         entries = emptyList(),
     )
+
+    private companion object {
+        const val RESUME_TEXT_KEY = "resumeText"
+    }
 }

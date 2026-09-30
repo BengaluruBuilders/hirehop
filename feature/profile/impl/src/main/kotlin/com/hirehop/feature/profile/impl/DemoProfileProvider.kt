@@ -8,9 +8,13 @@ import com.hirehop.core.model.ProfileEntry
 
 internal object DemoProfileProvider {
 
+    private const val DEMO_EMAIL = "aarav.mehta@example.com"
+
+    fun isDemo(profile: CandidateProfile): Boolean = profile.email == DEMO_EMAIL
+
     fun profile(): CandidateProfile = CandidateProfile(
         fullName = "Aarav Mehta",
-        email = "aarav.mehta@example.com",
+        email = DEMO_EMAIL,
         phone = "+91 98765 43210",
         headline = "Final-year B.Tech CSE student building Android and backend projects",
         skills = listOf(
