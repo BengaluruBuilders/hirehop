@@ -8,6 +8,7 @@ import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
+import com.hirehop.core.model.FactSource
 
 @Preview(showBackground = true)
 @Composable
@@ -46,7 +47,11 @@ private val previewResultState = AnalysisUiState.Result(
                 previewItem(
                     "Jetpack Compose",
                     MatchStatus.PARTIAL,
+                    type = RequirementType.TOOL,
                     evidence = listOf("Built a small Compose demo app"),
+                    factRefs = listOf(
+                        RequirementFactRef("P-02", "Placement Stats Dashboard", FactSource.IMPORTED, true),
+                    ),
                 ),
             ),
         ),
@@ -69,17 +74,20 @@ private fun previewItem(
     text: String,
     status: MatchStatus,
     priority: RequirementPriority = RequirementPriority.MUST_HAVE,
+    type: RequirementType = RequirementType.SKILL,
     evidence: List<String> = emptyList(),
+    factRefs: List<RequirementFactRef> = emptyList(),
     isInPrepPlan: Boolean = false,
 ) = RequirementItem(
     requirement = JobRequirement(
         id = text,
         text = text,
-        type = RequirementType.SKILL,
+        type = type,
         priority = priority,
         keywords = listOf(text.lowercase()),
     ),
     status = status,
     evidence = evidence,
     isInPrepPlan = isInPrepPlan,
+    factRefs = factRefs,
 )
