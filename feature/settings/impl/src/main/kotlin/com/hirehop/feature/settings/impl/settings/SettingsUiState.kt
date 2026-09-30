@@ -26,6 +26,17 @@ enum class SettingsSlotKind {
     DELETE_ACCOUNT_WEB_ADDRESS,
 }
 
+enum class SettingsSupporting {
+    NO_ACCOUNT,
+    SIGN_OUT,
+    CREDITS_AND_HELP,
+    YOUR_DATA,
+    PRIVACY_POLICY_OFFLINE,
+    CONSENT_NOTICE,
+    DELETE_ACCOUNT,
+    DELETE_ACCOUNT_OFFLINE,
+}
+
 enum class SettingsDestination {
     SIGN_OUT,
     CREDITS_AND_HELP,
@@ -37,9 +48,11 @@ enum class SettingsDestination {
 data class SettingsRowState(
     val key: SettingsRowKey,
     val style: SettingsRowStyle = SettingsRowStyle.NORMAL,
-    val supporting: String? = null,
+    val supporting: SettingsSupporting? = null,
     val slot: SettingsSlotKind? = null,
-    val trailing: String? = null,
+    val showsAccountSignedInAs: Boolean = false,
+    val consentDate: String? = null,
+    val showsCreditsTrailing: Boolean = false,
     val showChevron: Boolean = false,
     val isEnabled: Boolean = true,
     val destination: SettingsDestination? = null,
@@ -56,9 +69,7 @@ data class SettingsUiState(
     val creditsLeft: Int = 0,
     val isOffline: Boolean = false,
     val destination: SettingsDestination? = null,
-) {
-    val isEveryRowEnabled: Boolean get() = groups.all { group -> group.rows.all { row -> row.isEnabled } }
-}
+)
 
 sealed interface SettingsAction {
     data class DestinationSelected(val destination: SettingsDestination) : SettingsAction
@@ -70,7 +81,6 @@ fun settingsIsOffline(scenario: DebugScenario): Boolean = scenario == DebugScena
 
 fun settingsGroupsFor(
     accountDisplayName: String?,
-    creditsLeft: Int,
     isOffline: Boolean,
 ): List<SettingsGroupState> = listOf(
     SettingsGroupState(
@@ -78,11 +88,12 @@ fun settingsGroupsFor(
         rows = listOf(
             SettingsRowState(
                 key = SettingsRowKey.ACCOUNT,
-                supporting = accountDisplayName,
+                supporting = if (accountDisplayName == null) SettingsSupporting.NO_ACCOUNT else null,
+                showsAccountSignedInAs = accountDisplayName != null,
             ),
             SettingsRowState(
                 key = SettingsRowKey.SIGN_OUT,
-                supporting = SUPPORTING_SIGN_OUT,
+                supporting = SettingsSupporting.SIGN_OUT,
                 destination = SettingsDestination.SIGN_OUT,
             ),
         ),
@@ -92,8 +103,8 @@ fun settingsGroupsFor(
         rows = listOf(
             SettingsRowState(
                 key = SettingsRowKey.CREDITS_AND_HELP,
-                supporting = SUPPORTING_CREDITS,
-                trailing = creditsLeft.toString(),
+                supporting = SettingsSupporting.CREDITS_AND_HELP,
+                showsCreditsTrailing = true,
                 showChevron = true,
                 destination = SettingsDestination.CREDITS_AND_HELP,
             ),
@@ -104,7 +115,7 @@ fun settingsGroupsFor(
         rows = listOf(
             SettingsRowState(
                 key = SettingsRowKey.YOUR_DATA,
-                supporting = SUPPORTING_YOUR_DATA,
+                supporting = SettingsSupporting.YOUR_DATA,
                 showChevron = true,
                 destination = SettingsDestination.YOUR_DATA,
             ),
@@ -115,12 +126,12 @@ fun settingsGroupsFor(
         rows = listOf(
             SettingsRowState(
                 key = SettingsRowKey.PRIVACY_POLICY,
-                supporting = if (isOffline) SUPPORTING_PRIVACY_OFFLINE else null,
+                supporting = if (isOffline) SettingsSupporting.PRIVACY_POLICY_OFFLINE else null,
                 slot = SettingsSlotKind.PRIVACY_POLICY_ADDRESS,
             ),
             SettingsRowState(
                 key = SettingsRowKey.CONSENT_NOTICE,
-                supporting = SUPPORTING_CONSENT,
+                supporting = SettingsSupporting.CONSENT_NOTICE,
                 showChevron = true,
                 destination = SettingsDestination.CONSENT_NOTICE,
             ),
@@ -141,7 +152,7 @@ fun settingsGroupsFor(
         ),
     ),
     SettingsGroupState(
-        label = SettingsGroupLabel.LEL,
+        label = SettingsGroupLabel.DELETE_ACCOUNT,
         rows = settingsDeleteAccountRows(isOffline = isOffline),
     ),
 )
@@ -149,7 +160,7 @@ fun settingsGroupsFor(
 private fun settingsDeleteAccountRows(isOffline: Boolean): List<SettingsRowState> = listOf(
     SettingsRowState(
         key = SettingsRowKey.DELETE_ACCOUNT,
-        supporting = if (isOffline) SUPPORTING_DELETE_OFFLINE else SUPPORTING_DELETE,
+        supporting = if (isOffline) SettingsSupporting.DELETE_ACCOUNT_OFFLINE else SettingsSupporting.DELETE_ACCOUNT,
         showChevron = true,
         isEnabled = !isOffline,
         destination = SettingsDestination.DELETE_ACCOUNT,
@@ -163,7 +174,6 @@ private fun settingsDeleteAccountRows(isOffline: Boolean): List<SettingsRowState
 
 fun settingsGroups(): List<SettingsGroupState> = settingsGroupsFor(
     accountDisplayName = null,
-    creditsLeft = 0,
     isOffline = false,
 )
 
@@ -174,18 +184,9 @@ fun settingsStateFor(
 ): SettingsUiState = SettingsUiState(
     groups = settingsGroupsFor(
         accountDisplayName = accountDisplayName,
-        creditsLeft = creditsLeft,
         isOffline = isOffline,
     ),
     accountDisplayName = accountDisplayName,
     creditsLeft = creditsLeft,
     isOffline = isOffline,
 )
-
-private const val SUPPORTING_SIGN_OUT = "Removes the account from this phone. Your data stays until you delete it."
-private const val SUPPORTING_CREDITS = "Purchases, refunds, and help"
-private const val SUPPORTING_YOUR_DATA = "See, correct, download, or delete it"
-private const val SUPPORTING_PRIVACY_OFFLINE = "Opens in your browser. Needs a connection."
-private const val SUPPORTING_CONSENT = "Read only. The notice you agreed to."
-private const val SUPPORTING_DELETE = "Your profile, applications, and credits"
-private const val SUPPORTING_DELETE_OFFLINE = "Needs a connection."

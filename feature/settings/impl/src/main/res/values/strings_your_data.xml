@@ -15,7 +15,7 @@
     <string name="feature_settings_impl_your_data_unit_facts">facts</string>
     <string name="feature_settings_impl_your_data_unit_files">files</string>
 
-    <string name="feature_settings_impl_your_data_profile_sub">%1$d confirmed · %2$d user-stated</string>
+    <string name="feature_settings_impl_your_data_profile_sub">Facts you confirmed: %1$d · Facts you stated: %2$d</string>
     <string name="feature_settings_impl_your_data_applications_sub">Each one has its JD text, gap analysis, and tailored resume.</string>
     <plurals name="feature_settings_impl_your_data_purchases_recorded">
         <item quantity="one">%1$d purchase recorded on this device.</item>
