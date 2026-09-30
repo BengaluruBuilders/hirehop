@@ -1,12 +1,14 @@
 package com.hirehop.core.screenshot
 
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onRoot
-import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import java.io.File
 
 const val HH_THEME_LIGHT = "light"
 const val HH_THEME_DARK = "dark"
+
+const val HH_SCREENSHOT_DIRECTORY_PROPERTY = "roborazzi.output.dir"
 
 fun HhTestDevice.imageFileName(
     screenName: String,
@@ -19,6 +21,7 @@ fun HhTestDevice.imageFile(
     theme: String,
 ): File = File(outputDirectory, imageFileName(screenName, theme))
 
+@OptIn(ExperimentalRoborazziApi::class)
 suspend fun ComposeTestRule.captureForDevice(
     outputDirectory: String,
     screenName: String,
@@ -26,7 +29,7 @@ suspend fun ComposeTestRule.captureForDevice(
     theme: String = HH_THEME_LIGHT,
 ): String {
     val file = device.imageFile(outputDirectory, screenName, theme)
-    onRoot().captureRoboImage(file.path)
+    captureScreenRoboImage(file.path)
     return file.path
 }
 
@@ -37,6 +40,7 @@ suspend fun ComposeTestRule.captureForDevices(
     theme: String = HH_THEME_LIGHT,
 ): List<String> = devices.map { captureForDevice(outputDirectory, screenName, it, theme) }
 
+@OptIn(ExperimentalRoborazziApi::class)
 suspend fun ComposeTestRule.captureMultiTheme(
     outputDirectory: String,
     screenName: String,

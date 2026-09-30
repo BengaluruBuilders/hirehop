@@ -113,23 +113,26 @@ private fun FactCountChips(
     ) {
         HhProvenanceChip(
             kind = HhProvenanceKind.Confirmed,
-            label = stringResource(
-                R.string.feature_profile_impl_confirmed_count,
+            label = pluralStringResource(
+                R.plurals.feature_profile_impl_confirmed_count,
+                overview.confirmedCount,
                 overview.confirmedCount,
             ),
         )
         HhProvenanceChip(
             kind = HhProvenanceKind.UserStated,
-            label = stringResource(
-                R.string.feature_profile_impl_user_stated_count,
+            label = pluralStringResource(
+                R.plurals.feature_profile_impl_user_stated_count,
+                overview.userStatedCount,
                 overview.userStatedCount,
             ),
         )
         if (overview.unconfirmedCount > 0) {
             HhStatusChip(
                 kind = HhStatusKind.Partial,
-                label = stringResource(
-                    R.string.feature_profile_impl_not_confirmed_count,
+                label = pluralStringResource(
+                    R.plurals.feature_profile_impl_not_confirmed_count,
+                    overview.unconfirmedCount,
                     overview.unconfirmedCount,
                 ),
             )

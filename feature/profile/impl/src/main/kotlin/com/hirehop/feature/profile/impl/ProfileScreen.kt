@@ -26,11 +26,11 @@ import com.hirehop.feature.profile.api.R as apiR
 
 @Composable
 internal fun ProfileRoute(
+    modifier: Modifier = Modifier,
     scenario: DebugScenario = DebugScenario.defaultValue,
     onOpenFact: (entryId: String?) -> Unit = {},
     onAddEvidence: () -> Unit = {},
     onBuildStepByStep: () -> Unit = {},
-    modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(viewModel, scenario) {

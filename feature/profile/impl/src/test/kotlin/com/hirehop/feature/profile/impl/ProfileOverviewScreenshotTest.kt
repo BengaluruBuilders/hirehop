@@ -103,11 +103,9 @@ class ProfileOverviewScreenshotTest {
 }
 
 private const val ROBORAZZI_SDK = 34
-private const val ROBORAZZI_OUTPUT_DIR_PROPERTY = "roborazzi.output.dir"
 private const val TRACKED_OUTPUT_DIR = "src/test/screenshots"
 
-private val outputDirectory: String =
-    System.getProperty(ROBORAZZI_OUTPUT_DIR_PROPERTY) ?: TRACKED_OUTPUT_DIR
+private val outputDirectory: String = TRACKED_OUTPUT_DIR
 
 private fun partlyConfirmedState(): ProfileUiState = ProfileUiState.Success(
     profile = partlyConfirmedProfile,

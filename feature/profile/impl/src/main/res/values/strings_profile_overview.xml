@@ -6,9 +6,18 @@
         <item quantity="other">%1$d facts</item>
     </plurals>
     <string name="feature_profile_impl_header_line">%1$s · %2$s</string>
-    <string name="feature_profile_impl_confirmed_count">%1$d confirmed</string>
-    <string name="feature_profile_impl_user_stated_count">%1$d user-stated</string>
-    <string name="feature_profile_impl_not_confirmed_count">%1$d not confirmed</string>
+    <plurals name="feature_profile_impl_confirmed_count">
+        <item quantity="one">%1$d confirmed</item>
+        <item quantity="other">%1$d confirmed</item>
+    </plurals>
+    <plurals name="feature_profile_impl_user_stated_count">
+        <item quantity="one">%1$d user-stated</item>
+        <item quantity="other">%1$d user-stated</item>
+    </plurals>
+    <plurals name="feature_profile_impl_not_confirmed_count">
+        <item quantity="one">%1$d not confirmed</item>
+        <item quantity="other">%1$d not confirmed</item>
+    </plurals>
     <plurals name="feature_profile_impl_open_items_banner">
         <item quantity="one">%1$d item is not confirmed. HireHop won\'t use it.</item>
         <item quantity="other">%1$d items are not confirmed. HireHop won\'t use them.</item>
@@ -32,7 +41,7 @@
         <item quantity="one">%1$d fact</item>
         <item quantity="other">%1$d facts</item>
     </plurals>
-    <string name="feature_profile_impl_section_mix_accessibility">%1$d confirmed, %2$d user-stated</string>
+    <string name="feature_profile_impl_section_mix_accessibility">Confirmed %1$d, user-stated %2$d</string>
 
     <string name="feature_profile_impl_fact_card_accessibility">%1$s. %2$s. %3$s. Fact %4$s. Actions: %5$s.</string>
     <string name="feature_profile_impl_fact_reference">Fact %1$s</string>

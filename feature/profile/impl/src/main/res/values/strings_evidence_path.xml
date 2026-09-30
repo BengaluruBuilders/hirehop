@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_profile_impl_evidence_path_title">Add evidence</string>
+    <string name="feature_profile_impl_evidence_path_step_counter_description">Question %1$d of %2$d</string>
+    <string name="feature_profile_impl_evidence_path_navigation_back_description">Go back</string>
+    <string name="feature_profile_impl_evidence_path_loading">Getting your facts ready</string>
+    <string name="feature_profile_impl_evidence_path_load_failed">We could not open this. Your answers are still on this phone.</string>
+    <string name="feature_profile_impl_evidence_path_offline_message">You are offline. Your answers stay on this phone and sync when you are back.</string>
+
+    <string name="feature_profile_impl_evidence_path_picker_title">What have you done so far?</string>
+    <string name="feature_profile_impl_evidence_path_picker_body">Pick everything that fits. We will ask one short question at a time.</string>
+    <string name="feature_profile_impl_evidence_path_picker_start">Start with Projects</string>
+    <string name="feature_profile_impl_evidence_path_picker_skip_note">Nothing here yet is fine. You can add any of it later.</string>
+    <string name="feature_profile_impl_evidence_path_picker_category_description">%1$s. Not chosen.</string>
+    <string name="feature_profile_impl_evidence_path_picker_category_chosen_description">%1$s. Chosen.</string>
+
+    <string name="feature_profile_impl_evidence_path_category_projects">Projects</string>
+    <string name="feature_profile_impl_evidence_path_category_internships">Internships</string>
+    <string name="feature_profile_impl_evidence_path_category_coursework">Coursework</string>
+    <string name="feature_profile_impl_evidence_path_category_competitions">Competitions</string>
+    <string name="feature_profile_impl_evidence_path_category_positions">Positions of responsibility</string>
+
+    <string name="feature_profile_impl_evidence_path_question_projects_name">What did you build? Which tools? Who used it?</string>
+    <string name="feature_profile_impl_evidence_path_question_internships_name">Which internship or job, and where?</string>
+    <string name="feature_profile_impl_evidence_path_question_coursework_name">Which course, and what did you do in it?</string>
+    <string name="feature_profile_impl_evidence_path_question_competitions_name">Which competition, and what did your team do?</string>
+    <string name="feature_profile_impl_evidence_path_question_positions_name">Which role did you hold, and what were you responsible for?</string>
+
+    <string name="feature_profile_impl_evidence_path_label_projects_title">What did you build?</string>
+    <string name="feature_profile_impl_evidence_path_label_internships_title">Which internship or job?</string>
+    <string name="feature_profile_impl_evidence_path_label_coursework_title">Which course?</string>
+    <string name="feature_profile_impl_evidence_path_label_competitions_title">Which competition?</string>
+    <string name="feature_profile_impl_evidence_path_label_positions_title">Which role?</string>
+
+    <string name="feature_profile_impl_evidence_path_label_detail">What did you do? Who used it?</string>
+    <string name="feature_profile_impl_evidence_path_label_organization">Which company or college?</string>
+    <string name="feature_profile_impl_evidence_path_organization_optional">You can skip this one.</string>
+
+    <string name="feature_profile_impl_evidence_path_placeholder">Write it in your own words</string>
+    <string name="feature_profile_impl_evidence_path_example_projects">Placement Stats Dashboard. Power BI and Excel. The T and P cell used it for the 2024 placement report.</string>
+    <string name="feature_profile_impl_evidence_path_example_internships">Data intern, Kiran Agro Exports, Nashik, May to Jul 2025.</string>
+    <string name="feature_profile_impl_evidence_path_example_coursework">DBMS. SQL joins and GROUP BY in a library database project.</string>
+    <string name="feature_profile_impl_evidence_path_example_competitions">Smart India Hackathon 2024. Internal round finalist, team of 6.</string>
+    <string name="feature_profile_impl_evidence_path_example_positions">Treasurer, college coding club, 2024 to 25. Managed a 40,000 rupee event budget.</string>
+
+    <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. HireHop uses your words as facts.</string>
+    <string name="feature_profile_impl_evidence_path_skip">Skip</string>
+    <string name="feature_profile_impl_evidence_path_save">Save</string>
+    <string name="feature_profile_impl_evidence_path_add_more">Add more</string>
+    <string name="feature_profile_impl_evidence_path_go_to_profile">Go to my profile</string>
+    <string name="feature_profile_impl_evidence_path_more_questions">More in this category</string>
+
+    <string name="feature_profile_impl_evidence_path_answer_stamp">Folding into your profile</string>
+    <string name="feature_profile_impl_evidence_path_fact_card_description">%1$s. %2$s. Fact %3$s.</string>
+    <string name="feature_profile_impl_evidence_path_answered_caption">Your answer</string>
+    <string name="feature_profile_impl_evidence_path_skipped_caption">Skipped. Add one any time.</string>
+
+    <plurals name="feature_profile_impl_evidence_path_done_title">
+        <item quantity="one">%1$d new fact added</item>
+        <item quantity="other">%1$d new facts added</item>
+    </plurals>
+    <string name="feature_profile_impl_evidence_path_done_body">All in your words, tagged user-stated. You can edit any of them in Profile.</string>
+    <string name="feature_profile_impl_evidence_path_done_nothing_title">Nothing added, and that is fine</string>
+    <string name="feature_profile_impl_evidence_path_done_nothing_body">You can come back and add any of this later. Nothing was saved.</string>
+    <plurals name="feature_profile_impl_evidence_path_done_skipped">
+        <item quantity="one">You skipped %1$d.</item>
+        <item quantity="other">You skipped %1$d.</item>
+    </plurals>
+    <string name="feature_profile_impl_evidence_path_saved_message">Saved. You can add more any time.</string>
+    <string name="feature_profile_impl_evidence_path_offline_queued_message">Saved on this phone. Nothing leaves this device.</string>
+    <string name="feature_profile_impl_evidence_path_save_rejected_title">We could not save that</string>
+    <string name="feature_profile_impl_evidence_path_save_rejected_body">Nothing was lost. Fix the highlighted line and try again.</string>
+    <string name="feature_profile_impl_evidence_path_error_required">This one is needed.</string>
+    <string name="feature_profile_impl_evidence_path_error_end_before_start">This date comes before the start date.</string>
+    <string name="feature_profile_impl_evidence_path_error_too_long">This is longer than HireHop stores. Keep the main line.</string>
+</resources>
