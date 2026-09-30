@@ -1,0 +1,105 @@
+package com.hirehop.core.domain.offline
+
+internal val softSkillEntries: List<LexiconEntry> = listOf(
+    softSkill(
+        "Communication",
+        loose = listOf(
+            "communication skills",
+            "verbal communication",
+            "written communication",
+            "verbal and written communication",
+        ),
+    ),
+    softSkill("Teamwork", loose = listOf("team player", "team work")),
+    softSkill("Leadership"),
+    softSkill("Problem Solving"),
+    softSkill("Analytical Skills", loose = listOf("analytical thinking", "analytical ability", "analytical mindset")),
+    softSkill("Critical Thinking"),
+    softSkill("Time Management"),
+    softSkill("Adaptability"),
+    softSkill("Presentation Skills"),
+    softSkill("Public Speaking"),
+    softSkill("Negotiation"),
+    softSkill("Attention to Detail", loose = listOf("detail oriented")),
+    softSkill("Creativity"),
+    softSkill("Ownership"),
+    softSkill("Quick Learner", loose = listOf("fast learner", "willingness to learn", "eager to learn")),
+    softSkill("Interpersonal Skills"),
+    softSkill("Decision Making"),
+    softSkill("Self-motivated"),
+    softSkill("Multitasking"),
+)
+
+internal val degreeEntries: List<LexiconEntry> = listOf(
+    education("B.Tech", "btech", "b tech", "bachelor of technology", implies = listOf("bachelor's degree")),
+    education("B.E.", "b.e", "bachelor of engineering", implies = listOf("bachelor's degree")),
+    education("M.Tech", "mtech", "m tech", "master of technology", implies = listOf("master's degree")),
+    education("B.Sc", "bsc", "b sc", "bachelor of science", implies = listOf("bachelor's degree")),
+    education("M.Sc", "msc", "m sc", "master of science", implies = listOf("master's degree")),
+    education(
+        "BCA",
+        "bachelor of computer applications",
+        implies = listOf("bachelor's degree", "computer science"),
+    ),
+    education(
+        "MCA",
+        "master of computer applications",
+        implies = listOf("master's degree", "computer science"),
+    ),
+    education(
+        "B.Com",
+        "bcom",
+        "b com",
+        "bachelor of commerce",
+        implies = listOf("bachelor's degree", "commerce"),
+    ),
+    education(
+        "M.Com",
+        "mcom",
+        "m com",
+        "master of commerce",
+        implies = listOf("master's degree", "commerce"),
+    ),
+    education(
+        "BBA",
+        "bachelor of business administration",
+        implies = listOf("bachelor's degree", "business administration"),
+    ),
+    education(
+        "MBA",
+        "master of business administration",
+        implies = listOf("master's degree", "business administration"),
+    ),
+    education("PGDM"),
+    education("CA Inter", "ca intermediate", loose = listOf("ipcc")),
+    education("CA Final"),
+    education("Chartered Accountant", loose = listOf("chartered accountancy")),
+    education("CMA", loose = listOf("cost and management accountant", "icwa")),
+    education("CFA"),
+    education(
+        "Bachelor's Degree",
+        "bachelors degree",
+        "bachelor degree",
+        loose = listOf("undergraduate degree", "graduate degree"),
+    ),
+    education(
+        "Master's Degree",
+        "masters degree",
+        "master degree",
+        loose = listOf("postgraduate degree", "post graduate degree", "postgraduate"),
+    ),
+    education("Diploma"),
+)
+
+internal val fieldOfStudyEntries: List<LexiconEntry> = listOf(
+    education("Computer Science", "comp sci", loose = listOf("cse", "computer science engineering")),
+    education("Information Technology"),
+    education("Electronics and Communication", loose = listOf("ece")),
+    education("Electrical Engineering", loose = listOf("eee")),
+    education("Mechanical Engineering"),
+    education("Civil Engineering"),
+    education("Mathematics", "maths"),
+    education("Economics"),
+    education("Commerce").copy(blockedPrefixes = listOf("e-", "e ")),
+    education("Business Administration"),
+)

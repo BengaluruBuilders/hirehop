@@ -1,0 +1,58 @@
+RAHUL VERMA
+Bengaluru, Karnataka 560037
+Email: rahul.verma2002@gmail.com | Mobile: +91 98765 43210
+LinkedIn: linkedin.com/in/rahulverma | GitHub: github.com/rahulv
+
+CAREER OBJECTIVE
+To secure a challenging position in a reputed organization where I can utilise my skills and grow with the company.
+
+PERSONAL DETAILS
+Date of Birth: 14/08/2002
+Father's Name: Suresh Verma
+Marital Status: Single
+Nationality: Indian
+Religion: Hindu
+
+EDUCATION
+B.Tech in Computer Science and Engineering
+Visvesvaraya Technological University, Belagavi | 2021 - 2025
+CGPA: 8.4/10
+Class XII (PCM), Sri Vidya PU College, 2021, 91%
+
+TECHNICAL SKILLS
+Languages: Kotlin, Java, Python, SQL
+Tools: Git, Android Studio, Postman
+Soft Skills: Communication, Teamwork
+
+INTERNSHIPS
+Android Developer Intern
+Infosys Springboard, Remote | Jun 2024 - Aug 2024
+• Built 3 screens with Jetpack Compose and connected them to REST APIs using Retrofit.
+• Wrote unit tests with JUnit that raised coverage
+  to 70 percent.
+• Fixed 15 bugs reported by the QA team.
+
+PROJECTS
+Expense Tracker App | Kotlin, Room, Compose
+• Developed an Android app to track daily expenses with offline storage.
+• Published a beta to 40 classmates.
+Student Result Portal
+Technologies: Java, MySQL
+Built a web portal for viewing results.
+
+CERTIFICATIONS
+Google Android Basics in Kotlin
+NPTEL Python for Everybody
+
+POSITIONS OF RESPONSIBILITY
+Coordinator, College Coding Club
+• Organised 4 coding contests for 200 students.
+
+HOBBIES
+Cricket, Chess
+
+DECLARATION
+I hereby declare that the above information is true to the best of my knowledge.
+Place: Bengaluru
+Date: 12/07/2025
+Signature

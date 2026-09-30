@@ -1,0 +1,20 @@
+Junior Android Developer at Zenith Apps
+Bengaluru | Full time | 0-2 years
+
+About Us
+Zenith Apps builds consumer fintech apps used by millions of Indians.
+
+Responsibilities
+- Build and maintain Android features using Kotlin and Jetpack Compose
+- Write unit tests with JUnit and fix bugs reported by QA
+- Work closely with designers and backend engineers
+
+Requirements
+- B.Tech / B.E. in Computer Science or related field
+- Strong knowledge of Kotlin and Android SDK
+- Experience with REST APIs and Git
+- Must have good communication skills
+
+Nice to have
+- Knowledge of Firebase
+- Familiarity with CI/CD pipelines is a plus

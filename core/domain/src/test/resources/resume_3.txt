@@ -1,0 +1,22 @@
+ANANYA IYER | ananya.iyer@gmail.com | +91-9123456780
+Chennai | DOB: 21 Jan 2003 | Nationality: Indian
+
+PROFILE SUMMARY
+Final-year B.E. student with hands-on experience in Python, SQL and Power BI.
+
+EDUCATION
+• B.E. Computer Science, Anna University, Chennai (2021-2025), CGPA 8.9
+• Class XII, Chennai Public School (2021), 94.2%
+
+ACADEMIC PROJECTS
+Sales Insights Dashboard (Oct 2024 - Dec 2024)
+• Cleaned 50,000 rows of sales data using Python and Pandas.
+• Designed an interactive Power BI dashboard used by 3 faculty reviewers.
+Customer Churn Prediction
+• Trained a logistic regression model in scikit-learn with 82% accuracy.
+
+SKILLS
+Python | SQL | Power BI | Excel | Tableau
+
+EXTRA-CURRICULAR ACTIVITIES
+• Volunteer, NSS unit - organised blood donation camp
