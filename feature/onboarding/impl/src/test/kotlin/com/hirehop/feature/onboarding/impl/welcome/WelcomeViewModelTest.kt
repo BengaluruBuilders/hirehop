@@ -1,0 +1,170 @@
+package com.hirehop.feature.onboarding.impl.welcome
+
+import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+class WelcomeViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private lateinit var viewModel: WelcomeViewModel
+
+    @Before
+    fun setup() {
+        viewModel = WelcomeViewModel()
+    }
+
+    @Test
+    fun onEnter_beforeAnyEntry_showsTheSettledFirstRunState() {
+        assertThat(viewModel.uiState.value.heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
+        assertThat(viewModel.uiState.value.isActionsEnabled).isTrue()
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun onEnter_default_settlesTheHero() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        val state = viewModel.uiState.first()
+        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
+        assertThat(state.showsRewrittenLine).isTrue()
+        assertThat(state.showsProvenanceThread).isTrue()
+        assertThat(state.showsHeroWaitingNote).isFalse()
+        assertThat(state.isActionsEnabled).isTrue()
+    }
+
+    @Test
+    fun onEnter_loading_namesTheRealStepAndHoldsTheActions() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.LOADING))
+
+        val state = viewModel.uiState.first()
+        assertThat(state.isLoading).isTrue()
+        assertThat(state.isActionsEnabled).isFalse()
+    }
+
+    @Test
+    fun onEnter_loading_ignoresAnActionTap() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.LOADING))
+
+        viewModel.onAction(WelcomeAction.PasteJobDescriptionTapped)
+
+        assertThat(viewModel.uiState.value.destination).isNull()
+    }
+
+    @Test
+    fun onEnter_empty_stopsTheHeroAtTheOriginalLine() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.EMPTY))
+
+        val state = viewModel.uiState.first()
+        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.ORIGINAL)
+        assertThat(state.showsRewrittenLine).isFalse()
+        assertThat(state.showsHeroWaitingNote).isTrue()
+        assertThat(state.showsProvenanceThread).isFalse()
+    }
+
+    @Test
+    fun onEnter_offline_keepsTheHeroAndFlagsOffline() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.OFFLINE))
+
+        val state = viewModel.uiState.first()
+        assertThat(state.isOffline).isTrue()
+        assertThat(state.isActionsEnabled).isTrue()
+        assertThat(state.message).isNull()
+    }
+
+    @Test
+    fun onEnter_error_reportsAFailedRead() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.ERROR))
+
+        assertThat(viewModel.uiState.first().message).isEqualTo(WelcomeMessage.LOAD_FAILED)
+    }
+
+    @Test
+    fun onAction_retry_clearsTheFailedRead() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.ERROR))
+
+        viewModel.onAction(WelcomeAction.RetryTapped)
+
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun onAction_dismissMessage_clearsTheFailedRead() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.ERROR))
+
+        viewModel.onAction(WelcomeAction.DismissMessageTapped)
+
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun onEnter_partial_drawsTheThreadButNotTheSettledChip() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.PARTIAL))
+
+        val state = viewModel.uiState.first()
+        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.THREAD_DRAWN)
+        assertThat(state.showsProvenanceThread).isTrue()
+    }
+
+    @Test
+    fun onEnter_success_settlesTheHero() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.SUCCESS))
+
+        assertThat(viewModel.uiState.first().heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
+    }
+
+    @Test
+    fun onEnter_whenCalledTwice_keepsTheFirstState() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.OFFLINE))
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+    }
+
+    @Test
+    fun onAction_pasteJobDescription_asksForThePasteStep() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.PasteJobDescriptionTapped)
+
+        assertThat(viewModel.uiState.value.destination)
+            .isEqualTo(WelcomeDestination.PASTE_JOB_DESCRIPTION)
+    }
+
+    @Test
+    fun onAction_importResume_asksForTheImportStep() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.ImportResumeTapped)
+
+        assertThat(viewModel.uiState.value.destination).isEqualTo(WelcomeDestination.IMPORT_RESUME)
+    }
+
+    @Test
+    fun onAction_buildProfileStepByStep_asksForTheGuidedForm() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.BuildProfileStepByStepTapped)
+
+        assertThat(viewModel.uiState.value.destination)
+            .isEqualTo(WelcomeDestination.BUILD_PROFILE_STEP_BY_STEP)
+    }
+
+    @Test
+    fun onAction_destinationConsumed_clearsTheDestination() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(WelcomeAction.PasteJobDescriptionTapped)
+
+        viewModel.onAction(WelcomeAction.DestinationConsumed)
+
+        assertThat(viewModel.uiState.value.destination).isNull()
+    }
+}

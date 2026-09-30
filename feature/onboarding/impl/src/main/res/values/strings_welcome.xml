@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_impl_welcome_headline">We never invent anything about you.</string>
+    <string name="feature_onboarding_impl_welcome_subline">Paste a job description. See what it asks for and where you stand. Free.</string>
+    <string name="feature_onboarding_impl_welcome_hero_original_label">Original</string>
+    <string name="feature_onboarding_impl_welcome_hero_original_line">Made a dashboard for placement data</string>
+    <string name="feature_onboarding_impl_welcome_hero_rewritten_label">Rewritten from your confirmed fact</string>
+    <string name="feature_onboarding_impl_welcome_hero_rewritten_line">Built a Power BI dashboard of 3 batches of placement data for the college T&amp;P cell</string>
+    <string name="feature_onboarding_impl_welcome_hero_fact_id">P-02</string>
+    <string name="feature_onboarding_impl_welcome_hero_fact_title">Placement Stats Dashboard</string>
+    <string name="feature_onboarding_impl_welcome_hero_waiting">Add a confirmed project, internship, or coursework entry and this line shows how HireHop would word it. It writes from your own facts and nothing else.</string>
+    <string name="feature_onboarding_impl_welcome_hero_static">Animations are off on this phone, so this is the settled frame.</string>
+    <string name="feature_onboarding_impl_welcome_trust_never_invents">Never invents</string>
+    <string name="feature_onboarding_impl_welcome_trust_on_device">Stays on this phone</string>
+    <string name="feature_onboarding_impl_welcome_trust_offline">Works without a connection</string>
+    <string name="feature_onboarding_impl_welcome_trust_no_score">No score, no dial</string>
+    <string name="feature_onboarding_impl_welcome_action_paste_jd">Paste a job description</string>
+    <string name="feature_onboarding_impl_welcome_action_import_resume">Import my resume</string>
+    <string name="feature_onboarding_impl_welcome_action_build_step_by_step">No resume? Build your profile step by step.</string>
+    <string name="feature_onboarding_impl_welcome_offline_message">You are offline</string>
+    <string name="feature_onboarding_impl_welcome_offline_support">Everything on this screen works without a connection.</string>
+    <string name="feature_onboarding_impl_welcome_loading">Reading what is already saved on this phone</string>
+    <string name="feature_onboarding_impl_welcome_load_failed_title">We could not read what is saved on this phone</string>
+    <string name="feature_onboarding_impl_welcome_load_failed_body">Nothing is lost. Start again without it.</string>
+    <string name="feature_onboarding_impl_welcome_try_again">Try again</string>
+    <string name="feature_onboarding_impl_welcome_dismiss">Dismiss</string>
+    <string name="feature_onboarding_impl_welcome_never_asks">We never ask for your date of birth, your photo, your religion, your caste, or your marital status.</string>
+    <string name="feature_onboarding_impl_welcome_nothing_to_delete">There is nothing on this phone to delete yet.</string>
+</resources>
