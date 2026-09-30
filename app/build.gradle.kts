@@ -36,6 +36,8 @@ dependencies {
     implementation(projects.feature.applications.impl)
     implementation(projects.feature.profile.api)
     implementation(projects.feature.profile.impl)
+    implementation(projects.feature.settings.api)
+    implementation(projects.feature.settings.impl)
     implementation(projects.feature.analysis.api)
     implementation(projects.feature.analysis.impl)
     implementation(projects.feature.tailor.api)

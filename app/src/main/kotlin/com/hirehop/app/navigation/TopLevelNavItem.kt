@@ -6,8 +6,10 @@ import androidx.navigation3.runtime.NavKey
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.hirehop.feature.profile.api.navigation.DefaultProfileNavKey
+import com.hirehop.feature.settings.api.navigation.DefaultSettingsNavKey
 import com.hirehop.feature.applications.api.R as applicationsR
 import com.hirehop.feature.profile.api.R as profileR
+import com.hirehop.feature.settings.api.R as settingsR
 
 data class TopLevelNavItem(
     val selectedIcon: ImageVector,
@@ -27,9 +29,16 @@ val PROFILE = TopLevelNavItem(
     labelRes = profileR.string.feature_profile_api_title,
 )
 
+val SETTINGS = TopLevelNavItem(
+    selectedIcon = HhIcons.Settings,
+    unselectedIcon = HhIcons.SettingsBorder,
+    labelRes = settingsR.string.feature_settings_api_title,
+)
+
 val START_NAV_KEY: NavKey = DefaultApplicationsNavKey
 
 val TOP_LEVEL_NAV_ITEMS: Map<NavKey, TopLevelNavItem> = linkedMapOf(
     DefaultApplicationsNavKey to APPLICATIONS,
     DefaultProfileNavKey to PROFILE,
+    DefaultSettingsNavKey to SETTINGS,
 )
