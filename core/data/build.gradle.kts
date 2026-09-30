@@ -14,5 +14,7 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
 }
