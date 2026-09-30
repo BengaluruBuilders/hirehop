@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_profile_impl_fact_editor_title_new">Add a fact</string>
+    <string name="feature_profile_impl_fact_editor_title_edit">Edit fact</string>
+    <string name="feature_profile_impl_fact_editor_navigate_back">Back</string>
+    <string name="feature_profile_impl_fact_editor_hint">HireHop can use only the numbers, names, tools, and dates you put here.</string>
+    <string name="feature_profile_impl_fact_editor_loading">Loading this fact</string>
+
+    <string name="feature_profile_impl_fact_editor_field_title">Title</string>
+    <string name="feature_profile_impl_fact_editor_field_title_placeholder">Project name</string>
+    <string name="feature_profile_impl_fact_editor_field_detail">What you did</string>
+    <string name="feature_profile_impl_fact_editor_field_detail_placeholder">What you built, and who used it</string>
+    <string name="feature_profile_impl_fact_editor_field_tools">Tools</string>
+    <string name="feature_profile_impl_fact_editor_field_tools_placeholder">Power BI, Excel</string>
+    <string name="feature_profile_impl_fact_editor_field_start">Start</string>
+    <string name="feature_profile_impl_fact_editor_field_end">End</string>
+    <string name="feature_profile_impl_fact_editor_date_placeholder">MMM YYYY</string>
+
+    <string name="feature_profile_impl_fact_editor_error_required">Add this to save.</string>
+    <string name="feature_profile_impl_fact_editor_error_end_before_start">The end date is before the start date.</string>
+    <string name="feature_profile_impl_fact_editor_error_too_long">Keep this shorter so it stays readable.</string>
+
+    <string name="feature_profile_impl_fact_editor_blocked_title">Add a title to save.</string>
+    <string name="feature_profile_impl_fact_editor_blocked_dates">Fix the dates to save.</string>
+
+    <string name="feature_profile_impl_fact_editor_live_label">How this fact reads</string>
+    <string name="feature_profile_impl_fact_editor_live_empty">Start typing. Your fact appears here as HireHop will read it.</string>
+
+    <string name="feature_profile_impl_fact_editor_save">Save</string>
+    <string name="feature_profile_impl_fact_editor_cancel">Cancel</string>
+    <string name="feature_profile_impl_fact_editor_delete">Delete this fact</string>
+
+    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s from your profile?</string>
+    <string name="feature_profile_impl_fact_editor_delete_message">HireHop won\'t use it in new resumes, letters, or prep questions. Resumes you already exported don\'t change.</string>
+    <string name="feature_profile_impl_fact_editor_delete_confirm">Delete</string>
+    <string name="feature_profile_impl_fact_editor_delete_cancel">Keep it</string>
+
+    <string name="feature_profile_impl_fact_editor_offline">You\'re offline. Your save will sync when you\'re back.</string>
+    <string name="feature_profile_impl_fact_editor_message_saved">Fact saved.</string>
+    <string name="feature_profile_impl_fact_editor_message_saved_queued">Saved on this phone. It syncs when you\'re back online.</string>
+    <string name="feature_profile_impl_fact_editor_message_deleted">Fact deleted.</string>
+    <string name="feature_profile_impl_fact_editor_message_save_failed">HireHop could not save this fact. Your words are still here.</string>
+
+    <string name="feature_profile_impl_fact_editor_unconfirmed">Not confirmed. HireHop will not use this yet.</string>
+    <string name="feature_profile_impl_fact_editor_fact_announcement">%1$s. %2$s. %3$s. Fact %4$s.</string>
+    <string name="feature_profile_impl_fact_editor_live_announcement">How this fact reads: %1$s</string>
+    <string name="feature_profile_impl_fact_editor_field_error_announcement">%1$s. %2$s</string>
+
+    <string name="feature_profile_impl_fact_editor_category_education">Education</string>
+    <string name="feature_profile_impl_fact_editor_category_experience">Experience</string>
+    <string name="feature_profile_impl_fact_editor_category_project">Project</string>
+    <string name="feature_profile_impl_fact_editor_category_certification">Course</string>
+    <string name="feature_profile_impl_fact_editor_category_achievement">Achievement</string>
+
+    <string name="feature_profile_impl_fact_editor_provenance_imported">Imported</string>
+    <string name="feature_profile_impl_fact_editor_provenance_user_stated">Stated by you</string>
+    <string name="feature_profile_impl_fact_editor_provenance_user_edited">Edited by you</string>
+    <string name="feature_profile_impl_fact_editor_provenance_confirmed">Confirmed</string>
+</resources>
