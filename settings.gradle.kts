@@ -43,6 +43,8 @@ include(":core:ui")
 
 include(":feature:applications:api")
 include(":feature:applications:impl")
+include(":feature:onboarding:api")
+include(":feature:onboarding:impl")
 include(":feature:profile:api")
 include(":feature:profile:impl")
 include(":feature:analysis:api")

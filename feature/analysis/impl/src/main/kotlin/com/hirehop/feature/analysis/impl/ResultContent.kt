@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -30,9 +29,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhDivider
-import com.hirehop.core.designsystem.component.HhDividerStyle
 import com.hirehop.core.designsystem.component.HhHeroNumeral
 import com.hirehop.core.designsystem.component.HhOutlinedButton
 import com.hirehop.core.designsystem.component.HhSectionCard

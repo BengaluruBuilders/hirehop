@@ -3,12 +3,12 @@ package com.hirehop.feature.analysis.impl
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
-import com.hirehop.core.model.FactSource
 
 @Preview(showBackground = true)
 @Composable
