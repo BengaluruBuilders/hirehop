@@ -23,11 +23,20 @@ internal class OfflineFirstProfileRepository @Inject constructor(
             .map { populated -> populated?.asExternalModel() }
             .flowOn(ioDispatcher)
 
-    override suspend fun saveProfile(profile: CandidateProfile) =
+    override suspend fun saveProfile(profile: CandidateProfile) {
+        val duplicateIds = profile.entries
+            .groupingBy { it.id }
+            .eachCount()
+            .filterValues { count -> count > 1 }
+            .keys
+        require(duplicateIds.isEmpty()) {
+            "Profile entries must have unique ids. Duplicate ids: $duplicateIds"
+        }
         profileDao.replaceProfile(
             profile = profile.asEntity(),
             entries = profile.asEntryEntities(),
         )
+    }
 
     override suspend fun clearProfile() = profileDao.deleteProfile()
 }

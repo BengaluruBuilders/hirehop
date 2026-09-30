@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineFirstProfileRepositoryTest {
@@ -41,6 +42,19 @@ class OfflineFirstProfileRepositoryTest {
         repository.saveProfile(reduced)
 
         assertThat(repository.observeProfile().first()).isEqualTo(reduced)
+    }
+
+    @Test
+    fun duplicateEntryIdsAreRejectedAndNothingIsSaved() = runTest {
+        val repository = newRepository()
+        val duplicated = testProfile.copy(entries = testEntries + testEntries.first())
+
+        val failure = assertFailsWith<IllegalArgumentException> {
+            repository.saveProfile(duplicated)
+        }
+
+        assertThat(failure).hasMessageThat().contains(testEntries.first().id)
+        assertThat(repository.observeProfile().first()).isNull()
     }
 
     @Test

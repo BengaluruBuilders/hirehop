@@ -55,6 +55,17 @@ internal class JobApplicationDaoTest : DatabaseTest() {
     }
 
     @Test
+    fun observeApplications_breaksTiesById() = runTest {
+        jobApplicationDao.upsertApplication(testApplication("b", updatedAtMillis = 5))
+        jobApplicationDao.upsertApplication(testApplication("c", updatedAtMillis = 5))
+        jobApplicationDao.upsertApplication(testApplication("a", updatedAtMillis = 5))
+
+        val saved = jobApplicationDao.observeApplications().first()
+
+        assertEquals(listOf("a", "b", "c"), saved.map { it.id })
+    }
+
+    @Test
     fun upsertApplication_replacesExistingRow() = runTest {
         jobApplicationDao.upsertApplication(testApplication("a1", updatedAtMillis = 1))
         jobApplicationDao.upsertApplication(

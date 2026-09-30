@@ -10,7 +10,7 @@ import kotlin.time.Instant
 
 @Dao
 interface JobApplicationDao {
-    @Query("SELECT * FROM job_applications ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM job_applications ORDER BY updatedAt DESC, id ASC")
     fun observeApplications(): Flow<List<JobApplicationEntity>>
 
     @Query("SELECT * FROM job_applications WHERE id = :id")

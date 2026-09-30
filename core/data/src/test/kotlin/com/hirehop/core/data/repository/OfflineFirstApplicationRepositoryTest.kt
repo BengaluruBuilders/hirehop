@@ -1,5 +1,6 @@
 package com.hirehop.core.data.repository
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.model.testApplication
 import com.hirehop.core.data.model.testBareApplication
@@ -50,6 +51,36 @@ class OfflineFirstApplicationRepositoryTest {
 
         assertThat(repository.observeApplications().first())
             .containsExactly(testApplication, older).inOrder()
+    }
+
+    @Test
+    fun observeApplicationEmitsNullForMissingIdEvenWhenOthersExist() = runTest {
+        val repository = newRepository()
+        repository.upsertApplication(testApplication)
+
+        repository.observeApplication("missing").test {
+            assertThat(awaitItem()).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun observeApplicationsEmitsAgainAfterUpdateStatus() = runTest {
+        val repository = newRepository()
+        val older = testBareApplication.copy(updatedAt = Instant.fromEpochMilliseconds(1))
+        repository.upsertApplication(older)
+        repository.upsertApplication(testApplication)
+
+        repository.observeApplications().test {
+            assertThat(awaitItem().map { it.id }).containsExactly(testApplication.id, older.id).inOrder()
+
+            repository.updateStatus(older.id, ApplicationStatus.INTERVIEW)
+
+            val updated = awaitItem()
+            assertThat(updated.map { it.id }).containsExactly(older.id, testApplication.id).inOrder()
+            assertThat(updated.first().status).isEqualTo(ApplicationStatus.INTERVIEW)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test

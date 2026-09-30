@@ -14,7 +14,11 @@ class FakeJobApplicationDao : JobApplicationDao {
     private val entities = MutableStateFlow<Map<String, JobApplicationEntity>>(emptyMap())
 
     override fun observeApplications(): Flow<List<JobApplicationEntity>> =
-        entities.map { it.values.sortedByDescending(JobApplicationEntity::updatedAt) }
+        entities.map { saved ->
+            saved.values.sortedWith(
+                compareByDescending(JobApplicationEntity::updatedAt).thenBy(JobApplicationEntity::id),
+            )
+        }
 
     override fun observeApplication(id: String): Flow<JobApplicationEntity?> =
         entities.map { it[id] }
