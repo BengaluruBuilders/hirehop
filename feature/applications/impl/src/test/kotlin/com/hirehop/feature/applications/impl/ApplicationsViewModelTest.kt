@@ -2,8 +2,11 @@ package com.hirehop.feature.applications.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.testing.repository.TestApplicationRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -32,22 +35,27 @@ class ApplicationsViewModelTest {
     fun uiState_whenNoApplications_isEmpty() = runTest {
         viewModel.uiState.test {
             applicationRepository.sendApplications(emptyList())
+            runCurrent()
 
-            assertThat(expectMostRecentItem()).isEqualTo(ApplicationsUiState.Empty)
+            assertThat(current()).isEqualTo(ApplicationsUiState.Empty)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
     fun uiState_whenApplicationsExist_sortsByUpdatedAtDescending() = runTest {
-        val oldest = testApplication(id = "oldest", updatedAtEpochSeconds = 100)
-        val newest = testApplication(id = "newest", updatedAtEpochSeconds = 300)
-        val middle = testApplication(id = "middle", updatedAtEpochSeconds = 200)
-
         viewModel.uiState.test {
-            applicationRepository.sendApplications(listOf(oldest, newest, middle))
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication(id = "oldest", updatedAtEpochSeconds = 100),
+                    testApplication(id = "newest", updatedAtEpochSeconds = 300),
+                    testApplication(id = "middle", updatedAtEpochSeconds = 200),
+                ),
+            )
+            runCurrent()
 
-            assertThat(expectMostRecentItem())
-                .isEqualTo(ApplicationsUiState.Success(listOf(newest, middle, oldest)))
+            assertThat(current().ids()).containsExactly("newest", "middle", "oldest").inOrder()
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -55,14 +63,19 @@ class ApplicationsViewModelTest {
     fun uiState_whenApplicationIsUpdated_movesItToTheTop() = runTest {
         val first = testApplication(id = "first", updatedAtEpochSeconds = 100)
         val second = testApplication(id = "second", updatedAtEpochSeconds = 200)
-        val touchedFirst = first.copy(updatedAt = Instant.fromEpochSeconds(500))
 
         viewModel.uiState.test {
             applicationRepository.sendApplications(listOf(first, second))
-            assertThat(expectMostRecentItem().ids()).containsExactly("second", "first").inOrder()
+            runCurrent()
+            assertThat(current().ids()).containsExactly("second", "first").inOrder()
 
-            applicationRepository.sendApplications(listOf(touchedFirst, second))
-            assertThat(expectMostRecentItem().ids()).containsExactly("first", "second").inOrder()
+            applicationRepository.sendApplications(
+                listOf(first.copy(updatedAt = Instant.fromEpochSeconds(500)), second),
+            )
+            runCurrent()
+
+            assertThat(current().ids()).containsExactly("first", "second").inOrder()
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -70,12 +83,262 @@ class ApplicationsViewModelTest {
     fun uiState_whenAllApplicationsAreRemoved_isEmpty() = runTest {
         viewModel.uiState.test {
             applicationRepository.sendApplications(listOf(testApplication("only")))
+            runCurrent()
             applicationRepository.sendApplications(emptyList())
+            runCurrent()
 
-            assertThat(expectMostRecentItem()).isEqualTo(ApplicationsUiState.Empty)
+            assertThat(current()).isEqualTo(ApplicationsUiState.Empty)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
-    private fun ApplicationsUiState.ids(): List<String> =
-        (this as ApplicationsUiState.Success).items.map { it.id }
+    @Test
+    fun uiState_whenApplicationsExist_exposesRowFactsFromTheStoredApplication() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication(
+                        id = "northwind",
+                        updatedAtEpochSeconds = 1_000,
+                        status = ApplicationStatus.APPLIED,
+                        gapAnalysis = testGapAnalysis(),
+                    ),
+                ),
+            )
+            runCurrent()
+
+            val row = current().rows().single()
+            assertThat(row.id).isEqualTo("northwind")
+            assertThat(row.role).isEqualTo("Role northwind")
+            assertThat(row.company).isEqualTo("Company northwind")
+            assertThat(row.status).isEqualTo(ApplicationStatus.APPLIED)
+            assertThat(row.coverage.covered).isEqualTo(3)
+            assertThat(row.coverage.total).isEqualTo(5)
+            assertThat(row.isSyncPending).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_whenThereIsNoGapAnalysis_readsZeroOfZeroRatherThanNothing() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("plain", updatedAtEpochSeconds = 10)))
+            runCurrent()
+
+            val row = current().rows().single()
+            assertThat(row.coverage.covered).isEqualTo(0)
+            assertThat(row.coverage.total).isEqualTo(0)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_defaultScenario_isNotOfflineAndNothingIsPending() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("only", updatedAtEpochSeconds = 10)))
+            runCurrent()
+
+            val state = current()
+            assertThat(state.isOffline()).isFalse()
+            assertThat(state.rows().single().isSyncPending).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_offlineScenario_showsTheOfflineBannerAndStillListsEveryRow() = runTest {
+        viewModel.onEnter(DebugScenario.OFFLINE)
+
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication("one", updatedAtEpochSeconds = 100),
+                    testApplication("two", updatedAtEpochSeconds = 200),
+                ),
+            )
+            runCurrent()
+
+            val state = current()
+            assertThat(state.isOffline()).isTrue()
+            assertThat(state.rows().map { row -> row.id }).containsExactly("two", "one")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_pendingScenario_marksTheNewestRowAndMovesItToTheTop() = runTest {
+        viewModel.onEnter(DebugScenario.PENDING)
+
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication("older", updatedAtEpochSeconds = 100),
+                    testApplication("newest", updatedAtEpochSeconds = 900),
+                    testApplication("middle", updatedAtEpochSeconds = 500),
+                ),
+            )
+            runCurrent()
+
+            val rows = current().rows()
+            assertThat(rows.map { row -> row.id }).containsExactly("newest", "middle", "older").inOrder()
+            assertThat(rows.single { row -> row.isSyncPending }.id).isEqualTo("newest")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusChipChosen_opensTheStatusSheetWithTheStoredStatus() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(testApplication("northwind", status = ApplicationStatus.INTERVIEW)),
+            )
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("northwind"))
+            runCurrent()
+
+            assertThat(current().statusSheet())
+                .isEqualTo(ApplicationStatusSheetState("northwind", ApplicationStatus.INTERVIEW))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusChipChosen_forAnUnknownRow_leavesTheSheetClosed() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("known")))
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("missing"))
+            runCurrent()
+
+            assertThat(current().statusSheet()).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusSheetDismissed_closesTheSheet() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("known")))
+            runCurrent()
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("known"))
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusSheetDismissed)
+            runCurrent()
+
+            assertThat(current().statusSheet()).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusChosen_writesTheStatusAndConfirmsWithUndo() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("known")))
+            runCurrent()
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("known"))
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusChosen(ApplicationStatus.OFFER))
+            runCurrent()
+
+            val state = current()
+            assertThat(state.statusSheet()).isNull()
+            assertThat(state.message())
+                .isEqualTo(ApplicationStatusMessage(status = ApplicationStatus.OFFER, canUndo = true))
+            assertThat(state.rows().single().status).isEqualTo(ApplicationStatus.OFFER)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusUndoChosen_restoresThePreviousStatusAndClearsTheMessage() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("known")))
+            runCurrent()
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("known"))
+            viewModel.onAction(ApplicationsAction.StatusChosen(ApplicationStatus.OFFER))
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusUndoChosen)
+            runCurrent()
+
+            val state = current()
+            assertThat(state.message()).isNull()
+            assertThat(state.rows().single().status).isEqualTo(ApplicationStatus.SAVED)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusUndoChosen_withNothingToUndo_changesNothing() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(testApplication("known", status = ApplicationStatus.INTERVIEW)),
+            )
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusUndoChosen)
+            runCurrent()
+
+            assertThat(current().rows().single().status).isEqualTo(ApplicationStatus.INTERVIEW)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_messageDismissed_clearsTheMessage() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("known")))
+            runCurrent()
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("known"))
+            viewModel.onAction(ApplicationsAction.StatusChosen(ApplicationStatus.OFFER))
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.MessageDismissed)
+            runCurrent()
+
+            assertThat(current().message()).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onAction_statusChipChosen_replacesAnOpenSheet() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication("one", updatedAtEpochSeconds = 100, status = ApplicationStatus.SAVED),
+                    testApplication("two", updatedAtEpochSeconds = 200, status = ApplicationStatus.OFFER),
+                ),
+            )
+            runCurrent()
+
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("one"))
+            runCurrent()
+            viewModel.onAction(ApplicationsAction.StatusChipChosen("two"))
+            runCurrent()
+
+            assertThat(current().statusSheet()?.rowId).isEqualTo("two")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    private fun current(): ApplicationsUiState = viewModel.uiState.value
+
+    private fun ApplicationsUiState.ids(): List<String> = rows().map { row -> row.id }
+
+    private fun ApplicationsUiState.rows(): List<ApplicationListRow> =
+        (this as ApplicationsUiState.Applications).rows
+
+    private fun ApplicationsUiState.isOffline(): Boolean =
+        (this as ApplicationsUiState.Applications).isOffline
+
+    private fun ApplicationsUiState.statusSheet(): ApplicationStatusSheetState? =
+        (this as ApplicationsUiState.Applications).statusSheet
+
+    private fun ApplicationsUiState.message(): ApplicationStatusMessage? =
+        (this as ApplicationsUiState.Applications).message
 }
