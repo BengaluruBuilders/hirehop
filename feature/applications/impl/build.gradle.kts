@@ -9,8 +9,12 @@ android {
 
 dependencies {
     implementation(projects.core.data)
+    implementation(projects.core.navigation)
     implementation(projects.feature.applications.api)
     implementation(projects.feature.analysis.api)
+    implementation(projects.feature.tailor.api)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
 }
