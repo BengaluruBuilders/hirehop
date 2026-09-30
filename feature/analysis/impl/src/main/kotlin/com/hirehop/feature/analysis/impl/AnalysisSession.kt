@@ -19,6 +19,7 @@ internal sealed interface AnalysisSession {
         val title: String,
         val company: String,
         val prepRequirementIds: Set<String>,
+        val createdApplicationId: String? = null,
     ) : AnalysisSession {
 
         fun gapRequirementIds(): Set<String> = analysis.gap.matches

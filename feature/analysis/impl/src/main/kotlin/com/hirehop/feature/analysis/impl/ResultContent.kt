@@ -53,8 +53,7 @@ internal fun ResultContent(
 
     if (evidenceTarget != null) {
         EvidenceDialog(
-            requirementText = evidenceTarget.requirement.text,
-            keywords = evidenceTarget.requirement.keywords,
+            requirement = evidenceTarget.requirement,
             onDismiss = { evidenceRequirementId = null },
             onConfirm = { statement ->
                 actions.onSubmitEvidence(evidenceTarget.id, statement)

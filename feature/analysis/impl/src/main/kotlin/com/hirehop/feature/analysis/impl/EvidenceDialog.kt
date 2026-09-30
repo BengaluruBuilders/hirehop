@@ -11,16 +11,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.domain.keywordsStatedIn
+import com.hirehop.core.model.JobRequirement
 
 @Composable
 internal fun EvidenceDialog(
-    requirementText: String,
-    keywords: List<String>,
+    requirement: JobRequirement,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
@@ -30,7 +32,7 @@ internal fun EvidenceDialog(
         title = { Text(stringResource(R.string.feature_analysis_evidence_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = requirementText, style = MaterialTheme.typography.titleSmall)
+                Text(text = requirement.text, style = MaterialTheme.typography.titleSmall)
                 Text(
                     text = stringResource(R.string.feature_analysis_evidence_dialog_message),
                     style = MaterialTheme.typography.bodyMedium,
@@ -42,7 +44,7 @@ internal fun EvidenceDialog(
                     label = { Text(stringResource(R.string.feature_analysis_evidence_dialog_label)) },
                     minLines = 2,
                 )
-                EvidenceDisclosure(keywords = keywords, statement = statement.trim())
+                EvidenceDisclosure(requirement = requirement, statement = statement.trim())
             }
         },
         confirmButton = {
@@ -62,14 +64,17 @@ internal fun EvidenceDialog(
 }
 
 @Composable
-private fun EvidenceDisclosure(keywords: List<String>, statement: String) {
+private fun EvidenceDisclosure(requirement: JobRequirement, statement: String) {
+    val statedKeywords = remember(requirement, statement) { keywordsStatedIn(requirement, statement) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (keywords.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.feature_analysis_dialog_adds_skills, keywords.joinToString()),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+        Text(
+            text = if (statedKeywords.isEmpty()) {
+                stringResource(R.string.feature_analysis_dialog_adds_no_skills)
+            } else {
+                stringResource(R.string.feature_analysis_dialog_adds_skills, statedKeywords.joinToString())
+            },
+            style = MaterialTheme.typography.bodySmall,
+        )
         if (statement.isNotEmpty()) {
             Text(
                 text = stringResource(R.string.feature_analysis_dialog_adds_line, statement),

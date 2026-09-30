@@ -52,6 +52,7 @@
     <string name="feature_analysis_error_add_evidence">HireHop could not add your evidence. Try again.</string>
     <string name="feature_analysis_error_save">HireHop could not save the application. Try again.</string>
     <string name="feature_analysis_dialog_adds_skills">Adds to your skills: %1$s</string>
+    <string name="feature_analysis_dialog_adds_no_skills">Nothing to add to skills</string>
     <string name="feature_analysis_dialog_adds_line">Adds this line to your profile: %1$s</string>
     <string name="feature_analysis_i_have_this_description">I have this: %1$s</string>
     <string name="feature_analysis_add_to_prep_plan_description">Add to prep plan: %1$s</string>

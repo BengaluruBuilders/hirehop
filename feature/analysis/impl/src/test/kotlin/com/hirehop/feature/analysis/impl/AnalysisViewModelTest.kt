@@ -394,6 +394,43 @@ class AnalysisViewModelTest {
             .isEqualTo(AnalysisUiState.Input(jobText = TEST_JOB_TEXT, canAnalyze = true))
     }
 
+    @Test
+    fun iHaveThis_withStatementWithoutKeyword_addsBulletButNoSkill() = runTest {
+        collectUiState()
+        analyzeWithConfirmedProfile()
+        val skillsBefore = requireNotNull(profileRepository.observeProfile().first()).skills
+
+        viewModel.onSubmitEvidence("req-sql", "I have never used databases at work.")
+
+        val profile = requireNotNull(profileRepository.observeProfile().first())
+        assertThat(profile.skills).isEqualTo(skillsBefore)
+        assertThat(profile.entries.flatMap { it.bullets }.map { it.text })
+            .contains("I have never used databases at work.")
+        val sql = resultState().sections.flatMap { it.items }.first { it.id == "req-sql" }
+        assertThat(sql.status).isEqualTo(MatchStatus.GAP)
+    }
+
+    @Test
+    fun save_retryAfterNotesFailure_doesNotCreateSecondApplication() = runTest {
+        collectUiState()
+        analyzeWithConfirmedProfile()
+        viewModel.onTogglePrepPlan("req-sql")
+        flakyApplicationRepository.failOnNotes = true
+
+        viewModel.onSave()
+
+        assertThat(resultState().error).isEqualTo(AnalysisError.SaveFailed)
+        assertThat(applicationRepository.observeApplications().first()).hasSize(1)
+        viewModel.onErrorShown()
+        flakyApplicationRepository.failOnNotes = false
+        viewModel.onSave()
+
+        val saved = viewModel.uiState.value as AnalysisUiState.Saved
+        val applications = applicationRepository.observeApplications().first()
+        assertThat(applications.map { it.id }).containsExactly(saved.applicationId)
+        assertThat(applications.single().notes).isEqualTo("Prep: SQL databases")
+    }
+
     private object FixedClock : Clock {
         override fun now(): Instant = Instant.fromEpochMilliseconds(0)
     }

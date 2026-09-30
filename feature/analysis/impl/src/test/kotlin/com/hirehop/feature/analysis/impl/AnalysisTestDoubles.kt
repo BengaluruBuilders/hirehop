@@ -146,9 +146,15 @@ class FlakyApplicationRepository(
     private val delegate: ApplicationRepository,
 ) : ApplicationRepository by delegate {
     var failOnUpsert = false
+    var failOnNotes = false
 
     override suspend fun upsertApplication(application: JobApplication) {
         check(!failOnUpsert) { "application save failure" }
         delegate.upsertApplication(application)
+    }
+
+    override suspend fun updateNotes(id: String, notes: String) {
+        check(!failOnNotes) { "notes update failure" }
+        delegate.updateNotes(id, notes)
     }
 }

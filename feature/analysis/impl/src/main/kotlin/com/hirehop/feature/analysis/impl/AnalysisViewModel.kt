@@ -108,14 +108,7 @@ class AnalysisViewModel @Inject constructor(
         val ready = session.value as? AnalysisSession.Ready ?: return
         if (ready.title.isBlank()) return
         session.value = AnalysisSession.Saving
-        applicationScope.launch {
-            attempt { store(ready) }.fold(
-                onSuccess = { applicationId ->
-                    session.value = applicationId?.let(AnalysisSession::Saved) ?: ready
-                },
-                onFailure = { fail(ready, AnalysisError.SaveFailed) },
-            )
-        }
+        applicationScope.launch { save(ready) }
     }
 
     fun onNavigationConsumed() {
@@ -142,14 +135,24 @@ class AnalysisViewModel @Inject constructor(
         return withContext(computeDispatcher) { analyzeJob(profile, rawJobText) }
     }
 
-    private suspend fun store(ready: AnalysisSession.Ready): String? {
-        val profile = currentProfile() ?: return null
-        val applicationId = withContext(computeDispatcher) {
-            createApplication(profile, ready.withEditedJob())
-        }
+    private suspend fun save(ready: AnalysisSession.Ready) {
+        val created = attempt { ready.createdApplicationId ?: createApplicationFor(ready) }
+        val applicationId = created.getOrElse { return fail(ready, AnalysisError.SaveFailed) }
+        val withId = ready.copy(createdApplicationId = applicationId)
+        attempt { savePrepPlan(applicationId, withId) }.fold(
+            onSuccess = { session.value = AnalysisSession.Saved(applicationId) },
+            onFailure = { fail(withId, AnalysisError.SaveFailed) },
+        )
+    }
+
+    private suspend fun createApplicationFor(ready: AnalysisSession.Ready): String {
+        val profile = checkNotNull(currentProfile()) { "Profile is missing" }
+        return withContext(computeDispatcher) { createApplication(profile, ready.withEditedJob()) }
+    }
+
+    private suspend fun savePrepPlan(applicationId: String, ready: AnalysisSession.Ready) {
         val notes = prepPlanNotes(ready.prepRequirements())
         if (notes.isNotEmpty()) applicationRepository.updateNotes(applicationId, notes)
-        return applicationId
     }
 
     private fun buildUiState(
