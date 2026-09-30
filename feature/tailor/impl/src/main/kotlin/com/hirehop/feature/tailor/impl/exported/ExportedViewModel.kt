@@ -47,7 +47,14 @@ internal class ExportedViewModel @Inject constructor(
         }
         hasEntered = true
         applicationId = key.applicationId
-        mutableState.value = ExportedUiState(format = ExportFormat.fromWire(key.format))
+        mutableState.value = ExportedUiState(
+            format = ExportFormat.fromWire(key.format),
+            creditSource = if (key.spentFreeCredit) {
+                ExportedCreditSource.FREE
+            } else {
+                ExportedCreditSource.PAID
+            },
+        )
         if (exportedIsStatic(key.scenario)) return
         if (exportedHasNoApplication(key.scenario)) {
             mutableState.value = mutableState.value.copy(stage = ExportedStage.NO_APPLICATION)
@@ -107,13 +114,12 @@ internal class ExportedViewModel @Inject constructor(
     }
 
     private fun creditsState(entitlement: PurchaseEntitlement, packs: List<ApplicationPack>): ExportedUiState {
-        val fromFree = entitlement.freeCredits > 0
-        val before = if (fromFree) entitlement.freeCredits else entitlement.purchasedCredits
+        val fromFree = mutableState.value.creditSource == ExportedCreditSource.FREE
+        val left = if (fromFree) entitlement.freeCredits else entitlement.purchasedCredits
         return mutableState.value.copy(
             creditsKnown = true,
-            creditSource = if (fromFree) ExportedCreditSource.FREE else ExportedCreditSource.PAID,
-            creditsBefore = before,
-            creditsLeft = (before - 1).coerceAtLeast(0),
+            creditsBefore = left + 1,
+            creditsLeft = left,
             creditsNeverExpire = packs.isNotEmpty() && packs.all { pack -> !pack.creditsExpire },
         )
     }

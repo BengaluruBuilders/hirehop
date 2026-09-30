@@ -1,6 +1,7 @@
 package com.hirehop.feature.tailor.impl.packpurchase
 
 import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
@@ -34,6 +35,12 @@ class TestPaymentGateway : PaymentGateway {
 
     private var restoreCalls: Int = 0
 
+    private var consumeCalls: Int = 0
+
+    private var consumeFailure: Boolean = false
+
+    fun consumeCallCount(): Int = consumeCalls
+
     fun withFreeCredits(credits: Int): TestPaymentGateway = apply { entitlement = entitlement.copy(freeCredits = credits) }
 
     fun withPurchasedCredits(credits: Int): TestPaymentGateway =
@@ -49,6 +56,8 @@ class TestPaymentGateway : PaymentGateway {
     fun withEntitlementFailure(): TestPaymentGateway = apply { entitlementFailure = true }
 
     fun withRestoreFailure(): TestPaymentGateway = apply { restoreFailure = true }
+
+    fun withConsumeFailure(): TestPaymentGateway = apply { consumeFailure = true }
 
     fun withEmptyCatalogue(): TestPaymentGateway = apply { catalogueOverride = emptyList() }
 
@@ -83,6 +92,24 @@ class TestPaymentGateway : PaymentGateway {
         restoreCalls += 1
         if (restoreFailure) throw IllegalStateException("restore unavailable")
         entitlement
+    }
+
+    override suspend fun consumeCredit(): CreditSpend = mutex.withLock {
+        consumeCalls += 1
+        if (consumeFailure) throw IllegalStateException("consume unavailable")
+        when {
+            entitlement.freeCredits > 0 -> {
+                entitlement = entitlement.copy(freeCredits = entitlement.freeCredits - 1)
+                CreditSpend.Spent(entitlement)
+            }
+
+            entitlement.purchasedCredits > 0 -> {
+                entitlement = entitlement.copy(purchasedCredits = entitlement.purchasedCredits - 1)
+                CreditSpend.Spent(entitlement)
+            }
+
+            else -> CreditSpend.NoCreditLeft
+        }
     }
 
     private companion object {

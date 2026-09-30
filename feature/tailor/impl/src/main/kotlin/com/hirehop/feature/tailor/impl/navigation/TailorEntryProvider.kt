@@ -6,11 +6,19 @@ import androidx.navigation3.runtime.NavKey
 import com.hirehop.core.navigation.Navigator
 import com.hirehop.feature.tailor.api.navigation.BulletReviewNavKey
 import com.hirehop.feature.tailor.api.navigation.CoverLetterNavKey
+import com.hirehop.feature.tailor.api.navigation.CreditsNavKey
+import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
+import com.hirehop.feature.tailor.api.navigation.ExportedNavKey
+import com.hirehop.feature.tailor.api.navigation.PackPurchaseNavKey
 import com.hirehop.feature.tailor.api.navigation.PrepQuestionsNavKey
 import com.hirehop.feature.tailor.api.navigation.TailorNavKey
 import com.hirehop.feature.tailor.impl.TailorRoute
 import com.hirehop.feature.tailor.impl.TailorViewModel
 import com.hirehop.feature.tailor.impl.coverletter.CoverLetterRoute
+import com.hirehop.feature.tailor.impl.credits.CreditsRoute
+import com.hirehop.feature.tailor.impl.exported.ExportedRoute
+import com.hirehop.feature.tailor.impl.exportpreview.ExportPreviewRoute
+import com.hirehop.feature.tailor.impl.packpurchase.PackPurchaseRoute
 import com.hirehop.feature.tailor.impl.prepquestions.PrepQuestionsRoute
 
 fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
@@ -45,6 +53,42 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
     }
     entry<PrepQuestionsNavKey> { key ->
         PrepQuestionsRoute(
+            key = key,
+            onNavigateBack = { navigator.goBack() },
+        )
+    }
+    entry<ExportPreviewNavKey> { key ->
+        ExportPreviewRoute(
+            key = key,
+            onNavigateBack = { navigator.goBack() },
+            onExported = { format, spentFreeCredit ->
+                navigator.navigate(
+                    ExportedNavKey(
+                        applicationId = key.applicationId,
+                        format = format.name.lowercase(),
+                        spentFreeCredit = spentFreeCredit,
+                    ),
+                )
+            },
+            onBuyCredits = {
+                navigator.navigate(PackPurchaseNavKey(applicationId = key.applicationId))
+            },
+        )
+    }
+    entry<ExportedNavKey> { key ->
+        ExportedRoute(
+            key = key,
+            onNavigateBack = { navigator.goBack() },
+        )
+    }
+    entry<PackPurchaseNavKey> { key ->
+        PackPurchaseRoute(
+            key = key,
+            onNavigateBack = { navigator.goBack() },
+        )
+    }
+    entry<CreditsNavKey> { key ->
+        CreditsRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
         )

@@ -6,17 +6,18 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.GapAnalysis
+import com.hirehop.core.screenshot.HhTestDevice
+import com.hirehop.core.screenshot.HhTestDevices
+import com.hirehop.core.screenshot.captureMultiTheme
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.repository.TestApplicationRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
-import com.hirehop.core.screenshot.HhTestDevice
-import com.hirehop.core.screenshot.HhTestDevices
-import com.hirehop.core.screenshot.captureMultiTheme
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
 import com.hirehop.feature.tailor.impl.export.docx.ResumeDocxRenderer
+import com.hirehop.feature.tailor.impl.packpurchase.TestPaymentGateway
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -59,6 +60,7 @@ class ExportPreviewScreenshotTest {
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
     private val renderer = PreviewOnlyRenderer()
+    private val paymentGateway = TestPaymentGateway()
 
     @Test
     fun rendering_readsAsAnUnsetPageNotAFailure() {
@@ -152,6 +154,7 @@ class ExportPreviewScreenshotTest {
         assembler = ResumeDocumentAssembler(),
         pdfRenderer = pdf,
         docxRenderer = docx,
+        paymentGateway = paymentGateway,
     )
 
     private fun given(gap: GapAnalysis = requireNotNull(canonicalApplication.gapAnalysis)) {
@@ -175,6 +178,7 @@ private fun ExportPreviewHost(
                 onDismissResult = {},
                 onNavigateBack = {},
                 onExported = {},
+                onBuyCredits = {},
             ),
         )
     }

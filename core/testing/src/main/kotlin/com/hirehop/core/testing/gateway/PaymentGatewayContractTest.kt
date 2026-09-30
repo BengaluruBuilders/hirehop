@@ -2,6 +2,7 @@ package com.hirehop.core.testing.gateway
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseResult
 import kotlinx.coroutines.test.runTest
@@ -161,10 +162,52 @@ abstract class PaymentGatewayContractTest {
         assertThat(entitlement.totalCredits).isAtLeast(0)
     }
 
+    @Test
+    fun spendingOneCreditLowersTheBalanceByExactlyOne() = runTest {
+        val gateway = createPaymentGateway()
+        gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
+        val before = gateway.entitlement()
+
+        val spend = gateway.consumeCredit()
+
+        if (spend is CreditSpend.Spent) {
+            val after = gateway.entitlement()
+            assertThat(after.totalCredits).isEqualTo(before.totalCredits - 1)
+            assertThat(spend.entitlement).isEqualTo(after)
+        }
+    }
+
+    @Test
+    fun spendingWithAnEmptyBalanceReportsNoCreditLeftAndChangesNothing() = runTest {
+        val gateway = createPaymentGateway()
+        repeat(SPEND_ATTEMPTS_UNTIL_EMPTY) {
+            if (gateway.entitlement().totalCredits > 0) gateway.consumeCredit()
+        }
+        val before = gateway.entitlement()
+
+        val spend = gateway.consumeCredit()
+
+        if (before.totalCredits == 0) {
+            assertThat(spend).isEqualTo(CreditSpend.NoCreditLeft)
+            assertThat(gateway.entitlement()).isEqualTo(before)
+        }
+    }
+
+    @Test
+    fun spendingNeverLeavesTheBalanceNegative() = runTest {
+        val gateway = createPaymentGateway()
+        repeat(SPEND_ATTEMPTS_BEYOND_BALANCE) {
+            gateway.consumeCredit()
+            assertThat(gateway.entitlement().totalCredits).isAtLeast(0)
+        }
+    }
+
     private fun ApplicationPack.isSellable(): Boolean =
         id.isNotEmpty() && name.isNotEmpty() && credits > 0 && priceInPaise > 0 && currencyCode.isNotEmpty()
 
     private companion object {
         const val UNKNOWN_PACK_ID = "pack_that_does_not_exist"
+        const val SPEND_ATTEMPTS_UNTIL_EMPTY = 12
+        const val SPEND_ATTEMPTS_BEYOND_BALANCE = 20
     }
 }

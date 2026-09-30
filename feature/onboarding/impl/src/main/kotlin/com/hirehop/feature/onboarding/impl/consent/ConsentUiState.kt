@@ -35,6 +35,9 @@ fun consentStateFor(scenario: DebugScenario): ConsentUiState = when (scenario) {
     DebugScenario.DELETING,
     DebugScenario.EXPORTING,
     DebugScenario.PURCHASED,
+    DebugScenario.PENDING,
+    DebugScenario.CANCELLED,
+    DebugScenario.RESTORED,
     -> ConsentUiState()
 
     DebugScenario.LOADING -> ConsentUiState(isSaving = true)

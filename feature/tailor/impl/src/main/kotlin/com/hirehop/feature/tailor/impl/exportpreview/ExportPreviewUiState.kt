@@ -13,6 +13,7 @@ internal enum class ExportPreviewStage {
     EXPORT_FAILED,
     OFFLINE,
     NO_DOCUMENT,
+    NO_CREDIT,
 }
 
 internal data class ExportPreviewSheet(
@@ -48,11 +49,22 @@ internal data class ExportPreviewUiState(
     val fileName: String = "",
     val isOffline: Boolean = false,
     val exportedFormat: ExportFormat? = null,
+    val creditsLeft: Int = 0,
+    val isFreeCredit: Boolean = true,
+    val packPrice: String = "",
+    val creditKnown: Boolean = false,
 ) {
     val hasSheet: Boolean get() = sheet != null
 
+    val hasCredit: Boolean get() = creditsLeft > 0
+
+    val needsCredits: Boolean get() = creditKnown && !hasCredit
+
     val canExport: Boolean
-        get() = stage == ExportPreviewStage.PREVIEW_READY && hasSheet && !isOffline
+        get() = stage == ExportPreviewStage.PREVIEW_READY && hasSheet && !isOffline && !needsCredits
+
+    val showsPackPrice: Boolean
+        get() = stage == ExportPreviewStage.NO_CREDIT && packPrice.isNotEmpty()
 
     val exportFailed: Boolean get() = stage == ExportPreviewStage.EXPORT_FAILED
 }

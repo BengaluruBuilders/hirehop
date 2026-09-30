@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -109,6 +108,7 @@ private fun ExportPreviewBody(
         -> ExportPreviewRendering(uiState = uiState)
 
         ExportPreviewStage.PREVIEW_READY,
+        ExportPreviewStage.NO_CREDIT,
         ExportPreviewStage.OFFLINE,
         -> ExportPreviewReady(uiState = uiState, actions = actions)
 
@@ -127,20 +127,56 @@ private fun ExportPreviewBottomBar(
 ) {
     HhBottomActionBar(
         actions = {
-            HhButton(
-                onClick = actions.onExport,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HhTheme.spacing.d48),
-                enabled = uiState.canExport,
-                text = {
-                    Text(
-                        text = stringResource(uiState.format.downloadLabelRes()),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            ) {
+                ExportPreviewCreditLine(uiState = uiState)
+                HhButton(
+                    onClick = if (uiState.needsCredits) actions.onBuyCredits else actions.onExport,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = HhTheme.spacing.d48),
+                    enabled = uiState.canExport || uiState.needsCredits,
+                    text = {
+                        Text(
+                            text = stringResource(uiState.format.downloadLabelRes()),
+                            style = HhTheme.typography.labelLarge,
+                        )
+                    },
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun ExportPreviewCreditLine(uiState: ExportPreviewUiState) {
+    if (!uiState.creditKnown) return
+    val noCredit = uiState.needsCredits
+    Text(
+        text = when {
+            noCredit && uiState.showsPackPrice -> stringResource(
+                R.string.feature_tailor_impl_export_preview_credit_none_with_price,
+                uiState.packPrice,
+            )
+
+            noCredit -> stringResource(R.string.feature_tailor_impl_export_preview_credit_none)
+            uiState.isFreeCredit -> pluralStringResource(
+                R.plurals.feature_tailor_impl_export_preview_credit_free,
+                uiState.creditsLeft,
+                uiState.creditsLeft,
+            )
+
+            else -> pluralStringResource(
+                R.plurals.feature_tailor_impl_export_preview_credit_paid,
+                uiState.creditsLeft,
+                uiState.creditsLeft,
             )
         },
+        style = HhTheme.typography.bodySmall,
+        color = HhTheme.colors.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 

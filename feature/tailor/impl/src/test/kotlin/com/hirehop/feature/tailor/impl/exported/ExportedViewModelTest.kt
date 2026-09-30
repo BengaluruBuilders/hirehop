@@ -70,8 +70,8 @@ class ExportedViewModelTest {
     @Test
     fun freeCreditState_namesTheJobAndSpendsTheFreeApplication() = runTest {
         given()
-        paymentGateway.withFreeCredits(credits = 1)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 0)
+        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT, spentFreeCredit = true))
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(ExportedStage.READY)
@@ -89,8 +89,8 @@ class ExportedViewModelTest {
     @Test
     fun paidCreditState_dropsTheCounterByOne() = runTest {
         given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 5)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 4)
+        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT, spentFreeCredit = false))
 
         val state = viewModel.uiState.value
         assertThat(state.usesFreeCredit).isFalse()

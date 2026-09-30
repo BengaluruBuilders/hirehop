@@ -16,4 +16,5 @@ internal data class ExportPreviewActions(
     val onDismissResult: () -> Unit,
     val onNavigateBack: () -> Unit,
     val onExported: (ExportFormat) -> Unit,
+    val onBuyCredits: () -> Unit,
 )

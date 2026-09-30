@@ -43,4 +43,14 @@
     <string name="feature_tailor_impl_export_preview_export_failed_heading">We could not write your file.</string>
     <string name="feature_tailor_impl_export_preview_export_failed_body">Nothing was written and nothing was shared. Your reviewed resume is safe.</string>
     <string name="feature_tailor_impl_export_preview_export_failed_retry">Try again</string>
+    <string name="feature_tailor_impl_export_preview_credit_none">You have 0 credits left.</string>
+    <string name="feature_tailor_impl_export_preview_credit_none_with_price">Downloading needs 1 credit. A pack of 5 applications is %1$s.</string>
+    <plurals name="feature_tailor_impl_export_preview_credit_free">
+        <item quantity="one">Uses 1 credit. You have %1$d free credit.</item>
+        <item quantity="other">Uses 1 credit. You have %1$d free credits.</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_export_preview_credit_paid">
+        <item quantity="one">Uses 1 credit. You have %1$d purchased credit.</item>
+        <item quantity="other">Uses 1 credit. You have %1$d purchased credits.</item>
+    </plurals>
 </resources>

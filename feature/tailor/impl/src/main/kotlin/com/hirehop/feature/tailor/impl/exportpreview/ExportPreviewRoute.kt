@@ -13,13 +13,18 @@ import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
 internal fun ExportPreviewRoute(
     key: ExportPreviewNavKey,
     onNavigateBack: () -> Unit,
-    onExported: (ExportFormat) -> Unit,
+    onExported: (ExportFormat, Boolean) -> Unit,
+    onBuyCredits: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ExportPreviewViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onNavigateBack, onExported) {
-        viewModel.toActions(onNavigateBack = onNavigateBack, onExported = onExported)
+    val actions = remember(viewModel, onNavigateBack, onExported, onBuyCredits) {
+        viewModel.toActions(
+            onNavigateBack = onNavigateBack,
+            onExported = onExported,
+            onBuyCredits = onBuyCredits,
+        )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     ExportPreviewScreen(uiState = uiState, actions = actions, modifier = modifier)
@@ -27,12 +32,14 @@ internal fun ExportPreviewRoute(
 
 private fun ExportPreviewViewModel.toActions(
     onNavigateBack: () -> Unit,
-    onExported: (ExportFormat) -> Unit,
+    onExported: (ExportFormat, Boolean) -> Unit,
+    onBuyCredits: () -> Unit,
 ): ExportPreviewActions = ExportPreviewActions(
     onSelectFormat = { format -> onAction(ExportPreviewAction.SelectFormat(format)) },
     onExport = { onAction(ExportPreviewAction.Export) },
     onRetryPreview = { onAction(ExportPreviewAction.RetryPreview) },
     onDismissResult = { onAction(ExportPreviewAction.DismissResult) },
     onNavigateBack = onNavigateBack,
-    onExported = onExported,
+    onExported = { format -> onExported(format, uiState.value.isFreeCredit) },
+    onBuyCredits = onBuyCredits,
 )

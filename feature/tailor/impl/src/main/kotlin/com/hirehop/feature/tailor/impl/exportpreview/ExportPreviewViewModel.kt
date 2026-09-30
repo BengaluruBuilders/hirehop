@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
+import com.hirehop.feature.tailor.impl.credits.formattedPrice
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
@@ -27,6 +29,7 @@ internal class ExportPreviewViewModel @Inject constructor(
     private val assembler: ResumeDocumentAssembler,
     private val pdfRenderer: ResumePdfRenderer,
     private val docxRenderer: ResumeDocxRenderer,
+    private val paymentGateway: PaymentGateway,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(ExportPreviewUiState())
@@ -55,6 +58,7 @@ internal class ExportPreviewViewModel @Inject constructor(
         if (exportPreviewIsStatic(key.scenario)) return
         viewModelScope.launch {
             loadDocument()
+            loadCredits()
             if (exportPreviewExportsOnEntry(key.scenario)) export()
         }
     }
@@ -124,13 +128,32 @@ internal class ExportPreviewViewModel @Inject constructor(
         )
     }
 
-    private fun fileNameFor(state: ExportPreviewUiState, document: ResumeDocument): String =
-        ExportFileNames.build(
-            format = state.format,
-            name = document.name,
-            company = state.jobCompany,
-            role = state.jobTitle,
-        )
+    private suspend fun loadCredits() {
+        val entitlement = runCatching { paymentGateway.entitlement() }.getOrNull() ?: return
+        val packs = runCatching { paymentGateway.packs() }.getOrNull().orEmpty()
+        val fromFree = entitlement.freeCredits > 0
+        val left = if (fromFree) entitlement.freeCredits else entitlement.purchasedCredits
+        mutableState.update { state ->
+            state.copy(
+                creditsLeft = left,
+                isFreeCredit = fromFree,
+                creditKnown = true,
+                packPrice = packs.firstOrNull()?.formattedPrice().orEmpty(),
+                stage = if (left == 0 && state.stage == ExportPreviewStage.PREVIEW_READY) {
+                    ExportPreviewStage.NO_CREDIT
+                } else {
+                    state.stage
+                },
+            )
+        }
+    }
+
+    private fun fileNameFor(state: ExportPreviewUiState, document: ResumeDocument): String = ExportFileNames.build(
+        format = state.format,
+        name = document.name,
+        company = state.jobCompany,
+        role = state.jobTitle,
+    )
 
     private fun onSelectFormat(format: ExportFormat) {
         val current = mutableState.value
@@ -169,11 +192,16 @@ internal class ExportPreviewViewModel @Inject constructor(
             } catch (failure: Exception) {
                 false
             }
+            if (written) spendCredit()
             mutableState.value = mutableState.value.copy(
                 stage = if (written) ExportPreviewStage.EXPORT_SUCCEEDED else ExportPreviewStage.EXPORT_FAILED,
                 exportedFormat = if (written) format else null,
             )
         }
+    }
+
+    private suspend fun spendCredit() {
+        runCatching { paymentGateway.consumeCredit() }
     }
 
     private fun onRetryPreview() {

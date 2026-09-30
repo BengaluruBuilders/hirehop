@@ -16,6 +16,9 @@ enum class DebugScenario {
     DELETING,
     EXPORTING,
     PURCHASED,
+    PENDING,
+    CANCELLED,
+    RESTORED,
     ;
 
     companion object {

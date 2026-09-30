@@ -13,6 +13,7 @@ import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
 import com.hirehop.feature.tailor.impl.export.docx.ResumeDocxRenderer
+import com.hirehop.feature.tailor.impl.packpurchase.TestPaymentGateway
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -38,7 +39,9 @@ private class RecordingPdfRenderer(
     }
 }
 
-private class RecordingDocxRenderer : ResumeDocxRenderer {
+private class RecordingDocxRenderer(
+    private val failure: IOException? = null,
+) : ResumeDocxRenderer {
     var lastDocument: ResumeDocument? = null
     var lastFileName: String = ""
     var callCount: Int = 0
@@ -47,6 +50,7 @@ private class RecordingDocxRenderer : ResumeDocxRenderer {
         callCount++
         lastDocument = document
         lastFileName = fileName
+        failure?.let { problem -> throw problem }
         return File(fileName)
     }
 }
@@ -60,6 +64,7 @@ class ExportPreviewViewModelTest {
     private val profileRepository = TestProfileRepository()
     private val assembler = ResumeDocumentAssembler()
     private val pdfRenderer = RecordingPdfRenderer()
+    private val paymentGateway = TestPaymentGateway()
     private val docxRenderer = RecordingDocxRenderer()
 
     private lateinit var viewModel: ExportPreviewViewModel
@@ -304,6 +309,7 @@ class ExportPreviewViewModelTest {
             assembler = assembler,
             pdfRenderer = pdfRenderer,
             docxRenderer = docxRenderer,
+            paymentGateway = paymentGateway,
         )
         failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.ERROR))
         assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
@@ -484,6 +490,81 @@ class ExportPreviewViewModelTest {
             .isEqualTo(document.sections.map { section -> section.heading })
     }
 
+    @Test
+    fun theCreditLineCountsTheFreeAllowance() = runTest {
+        given()
+        paymentGateway.withFreeCredits(credits = 1)
+        val model = newViewModel()
+
+        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+
+        val state = model.uiState.value
+        assertThat(state.creditKnown).isTrue()
+        assertThat(state.isFreeCredit).isTrue()
+        assertThat(state.creditsLeft).isEqualTo(1)
+        assertThat(state.hasCredit).isTrue()
+        assertThat(state.needsCredits).isFalse()
+    }
+
+    @Test
+    fun theCreditLineCountsPurchasedCreditsWhenTheFreeOneIsGone() = runTest {
+        given()
+        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 5)
+        val model = newViewModel()
+
+        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+
+        val state = model.uiState.value
+        assertThat(state.isFreeCredit).isFalse()
+        assertThat(state.creditsLeft).isEqualTo(5)
+    }
+
+    @Test
+    fun anEmptyBalanceBlocksTheExportAndOffersThePackPrice() = runTest {
+        given()
+        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 0)
+        val model = newViewModel()
+
+        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+
+        val state = model.uiState.value
+        assertThat(state.stage).isEqualTo(ExportPreviewStage.NO_CREDIT)
+        assertThat(state.needsCredits).isTrue()
+        assertThat(state.canExport).isFalse()
+        assertThat(state.hasSheet).isTrue()
+        assertThat(state.showsPackPrice).isTrue()
+        assertThat(state.packPrice).isNotEmpty()
+    }
+
+    @Test
+    fun exportingSpendsExactlyOneCredit() = runTest {
+        given()
+        paymentGateway.withFreeCredits(credits = 1)
+        val model = newViewModel()
+        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+
+        model.onAction(ExportPreviewAction.Export)
+
+        assertThat(paymentGateway.consumeCallCount()).isEqualTo(1)
+        assertThat(paymentGateway.entitlement().freeCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun aFailedWriteSpendsNoCredit() = runTest {
+        given()
+        paymentGateway.withFreeCredits(credits = 1)
+        val failing = newViewModel(
+            pdf = RecordingPdfRenderer(failure = IOException("disk full")),
+            docx = RecordingDocxRenderer(failure = IOException("disk full")),
+        )
+        failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+
+        failing.onAction(ExportPreviewAction.Export)
+
+        assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_FAILED)
+        assertThat(paymentGateway.consumeCallCount()).isEqualTo(0)
+    }
+
     private fun newViewModel(
         pdf: ResumePdfRenderer = pdfRenderer,
         docx: ResumeDocxRenderer = docxRenderer,
@@ -493,6 +574,7 @@ class ExportPreviewViewModelTest {
         assembler = assembler,
         pdfRenderer = pdf,
         docxRenderer = docx,
+        paymentGateway = paymentGateway,
     )
 
     private fun given() {

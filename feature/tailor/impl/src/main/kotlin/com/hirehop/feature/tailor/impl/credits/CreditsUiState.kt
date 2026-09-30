@@ -71,6 +71,9 @@ fun creditsStageFor(scenario: DebugScenario): CreditsStage = when (scenario) {
     DebugScenario.SUCCESS -> CreditsStage.PURCHASED_ONLY
     DebugScenario.PARTIAL -> CreditsStage.MIXED
     DebugScenario.DELETING -> CreditsStage.RESTORING
+    DebugScenario.PENDING -> CreditsStage.PENDING
+    DebugScenario.RESTORED -> CreditsStage.PURCHASED_ONLY
+    DebugScenario.CANCELLED -> CreditsStage.FREE_ONLY
     DebugScenario.DEFAULT -> CreditsStage.FREE_ONLY
     DebugScenario.SCANNED,
     DebugScenario.IMPORTED,
