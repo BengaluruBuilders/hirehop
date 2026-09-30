@@ -1,4 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_tailor_impl_title_review">Review changes</string>
+    <string name="feature_tailor_impl_title_preview">Preview</string>
     <string name="feature_tailor_impl_back">Back</string>
+    <string name="feature_tailor_impl_loading">Loading your resume</string>
+    <string name="feature_tailor_impl_not_found">We could not find this application or your profile.</string>
+    <string name="feature_tailor_impl_progress">%1$d of %2$d changes reviewed</string>
+    <string name="feature_tailor_impl_honesty">Every experience line comes from your confirmed profile.</string>
+    <string name="feature_tailor_impl_accept_all">Accept all safe changes</string>
+    <string name="feature_tailor_impl_accept">Accept</string>
+    <string name="feature_tailor_impl_reject">Reject</string>
+    <string name="feature_tailor_impl_decision_accepted">Accepted: your resume uses this change.</string>
+    <string name="feature_tailor_impl_decision_rejected">Rejected: your resume keeps your original text and position.</string>
+    <string name="feature_tailor_impl_decision_pending">Not reviewed yet: your resume keeps your original text and position.</string>
+    <string name="feature_tailor_impl_original">Original</string>
+    <string name="feature_tailor_impl_proposed">Proposed</string>
+    <string name="feature_tailor_impl_based_on">Based on: %1$s</string>
+    <string name="feature_tailor_impl_no_change">No change needed</string>
+    <string name="feature_tailor_impl_violation_warning">We kept your original wording because the suggestion was not supported by your profile.</string>
+    <string name="feature_tailor_impl_edit_reworded">Reworded</string>
+    <string name="feature_tailor_impl_edit_reordered">Moved up</string>
+    <string name="feature_tailor_impl_edit_shortened">Shortened</string>
+    <string name="feature_tailor_impl_edit_emphasised">Emphasised</string>
+    <string name="feature_tailor_impl_edit_merged">Merged</string>
+    <string name="feature_tailor_impl_violation_missing_source">The suggestion did not cite a fact from your profile.</string>
+    <string name="feature_tailor_impl_violation_number">The number %1$s is not in your profile.</string>
+    <string name="feature_tailor_impl_violation_term">The term \"%1$s\" is not in your profile.</string>
+    <string name="feature_tailor_impl_violation_verb">The verb changed from \"%1$s\" to \"%2$s\". That claims a bigger role.</string>
+    <string name="feature_tailor_impl_violation_scale">The phrase \"%1$s\" claims a scale that your profile does not support.</string>
+    <string name="feature_tailor_impl_preview_action">Preview</string>
+    <string name="feature_tailor_impl_review_action">Back to review</string>
+    <string name="feature_tailor_impl_preview_note">This is your resume as the PDF will show it. Rejected and unreviewed changes keep your original wording.</string>
+    <string name="feature_tailor_impl_export">Export PDF</string>
+    <string name="feature_tailor_impl_exporting">Creating your PDF</string>
+    <string name="feature_tailor_impl_export_failed">We could not create the PDF. Try again.</string>
+    <string name="feature_tailor_impl_share_chooser">Share your resume</string>
+    <string name="feature_tailor_impl_share_subject">Resume: %1$s</string>
+    <string name="feature_tailor_impl_position_only">Only the position of this line changes. The wording stays the same.</string>
+    <string name="feature_tailor_impl_stale_title">Your profile changed since tailoring</string>
+    <string name="feature_tailor_impl_stale_body">We do not use this suggestion. Your resume uses the current text from your profile.</string>
+    <string name="feature_tailor_impl_changed_words">Added or changed words: %1$s</string>
+    <string name="feature_tailor_impl_removed_words">Removed or changed words: %1$s</string>
+    <string name="feature_tailor_impl_accept_description">Accept: %1$s</string>
+    <string name="feature_tailor_impl_reject_description">Reject: %1$s</string>
 </resources>
