@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_tailor_impl_export_preview_title">Export preview</string>
+    <string name="feature_tailor_impl_export_preview_navigation_back_description">Go back</string>
+    <string name="feature_tailor_impl_export_preview_subtitle">%1$s · %2$s</string>
+    <string name="feature_tailor_impl_export_preview_label">PREVIEW, NOT A FILE</string>
+    <string name="feature_tailor_impl_export_preview_notice">This is what HireHop will write. Nothing is saved or shared until you download.</string>
+    <string name="feature_tailor_impl_export_preview_step_setting_page">Setting your resume in the export page</string>
+    <string name="feature_tailor_impl_export_preview_rendering_note">The paper below fills in as the page is set. Your reviewed resume is untouched.</string>
+    <string name="feature_tailor_impl_export_preview_rendering_skeleton_description">The export page is being set. It appears here as soon as it is ready.</string>
+    <string name="feature_tailor_impl_export_preview_format_label">Format</string>
+    <string name="feature_tailor_impl_export_preview_format_pdf">PDF</string>
+    <string name="feature_tailor_impl_export_preview_format_docx">DOCX</string>
+    <string name="feature_tailor_impl_export_preview_format_later_release">later release</string>
+    <string name="feature_tailor_impl_export_preview_format_selected">%1$s, selected</string>
+    <string name="feature_tailor_impl_export_preview_format_unselected">%1$s, not selected</string>
+    <string name="feature_tailor_impl_export_preview_file_name_label">FILE NAME</string>
+    <string name="feature_tailor_impl_export_preview_file_name_description">The file will be named %1$s.</string>
+    <string name="feature_tailor_impl_export_preview_page_note">One column, standard headings, plain black on white. No icons, photo, or colour.</string>
+    <string name="feature_tailor_impl_export_preview_section_count">%1$s</string>
+    <plurals name="feature_tailor_impl_export_preview_line_count">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <string name="feature_tailor_impl_export_preview_line_count_caption">%1$s in this file</string>
+    <string name="feature_tailor_impl_export_preview_ats_note">Readable by common ATS parsers.</string>
+    <string name="feature_tailor_impl_export_preview_download_action">Download %1$s</string>
+    <string name="feature_tailor_impl_export_preview_download_pdf">Download PDF</string>
+    <string name="feature_tailor_impl_export_preview_download_docx">Download DOCX</string>
+    <string name="feature_tailor_impl_export_preview_offline_message">You are offline.</string>
+    <string name="feature_tailor_impl_export_preview_offline_supporting">You can read the preview. Downloading needs a connection.</string>
+    <string name="feature_tailor_impl_export_preview_error_heading">We could not set your export page.</string>
+    <string name="feature_tailor_impl_export_preview_error_body">Your reviewed resume is safe. Try again, or go back and review it.</string>
+    <string name="feature_tailor_impl_export_preview_error_retry">Try again</string>
+    <string name="feature_tailor_impl_export_preview_empty_heading">There is no resume to export yet</string>
+    <string name="feature_tailor_impl_export_preview_empty_body">Review your tailored resume first. HireHop exports the version you reviewed, not a draft.</string>
+    <string name="feature_tailor_impl_export_preview_exporting_heading">Writing your %1$s</string>
+    <string name="feature_tailor_impl_export_preview_exporting_note">HireHop writes the file on this device. Nothing is uploaded.</string>
+    <string name="feature_tailor_impl_export_preview_exported_heading">Your %1$s is written on this device</string>
+    <string name="feature_tailor_impl_export_preview_exported_body">It is not shared yet. Open it to send it where you want.</string>
+    <string name="feature_tailor_impl_export_preview_exported_open">Open exported file</string>
+    <string name="feature_tailor_impl_export_preview_exported_dismiss">Back to preview</string>
+    <string name="feature_tailor_impl_export_preview_export_failed_heading">We could not write your file.</string>
+    <string name="feature_tailor_impl_export_preview_export_failed_body">Nothing was written and nothing was shared. Your reviewed resume is safe.</string>
+    <string name="feature_tailor_impl_export_preview_export_failed_retry">Try again</string>
+</resources>
