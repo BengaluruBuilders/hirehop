@@ -43,4 +43,12 @@
     <string name="feature_tailor_impl_removed_words">Removed or changed words: %1$s</string>
     <string name="feature_tailor_impl_accept_description">Accept: %1$s</string>
     <string name="feature_tailor_impl_reject_description">Reject: %1$s</string>
+    <string name="feature_tailor_impl_changes_reviewed">changes reviewed</string>
+    <plurals name="feature_tailor_impl_flagged">
+        <item quantity="one">%1$d flagged</item>
+        <item quantity="other">%1$d flagged</item>
+    </plurals>
+    <string name="feature_tailor_impl_keywords_used">JD keywords used</string>
+    <string name="feature_tailor_impl_backed_by_facts">Backed by facts: %1$s</string>
+    <string name="feature_tailor_impl_actions">Actions: %1$s</string>
 </resources>

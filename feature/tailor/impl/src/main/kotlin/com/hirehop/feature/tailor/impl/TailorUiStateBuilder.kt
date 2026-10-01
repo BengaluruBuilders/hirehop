@@ -32,18 +32,27 @@ internal fun buildTailorUiState(
 
 private fun buildEntries(profile: CandidateProfile, resume: TailoredResume): List<TailorEntryUi> {
     val confirmed = profile.entries.filter { it.isConfirmed }
-    val sourceTextById = confirmed.flatMap { it.bullets }.associate { it.id to it.text }
+    val sourceById = mutableMapOf<String, TailoredBulletSource>()
+    confirmed.forEach { entry ->
+        entry.bullets.forEach { bullet ->
+            sourceById[bullet.id] = TailoredBulletSource(
+                id = bullet.id,
+                text = bullet.text,
+                source = entry.source,
+            )
+        }
+    }
     val bulletsByEntry = resume.bullets.groupBy { it.entryId }
     return confirmed.mapNotNull { entry ->
         bulletsByEntry[entry.id]
             ?.takeIf { it.isNotEmpty() }
-            ?.let { entry.toUi(it, sourceTextById) }
+            ?.let { entry.toUi(it, sourceById) }
     }
 }
 
 private fun ProfileEntry.toUi(
     tailored: List<TailoredBullet>,
-    sourceTextById: Map<String, String>,
+    sourceById: Map<String, TailoredBulletSource>,
 ): TailorEntryUi = TailorEntryUi(
     entryId = id,
     category = category,
@@ -52,7 +61,8 @@ private fun ProfileEntry.toUi(
     bullets = tailored.map { bullet ->
         TailorBulletUi(
             bullet = bullet,
-            sourceTexts = bullet.sourceIds.mapNotNull { sourceTextById[it] },
+            sourceTexts = bullet.sourceIds.mapNotNull { sourceById[it]?.text },
+            sources = bullet.sourceIds.mapNotNull { sourceById[it] },
             isStale = !bullet.isFreshFor(this),
         )
     },

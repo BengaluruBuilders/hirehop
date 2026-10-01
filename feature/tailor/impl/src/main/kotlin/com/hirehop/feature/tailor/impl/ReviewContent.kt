@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhOutlinedButton
+import com.hirehop.core.designsystem.component.HhSectionCard
+import com.hirehop.core.designsystem.component.HhSegmentedCounter
+import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusKind
+import com.hirehop.core.designsystem.theme.HhTheme
 
 @Composable
 internal fun ReviewContent(
@@ -28,25 +33,34 @@ internal fun ReviewContent(
     LazyColumn(
         modifier = modifier,
         contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         item(key = "summary") {
             ReviewSummary(
                 state = state,
                 onAcceptAllSafeChanges = onAcceptAllSafeChanges,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = HhTheme.spacing.lg),
             )
         }
         state.entries.forEach { entry ->
             item(key = "entry-${entry.entryId}") {
-                EntryHeader(entry, Modifier.padding(horizontal = 16.dp))
+                EntryHeader(
+                    entry = entry,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = HhTheme.spacing.lg),
+                )
             }
             items(items = entry.bullets, key = { it.bullet.id }) { bullet ->
                 BulletCard(
                     item = bullet,
                     onAccept = { onAccept(bullet.bullet.id) },
                     onReject = { onReject(bullet.bullet.id) },
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = HhTheme.spacing.lg),
                 )
             }
         }
@@ -59,23 +73,38 @@ private fun ReviewSummary(
     onAcceptAllSafeChanges: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_progress, state.reviewedCount, state.totalCount),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        LinearProgressIndicator(
-            progress = { if (state.totalCount == 0) 1f else state.reviewedCount.toFloat() / state.totalCount },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    val colors = HhTheme.colors
+    val spacing = HhTheme.spacing
+    val flaggedCount = state.flaggedBulletCount
+    HhSectionCard(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            HhSegmentedCounter(current = state.reviewedCount, total = state.totalCount)
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_changes_reviewed),
+                style = HhTheme.typography.bodyMedium,
+                color = colors.onSurfaceVariant,
+            )
+        }
+        if (flaggedCount > 0) {
+            HhStatusChip(
+                kind = HhStatusKind.Partial,
+                label = pluralStringResource(
+                    id = R.plurals.feature_tailor_impl_flagged,
+                    count = flaggedCount,
+                    flaggedCount,
+                ),
+            )
+        }
+        HhDivider()
         Text(
             text = stringResource(R.string.feature_tailor_impl_honesty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = HhTheme.typography.bodyMedium,
+            color = colors.onSurfaceVariant,
         )
         HhOutlinedButton(
             onClick = onAcceptAllSafeChanges,
             enabled = state.safeChangeBulletIds.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
             text = { Text(stringResource(R.string.feature_tailor_impl_accept_all)) },
         )
     }
@@ -83,14 +112,23 @@ private fun ReviewSummary(
 
 @Composable
 private fun EntryHeader(entry: TailorEntryUi, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(top = 8.dp)) {
-        Text(text = entry.title, style = MaterialTheme.typography.titleMedium)
+    val colors = HhTheme.colors
+    Column(modifier = modifier.padding(top = HhTheme.spacing.sm)) {
+        Text(
+            text = entry.title,
+            style = HhTheme.typography.titleMedium,
+            color = colors.onSurface,
+        )
         if (entry.organization.isNotBlank()) {
             Text(
                 text = entry.organization,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = HhTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
             )
         }
+        HhDivider()
     }
 }
+
+private val TailorUiState.Success.flaggedBulletCount: Int
+    get() = entries.sumOf { entry -> entry.bullets.count { it.kind == BulletReviewKind.VIOLATION } }

@@ -8,6 +8,8 @@ import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.SignInGateway
+import com.hirehop.core.domain.coverletter.CoverLetterSource
+import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
 import com.hirehop.core.domain.offline.OfflineFabricationGuard
 import com.hirehop.core.domain.offline.OfflineGapMatcher
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
@@ -16,6 +18,8 @@ import com.hirehop.core.domain.offline.OfflineResumeTailor
 import com.hirehop.core.domain.offline.OfflineResumeTextParser
 import com.hirehop.core.domain.offline.OfflineSignInGateway
 import com.hirehop.core.domain.offline.UuidIdGenerator
+import com.hirehop.core.domain.prep.GeneratePrepQuestionsUseCase
+import com.hirehop.core.domain.prep.PrepQuestionSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -47,4 +51,10 @@ internal abstract class DomainModule {
 
     @Binds
     abstract fun bindPaymentGateway(impl: OfflinePaymentGateway): PaymentGateway
+
+    @Binds
+    abstract fun bindCoverLetterSource(impl: GenerateCoverLetterUseCase): CoverLetterSource
+
+    @Binds
+    abstract fun bindPrepQuestionSource(impl: GeneratePrepQuestionsUseCase): PrepQuestionSource
 }
