@@ -7,6 +7,9 @@ tools/ci/check-constitution.sh
   :build-logic:convention:check \
   spotlessCheck \
   testDebugUnitTest \
+  :core:domain:koverVerify \
+  :core:data:koverVerify \
+  verifyRoborazziDebug \
   lintRelease \
   assembleDebug \
   assembleRelease \

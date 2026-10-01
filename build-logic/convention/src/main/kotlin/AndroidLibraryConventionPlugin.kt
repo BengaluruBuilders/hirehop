@@ -13,6 +13,9 @@ abstract class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = "com.android.library")
+            if (path == ":core:domain" || path == ":core:data") {
+                apply(plugin = "hirehop.kover")
+            }
 
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)

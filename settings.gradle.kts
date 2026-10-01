@@ -37,6 +37,7 @@ include(":core:designsystem")
 include(":core:domain")
 include(":core:model")
 include(":core:navigation")
+include(":core:screenshot")
 include(":core:testing")
 include(":core:ui")
 

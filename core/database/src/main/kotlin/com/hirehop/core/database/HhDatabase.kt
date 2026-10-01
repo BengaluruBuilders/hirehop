@@ -24,7 +24,7 @@ import com.hirehop.core.database.util.JsonConverters
     InstantConverter::class,
     JsonConverters::class,
 )
-internal abstract class HhDatabase : RoomDatabase() {
+abstract class HhDatabase : RoomDatabase() {
     abstract fun profileDao(): ProfileDao
     abstract fun jobApplicationDao(): JobApplicationDao
 }

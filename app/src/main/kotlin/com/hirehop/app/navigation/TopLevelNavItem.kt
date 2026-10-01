@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.feature.applications.api.navigation.ApplicationsNavKey
-import com.hirehop.feature.profile.api.navigation.ProfileNavKey
+import com.hirehop.feature.applications.api.navigation.DefaultApplicationsNavKey
+import com.hirehop.feature.profile.api.navigation.DefaultProfileNavKey
 import com.hirehop.feature.applications.api.R as applicationsR
 import com.hirehop.feature.profile.api.R as profileR
 
@@ -27,9 +27,9 @@ val PROFILE = TopLevelNavItem(
     labelRes = profileR.string.feature_profile_api_title,
 )
 
-val START_NAV_KEY: NavKey = ApplicationsNavKey
+val START_NAV_KEY: NavKey = DefaultApplicationsNavKey
 
 val TOP_LEVEL_NAV_ITEMS: Map<NavKey, TopLevelNavItem> = linkedMapOf(
-    ApplicationsNavKey to APPLICATIONS,
-    ProfileNavKey to PROFILE,
+    DefaultApplicationsNavKey to APPLICATIONS,
+    DefaultProfileNavKey to PROFILE,
 )

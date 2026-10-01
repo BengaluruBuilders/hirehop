@@ -205,9 +205,28 @@ Applications (start) and Profile. Analysis and Tailor are pushed on top:
 - `AnalysisNavKey` (new application from a pasted JD)
 - `TailorNavKey(applicationId: String)`
 
+Every key carries an optional `DebugScenario` from `core:model`, defaulting to
+`DebugScenario.Default`. That is the only mechanism for forcing a screen into a
+loading, empty, offline, error or partial state. The debug UI that sets it lives in
+the app's `debug` source set, so release cannot reach it, and a screenshot test can
+navigate straight to a forced state without touching feature business logic.
+
+The design in `design/claude-design` adds destinations that do not exist yet. They are
+added by the flow pull requests, not by this one:
+
+- `WelcomeNavKey`, `PasteJobDescriptionNavKey`, `SignInNavKey`, `ConsentNavKey`
+- `ImportResumeNavKey`, `ConfirmFactsNavKey`
+- `GuidedProfileFormNavKey`, `FactEditorNavKey`, `FactEvidenceNavKey`
+- `ExportPreviewNavKey`, `PackPurchaseNavKey`, `ExportedNavKey`, `CreditsNavKey`
+- `SettingsNavKey`, `YourDataNavKey`, `DeleteAccountNavKey`
+- `CoverLetterNavKey`, `PrepQuestionsNavKey`
+
+Top-level destinations become three: Applications, Profile, and Settings.
+
 ## 7. Build and host rules
 
-- Gradle wrapper version: same as NiA (`gradle-9.7.1`). Put `org.gradle.workers.max=3` in
+- Gradle wrapper version: `gradle-9.8.0`. NiA at commit `a49ed25` uses 9.7.1, so the
+  wrapper is no longer identical to the reference. Put `org.gradle.workers.max=3` in
   `gradle.properties`. Other agents build at the same time on this shared CI host.
 - Run `./gradlew --stop` when you finish.
 - Add NiA production tooling only in the order that the adoption ledger in `docs/CONSTITUTION.md` gives.

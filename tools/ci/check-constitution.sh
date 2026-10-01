@@ -34,6 +34,32 @@ forbid_ungrounded_comments() {
   fi
 }
 
+base_ref() {
+  if [[ -n "${BASE_REF:-}" ]]; then
+    echo "$BASE_REF"
+  elif git rev-parse --verify -q main >/dev/null; then
+    echo main
+  fi
+}
+
+forbid_new_violations() {
+  local article="$1" message="$2" pattern="$3"
+  shift 3
+  local base
+  base="$(base_ref)"
+  [[ -z "$base" ]] && return
+  git rev-parse --verify -q "$base" >/dev/null || return
+  local matches
+  matches="$(git diff -U0 "$base" -- "$@" |
+    grep -E '^\+' | grep -vE '^\+\+\+' | sed -E 's/^\+//' | grep -E "$pattern")"
+  if [[ -n "$matches" ]]; then
+    echo "::error title=Constitution ${article}::${message}"
+    echo "$matches"
+    echo
+    failures=$((failures + 1))
+  fi
+}
+
 forbid II.3 "GlobalScope is forbidden. Inject an application CoroutineScope." \
   'GlobalScope' '*.kt'
 forbid II.3 "The !! operator is forbidden. Model the null case." \
@@ -68,6 +94,14 @@ forbid I.5 "Network, analytics, or crash SDKs need a constitution amendment firs
   'gradle/libs.versions.toml'
 forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual time." \
   'Thread\.sleep' '*.kt'
+forbid III.3 "Production code must not reference a test double or a fake." \
+  '^import .*\.Fake[A-Za-z0-9_]+' '*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!core/testing/*'
+design_system_consumers=('feature/' 'app/' 'core/ui/')
+forbid_new_violations II.5 "A feature must build its UI from the shared Hh* components, not from raw Material components. core:designsystem is the one place raw Material is allowed, because wrapping it is its job." \
+  '^import androidx\.compose\.material3\.(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|TextField|OutlinedTextField|Card|ElevatedCard|OutlinedCard|Surface|Scaffold|Snackbar|SnackbarHost|AlertDialog|BasicAlertDialog|TopAppBar|CenterAlignedTopAppBar|LargeTopAppBar|MediumTopAppBar|TopAppBarDefaults|ListItem|Checkbox|TriStateCheckbox|RadioButton|Switch|ModalBottomSheet|BottomSheetScaffold|Chip|AssistChip|FilterChip|InputChip|SuggestionChip|Badge|Divider|HorizontalDivider|VerticalDivider|LinearProgressIndicator|CircularProgressIndicator|MaterialTheme)' \
+  "${design_system_consumers[@]}"
+forbid_new_violations II.5 "Read design-system tokens through HhTheme, not through MaterialTheme." \
+  'MaterialTheme\.(colorScheme|typography|shapes|dimens)' "${design_system_consumers[@]}"
 forbid_ungrounded_comments
 
 forbid_lint_baseline_growth() {
@@ -82,6 +116,22 @@ forbid_lint_baseline_growth() {
   fi
 }
 forbid_lint_baseline_growth
+
+forbid_unrecorded_screenshot_baselines() {
+  local base
+  base="$(base_ref)"
+  [[ -z "$base" ]] && return
+  git rev-parse --verify -q "$base" >/dev/null || return
+  local image_changes kt_changes
+  image_changes="$(git diff --name-only "$base" -- '*.png' | wc -l | tr -d ' ')"
+  [[ "$image_changes" == "0" ]] && return
+  kt_changes="$(git diff --name-only "$base" -- '*.kt' '*.kts' | wc -l | tr -d ' ')"
+  if [[ "$kt_changes" == "0" ]]; then
+    echo "::error title=Constitution II.2::Screenshot baselines changed with no Kotlin change. Re-record deliberately, not reflexively."
+    failures=$((failures + 1))
+  fi
+}
+forbid_unrecorded_screenshot_baselines
 
 require_gradle_property() {
   local key="$1" value="$2"

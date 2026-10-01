@@ -101,10 +101,23 @@ baselines, Dependabot, gitleaks, an R8 release build, a Room schema check, and w
 |---|---|---|
 | Fabrication test set as a CI gate | PRD 9 makes "0 critical fabrications" a release gate. This is the core promise. | Next PR |
 | Custom lint module | Turns II.2, II.5, and III.2 into real detectors, as NiA's `DesignSystemDetector` does. | After the fabrication set |
-| Coverage report (JaCoCo or Kover) | NiA requires 40% overall and 60% on changed files. | After the fabrication set |
 | Dependency Guard | Locks the release classpath, which makes I.5 airtight. | Before the backend work starts |
 | Instrumented tests on every PR | Catches DAO and UI regressions before merge. | When the repository has free minutes (public or paid plan) |
 
-Deferred until a trigger occurs: Roborazzi screenshot tests (when the UI stabilises), baseline
-profiles (after the first Play release), Firebase (needs an I.5 amendment), and `demo`/`prod`
-flavors (when the backend exists).
+Deferred until a trigger occurs: baseline profiles (after the first Play release), Firebase (needs
+an I.5 amendment), and `demo`/`prod` flavors (when the backend exists).
+
+### Ledger amendment — coverage and screenshot tests moved forward
+
+Adopted in the PR that introduces the design-fidelity UI work.
+
+| Item | Why | Gate |
+|---|---|---|
+| Coverage report (Kover) | The design-fidelity work is the first large change to `core:domain`, `core:data` and every ViewModel. Adopting coverage only after the fabrication set would have let those modules grow unchecked for five pull requests. | `koverVerify` fails above 80% line coverage on `core:domain` and `core:data`. Every ViewModel test class must exist for a ViewModel that exists. |
+| Roborazzi screenshot tests | Design fidelity is not verifiable by unit tests. The designs in `design/claude-design` are the acceptance criterion, so the only way to prove a screen matches its frame is to compare a rendered screenshot against a committed baseline. | `verifyHhRoborazziDebug` runs in `tools/ci/verify-local.sh` and in CI with `roborazzi.test.verify=true`. Any unexpected image difference fails the build. |
+| Design-system import check (II.5) | Part of the custom lint module above, implemented cheaply as a source scan. The full custom lint module is still deferred. | `tools/ci/check-constitution.sh` fails if a feature module imports a raw Material component or reads a design-system token without going through the design system. |
+
+Kover was chosen over JaCoCo. Roborazzi and Robolectric are build-time test dependencies and
+never reach the app binary, so they do not conflict with I.5. Robolectric downloads its
+`android-all` jars from Maven at test runtime; that is build tooling, not app network access, and
+the release APK still requests no network permission.

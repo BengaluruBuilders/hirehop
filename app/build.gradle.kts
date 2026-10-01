@@ -52,5 +52,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.navigation3.ui)
 
+    debugImplementation(projects.core.testing)
+
     testImplementation(libs.truth)
 }
