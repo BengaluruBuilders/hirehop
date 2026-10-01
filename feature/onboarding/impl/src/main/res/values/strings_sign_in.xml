@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_impl_sign_in_title">Sign in to continue</string>
+    <string name="feature_onboarding_impl_sign_in_subtitle">This sets up a profile on this phone. This version of HireHop has no server and no Google sign-in.</string>
+    <string name="feature_onboarding_impl_sign_in_navigation_back_content_description">Go back</string>
+
+    <string name="feature_onboarding_impl_sign_in_what_leaves_label">WHAT LEAVES YOUR PHONE</string>
+    <string name="feature_onboarding_impl_sign_in_what_leaves_body">Nothing. Your job description, your resume and your profile stay on this phone.</string>
+    <string name="feature_onboarding_impl_sign_in_what_leaves_meta">On this device · no account created</string>
+
+    <string name="feature_onboarding_impl_sign_in_age_label">I am 18 or older</string>
+    <string name="feature_onboarding_impl_sign_in_age_supporting">Required</string>
+    <string name="feature_onboarding_impl_sign_in_age_nudge">Tick this box to continue.</string>
+    <string name="feature_onboarding_impl_sign_in_age_talkback_on">I am 18 or older. Required. Switch, on.</string>
+    <string name="feature_onboarding_impl_sign_in_age_talkback_off">I am 18 or older. Required. Switch, off.</string>
+
+    <string name="feature_onboarding_impl_sign_in_action_continue">Continue on this phone</string>
+    <string name="feature_onboarding_impl_sign_in_action_not_now">Not now</string>
+    <string name="feature_onboarding_impl_sign_in_action_under_18">I’m under 18</string>
+    <string name="feature_onboarding_impl_sign_in_reason_needs_tick">Tick “I am 18 or older” to continue.</string>
+    <string name="feature_onboarding_impl_sign_in_reason_in_progress">Setting up your profile on this phone</string>
+
+    <string name="feature_onboarding_impl_sign_in_offline_message">You’re offline. Your job description is saved on this phone.</string>
+    <string name="feature_onboarding_impl_sign_in_offline_supporting">Signing in works without a connection, so the button stays on.</string>
+
+    <string name="feature_onboarding_impl_sign_in_failure_provider_title">Sign-in didn’t finish.</string>
+    <string name="feature_onboarding_impl_sign_in_failure_provider_body">Nothing was sent. Your job description is still saved on this phone.</string>
+    <string name="feature_onboarding_impl_sign_in_failure_network_title">You’re offline.</string>
+    <string name="feature_onboarding_impl_sign_in_failure_network_body">Nothing was sent. Your job description is saved on this phone.</string>
+    <string name="feature_onboarding_impl_sign_in_failure_action_retry">Try again</string>
+
+    <string name="feature_onboarding_impl_sign_in_cancelled_title">Sign-in was cancelled.</string>
+    <string name="feature_onboarding_impl_sign_in_cancelled_body">Nothing was sent, and nothing on this phone changed.</string>
+
+    <string name="feature_onboarding_impl_sign_in_success_status">Signed in on this phone</string>
+    <string name="feature_onboarding_impl_sign_in_success_title">Signed in on this phone.</string>
+    <string name="feature_onboarding_impl_sign_in_success_body">Your profile stays here. Nothing was sent.</string>
+
+    <string name="feature_onboarding_impl_sign_in_under_18_title">HireHop is for people 18 and over.</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_body">Nothing from this phone was sent, and nothing was stored.</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_action_back">Back to start</string>
+
+    <string name="feature_onboarding_impl_sign_in_skipped_title">Nothing was needed here.</string>
+    <string name="feature_onboarding_impl_sign_in_skipped_body">You can sign in later. Your work on this phone does not need an account first.</string>
+    <string name="feature_onboarding_impl_sign_in_skipped_action_back">Back to my job description</string>
+    <string name="feature_onboarding_impl_sign_in_skipped_action_revisit">Sign in now</string>
+</resources>

@@ -1,5 +1,6 @@
 package com.hirehop.feature.analysis.impl
 
+import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
@@ -56,11 +57,19 @@ data class RequirementItem(
     val status: MatchStatus,
     val evidence: List<String>,
     val isInPrepPlan: Boolean,
+    val factRefs: List<RequirementFactRef> = emptyList(),
 ) {
     val id: String get() = requirement.id
     val isGap: Boolean get() = status == MatchStatus.GAP
     val isMustHave: Boolean get() = requirement.priority == RequirementPriority.MUST_HAVE
 }
+
+data class RequirementFactRef(
+    val factId: String,
+    val text: String,
+    val source: FactSource,
+    val isConfirmed: Boolean,
+)
 
 const val MAX_JOB_TEXT_LENGTH = 20_000
 const val MIN_JOB_TEXT_LENGTH = 40

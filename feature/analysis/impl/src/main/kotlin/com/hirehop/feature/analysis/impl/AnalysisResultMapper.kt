@@ -3,6 +3,7 @@ package com.hirehop.feature.analysis.impl
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.MatchStatus
+import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 
@@ -30,6 +31,7 @@ private fun RequirementMatch.toItem(resolver: EvidenceResolver, isInPrepPlan: Bo
     status = status,
     evidence = if (status == MatchStatus.GAP) emptyList() else resolver.resolve(evidenceIds),
     isInPrepPlan = isInPrepPlan,
+    factRefs = if (status == MatchStatus.GAP) emptyList() else resolver.factRefsOf(evidenceIds),
 )
 
 private fun List<RequirementItem>.toSections(): List<RequirementSection> =
@@ -53,11 +55,27 @@ internal class EvidenceResolver(profile: CandidateProfile) {
         .flatMap { it.bullets }
         .associate { it.id to it.text }
 
+    private val entryByBulletId: Map<String, ProfileEntry> = profile.entries
+        .flatMap { entry -> entry.bullets.map { it.id to entry } }
+        .toMap()
+
+    private val entryById: Map<String, ProfileEntry> = profile.entries.associateBy { it.id }
+
     fun resolve(evidenceIds: List<String>): List<String> = evidenceIds.mapNotNull { id ->
         if (id.startsWith(SKILL_ID_PREFIX)) {
             "Skill: ${id.removePrefix(SKILL_ID_PREFIX)}"
         } else {
             bulletTextById[id]
+        }
+    }
+
+    fun factRefsOf(evidenceIds: List<String>): List<RequirementFactRef> = evidenceIds.mapNotNull { id ->
+        if (id.startsWith(SKILL_ID_PREFIX)) {
+            null
+        } else {
+            val entry = entryByBulletId[id] ?: entryById[id]
+            val text = bulletTextById[id] ?: entry?.title
+            entry?.let { resolved -> text?.let { line -> RequirementFactRef(resolved.id, line, resolved.source, resolved.isConfirmed) } }
         }
     }
 
