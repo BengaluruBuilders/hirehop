@@ -11,14 +11,25 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "hirehop.android.library")
             apply(plugin = "hirehop.hilt")
+            apply(plugin = "io.github.takahirom.roborazzi")
 
             extensions.configure<LibraryExtension> {
                 testOptions.animationsDisabled = true
+                testOptions.unitTests.isIncludeAndroidResources = true
+                testOptions.unitTests.isReturnDefaultValues = true
             }
 
             dependencies {
                 "implementation"(project(":core:ui"))
                 "implementation"(project(":core:designsystem"))
+
+                "testImplementation"(project(":core:screenshot"))
+                "testImplementation"(libs.findLibrary("roborazzi").get())
+                "testImplementation"(libs.findLibrary("roborazzi.compose").get())
+                "testImplementation"(libs.findLibrary("androidx.compose.ui.test").get())
+                "testImplementation"(libs.findLibrary("robolectric").get())
+                "testImplementation"(libs.findLibrary("androidx.test.core").get())
+                "testImplementation"(libs.findLibrary("androidx.test.ext.junit").get())
 
                 "implementation"(libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
                 "implementation"(libs.findLibrary("androidx.lifecycle.viewModelCompose").get())

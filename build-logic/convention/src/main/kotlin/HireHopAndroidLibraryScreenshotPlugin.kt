@@ -32,14 +32,19 @@ class HireHopAndroidLibraryScreenshotPlugin : Plugin<Project> {
                         .lowercase() + "_"
             }
             configureSpotlessForAndroid()
+
             dependencies {
                 val bom = libs.findLibrary("androidx-compose-bom").get()
-                "debugImplementation"(platform(bom))
-                "debugImplementation"(libs.findLibrary("roborazzi").get())
-                "debugImplementation"(libs.findLibrary("roborazzi.compose").get())
+                val roborazziCore = libs.findLibrary("roborazzi").get()
+                val roborazziCompose = libs.findLibrary("roborazzi.compose").get()
+                listOf("debugImplementation", "releaseImplementation").forEach { configuration ->
+                    add(configuration, platform(bom))
+                    add(configuration, roborazziCore)
+                    add(configuration, roborazziCompose)
+                }
                 "debugImplementation"(libs.findLibrary("robolectric").get())
-                "debugImplementation"(libs.findLibrary("androidx-compose-ui-test").get())
-                "debugImplementation"(libs.findLibrary("androidx-compose-ui-testManifest").get())
+                "debugImplementation"(libs.findLibrary("androidx.compose.ui-test").get())
+                "debugImplementation"(libs.findLibrary("androidx.compose.ui-testManifest").get())
             }
         }
     }

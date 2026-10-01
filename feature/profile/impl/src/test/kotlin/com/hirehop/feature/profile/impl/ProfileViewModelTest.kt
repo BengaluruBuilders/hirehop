@@ -7,6 +7,7 @@ import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
@@ -44,6 +45,41 @@ class ProfileViewModelTest {
     private val profileWithImportedEntry = sampleProfile.copy(
         entries = listOf(sampleEducationEntry, importedEntry),
     )
+    private val overviewProfile = CandidateProfile(
+        fullName = "Priya Deshmukh",
+        email = "priya.d@example.com",
+        phone = "+91 90000 00000",
+        headline = "B.Tech CS 2026",
+        skills = listOf("SQL", "Excel", "Power BI"),
+        entries = listOf(
+            factEntry("E-01", EntryCategory.EDUCATION, FactSource.IMPORTED, isConfirmed = true),
+            factEntry("C-01", EntryCategory.EDUCATION, FactSource.USER_STATED, isConfirmed = true),
+            factEntry("I-01", EntryCategory.EXPERIENCE, FactSource.IMPORTED, isConfirmed = true),
+            factEntry("P-02", EntryCategory.PROJECT, FactSource.IMPORTED, isConfirmed = true),
+            factEntry("K-01", EntryCategory.CERTIFICATION, FactSource.IMPORTED, isConfirmed = false),
+            factEntry("X-01", EntryCategory.ACHIEVEMENT, FactSource.USER_STATED, isConfirmed = false),
+        ),
+    )
+
+    private fun factEntry(
+        id: String,
+        category: EntryCategory,
+        source: FactSource,
+        isConfirmed: Boolean,
+    ) = ProfileEntry(
+        id = id,
+        category = category,
+        title = "Fact $id",
+        organization = "HireHop",
+        startDate = "2024",
+        endDate = "2025",
+        bullets = emptyList(),
+        source = source,
+        isConfirmed = isConfirmed,
+    )
+
+    private fun confirmedEntries(profile: CandidateProfile) =
+        profile.entries.map { it.copy(isConfirmed = true) }
 
     @Before
     fun setup() {
@@ -479,6 +515,170 @@ class ProfileViewModelTest {
         first.resetImport()
 
         assertThat(createViewModel(savedStateHandle = handle).importState.value.rawText).isEmpty()
+    }
+
+    @Test
+    fun scenario_whenLoading_keepsTheScreenLoadingEvenWithAStoredProfile() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.LOADING)
+
+        viewModel.uiState.test {
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Loading)
+        }
+    }
+
+    @Test
+    fun scenario_whenEmpty_showsTheEmptyStateEvenWithAStoredProfile() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.EMPTY)
+
+        viewModel.uiState.test {
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Empty)
+        }
+    }
+
+    @Test
+    fun scenario_whenError_showsTheFailureState() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.ERROR)
+
+        viewModel.uiState.test {
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Failure)
+        }
+    }
+
+    @Test
+    fun scenario_whenOffline_keepsEveryFactReadableAndRaisesTheOfflineBanner() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.OFFLINE)
+
+        val state = latestSuccess()
+        assertThat(state.isOffline).isTrue()
+        assertThat(state.overview.factCount).isEqualTo(9)
+        assertThat(state.overview.unconfirmedCount).isEqualTo(2)
+    }
+
+    @Test
+    fun scenario_whenDefault_showsTheStoredProfileOnline() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        val state = latestSuccess()
+
+        assertThat(state.isOffline).isFalse()
+        assertThat(state.profile).isEqualTo(overviewProfile)
+    }
+
+    @Test
+    fun scenario_partlyConfirmed_showsTheOpenItemsBanner() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.PARTLY_CONFIRMED)
+
+        val overview = latestSuccess().overview
+        assertThat(overview.unconfirmedCount).isEqualTo(2)
+        assertThat(overview.isFullyConfirmed).isFalse()
+    }
+
+    @Test
+    fun scenario_fullyConfirmed_showsNoOpenItemsBanner() = runTest {
+        repository.sendProfile(overviewProfile.copy(entries = confirmedEntries(overviewProfile)))
+
+        viewModel.selectScenario(DebugScenario.FULLY_CONFIRMED)
+
+        val overview = latestSuccess().overview
+        assertThat(overview.unconfirmedCount).isEqualTo(0)
+        assertThat(overview.isFullyConfirmed).isTrue()
+        assertThat(overview.firstUnconfirmedId).isNull()
+    }
+
+    @Test
+    fun scenario_userStated_keepsTheUserStatedCountFromTheProfile() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        viewModel.selectScenario(DebugScenario.USER_STATED)
+
+        assertThat(latestSuccess().overview.userStatedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun overview_whenNoProfileStored_isTheEmptyState() = runTest {
+        viewModel.uiState.test {
+            assertThat(expectMostRecentItem()).isEqualTo(ProfileUiState.Empty)
+        }
+    }
+
+    @Test
+    fun overview_splitsEveryFactIntoConfirmedUserStatedAndOpen() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        val overview = latestSuccess().overview
+
+        assertThat(overview.factCount).isEqualTo(9)
+        assertThat(overview.confirmedCount).isEqualTo(6)
+        assertThat(overview.userStatedCount).isEqualTo(1)
+        assertThat(overview.unconfirmedCount).isEqualTo(2)
+    }
+
+    @Test
+    fun overview_namesTheFirstFactTheCandidateHasNotConfirmed() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        assertThat(latestSuccess().overview.firstUnconfirmedId).isEqualTo("K-01")
+    }
+
+    @Test
+    fun overview_countsEverySectionAndHidesTheEmptyOnes() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        val sections = latestSuccess().overview.sections
+
+        assertThat(sections.map { it.kind to it.count }).containsExactly(
+            ProfileSectionKind.Education to 2,
+            ProfileSectionKind.Experience to 1,
+            ProfileSectionKind.Projects to 1,
+            ProfileSectionKind.Skills to 3,
+            ProfileSectionKind.Certifications to 1,
+            ProfileSectionKind.Extras to 1,
+        ).inOrder()
+    }
+
+    @Test
+    fun overview_whenAProfileHasNoFacts_hasNoSections() = runTest {
+        repository.sendProfile(overviewProfile.copy(skills = emptyList(), entries = emptyList()))
+
+        assertThat(latestSuccess().overview.sections).isEmpty()
+    }
+
+    @Test
+    fun overview_sectionMixSplitsConfirmedFromUserStated() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        val education = latestSuccess().overview.sections.first {
+            it.kind == ProfileSectionKind.Education
+        }
+
+        assertThat(education.confirmedCount).isEqualTo(2)
+        assertThat(education.userStatedCount).isEqualTo(0)
+        assertThat(education.facts.map { it.id }).containsExactly("E-01", "C-01").inOrder()
+    }
+
+    @Test
+    fun overview_headlineJoinsTheNameAndTheHeadline() = runTest {
+        repository.sendProfile(overviewProfile)
+
+        assertThat(latestSuccess().overview.headlineLine).isEqualTo("Priya Deshmukh · B.Tech CS 2026")
+    }
+
+    private suspend fun latestSuccess(): ProfileUiState.Success {
+        var state: ProfileUiState = ProfileUiState.Loading
+        viewModel.uiState.test {
+            state = expectMostRecentItem()
+        }
+        return checkNotNull(state as? ProfileUiState.Success) { "Expected a Success state" }
     }
 
     private suspend fun savedProfile(): CandidateProfile =
