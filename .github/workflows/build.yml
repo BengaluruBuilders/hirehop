@@ -138,3 +138,5 @@ jobs:
           path: |
             **/build/reports/tests/
             **/build/reports/lint-results-*.html
+            **/build/outputs/roborazzi/
+            **/build/test-results/
