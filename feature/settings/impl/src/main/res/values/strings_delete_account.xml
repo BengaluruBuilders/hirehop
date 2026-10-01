@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_settings_impl_delete_account_screen_title">Delete account</string>
+    <string name="feature_settings_impl_delete_account_back_content_description">Go back</string>
+
+    <string name="feature_settings_impl_delete_account_offline_banner">You\'re offline.</string>
+    <string name="feature_settings_impl_delete_account_offline_button_note">Deleting needs a connection.</string>
+
+    <string name="feature_settings_impl_delete_account_headline">Delete your account and all your data</string>
+    <string name="feature_settings_impl_delete_account_deletes_lead">This deletes:</string>
+    <plurals name="feature_settings_impl_delete_account_row_facts">
+        <item quantity="one">profile fact</item>
+        <item quantity="other">profile facts</item>
+    </plurals>
+    <plurals name="feature_settings_impl_delete_account_row_applications">
+        <item quantity="one">application, with its JD, analysis, resume, and notes</item>
+        <item quantity="other">applications, with their JDs, analyses, resumes, and notes</item>
+    </plurals>
+    <plurals name="feature_settings_impl_delete_account_row_credits">
+        <item quantity="one">unused credit</item>
+        <item quantity="other">unused credits</item>
+    </plurals>
+    <string name="feature_settings_impl_delete_account_not_undoable">This can\'t be undone. Your Google account itself is not affected.</string>
+    <string name="feature_settings_impl_delete_account_download_first">Download my data first</string>
+    <string name="feature_settings_impl_delete_account_web_lead">You can also delete your account on the web:</string>
+    <string name="feature_settings_impl_delete_account_web_address">Not set in this build</string>
+
+    <string name="feature_settings_impl_delete_account_keep">Keep my account</string>
+    <string name="feature_settings_impl_delete_account_confirm">Delete my account</string>
+
+    <string name="feature_settings_impl_delete_account_error_title">We couldn\'t delete your account.</string>
+    <string name="feature_settings_impl_delete_account_error_intact">It is still here, as it was. Try again, or use the web link below.</string>
+    <string name="feature_settings_impl_delete_account_error_partial">Some of your applications or facts may already be gone. Try again, or use the web link below.</string>
+
+    <string name="feature_settings_impl_delete_account_deleting_title">Deleting your account</string>
+    <string name="feature_settings_impl_delete_account_step_applications">Deleting your applications</string>
+    <string name="feature_settings_impl_delete_account_step_facts">Deleting your profile facts</string>
+    <string name="feature_settings_impl_delete_account_step_closing">Closing your account</string>
+    <string name="feature_settings_impl_delete_account_deleting_note">Keep the app open. This takes a few seconds.</string>
+
+    <string name="feature_settings_impl_delete_account_done_illustration">The document is emptied</string>
+    <string name="feature_settings_impl_delete_account_done_title">Your account and data are deleted.</string>
+    <string name="feature_settings_impl_delete_account_done_body">You can start again any time with a new account.</string>
+    <string name="feature_settings_impl_delete_account_back_to_welcome">Back to Welcome</string>
+</resources>

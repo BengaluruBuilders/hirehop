@@ -3,6 +3,7 @@ package com.hirehop.app.navigation
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.hirehop.feature.profile.api.navigation.DefaultProfileNavKey
+import com.hirehop.feature.settings.api.navigation.DefaultSettingsNavKey
 import org.junit.Test
 
 class TopLevelNavItemTest {
@@ -13,9 +14,9 @@ class TopLevelNavItemTest {
     }
 
     @Test
-    fun topLevelNavItems_areApplicationsThenProfile() {
+    fun topLevelNavItems_areApplicationsThenProfileThenSettings() {
         assertThat(TOP_LEVEL_NAV_ITEMS.keys)
-            .containsExactly(DefaultApplicationsNavKey, DefaultProfileNavKey)
+            .containsExactly(DefaultApplicationsNavKey, DefaultProfileNavKey, DefaultSettingsNavKey)
             .inOrder()
     }
 

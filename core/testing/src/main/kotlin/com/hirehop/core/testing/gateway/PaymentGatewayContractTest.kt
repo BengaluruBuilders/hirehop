@@ -202,6 +202,27 @@ abstract class PaymentGatewayContractTest {
         }
     }
 
+    @Test
+    fun clearingCreditsLeavesTheAccountWithNone() = runTest {
+        val gateway = createPaymentGateway()
+        gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
+
+        val cleared = gateway.clearCredits()
+
+        assertThat(cleared.totalCredits).isEqualTo(0)
+        assertThat(gateway.entitlement().totalCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun clearingCreditsOnAnEmptyAccountIsHarmless() = runTest {
+        val gateway = createPaymentGateway()
+
+        val cleared = gateway.clearCredits()
+
+        assertThat(cleared.totalCredits).isEqualTo(0)
+        assertThat(gateway.entitlement()).isEqualTo(cleared)
+    }
+
     private fun ApplicationPack.isSellable(): Boolean =
         id.isNotEmpty() && name.isNotEmpty() && credits > 0 && priceInPaise > 0 && currencyCode.isNotEmpty()
 

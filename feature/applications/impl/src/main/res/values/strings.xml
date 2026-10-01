@@ -2,10 +2,51 @@
 <resources>
     <string name="feature_applications_impl_loading">Loading applications</string>
     <string name="feature_applications_impl_new">New application</string>
-    <string name="feature_applications_impl_empty_message">Paste a job description to see how your profile matches it, then tailor your resume and track the application here.</string>
+
+    <string name="feature_applications_impl_empty_title">No applications yet</string>
+    <string name="feature_applications_impl_empty_message">Analyze a job description to see how your profile matches it, then tailor your resume and track the application here.</string>
     <string name="feature_applications_impl_empty_action">Analyze a job description</string>
-    <string name="feature_applications_impl_coverage">Covers %1$d of %2$d key terms</string>
+
+    <string name="feature_applications_impl_row_at">%1$s at %2$s</string>
+    <string name="feature_applications_impl_row_description">%1$s at %2$s. %3$s. %4$s %5$s.</string>
+    <string name="feature_applications_impl_coverage_short">%1$d of %2$d</string>
     <string name="feature_applications_impl_updated">Updated %1$s</string>
+    <string name="feature_applications_impl_updated_just_now">Updated just now</string>
+    <string name="feature_applications_impl_sync_pending">Waiting to sync</string>
+    <string name="feature_applications_impl_offline">You’re offline. You can read everything. Changes sync when you’re back.</string>
+
+    <plurals name="feature_applications_impl_time_minutes">
+        <item quantity="one">%1$d minute ago</item>
+        <item quantity="other">%1$d minutes ago</item>
+    </plurals>
+    <plurals name="feature_applications_impl_time_hours">
+        <item quantity="one">%1$d hour ago</item>
+        <item quantity="other">%1$d hours ago</item>
+    </plurals>
+    <plurals name="feature_applications_impl_time_days">
+        <item quantity="one">Yesterday</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    <plurals name="feature_applications_impl_time_months">
+        <item quantity="one">%1$d month ago</item>
+        <item quantity="other">%1$d months ago</item>
+    </plurals>
+
+    <string name="feature_applications_impl_credit_free">free</string>
+    <plurals name="feature_applications_impl_credit_line_free">
+        <item quantity="one">%1$d free</item>
+        <item quantity="other">%1$d free</item>
+    </plurals>
+    <plurals name="feature_applications_impl_credit_line_left">
+        <item quantity="one">%1$d left</item>
+        <item quantity="other">%1$d left</item>
+    </plurals>
+    <string name="feature_applications_impl_credit_left">left</string>
+    <plurals name="feature_applications_impl_coverage_phrase">
+        <item quantity="one">Covers %1$d of %2$d key term</item>
+        <item quantity="other">Covers %1$d of %2$d key terms</item>
+    </plurals>
+
 
     <string name="feature_applications_impl_status_saved">Saved</string>
     <string name="feature_applications_impl_status_applied">Applied</string>
@@ -13,26 +54,88 @@
     <string name="feature_applications_impl_status_offer">Offer</string>
     <string name="feature_applications_impl_status_rejected">Rejected</string>
     <string name="feature_applications_impl_status_no_response">No response</string>
+    <string name="feature_applications_impl_status_chip_description">Status: %1$s. Double tap to change.</string>
 
-    <string name="feature_applications_impl_detail_back">Back</string>
-    <string name="feature_applications_impl_detail_delete">Delete</string>
-    <string name="feature_applications_impl_detail_not_found">This application no longer exists.</string>
-    <string name="feature_applications_impl_detail_gap_heading">Match summary</string>
-    <string name="feature_applications_impl_detail_gap_unavailable">No gap analysis is saved for this application.</string>
-    <string name="feature_applications_impl_detail_met">Met</string>
-    <string name="feature_applications_impl_detail_partial">Partial</string>
-    <string name="feature_applications_impl_detail_gaps">Gaps</string>
-    <string name="feature_applications_impl_detail_must_have_gaps">Must-have gaps</string>
-    <string name="feature_applications_impl_detail_resume_heading">Tailored resume</string>
-    <string name="feature_applications_impl_detail_resume_progress">%1$d of %2$d changes reviewed</string>
-    <string name="feature_applications_impl_detail_resume_no_changes">The tailored resume has no changes to review.</string>
-    <string name="feature_applications_impl_detail_resume_unavailable">No tailored resume is saved for this application.</string>
-    <string name="feature_applications_impl_detail_review_resume">Review tailored resume</string>
-    <string name="feature_applications_impl_detail_status_heading">Status</string>
-    <string name="feature_applications_impl_detail_notes_heading">Notes</string>
-    <string name="feature_applications_impl_detail_notes_label">Your notes</string>
-    <string name="feature_applications_impl_detail_delete_title">Delete this application?</string>
-    <string name="feature_applications_impl_detail_delete_message">This removes the application, its match summary, and its tailored resume from this device.</string>
-    <string name="feature_applications_impl_detail_delete_confirm">Delete</string>
-    <string name="feature_applications_impl_detail_delete_cancel">Cancel</string>
+    <string name="feature_applications_impl_sheet_save">Save status</string>
+    <string name="feature_applications_impl_sheet_cancel">Cancel</string>
+    <string name="feature_applications_impl_sheet_eyebrow">Application status</string>
+    <string name="feature_applications_impl_sheet_title">Status</string>
+    <string name="feature_applications_impl_sheet_note">Changing the status moves this application to the top of your list.</string>
+    <string name="feature_applications_impl_sheet_option_description">%1$s. %2$s of %3$s.</string>
+    <string name="feature_applications_impl_sheet_option_position">Option %1$d</string>
+    <string name="feature_applications_impl_status_saved_message">Status set to %1$s.</string>
+    <string name="feature_applications_impl_status_undo">Undo</string>
+
+    <string name="feature_applications_impl_workspace_back">Back</string>
+    <string name="feature_applications_impl_workspace_more">More</string>
+    <string name="feature_applications_impl_workspace_delete">Delete this application</string>
+    <string name="feature_applications_impl_workspace_missing">This application is no longer here.</string>
+    <string name="feature_applications_impl_workspace_gap_heading">Gap analysis</string>
+    <string name="feature_applications_impl_workspace_gap_unavailable">No gap analysis is saved for this application.</string>
+    <string name="feature_applications_impl_workspace_gap_met">met</string>
+    <string name="feature_applications_impl_workspace_gap_partial">partial</string>
+    <plurals name="feature_applications_impl_workspace_gap_description">
+        <item quantity="one">%1$s. %2$d met, %3$d partial, %4$d gap.</item>
+        <item quantity="other">%1$s. %2$d met, %3$d partial, %4$d gaps.</item>
+    </plurals>
+    <string name="feature_applications_impl_workspace_gap_gap">gaps</string>
+
+    <string name="feature_applications_impl_workspace_jd_heading">Job description</string>
+    <string name="feature_applications_impl_workspace_jd_show">Tap to read the job description</string>
+    <string name="feature_applications_impl_workspace_jd_hide">Hide the job description</string>
+
+    <string name="feature_applications_impl_workspace_resume_heading">Tailored resume</string>
+    <string name="feature_applications_impl_workspace_resume_absent">No tailored resume is saved for this application.</string>
+    <string name="feature_applications_impl_workspace_resume_not_exported">Not exported yet</string>
+    <string name="feature_applications_impl_workspace_resume_exported">Exported</string>
+    <string name="feature_applications_impl_workspace_resume_preview">Open the export preview</string>
+    <string name="feature_applications_impl_workspace_resume_share">Share</string>
+    <string name="feature_applications_impl_workspace_resume_share_again">Share again</string>
+    <string name="feature_applications_impl_workspace_resume_review">Review the tailored resume</string>
+
+    <string name="feature_applications_impl_workspace_tasks_heading">Prep tasks</string>
+    <string name="feature_applications_impl_workspace_tasks_none">Every key term in this job description is already covered by your profile.</string>
+    <string name="feature_applications_impl_workspace_task_source">From gap · %1$s</string>
+    <string name="feature_applications_impl_priority_must_have">must have</string>
+    <string name="feature_applications_impl_priority_nice_to_have">nice to have</string>
+    <string name="feature_applications_impl_workspace_task_done">Done</string>
+    <string name="feature_applications_impl_workspace_task_not_done">Not done yet</string>
+    <string name="feature_applications_impl_workspace_task_mark_done">Mark as done</string>
+    <string name="feature_applications_impl_workspace_task_mark_not_done">Mark as not done</string>
+    <string name="feature_applications_impl_workspace_task_report">Report inaccurate content</string>
+    <string name="feature_applications_impl_workspace_task_reported">Thanks. We’ll look at it.</string>
+    <string name="feature_applications_impl_workspace_task_description">%1$s. %2$s. %3$s</string>
+
+    <string name="feature_applications_impl_workspace_questions_open">Open the prep questions</string>
+    <string name="feature_applications_impl_workspace_letter_open">Open the cover letter</string>
+
+    <string name="feature_applications_impl_workspace_notes_heading">Notes</string>
+    <string name="feature_applications_impl_workspace_notes_label">Your notes</string>
+    <string name="feature_applications_impl_workspace_notes_placeholder">Anything you want to remember about this application</string>
+    <string name="feature_applications_impl_workspace_notes_saving">Saving</string>
+    <string name="feature_applications_impl_workspace_notes_saved_just_now">Saved · just now</string>
+    <string name="feature_applications_impl_workspace_notes_saved">Saved</string>
+
+    <string name="feature_applications_impl_delete_title">Delete %1$s · %2$s?</string>
+    <string name="feature_applications_impl_delete_keep">Keep application</string>
+    <string name="feature_applications_impl_delete_confirm">Delete application</string>
+    <string name="feature_applications_impl_delete_scope_jd">the JD text</string>
+    <string name="feature_applications_impl_delete_scope_gap">the gap analysis</string>
+    <string name="feature_applications_impl_delete_scope_resume">the tailored resume</string>
+    <string name="feature_applications_impl_delete_scope_letter">the cover letter</string>
+    <string name="feature_applications_impl_delete_scope_notes">your notes</string>
+    <string name="feature_applications_impl_delete_scope_none">nothing else</string>
+    <string name="feature_applications_impl_delete_scope_separator_and">" and "</string>
+    <plurals name="feature_applications_impl_delete_scope_tasks">
+        <item quantity="one">1 prep task</item>
+        <item quantity="other">%1$d prep tasks</item>
+    </plurals>
+    <plurals name="feature_applications_impl_delete_scope_questions">
+        <item quantity="one">1 prep question</item>
+        <item quantity="other">%1$d prep questions</item>
+    </plurals>
+    <plurals name="feature_applications_impl_delete_note">
+        <item quantity="one">Your %1$d profile fact stays. Files you already shared don’t change.</item>
+        <item quantity="other">Your %1$d profile facts stay. Files you already shared don’t change.</item>
+    </plurals>
 </resources>

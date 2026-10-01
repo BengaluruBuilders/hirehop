@@ -73,6 +73,13 @@ class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
     private fun purchasedCredits(): Int =
         (confirmedPackIds.sumOf { id -> creditsOf(id) } - spentPurchasedCredits).coerceAtLeast(0)
 
+    override suspend fun clearCredits(): PurchaseEntitlement = mutex.withLock {
+        freeCredits = 0
+        spentPurchasedCredits = confirmedPackIds.sumOf { id -> creditsOf(id) }
+        pendingPackIds.clear()
+        currentEntitlement()
+    }
+
     private fun outcomeFor(packId: String): PurchaseOutcome = scriptedOutcomes[packId] ?: PurchaseOutcome.Success
 
     private fun confirm(pack: ApplicationPack): PurchaseResult {

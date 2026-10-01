@@ -3,38 +3,139 @@ package com.hirehop.feature.applications.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.JobApplication
+import com.hirehop.core.model.KeywordCoverage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ApplicationsViewModel @Inject constructor(
-    applicationRepository: ApplicationRepository,
+    private val applicationRepository: ApplicationRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<ApplicationsUiState> = applicationRepository
-        .observeApplications()
-        .map(::toUiState)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ApplicationsUiState.Loading,
-        )
+    private val scenario = MutableStateFlow(DebugScenario.defaultValue)
 
-    private fun toUiState(applications: List<JobApplication>): ApplicationsUiState =
-        if (applications.isEmpty()) {
-            ApplicationsUiState.Empty
-        } else {
-            ApplicationsUiState.Success(applications.sortedByDescending { it.updatedAt })
+    private val presentation = MutableStateFlow(ApplicationsPresentation())
+
+    private val applications = MutableStateFlow<List<JobApplication>>(emptyList())
+
+    val uiState: StateFlow<ApplicationsUiState> = combine(
+        applicationRepository.observeApplications().onEach { latest -> applications.value = latest },
+        scenario,
+        presentation,
+    ) { latest, activeScenario, presentationState ->
+        toUiState(applications = latest, scenario = activeScenario, presentation = presentationState)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ApplicationsUiState.Loading,
+    )
+
+    fun onEnter(key: DebugScenario) {
+        scenario.value = key
+    }
+
+    fun onAction(action: ApplicationsAction) {
+        when (action) {
+            is ApplicationsAction.ApplicationChosen -> Unit
+            ApplicationsAction.NewApplicationChosen -> Unit
+            is ApplicationsAction.StatusChipChosen -> openStatusSheet(action.id)
+            ApplicationsAction.StatusSheetDismissed -> closeStatusSheet()
+            is ApplicationsAction.StatusChosen -> confirmStatus(action.status)
+            ApplicationsAction.StatusUndoChosen -> undoStatus()
+            ApplicationsAction.MessageDismissed -> dismissMessage()
         }
+    }
+
+    private fun openStatusSheet(id: String) {
+        val current = applications.value.firstOrNull { application -> application.id == id } ?: return
+        presentation.value = presentation.value.copy(
+            statusSheet = ApplicationStatusSheetState(rowId = current.id, current = current.status),
+            message = null,
+        )
+    }
+
+    private fun closeStatusSheet() {
+        presentation.value = presentation.value.copy(statusSheet = null)
+    }
+
+    private fun confirmStatus(status: ApplicationStatus) {
+        val sheet = presentation.value.statusSheet ?: return
+        presentation.value = presentation.value.copy(
+            statusSheet = null,
+            message = ApplicationStatusMessage(status = status, canUndo = true),
+            undoTarget = UndoTarget(applicationId = sheet.rowId, status = sheet.current),
+        )
+        viewModelScope.launch { applicationRepository.updateStatus(sheet.rowId, status) }
+    }
+
+    private fun undoStatus() {
+        val undo = presentation.value.undoTarget ?: return
+        presentation.value = presentation.value.copy(message = null, undoTarget = null)
+        viewModelScope.launch { applicationRepository.updateStatus(undo.applicationId, undo.status) }
+    }
+
+    private fun dismissMessage() {
+        presentation.value = presentation.value.copy(message = null, undoTarget = null)
+    }
+
+    private fun toUiState(
+        applications: List<JobApplication>,
+        scenario: DebugScenario,
+        presentation: ApplicationsPresentation,
+    ): ApplicationsUiState {
+        if (applications.isEmpty()) return ApplicationsUiState.Empty
+        val pendingId = applications
+            .filter { application -> scenario == DebugScenario.PENDING }
+            .maxByOrNull { application -> application.updatedAt }
+            ?.id
+        val rows = applications
+            .map { application ->
+                application.toListRow(isSyncPending = application.id == pendingId)
+            }
+            .sortedWith(
+                compareByDescending<ApplicationListRow> { row -> row.isSyncPending }
+                    .thenByDescending { row -> row.updatedAt },
+            )
+        return ApplicationsUiState.Applications(
+            rows = rows,
+            isOffline = scenario == DebugScenario.OFFLINE,
+            statusSheet = presentation.statusSheet,
+            message = presentation.message,
+        )
+    }
+
+    private fun JobApplication.toListRow(isSyncPending: Boolean): ApplicationListRow = ApplicationListRow(
+        id = id,
+        role = job.title,
+        company = job.company,
+        status = status,
+        coverage = gapAnalysis?.keywordCoverage ?: EMPTY_COVERAGE,
+        updatedAt = updatedAt,
+        isSyncPending = isSyncPending,
+    )
+
+    private companion object {
+        val EMPTY_COVERAGE = KeywordCoverage(covered = 0, total = 0)
+    }
 }
 
-sealed interface ApplicationsUiState {
-    data object Loading : ApplicationsUiState
-    data object Empty : ApplicationsUiState
-    data class Success(val items: List<JobApplication>) : ApplicationsUiState
-}
+private data class ApplicationsPresentation(
+    val statusSheet: ApplicationStatusSheetState? = null,
+    val message: ApplicationStatusMessage? = null,
+    val undoTarget: UndoTarget? = null,
+)
+
+private data class UndoTarget(
+    val applicationId: String,
+    val status: ApplicationStatus,
+)

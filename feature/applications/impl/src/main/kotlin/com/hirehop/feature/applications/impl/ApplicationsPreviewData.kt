@@ -1,107 +1,79 @@
 package com.hirehop.feature.applications.impl
 
 import com.hirehop.core.model.ApplicationStatus
-import com.hirehop.core.model.BulletDecision
-import com.hirehop.core.model.EditType
-import com.hirehop.core.model.GapAnalysis
-import com.hirehop.core.model.JobApplication
-import com.hirehop.core.model.JobDescription
-import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
-import com.hirehop.core.model.MatchStatus
-import com.hirehop.core.model.RequirementMatch
-import com.hirehop.core.model.RequirementPriority
-import com.hirehop.core.model.RequirementType
-import com.hirehop.core.model.TailoredBullet
-import com.hirehop.core.model.TailoredResume
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Instant
 
-private fun previewRequirement(id: String, text: String, priority: RequirementPriority) =
-    JobRequirement(
-        id = id,
-        text = text,
-        type = RequirementType.SKILL,
-        priority = priority,
-        keywords = listOf(text.lowercase()),
-    )
+internal val PREVIEW_INSTANT: Instant = Instant.fromEpochSeconds(1_773_158_400L)
 
-private fun previewBullet(id: String, decision: BulletDecision) = TailoredBullet(
-    id = id,
-    entryId = "entry-1",
-    originalText = "Built the checkout screen",
-    proposedText = "Built the checkout screen with Jetpack Compose",
-    sourceIds = listOf("bullet-1"),
-    editTypes = listOf(EditType.REWORD),
-    keywordsUsed = listOf("jetpack compose"),
-    violations = emptyList(),
-    decision = decision,
+internal const val NORTHWIND_ROLE = "Associate Analyst"
+internal const val NORTHWIND_COMPANY = "Northwind GCC"
+internal const val PAISA_ROLE = "Data Analyst Intern"
+internal const val PAISA_COMPANY = "Paisa Ledger (start-up)"
+internal const val SAHYADRI_ROLE = "Graduate Engineer Trainee"
+internal const val SAHYADRI_COMPANY = "Sahyadri Motors"
+internal const val MERIDIAN_ROLE = "Business Analyst"
+internal const val MERIDIAN_COMPANY = "Meridian GCC"
+
+internal fun previewNorthwindRow(
+    isSyncPending: Boolean = false,
+    updatedAt: Instant = PREVIEW_INSTANT - 2.hours,
+) = ApplicationListRow(
+    id = "application-northwind-1",
+    role = NORTHWIND_ROLE,
+    company = NORTHWIND_COMPANY,
+    status = ApplicationStatus.APPLIED,
+    coverage = KeywordCoverage(covered = 9, total = 14),
+    updatedAt = updatedAt,
+    isSyncPending = isSyncPending,
 )
 
-private fun previewGapAnalysis() = GapAnalysis(
-    matches = listOf(
-        RequirementMatch(
-            requirement = previewRequirement("r1", "Kotlin", RequirementPriority.MUST_HAVE),
-            status = MatchStatus.MET,
-            evidenceIds = listOf("bullet-1"),
-        ),
-        RequirementMatch(
-            requirement = previewRequirement("r2", "Jetpack Compose", RequirementPriority.MUST_HAVE),
-            status = MatchStatus.PARTIAL,
-            evidenceIds = listOf("bullet-2"),
-        ),
-        RequirementMatch(
-            requirement = previewRequirement("r3", "GraphQL", RequirementPriority.MUST_HAVE),
-            status = MatchStatus.GAP,
-            evidenceIds = emptyList(),
-        ),
-        RequirementMatch(
-            requirement = previewRequirement("r4", "Firebase", RequirementPriority.NICE_TO_HAVE),
-            status = MatchStatus.GAP,
-            evidenceIds = emptyList(),
-        ),
-    ),
-    keywordCoverage = KeywordCoverage(covered = 6, total = 10),
+internal fun previewPaisaRow() = ApplicationListRow(
+    id = "application-paisa-2",
+    role = PAISA_ROLE,
+    company = PAISA_COMPANY,
+    status = ApplicationStatus.INTERVIEW,
+    coverage = KeywordCoverage(covered = 11, total = 13),
+    updatedAt = PREVIEW_INSTANT - 1.days,
+    isSyncPending = false,
 )
 
-internal fun previewApplication(
-    id: String = "app-1",
-    title: String = "Android Engineer",
-    company: String = "Acme Labs",
-    status: ApplicationStatus = ApplicationStatus.APPLIED,
-): JobApplication {
-    val now = Clock.System.now()
-    return JobApplication(
-        id = id,
-        job = JobDescription(title = title, company = company, rawText = "", requirements = emptyList()),
-        status = status,
-        notes = "Recruiter call on Friday.",
-        gapAnalysis = previewGapAnalysis(),
-        tailoredResume = TailoredResume(
-            bullets = listOf(
-                previewBullet("b1", BulletDecision.ACCEPTED),
-                previewBullet("b2", BulletDecision.PENDING),
-                previewBullet("b3", BulletDecision.REJECTED),
-            ),
-        ),
-        createdAt = now - 3.days,
-        updatedAt = now - 2.hours,
-    )
-}
+internal fun previewSahyadriRow() = ApplicationListRow(
+    id = "application-sahyadri-3",
+    role = SAHYADRI_ROLE,
+    company = SAHYADRI_COMPANY,
+    status = ApplicationStatus.SAVED,
+    coverage = KeywordCoverage(covered = 6, total = 12),
+    updatedAt = PREVIEW_INSTANT - 3.days,
+    isSyncPending = false,
+)
 
-internal fun previewApplications(): List<JobApplication> = listOf(
-    previewApplication(),
-    previewApplication(
-        id = "app-2",
-        title = "Senior Mobile Developer",
-        company = "Northwind",
-        status = ApplicationStatus.INTERVIEW,
-    ),
-    previewApplication(
-        id = "app-3",
-        title = "Kotlin Backend Engineer",
-        company = "Globex",
-        status = ApplicationStatus.SAVED,
-    ),
+internal fun previewMeridianRow() = ApplicationListRow(
+    id = "application-meridian-4",
+    role = MERIDIAN_ROLE,
+    company = MERIDIAN_COMPANY,
+    status = ApplicationStatus.NO_RESPONSE,
+    coverage = KeywordCoverage(covered = 8, total = 15),
+    updatedAt = PREVIEW_INSTANT - 12.days,
+    isSyncPending = false,
+)
+
+internal fun previewListRows() = listOf(
+    previewNorthwindRow(),
+    previewPaisaRow(),
+    previewSahyadriRow(),
+    previewMeridianRow(),
+)
+
+internal fun previewListState(
+    isOffline: Boolean = false,
+    statusSheet: ApplicationStatusSheetState? = null,
+    message: ApplicationStatusMessage? = null,
+) = ApplicationsUiState.Applications(
+    rows = previewListRows(),
+    isOffline = isOffline,
+    statusSheet = statusSheet,
+    message = message,
 )

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_settings_impl_your_data_screen_title">Your data</string>
+    <string name="feature_settings_impl_your_data_navigation_back_content_description">Go back</string>
+    <string name="feature_settings_impl_your_data_offline_message">You\'re offline. You can see everything HireHop holds.</string>
+
+    <string name="feature_settings_impl_your_data_headline">What HireHop holds about you</string>
+    <string name="feature_settings_impl_your_data_subhead">Everything kept for your account, counted.</string>
+
+    <string name="feature_settings_impl_your_data_ledger_profile">Profile</string>
+    <string name="feature_settings_impl_your_data_ledger_applications">Applications</string>
+    <string name="feature_settings_impl_your_data_ledger_purchases">Purchases</string>
+    <string name="feature_settings_impl_your_data_ledger_uploaded_resume">Uploaded resume</string>
+
+    <string name="feature_settings_impl_your_data_unit_facts">facts</string>
+    <string name="feature_settings_impl_your_data_unit_files">files</string>
+
+    <string name="feature_settings_impl_your_data_profile_sub">Facts you confirmed: %1$d · Facts you stated: %2$d</string>
+    <string name="feature_settings_impl_your_data_applications_sub">Each one has its JD text, gap analysis, and tailored resume.</string>
+    <plurals name="feature_settings_impl_your_data_purchases_recorded">
+        <item quantity="one">%1$d purchase recorded on this device.</item>
+        <item quantity="other">%1$d purchases recorded on this device.</item>
+    </plurals>
+    <string name="feature_settings_impl_your_data_purchases_none">No purchases are recorded on this device.</string>
+    <string name="feature_settings_impl_your_data_purchases_no_payment">This build takes no payment. No money was charged, so there is no receipt, no order date, and no store account.</string>
+    <plurals name="feature_settings_impl_your_data_purchased_credits">
+        <item quantity="one">%1$d purchased credit is on this device.</item>
+        <item quantity="other">%1$d purchased credits are on this device.</item>
+    </plurals>
+    <string name="feature_settings_impl_your_data_uploaded_resume_sub">Deleted after reading. None is kept.</string>
+
+    <string name="feature_settings_impl_your_data_action_view">View</string>
+    <string name="feature_settings_impl_your_data_action_correct">Correct</string>
+    <string name="feature_settings_impl_your_data_action_delete">Delete</string>
+
+    <string name="feature_settings_impl_your_data_application_item">%1$s · %2$s</string>
+    <string name="feature_settings_impl_your_data_application_item_talkback">%1$s at %2$s</string>
+
+    <string name="feature_settings_impl_your_data_export_idle_note">One file with everything listed above.</string>
+    <string name="feature_settings_impl_your_data_export_action">Download all my data</string>
+    <string name="feature_settings_impl_your_data_export_offline_note">Downloading your data needs a connection.</string>
+    <string name="feature_settings_impl_your_data_export_preparing_title">Preparing your file</string>
+    <string name="feature_settings_impl_your_data_export_preparing_note">You can leave this screen. We\'ll keep going.</string>
+    <string name="feature_settings_impl_your_data_export_ready_note">One file is ready. The share sheet opens next.</string>
+    <string name="feature_settings_impl_your_data_export_share_metadata">Your HireHop data · ZIP</string>
+    <string name="feature_settings_impl_your_data_export_share_action">Share</string>
+    <string name="feature_settings_impl_your_data_export_step_facts">Collecting your profile facts</string>
+    <plurals name="feature_settings_impl_your_data_export_step_applications">
+        <item quantity="one">Adding your %1$d application</item>
+        <item quantity="other">Adding your %1$d applications</item>
+    </plurals>
+    <string name="feature_settings_impl_your_data_export_step_packing">Packing one file</string>
+    <string name="feature_settings_impl_your_data_export_file_label">File</string>
+
+    <string name="feature_settings_impl_your_data_delete_dialog_title">Delete %1$s?</string>
+    <string name="feature_settings_impl_your_data_delete_dialog_body">This deletes the JD text, the gap analysis, and the tailored resume for this application.</string>
+    <plurals name="feature_settings_impl_your_data_delete_dialog_note">
+        <item quantity="one">Your %1$d profile fact stays. Files you already shared do not change.</item>
+        <item quantity="other">Your %1$d profile facts stay. Files you already shared do not change.</item>
+    </plurals>
+    <string name="feature_settings_impl_your_data_delete_dialog_keep">Keep application</string>
+    <string name="feature_settings_impl_your_data_delete_dialog_confirm">Delete application</string>
+    <string name="feature_settings_impl_your_data_share_subject">Your HireHop data</string>
+    <string name="feature_settings_impl_your_data_share_chooser">Share your HireHop data</string>
+</resources>
