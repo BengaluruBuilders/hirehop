@@ -8,4 +8,6 @@ interface PaymentGateway {
     suspend fun entitlement(): PurchaseEntitlement
 
     suspend fun restorePurchases(): PurchaseEntitlement
+
+    suspend fun consumeCredit(): CreditSpend
 }

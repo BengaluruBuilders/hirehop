@@ -31,6 +31,9 @@ fun signInStateFor(scenario: DebugScenario): SignInUiState = when (scenario) {
     DebugScenario.DELETING,
     DebugScenario.EXPORTING,
     DebugScenario.PURCHASED,
+    DebugScenario.PENDING,
+    DebugScenario.CANCELLED,
+    DebugScenario.RESTORED,
     -> SignInUiState()
 
     DebugScenario.LOADING -> SignInUiState(

@@ -1,6 +1,7 @@
 package com.hirehop.core.domain.offline
 
 import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
@@ -19,6 +20,7 @@ class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
     private val confirmedPackIds = mutableListOf<String>()
     private val pendingPackIds = mutableListOf<String>()
     private var freeCredits: Int = DEFAULT_FREE_CREDITS
+    private var spentPurchasedCredits: Int = 0
     private var failureReason: PurchaseFailureReason = PurchaseFailureReason.PaymentUnavailable
 
     fun withOutcome(
@@ -52,6 +54,25 @@ class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
 
     override suspend fun restorePurchases(): PurchaseEntitlement = mutex.withLock { currentEntitlement() }
 
+    override suspend fun consumeCredit(): CreditSpend = mutex.withLock {
+        when {
+            freeCredits > 0 -> {
+                freeCredits -= 1
+                CreditSpend.Spent(currentEntitlement())
+            }
+
+            purchasedCredits() > 0 -> {
+                spentPurchasedCredits += 1
+                CreditSpend.Spent(currentEntitlement())
+            }
+
+            else -> CreditSpend.NoCreditLeft
+        }
+    }
+
+    private fun purchasedCredits(): Int =
+        (confirmedPackIds.sumOf { id -> creditsOf(id) } - spentPurchasedCredits).coerceAtLeast(0)
+
     private fun outcomeFor(packId: String): PurchaseOutcome = scriptedOutcomes[packId] ?: PurchaseOutcome.Success
 
     private fun confirm(pack: ApplicationPack): PurchaseResult {
@@ -67,7 +88,7 @@ class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
 
     private fun currentEntitlement(): PurchaseEntitlement = PurchaseEntitlement(
         freeCredits = freeCredits,
-        purchasedCredits = confirmedPackIds.sumOf { id -> creditsOf(id) },
+        purchasedCredits = purchasedCredits(),
         pendingPackIds = pendingPackIds.toList(),
     )
 
