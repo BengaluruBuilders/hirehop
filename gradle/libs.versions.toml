@@ -23,6 +23,7 @@ kover = "0.9.11"
 ksp = "2.3.12"
 ktlint = "1.4.0"
 roborazzi = "1.56.0"
+differ = "0.3.0"
 robolectric = "4.16"
 room = "2.8.3"
 spotless = "8.10.3"
@@ -75,6 +76,7 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-plugin = { group = "io.github.takahirom.roborazzi", name = "roborazzi-gradle-plugin", version.ref = "roborazzi" }
+differ = { group = "com.dropbox.differ", name = "differ", version.ref = "differ" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
