@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
-import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDraft
 import com.hirehop.core.domain.fact.FactDraftErrorReason
@@ -18,6 +17,7 @@ import com.hirehop.core.screenshot.HH_THEME_LIGHT
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureForDevices
 import com.hirehop.core.screenshot.captureMultiTheme
+import com.hirehop.core.screenshot.captureScreenHh
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -112,7 +112,7 @@ class FactEditorScreenshotTest {
 
     @OptIn(ExperimentalRoborazziApi::class)
     private fun captureDialogTheme(dark: Boolean) {
-        captureScreenRoboImage(
+        captureScreenHh(
             File(SCREENSHOT_DIRECTORY, "fact_editor_delete_dialog_board_${themeName(dark)}.png").path,
         )
     }
