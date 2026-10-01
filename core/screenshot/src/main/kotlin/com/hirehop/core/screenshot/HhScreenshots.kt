@@ -51,6 +51,11 @@ private fun hhRoborazziOptions(): RoborazziOptions = RoborazziOptions(
     ),
 )
 
+@OptIn(ExperimentalRoborazziApi::class)
+fun captureScreenHh(filePath: String) {
+    captureScreenRoboImage(filePath, hhRoborazziOptions())
+}
+
 fun HhTestDevice.imageFileName(
     screenName: String,
     theme: String,
