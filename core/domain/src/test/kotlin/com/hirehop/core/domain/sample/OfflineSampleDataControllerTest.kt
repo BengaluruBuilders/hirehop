@@ -71,7 +71,7 @@ class OfflineSampleDataControllerTest : SampleDataControllerContractTest() {
             assertThat(application.job.requirements).isNotEmpty()
             assertThat(application.gapAnalysis?.matches).isNotEmpty()
             assertThat(application.tailoredResume?.bullets).isNotEmpty()
-            assertThat(application.tailoredResume!!.bullets.all { it.sourceIds.isNotEmpty() }).isTrue()
+            assertThat(checkNotNull(application.tailoredResume).bullets.all { it.sourceIds.isNotEmpty() }).isTrue()
         }
     }
 
@@ -79,9 +79,9 @@ class OfflineSampleDataControllerTest : SampleDataControllerContractTest() {
     fun theNorthwindApplicationIsFullyReviewedAndTheParsiLedgerOneIsPartlyReviewed() = runTest {
         val loaded = loaded()
 
-        val northwind = loaded.getValue("sample-northwind-associate-analyst").tailoredResume!!.bullets
-        val paisa = loaded.getValue("sample-paisa-ledger-data-analyst-intern").tailoredResume!!.bullets
-        val sahyadri = loaded.getValue("sample-sahyadri-motors-graduate-engineer-trainee").tailoredResume!!.bullets
+        val northwind = checkNotNull(loaded.getValue("sample-northwind-associate-analyst").tailoredResume).bullets
+        val paisa = checkNotNull(loaded.getValue("sample-paisa-ledger-data-analyst-intern").tailoredResume).bullets
+        val sahyadri = checkNotNull(loaded.getValue("sample-sahyadri-motors-graduate-engineer-trainee").tailoredResume).bullets
 
         assertThat(northwind.none { it.decision == BulletDecision.PENDING }).isTrue()
         assertThat(paisa.any { it.decision == BulletDecision.PENDING }).isTrue()
@@ -115,7 +115,7 @@ class OfflineSampleDataControllerTest : SampleDataControllerContractTest() {
     fun theProfileIsPriyaDeshmukhWithOnlyConfirmedFacts() = runTest {
         controller.load()
 
-        val profile = profiles.observeProfile().first()!!
+        val profile = checkNotNull(profiles.observeProfile().first())
 
         assertThat(profile.fullName).isEqualTo("Priya Deshmukh")
         assertThat(profile.entries.all { it.isConfirmed }).isTrue()
