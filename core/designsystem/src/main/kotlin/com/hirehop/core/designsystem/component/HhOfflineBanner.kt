@@ -26,10 +26,21 @@ fun HhOfflineBanner(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
-    if (!visible) return
+    HhVisibility(visible = visible, modifier = modifier, rise = true) {
+        HhOfflineBannerBody(message, supportingText, actionLabel, onAction)
+    }
+}
+
+@Composable
+private fun HhOfflineBannerBody(
+    message: String,
+    supportingText: String?,
+    actionLabel: String?,
+    onAction: (() -> Unit)?,
+) {
     val colors = HhTheme.colors
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = HhTheme.shapes.banner,
         color = colors.neutralContainer,
     ) {

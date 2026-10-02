@@ -1,5 +1,6 @@
 package com.hirehop.core.designsystem.component
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -27,10 +29,13 @@ fun HhCheckbox(
     enabled: Boolean = true,
 ) {
     val colors = HhTheme.colors
+    val spec = HhTheme.motion.proofSpecs.color
+    val fill by animateColorAsState(if (checked) colors.primary else colors.surface, spec, label = "hhCheckboxFill")
+    val stroke by animateColorAsState(if (checked) colors.primary else colors.outline, spec, label = "hhCheckboxStroke")
     val box = Modifier
         .size(HhSizeCheckbox)
-        .background(if (checked) colors.primary else colors.surface, HhTheme.shapes.tag)
-        .border(2.dp, if (checked) colors.primary else colors.outline, HhTheme.shapes.tag)
+        .background(fill, HhTheme.shapes.tag)
+        .border(2.dp, stroke, HhTheme.shapes.tag)
     Box(
         modifier = modifier
             .size(HhHeightTouch)

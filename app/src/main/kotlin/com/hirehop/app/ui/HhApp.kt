@@ -1,15 +1,10 @@
 package com.hirehop.app.ui
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,7 +35,7 @@ import com.hirehop.core.designsystem.component.HhDockDefaults
 import com.hirehop.core.designsystem.component.HhDockIcon
 import com.hirehop.core.designsystem.component.HhDockItem
 import com.hirehop.core.designsystem.component.LocalHhBottomInset
-import com.hirehop.core.designsystem.theme.HhProofSpecs
+import com.hirehop.core.designsystem.component.rememberHhNavTransitions
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.navigation.NavigationState
 import com.hirehop.core.navigation.Navigator
@@ -175,39 +170,21 @@ private fun HhNavDisplay(
     val entryProvider = remember(navigator, dockInset) {
         withDockInset(sharedEntryProvider(navigator), dockInset)
     }
-    val motion = HhTheme.motion.proofSpecs
+    val transitions = rememberHhNavTransitions()
     Box(modifier = modifier) {
         NavDisplay(
             entries = navigationState.toEntries(entryProvider),
             onBack = { navigator.goBack() },
-            transitionSpec = { hhContentTransform(motion, pop = false) },
-            popTransitionSpec = { hhContentTransform(motion, pop = true) },
-            predictivePopTransitionSpec = { hhContentTransform(motion, pop = true) },
+            transitionSpec = { transitions.forward(this, hierarchical = !targetState.isTopLevel()) },
+            popTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
+            predictivePopTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
         )
     }
 }
 
-private fun AnimatedContentTransitionScope<Scene<NavKey>>.hhContentTransform(
-    motion: HhProofSpecs,
-    pop: Boolean,
-): ContentTransform = when {
-    initialState.isTopLevel() && targetState.isTopLevel() ->
-        fadeIn(motion.fade) + scaleIn(motion.spatial, initialScale = TAB_ENTER_SCALE) togetherWith
-            fadeOut(motion.fade)
-    pop ->
-        slideIntoContainer(SlideDirection.End, motion.offset) { it / UNDERLAY_SLIDE_DIVISOR } togetherWith
-            slideOutOfContainer(SlideDirection.End, motion.offset)
-    else ->
-        slideIntoContainer(SlideDirection.Start, motion.offset) togetherWith
-            slideOutOfContainer(SlideDirection.Start, motion.offset) { it / UNDERLAY_SLIDE_DIVISOR }
-}
+private fun Scene<NavKey>.isTopLevel(): Boolean = metadata[TOP_LEVEL_METADATA] == true
 
-private fun Scene<NavKey>.isTopLevel(): Boolean =
-    entries.lastOrNull()?.metadata?.containsKey(TOP_LEVEL_METADATA_KEY) == true
-
-private const val TOP_LEVEL_METADATA_KEY = "hhTopLevel"
-private const val TAB_ENTER_SCALE = 0.98f
-private const val UNDERLAY_SLIDE_DIVISOR = 4
+private const val TOP_LEVEL_METADATA = "hhTopLevel"
 
 private fun sharedEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey> =
     entryProvider {
@@ -226,9 +203,8 @@ private fun withDockInset(
 ): (NavKey) -> NavEntry<NavKey> = { key ->
     val entry = provider(key)
     val topLevel = key.isTopLevelDestination()
-    val inset = if (topLevel) dockInset else 0.dp
-    val metadata = if (topLevel) entry.metadata + (TOP_LEVEL_METADATA_KEY to true) else entry.metadata
+    val metadata = entry.metadata + (TOP_LEVEL_METADATA to topLevel)
     NavEntry(key = key, contentKey = entry.contentKey, metadata = metadata) {
-        CompositionLocalProvider(LocalHhBottomInset provides inset) { entry.Content() }
+        CompositionLocalProvider(LocalHhBottomInset provides if (topLevel) dockInset else 0.dp) { entry.Content() }
     }
 }

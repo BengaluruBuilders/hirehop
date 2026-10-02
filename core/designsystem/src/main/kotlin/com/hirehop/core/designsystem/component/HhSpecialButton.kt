@@ -1,6 +1,7 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,12 +27,14 @@ fun HhSpecialButton(
     modifier: Modifier = Modifier,
     caption: String? = null,
 ) {
+    val source = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.hhPressScale(source).fillMaxWidth(),
         shape = HhTheme.shapes.pill,
         color = HhTheme.colors.special,
         contentColor = HhTheme.colors.onSpecial,
+        interactionSource = source,
     ) {
         HhLargeButtonBody(label = label, caption = caption, color = HhTheme.colors.onSpecial)
     }
@@ -42,13 +46,15 @@ fun HhSpecialDeclineButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val source = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.hhPressScale(source).fillMaxWidth(),
         shape = HhTheme.shapes.pill,
         color = Color.Transparent,
         contentColor = HhTheme.colors.onSurface,
         border = BorderStroke(HhWidthStroke, HhTheme.colors.outline),
+        interactionSource = source,
     ) {
         HhLargeButtonBody(label = label, caption = null, color = HhTheme.colors.onSurface)
     }

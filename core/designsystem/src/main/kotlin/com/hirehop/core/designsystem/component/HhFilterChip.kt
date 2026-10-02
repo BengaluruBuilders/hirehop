@@ -1,10 +1,6 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -32,8 +28,6 @@ import androidx.compose.ui.unit.Dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
-private const val FILTER_CHIP_MILLIS = 150
-
 @Immutable
 data class HhFilterChipColors(
     val selectedContainer: Color,
@@ -54,16 +48,9 @@ fun HhFilterChip(
     count: Int? = null,
     colors: HhFilterChipColors = HhFilterChipDefaults.colors(),
 ) {
-    val reducedMotion = hhReducedMotion()
-    val containerSpec: AnimationSpec<Color> = if (reducedMotion) {
-        snap()
-    } else {
-        tween(durationMillis = FILTER_CHIP_MILLIS, easing = LinearOutSlowInEasing)
-    }
-    val targetContainer = if (selected) colors.selectedContainer else colors.container
     val containerColor by animateColorAsState(
-        targetValue = targetContainer,
-        animationSpec = containerSpec,
+        targetValue = if (selected) colors.selectedContainer else colors.container,
+        animationSpec = HhTheme.motion.proofSpecs.color,
         label = "hhFilterChipContainer",
     )
     val contentColor = if (selected) colors.onSelectedContainer else colors.onContainer

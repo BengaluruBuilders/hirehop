@@ -19,6 +19,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhToastHost
@@ -134,12 +135,14 @@ internal fun AnalysisScreen(
             bottomBarNotice = analysisBottomBarNotice(uiState),
             snackbarHost = { HhToastHost(toastState) },
         ) { padding ->
-            AnalysisBody(
-                uiState = uiState,
-                actions = actions,
-                contentPadding = padding,
-                onMenuAnchor = { id, bounds -> if (id == menuId) menuAnchor = bounds },
-            )
+            HhContentSwitch(targetState = uiState, contentKey = { it.contentKey() }) { state ->
+                AnalysisBody(
+                    uiState = state,
+                    actions = actions,
+                    contentPadding = padding,
+                    onMenuAnchor = { id, bounds -> if (id == menuId) menuAnchor = bounds },
+                )
+            }
         }
         if (result != null) {
             RowMenuOverlay(result, menuAnchor, actions)
@@ -147,6 +150,9 @@ internal fun AnalysisScreen(
         }
     }
 }
+
+private fun AnalysisUiState.contentKey(): Any =
+    if (this is AnalysisUiState.Loading) AnalysisUiState.Analyzing::class else this::class
 
 @Composable
 private fun AnalysisBody(

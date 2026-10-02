@@ -1,6 +1,5 @@
 package com.hirehop.feature.applications.impl
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,15 +26,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -45,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhCollapsedHomeHeader
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhCreditsPill
 import com.hirehop.core.designsystem.component.HhHeaderButton
 import com.hirehop.core.designsystem.component.HhHomeHeader
@@ -55,6 +51,8 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhToastHost
 import com.hirehop.core.designsystem.component.HhToastResult
 import com.hirehop.core.designsystem.component.HhToastState
+import com.hirehop.core.designsystem.component.hhListEnter
+import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
@@ -64,8 +62,6 @@ import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.ui.component.ApplicationStatusSheet
 import com.hirehop.core.ui.component.applicationStatusOptions
-import kotlinx.coroutines.delay
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
 import kotlin.time.Instant
 import com.hirehop.feature.applications.api.R as apiR
@@ -126,16 +122,18 @@ fun ApplicationsScreen(
         },
         snackbarHost = { HhToastHost(state = toast) },
     ) { padding ->
-        when (uiState) {
-            is ApplicationsUiState.Loading -> ApplicationsLoading(padding = padding)
-            is ApplicationsUiState.Empty -> ApplicationsEmpty(padding = padding, onAction = onAction)
-            is ApplicationsUiState.Applications -> ApplicationsListContent(
-                state = uiState,
-                padding = padding,
-                listState = listState,
-                now = now,
-                onAction = onAction,
-            )
+        HhContentSwitch(targetState = uiState, contentKey = { it::class }) { state ->
+            when (state) {
+                is ApplicationsUiState.Loading -> ApplicationsLoading(padding = padding)
+                is ApplicationsUiState.Empty -> ApplicationsEmpty(padding = padding, onAction = onAction)
+                is ApplicationsUiState.Applications -> ApplicationsListContent(
+                    state = state,
+                    padding = padding,
+                    listState = listState,
+                    now = now,
+                    onAction = onAction,
+                )
+            }
         }
     }
     val sheetState = (uiState as? ApplicationsUiState.Applications)?.statusSheet
@@ -339,7 +337,7 @@ private fun ApplicationsListContent(
     onAction: (ApplicationsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val entered = rememberSaveable { mutableSetOf<String>() }
+    val listEnter = rememberHhListEnterState()
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = listState,
@@ -363,35 +361,9 @@ private fun ApplicationsListContent(
                 now = now,
                 onClick = { onAction(ApplicationsAction.ApplicationChosen(row.id)) },
                 onStatusClick = { onAction(ApplicationsAction.StatusChipChosen(row.id)) },
-                modifier = Modifier.staggeredEnter(index = index, id = row.id, entered = entered),
+                modifier = Modifier.hhListEnter(state = listEnter, index = index),
             )
         }
-    }
-}
-
-@Composable
-private fun Modifier.staggeredEnter(
-    index: Int,
-    id: String,
-    entered: MutableSet<String>,
-): Modifier {
-    val proof = HhTheme.motion.proofSpecs
-    val shift = with(LocalDensity.current) { HhTheme.spacing.sm.toPx() }
-    val progress = remember(id) { Animatable(if (id in entered) 1f else 0f) }
-    LaunchedEffect(id) {
-        if (id in entered) return@LaunchedEffect
-        val scale = coroutineContext[MotionDurationScale.Key]?.scaleFactor ?: 1f
-        if (scale == 0f) {
-            progress.snapTo(1f)
-        } else {
-            delay(minOf(index, proof.staggerMax) * proof.staggerMs.toLong())
-            progress.animateTo(targetValue = 1f, animationSpec = proof.spatial)
-        }
-        entered += id
-    }
-    return graphicsLayer {
-        alpha = progress.value.coerceIn(0f, 1f)
-        translationY = (1f - progress.value) * shift
     }
 }
 

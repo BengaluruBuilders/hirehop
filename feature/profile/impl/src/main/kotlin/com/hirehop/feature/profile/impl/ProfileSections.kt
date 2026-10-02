@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,8 @@ import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.hhListEnter
+import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDisplayIds
@@ -125,6 +128,7 @@ internal fun ExpandedSectionScreen(
     val subtitle = sectionSubtitle(section)
     val category = section.kind.entryCategory()
     var showSkillSheet by rememberSaveable { mutableStateOf(false) }
+    val listEnter = rememberHhListEnterState()
     HhScreen(
         modifier = modifier,
         sheet = false,
@@ -153,12 +157,13 @@ internal fun ExpandedSectionScreen(
                 }
             }
             if (category != null) {
-                items(
+                itemsIndexed(
                     items = state.profile.entries.filter { it.category == category },
-                    key = { it.id },
-                ) { entry ->
+                    key = { _, entry -> entry.id },
+                ) { index, entry ->
                     FactCard(
                         entry = entry,
+                        modifier = Modifier.hhListEnter(state = listEnter, index = index),
                         displayId = FactDisplayIds.of(entry, state.profile.entries),
                         onEdit = { navigation.onOpenFact(entry.id) },
                         onConfirm = if (entry.isConfirmed) null else ({ actions.onConfirmEntry(entry.id) }),
@@ -171,6 +176,7 @@ internal fun ExpandedSectionScreen(
                         status = FactStatus.Confirmed,
                         kind = stringResource(R.string.feature_profile_impl_kind_skill),
                         summary = skill,
+                        modifier = Modifier.hhListEnter(state = listEnter, index = index),
                     ) {
                         HhOutlineButton(
                             label = stringResource(R.string.feature_profile_impl_skill_remove),

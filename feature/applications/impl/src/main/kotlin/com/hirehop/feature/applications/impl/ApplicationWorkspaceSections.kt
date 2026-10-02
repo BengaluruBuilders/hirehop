@@ -36,6 +36,7 @@ import com.hirehop.core.designsystem.component.HhApplicationStatusChip
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhCheckbox
 import com.hirehop.core.designsystem.component.HhDivider
+import com.hirehop.core.designsystem.component.HhExpandable
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhOutlineButton
@@ -296,8 +297,10 @@ internal fun WorkspaceGapSection(
                 label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_gap, gapCounts.gap, gapCounts.gap),
             )
         }
-        if (isExpanded) {
-            matches.forEach { match -> WorkspaceMatchRow(match = match) }
+        HhExpandable(expanded = isExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                matches.forEach { match -> WorkspaceMatchRow(match = match) }
+            }
         }
         HhTextButton(
             label = stringResource(

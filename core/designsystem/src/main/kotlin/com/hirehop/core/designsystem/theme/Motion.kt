@@ -8,14 +8,18 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 @Immutable
 class HhProofSpecs(
     val spatial: FiniteAnimationSpec<Float>,
     val spatialFast: FiniteAnimationSpec<Float>,
     val offset: FiniteAnimationSpec<IntOffset>,
+    val size: FiniteAnimationSpec<IntSize>,
     val fade: FiniteAnimationSpec<Float>,
+    val color: FiniteAnimationSpec<Color>,
     val staggerMs: Int,
     val staggerMax: Int,
 )
@@ -41,7 +45,9 @@ internal object HhMotionDefaults {
             spatial = spring(dampingRatio = 0.9f, stiffness = 600f),
             spatialFast = spring(dampingRatio = 1f, stiffness = 1400f),
             offset = spring(0.9f, 600f, IntOffset.VisibilityThreshold),
+            size = spring(0.9f, 600f, IntSize.VisibilityThreshold),
             fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
+            color = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
             staggerMs = 30,
             staggerMax = 6,
         ),
@@ -57,7 +63,9 @@ internal object HhMotionDefaults {
             spatial = snap(),
             spatialFast = snap(),
             offset = snap(),
+            size = snap(),
             fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
+            color = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
             staggerMs = 0,
             staggerMax = 0,
         ),
