@@ -1,5 +1,6 @@
 package com.hirehop.core.designsystem.theme
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.VisibilityThreshold
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.IntSize
 class HhProofSpecs(
     val spatial: FiniteAnimationSpec<Float>,
     val spatialFast: FiniteAnimationSpec<Float>,
+    val travel: FiniteAnimationSpec<Float>,
     val offset: FiniteAnimationSpec<IntOffset>,
     val size: FiniteAnimationSpec<IntSize>,
     val fade: FiniteAnimationSpec<Float>,
@@ -44,6 +46,7 @@ internal object HhMotionDefaults {
         proofSpecs = HhProofSpecs(
             spatial = spring(dampingRatio = 0.9f, stiffness = 600f),
             spatialFast = spring(dampingRatio = 1f, stiffness = 1400f),
+            travel = tween(durationMillis = 240, easing = FastOutSlowInEasing),
             offset = spring(0.9f, 600f, IntOffset.VisibilityThreshold),
             size = spring(0.9f, 600f, IntSize.VisibilityThreshold),
             fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
@@ -62,6 +65,7 @@ internal object HhMotionDefaults {
         proofSpecs = HhProofSpecs(
             spatial = snap(),
             spatialFast = snap(),
+            travel = snap(),
             offset = snap(),
             size = snap(),
             fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),

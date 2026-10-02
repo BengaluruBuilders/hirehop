@@ -82,7 +82,7 @@ If the system animation scale is 0, every spring becomes a `snap()`. Content and
 | Home header | Jade header, two soft circles, greeting, credits pill, bold headline. The hero character stands in front of the sheet |
 | Inner header | Shorter jade header, white 48 dp circular back button, centred title and subtitle. Hero cards overlap it |
 | Sheet | Surface with 28 dp top corners that overlaps the header |
-| Dock | Floating `tool` pill on the three tab screens only. The active item is a primary pill with icon and label |
+| Dock | Full-width `tool` bar on the bottom edge, on the three tab screens only. The active item is an icon in a primary ball in the notch of the bar |
 | Bottom action bar | `tool` bar for 1 to 3 main actions. Content has an inset, so the bar never covers content |
 | Hero card | 24 dp radius `document` card that overlaps the inner header |
 
