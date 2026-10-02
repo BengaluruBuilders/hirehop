@@ -1,13 +1,13 @@
 package com.hirehop.feature.tailor.impl.credits
 
-sealed interface CreditsAction {
-    data object Restore : CreditsAction
-
-    data object Dismiss : CreditsAction
+internal sealed interface CreditsAction {
+    data object Retry : CreditsAction
 }
 
-data class CreditsActions(
-    val onRestore: () -> Unit,
-    val onDismiss: () -> Unit,
+internal data class CreditsActions(
+    val onGetPack: () -> Unit,
+    val onAskRefund: () -> Unit,
+    val onContactHelp: () -> Unit,
+    val onRetry: () -> Unit,
     val onNavigateBack: () -> Unit,
 )

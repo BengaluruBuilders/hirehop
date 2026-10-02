@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
@@ -17,6 +17,16 @@ import org.robolectric.annotation.GraphicsMode
 
 private const val TRACKED_OUTPUT_DIR = "src/test/screenshots"
 
+private const val ORDER_ID = "GPA.3318-4402-1187-55210"
+
+private fun purchase(isPending: Boolean = false) = CreditsPurchaseEntry(
+    orderId = ORDER_ID,
+    credits = 5,
+    formattedPrice = "₹149",
+    formattedDate = "14 Apr 2027",
+    isPending = isPending,
+)
+
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = HhTestDevices.BOARD_QUALIFIERS)
@@ -28,67 +38,67 @@ class CreditsScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun freeOnly_showsTheFreeBucketOnItsOwn() {
-        capture("CreditsFreeOnly", state(stage = CreditsStage.FREE_ONLY, free = 1, purchased = 0))
+    fun noPurchases_showsTheFreeApplication() {
+        capture("CreditsNoPurchases", CreditsUiState(stage = CreditsStage.READY, freeCredits = 1))
     }
 
     @Test
-    fun purchasedOnly_showsThePurchasedBucketOnItsOwn() {
-        capture("CreditsPurchasedOnly", state(stage = CreditsStage.PURCHASED_ONLY, free = 0, purchased = 5))
+    fun purchases_listsTheOrderWithItsId() {
+        capture(
+            "CreditsPurchases",
+            CreditsUiState(stage = CreditsStage.READY, purchasedCredits = 4, purchases = listOf(purchase())),
+        )
     }
 
     @Test
-    fun mixed_neverMergesTheTwoBuckets() {
-        capture("CreditsMixed", state(stage = CreditsStage.MIXED, free = 2, purchased = 5))
-    }
-
-    @Test
-    fun zero_carriesNoShame() {
-        capture("CreditsZero", state(stage = CreditsStage.ZERO, free = 0, purchased = 0))
-    }
-
-    @Test
-    fun pending_showsAPackWaitingToClear() {
+    fun pendingPurchase_addsNoCreditsYet() {
         capture(
             "CreditsPending",
-            state(stage = CreditsStage.PENDING, free = 1, purchased = 0).copy(
-                pendingPackIds = listOf(ApplicationPack.APPLICATION_PACK_FIVE),
-                purchases = listOf(
-                    CreditsPurchaseEntry(
-                        packId = ApplicationPack.APPLICATION_PACK_FIVE,
-                        packName = ApplicationPack.applicationPackFive.name,
-                        credits = ApplicationPack.applicationPackFive.credits,
-                        status = CreditsPurchaseStatus.PENDING,
-                        formattedPrice = "₹149.00",
-                        creditsExpire = ApplicationPack.applicationPackFive.creditsExpire,
-                    ),
-                ),
+            CreditsUiState(stage = CreditsStage.READY, purchases = listOf(purchase(isPending = true))),
+        )
+    }
+
+    @Test
+    fun offline_keepsTheHistoryAndDisablesBuying() {
+        capture(
+            "CreditsOffline",
+            CreditsUiState(
+                stage = CreditsStage.READY,
+                purchasedCredits = 4,
+                purchases = listOf(purchase()),
+                isOffline = true,
             ),
         )
     }
 
     @Test
-    fun offline_saysThisIsTheSavedHistory() {
-        capture(
-            "CreditsOffline",
-            state(stage = CreditsStage.OFFLINE, free = 1, purchased = 5).copy(isOffline = true),
-        )
-    }
-
-    @Test
-    fun loading_readsTheSavedNumbers() {
+    fun loading_showsTheWheel() {
         capture("CreditsLoading", CreditsUiState(stage = CreditsStage.LOADING))
     }
 
     @Test
-    fun error_saysNothingWasCharged() {
+    fun error_offersARetry() {
         capture("CreditsError", CreditsUiState(stage = CreditsStage.ERROR))
     }
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun mixed_atLargeTextStacksFullWidth() {
-        capture("CreditsMixedFont200", state(stage = CreditsStage.MIXED, free = 2, purchased = 5), device = HhTestDevices.boardLargeFont)
+    fun purchases_atLargeTextStacksTheRows() {
+        capture(
+            "CreditsPurchasesFont200",
+            CreditsUiState(stage = CreditsStage.READY, purchasedCredits = 4, purchases = listOf(purchase())),
+            device = HhTestDevices.boardLargeFont,
+        )
+    }
+
+    @Test
+    @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
+    fun pendingPurchase_atLargeTextWrapsTheChip() {
+        capture(
+            "CreditsPendingFont200",
+            CreditsUiState(stage = CreditsStage.READY, purchases = listOf(purchase(isPending = true))),
+            device = HhTestDevices.boardLargeFont,
+        )
     }
 
     private fun capture(
@@ -97,9 +107,7 @@ class CreditsScreenshotTest {
         device: HhTestDevice = HhTestDevices.board,
     ) = runBlocking {
         darkTheme.value = false
-        composeRule.setContent {
-            CreditsHost(uiState = uiState, dark = darkTheme.value)
-        }
+        composeRule.setContent { CreditsHost(uiState = uiState, dark = darkTheme.value) }
         composeRule.captureMultiTheme(TRACKED_OUTPUT_DIR, screenName, device) { dark ->
             darkTheme.value = dark
         }
@@ -112,25 +120,16 @@ private fun CreditsHost(
     uiState: CreditsUiState,
     dark: Boolean,
 ) {
-    com.hirehop.core.designsystem.theme.HhTheme(darkTheme = dark) {
+    HhTheme(darkTheme = dark) {
         CreditsScreen(
             uiState = uiState,
             actions = CreditsActions(
-                onRestore = {},
-                onDismiss = {},
+                onGetPack = {},
+                onAskRefund = {},
+                onContactHelp = {},
+                onRetry = {},
                 onNavigateBack = {},
             ),
         )
     }
 }
-
-private fun state(
-    stage: CreditsStage,
-    free: Int,
-    purchased: Int,
-) = CreditsUiState(
-    stage = stage,
-    freeCredits = free,
-    purchasedCredits = purchased,
-    purchasedCreditsNeverExpire = true,
-)

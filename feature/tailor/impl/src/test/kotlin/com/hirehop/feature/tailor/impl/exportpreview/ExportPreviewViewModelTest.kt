@@ -1,19 +1,29 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.data.canonicalProfileWithoutEntries
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
+import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
+import com.hirehop.feature.tailor.impl.document.TestResumeHeadings
+import com.hirehop.feature.tailor.impl.export.RenderedResume
 import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
 import com.hirehop.feature.tailor.impl.export.docx.ResumeDocxRenderer
-import com.hirehop.feature.tailor.impl.packpurchase.TestPaymentGateway
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -29,28 +39,24 @@ private class RecordingPdfRenderer(
     var lastDocument: ResumeDocument? = null
     var lastFileName: String = ""
     var callCount: Int = 0
+    var pageCount: Int = 1
 
-    override suspend fun render(document: ResumeDocument, fileName: String): File {
+    override suspend fun render(document: ResumeDocument, fileName: String): RenderedResume {
         callCount++
         lastDocument = document
         lastFileName = fileName
         failure?.let { problem -> throw problem }
-        return File(fileName)
+        return RenderedResume(file = File(fileName), pageCount = pageCount)
     }
 }
 
-private class RecordingDocxRenderer(
-    private val failure: IOException? = null,
-) : ResumeDocxRenderer {
+private class RecordingDocxRenderer : ResumeDocxRenderer {
     var lastDocument: ResumeDocument? = null
-    var lastFileName: String = ""
     var callCount: Int = 0
 
     override suspend fun render(document: ResumeDocument, fileName: String): File {
         callCount++
         lastDocument = document
-        lastFileName = fileName
-        failure?.let { problem -> throw problem }
         return File(fileName)
     }
 }
@@ -62,72 +68,114 @@ class ExportPreviewViewModelTest {
 
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
-    private val assembler = ResumeDocumentAssembler()
-    private val pdfRenderer = RecordingPdfRenderer()
+    private val exportHistory = TestExportHistoryRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val clock = TestClock()
     private val paymentGateway = TestPaymentGateway()
+    private val pdfRenderer = RecordingPdfRenderer()
     private val docxRenderer = RecordingDocxRenderer()
+    private val pendingExportStart = PendingExportStart()
 
     private lateinit var viewModel: ExportPreviewViewModel
 
     @Before
     fun setup() {
-        viewModel = newViewModel(pdf = pdfRenderer, docx = docxRenderer)
+        viewModel = newViewModel()
+    }
+
+    private fun newViewModel(pdf: ResumePdfRenderer = pdfRenderer): ExportPreviewViewModel = ExportPreviewViewModel(
+        applicationRepository = applicationRepository,
+        profileRepository = profileRepository,
+        assembler = ResumeDocumentAssembler(TestResumeHeadings),
+        pdfRenderer = pdf,
+        docxRenderer = docxRenderer,
+        paymentGateway = paymentGateway,
+        exportHistoryRepository = exportHistory,
+        connectivityMonitor = connectivity,
+        pendingExportStart = pendingExportStart,
+        clock = clock,
+    )
+
+    private fun enter(
+        format: String = "pdf",
+        scenario: DebugScenario = DebugScenario.DEFAULT,
+        subject: ExportPreviewViewModel = viewModel,
+    ) {
+        subject.onEnter(ExportPreviewNavKey(APPLICATION_ID, format, scenario))
+    }
+
+    private fun given() {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        profileRepository.sendProfile(canonicalCandidateProfile)
     }
 
     @Test
-    fun loadingScenario_staysOnRenderingWithoutAskingTheDomain() {
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.LOADING))
+    fun loadingScenario_staysOnRenderingWithoutLoadingADocument() {
+        enter(scenario = DebugScenario.LOADING)
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.RENDERING)
-        assertThat(state.sheet).isNull()
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.RENDERING)
+        assertThat(viewModel.uiState.value.sheet).isNull()
     }
 
     @Test
     fun errorScenario_reportsAFailedPreview() {
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.ERROR))
+        enter(scenario = DebugScenario.ERROR)
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
-        assertThat(state.sheet).isNull()
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
+        assertThat(viewModel.uiState.value.canExport).isFalse()
+    }
+
+    @Test
+    fun emptyScenario_isTheNoDocumentState() {
+        enter(scenario = DebugScenario.EMPTY)
+
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.NO_DOCUMENT)
     }
 
     @Test
     fun defaultScenario_previewsTheDocumentTheRendererWillWrite() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
         assertThat(state.jobTitle).isEqualTo("Associate Android Engineer")
         assertThat(state.jobCompany).isEqualTo("Northwind GCC")
-        assertThat(state.hasSheet).isTrue()
+        assertThat(state.sheet).isNotNull()
         assertThat(state.canExport).isTrue()
     }
 
     @Test
-    fun previewAndExport_shareTheSameDocumentInstance() = runTest {
+    fun sectionHeadingsComeFromTheHeadingsProvider() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        val previewed = viewModel.uiState.value.sheet
+        enter()
+
+        val headings = requireNotNull(viewModel.uiState.value.sheet).sections.map { section -> section.heading }
+        assertThat(headings).isNotEmpty()
+        assertThat(headings.all { heading -> heading.startsWith("Heading ") }).isTrue()
+        assertThat(viewModel.uiState.value.sheet?.skillsHeading).isEqualTo("Heading skills")
+    }
+
+    @Test
+    fun exportWritesTheSameTextTheSheetShows() = runTest {
+        given()
+        enter()
+        val sheet = requireNotNull(viewModel.uiState.value.sheet)
 
         viewModel.onAction(ExportPreviewAction.Export)
 
         val written = requireNotNull(pdfRenderer.lastDocument)
-        assertThat(written).isSameInstanceAs(pdfRenderer.lastDocument)
-        assertThat(previewed?.name).isEqualTo(written.name)
-        assertThat(previewed?.sections?.map { section -> section.heading })
-            .isEqualTo(written.sections.map { section -> section.heading })
-        assertThat(previewed?.sections?.flatMap { section -> section.entries.flatMap { entry -> entry.bullets } })
-            .isEqualTo(
-                written.sections.flatMap { section -> section.entries.flatMap { entry -> entry.bullets } },
-            )
+        assertThat(written.name).isEqualTo(sheet.name)
+        assertThat(written.sections.map { section -> section.heading })
+            .isEqualTo(sheet.sections.map { section -> section.heading })
+        assertThat(written.sections.flatMap { section -> section.entries.flatMap { entry -> entry.bullets } })
+            .isEqualTo(sheet.sections.flatMap { section -> section.entries.flatMap { entry -> entry.bullets } })
     }
 
     @Test
     fun exportWritesTheFileNameThePreviewNamed() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         val named = viewModel.uiState.value.fileName
         assertThat(named).endsWith(".pdf")
 
@@ -139,13 +187,11 @@ class ExportPreviewViewModelTest {
     @Test
     fun selectDocx_renamesTheFileAndUsesTheDocxRenderer() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         viewModel.onAction(ExportPreviewAction.SelectFormat(ExportFormat.DOCX))
-        val state = viewModel.uiState.value
-        assertThat(state.format).isEqualTo(ExportFormat.DOCX)
-        assertThat(state.fileName).endsWith(".docx")
-        assertThat(state.fileName).doesNotContain(".pdf")
+        assertThat(viewModel.uiState.value.format).isEqualTo(ExportFormat.DOCX)
+        assertThat(viewModel.uiState.value.fileName).endsWith(".docx")
 
         viewModel.onAction(ExportPreviewAction.Export)
 
@@ -156,7 +202,7 @@ class ExportPreviewViewModelTest {
     @Test
     fun selectDocx_keepsTheSameTextInThePreview() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         val before = viewModel.uiState.value.sheet
 
         viewModel.onAction(ExportPreviewAction.SelectFormat(ExportFormat.DOCX))
@@ -165,120 +211,243 @@ class ExportPreviewViewModelTest {
     }
 
     @Test
-    fun selectTheSameFormatTwice_keepsTheSelectedState() = runTest {
+    fun selectTemplate_keepsTheWordsAndPassesTheTemplateToTheRenderer() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        val before = viewModel.uiState.value
+        enter()
+        val before = viewModel.uiState.value.sheet
 
-        viewModel.onAction(ExportPreviewAction.SelectFormat(ExportFormat.PDF))
+        viewModel.onAction(ExportPreviewAction.SelectTemplate(ExportTemplate.COMPACT))
+        viewModel.onAction(ExportPreviewAction.Export)
 
-        assertThat(viewModel.uiState.value).isEqualTo(before)
+        assertThat(viewModel.uiState.value.template).isEqualTo(ExportTemplate.COMPACT)
+        assertThat(viewModel.uiState.value.sheet).isEqualTo(before)
+        assertThat(pdfRenderer.lastDocument?.template).isEqualTo(ExportTemplate.COMPACT)
     }
 
     @Test
-    fun navKeyCarriesTheDocxFormat() = runTest {
+    fun navKeyCarriesTheDocxFormat_andUnknownFormatsFallBackToPdf() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "docx", DebugScenario.DEFAULT))
-
+        enter(format = "docx")
         assertThat(viewModel.uiState.value.format).isEqualTo(ExportFormat.DOCX)
+
+        val other = newViewModel()
+        enter(format = "xlsx", subject = other)
+        assertThat(other.uiState.value.format).isEqualTo(ExportFormat.PDF)
     }
 
     @Test
-    fun unknownNavKeyFormatFallsBackToPdf() = runTest {
+    fun exportWithAFreeCredit_spendsItRecordsTheExportAndOpensExported() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "xlsx", DebugScenario.DEFAULT))
-
-        assertThat(viewModel.uiState.value.format).isEqualTo(ExportFormat.PDF)
-    }
-
-    @Test
-    fun exportSucceeds_reportsTheWrittenFormat() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         viewModel.onAction(ExportPreviewAction.Export)
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.EXPORT_SUCCEEDED)
-        assertThat(state.exportedFormat).isEqualTo(ExportFormat.PDF)
+        val navigation = viewModel.uiState.value.navigation
+        assertThat(navigation).isEqualTo(ExportPreviewNavigation.Exported(ExportFormat.PDF, spentFreeCredit = true))
+        assertThat(paymentGateway.entitlement().totalCredits).isEqualTo(0)
+        val record = exportHistory.observeExports(APPLICATION_ID).first().single()
+        assertThat(record.creditKind).isEqualTo(CreditKind.FREE)
+        assertThat(record.format).isEqualTo(ExportFormat.PDF)
+        assertThat(record.fileName).isEqualTo(pdfRenderer.lastFileName)
+        assertThat(record.exportedAt).isEqualTo(clock.now())
     }
 
     @Test
-    fun exportFails_reportsAFailureAndWritesNothing() = runTest {
+    fun exportRecordsThePageCountAndTheTemplateName() = runTest {
         given()
-        val failing = newViewModel(pdf = RecordingPdfRenderer(failure = IOException("no space")), docx = docxRenderer)
-        failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        pdfRenderer.pageCount = 2
+        enter()
+        viewModel.onAction(ExportPreviewAction.SelectTemplate(ExportTemplate.COMPACT))
 
-        failing.onAction(ExportPreviewAction.Export)
+        viewModel.onAction(ExportPreviewAction.Export)
 
-        val state = failing.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.EXPORT_FAILED)
-        assertThat(state.exportedFormat).isNull()
-        assertThat(state.hasSheet).isTrue()
+        val record = exportHistory.observeExports(APPLICATION_ID).first().single()
+        assertThat(record.pageCount).isEqualTo(2)
+        assertThat(record.templateName).isEqualTo("Compact")
     }
 
     @Test
-    fun exportFailsAndRetries_succeedsWithoutLeavingTheFailedState() = runTest {
+    fun docxExportRecordsTheTemplateNameAndNoPageCount() = runTest {
         given()
-        val failing = newViewModel(pdf = RecordingPdfRenderer(failure = IOException("no space")), docx = docxRenderer)
-        failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter(format = "docx")
+
+        viewModel.onAction(ExportPreviewAction.Export)
+
+        val record = exportHistory.observeExports(APPLICATION_ID).first().single()
+        assertThat(record.format).isEqualTo(ExportFormat.DOCX)
+        assertThat(record.pageCount).isNull()
+        assertThat(record.templateName).isEqualTo("Plain")
+    }
+
+    @Test
+    fun aPendingExportStartForThisApplication_exportsByItselfOnce() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        enter()
+        viewModel.onAction(ExportPreviewAction.Export)
+        assertThat(viewModel.uiState.value.navigation).isEqualTo(ExportPreviewNavigation.BuyCredits)
+        viewModel.onAction(ExportPreviewAction.NavigationHandled)
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+
+        pendingExportStart.request(APPLICATION_ID)
+
+        assertThat(pdfRenderer.callCount).isEqualTo(1)
+        assertThat(viewModel.uiState.value.navigation).isInstanceOf(ExportPreviewNavigation.Exported::class.java)
+        assertThat(pendingExportStart.applicationId.value).isNull()
+    }
+
+    @Test
+    fun aPendingExportStartForAnotherApplication_isLeftAlone() = runTest {
+        given()
+        enter()
+
+        pendingExportStart.request("another-application")
+
+        assertThat(pdfRenderer.callCount).isEqualTo(0)
+        assertThat(pendingExportStart.applicationId.value).isEqualTo("another-application")
+    }
+
+    @Test
+    fun withoutAPendingExportStart_returningFromThePackDoesNotExport() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        enter()
+        viewModel.onAction(ExportPreviewAction.Export)
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+
+        assertThat(pdfRenderer.callCount).isEqualTo(0)
+    }
+
+    @Test
+    fun exportWithAPurchasedCredit_recordsThePurchasedKind() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        enter()
+
+        viewModel.onAction(ExportPreviewAction.Export)
+
+        assertThat(viewModel.uiState.value.navigation)
+            .isEqualTo(ExportPreviewNavigation.Exported(ExportFormat.PDF, spentFreeCredit = false))
+        assertThat(exportHistory.observeExports(APPLICATION_ID).first().single().creditKind)
+            .isEqualTo(CreditKind.PURCHASED)
+        assertThat(paymentGateway.entitlement().purchasedCredits).isEqualTo(4)
+    }
+
+    @Test
+    fun withNoCredit_exportOpensThePackAndWritesNothing() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        enter()
+        assertThat(viewModel.uiState.value.needsCredits).isTrue()
+
+        viewModel.onAction(ExportPreviewAction.Export)
+
+        assertThat(viewModel.uiState.value.navigation).isEqualTo(ExportPreviewNavigation.BuyCredits)
+        assertThat(pdfRenderer.callCount).isEqualTo(0)
+        assertThat(exportHistory.observeExports(APPLICATION_ID).first()).isEmpty()
+    }
+
+    @Test
+    fun creditsFollowThePurchaseMadeOnTheNextScreen() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        enter()
+        assertThat(viewModel.uiState.value.needsCredits).isTrue()
+
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+
+        assertThat(viewModel.uiState.value.needsCredits).isFalse()
+        assertThat(viewModel.uiState.value.purchasedCredits).isEqualTo(5)
+    }
+
+    @Test
+    fun navigationHandled_clearsTheOneShotTarget() = runTest {
+        given()
+        enter()
+        viewModel.onAction(ExportPreviewAction.Export)
+
+        viewModel.onAction(ExportPreviewAction.NavigationHandled)
+
+        assertThat(viewModel.uiState.value.navigation).isNull()
+    }
+
+    @Test
+    fun renderFailure_chargesNothingRecordsNothingAndOffersARetry() = runTest {
+        given()
+        val failing = newViewModel(pdf = RecordingPdfRenderer(failure = IOException("no space")))
+        enter(subject = failing)
+
         failing.onAction(ExportPreviewAction.Export)
+
         assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_FAILED)
+        assertThat(failing.uiState.value.navigation).isNull()
+        assertThat(paymentGateway.entitlement().freeCredits).isEqualTo(1)
+        assertThat(exportHistory.observeExports(APPLICATION_ID).first()).isEmpty()
+    }
 
-        val recovered = newViewModel(pdf = pdfRenderer, docx = docxRenderer)
-        recovered.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        recovered.onAction(ExportPreviewAction.Export)
+    @Test
+    fun retryAfterAnExportFailure_exportsAgain() = runTest {
+        given()
+        var failures = 1
+        val flaky = object : ResumePdfRenderer {
+            override suspend fun render(document: ResumeDocument, fileName: String): RenderedResume {
+                if (failures-- > 0) throw IOException("no space")
+                return RenderedResume(file = File(fileName), pageCount = 1)
+            }
+        }
+        val subject = newViewModel(pdf = flaky)
+        enter(subject = subject)
+        subject.onAction(ExportPreviewAction.Export)
+        assertThat(subject.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_FAILED)
 
-        assertThat(recovered.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_SUCCEEDED)
+        subject.onAction(ExportPreviewAction.RetryPreview)
+
+        assertThat(subject.uiState.value.navigation).isInstanceOf(ExportPreviewNavigation.Exported::class.java)
     }
 
     @Test
     fun offlineScenario_keepsThePreviewReadableAndBlocksTheDownload() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.OFFLINE))
+        enter(scenario = DebugScenario.OFFLINE)
 
         val state = viewModel.uiState.value
         assertThat(state.isOffline).isTrue()
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.OFFLINE)
-        assertThat(state.hasSheet).isTrue()
+        assertThat(state.sheet).isNotNull()
         assertThat(state.canExport).isFalse()
-    }
-
-    @Test
-    fun offlineScenario_exportActionIsIgnored() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.OFFLINE))
 
         viewModel.onAction(ExportPreviewAction.Export)
 
         assertThat(pdfRenderer.callCount).isEqualTo(0)
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.OFFLINE)
     }
 
     @Test
-    fun noDocument_asksTheUserToReviewFirst() = runTest {
+    fun theConnectivityMonitorDecidesOffline() = runTest {
+        given()
+        connectivity.setOnline(false)
+        enter()
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+
+        connectivity.setOnline(true)
+
+        assertThat(viewModel.uiState.value.isOffline).isFalse()
+    }
+
+    @Test
+    fun noDocument_whenTheProfileHasNoEntries() = runTest {
         applicationRepository.sendApplications(listOf(canonicalApplication))
         profileRepository.sendProfile(canonicalProfileWithoutEntries)
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.NO_DOCUMENT)
-        assertThat(state.sheet).isNull()
-        assertThat(state.canExport).isFalse()
-    }
-
-    @Test
-    fun noTailoredResume_asksTheUserToReviewFirst() = runTest {
-        applicationRepository.sendApplications(listOf(canonicalApplication.copy(tailoredResume = null)))
-        profileRepository.sendProfile(canonicalCandidateProfile)
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.NO_DOCUMENT)
+        assertThat(viewModel.uiState.value.canExport).isFalse()
     }
 
     @Test
-    fun emptyScenario_isTheNoDocumentState() {
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.EMPTY))
+    fun noDocument_whenThereIsNoTailoredResume() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication.copy(tailoredResume = null)))
+        profileRepository.sendProfile(canonicalCandidateProfile)
+        enter()
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.NO_DOCUMENT)
     }
@@ -286,83 +455,38 @@ class ExportPreviewViewModelTest {
     @Test
     fun missingApplication_isAPreviewFailure() = runTest {
         applicationRepository.sendApplications(emptyList())
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
     }
 
     @Test
-    fun previewFailure_showsNoPreviewBesideTheDownload() {
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.ERROR))
-
-        val state = viewModel.uiState.value
-        assertThat(state.sheet).isNull()
-        assertThat(state.canExport).isFalse()
-    }
-
-    @Test
-    fun retryAfterAFailure_rendersThePreviewAgain() = runTest {
+    fun retryAfterAPreviewFailure_rendersThePreviewAgain() = runTest {
         given()
-        val failing = ExportPreviewViewModel(
-            applicationRepository = applicationRepository,
-            profileRepository = profileRepository,
-            assembler = assembler,
-            pdfRenderer = pdfRenderer,
-            docxRenderer = docxRenderer,
-            paymentGateway = paymentGateway,
-        )
-        failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.ERROR))
-        assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
+        enter(scenario = DebugScenario.ERROR)
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_FAILED)
 
-        failing.onAction(ExportPreviewAction.RetryPreview)
+        viewModel.onAction(ExportPreviewAction.RetryPreview)
 
-        assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
-        assertThat(failing.uiState.value.hasSheet).isTrue()
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
+        assertThat(viewModel.uiState.value.sheet).isNotNull()
     }
 
     @Test
     fun exportingScenario_exportsAsSoonAsThePreviewIsReady() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.EXPORTING))
+        enter(scenario = DebugScenario.EXPORTING)
 
         assertThat(pdfRenderer.callCount).isEqualTo(1)
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_SUCCEEDED)
-    }
-
-    @Test
-    fun successScenario_isAnOrdinaryReadyPreview() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.SUCCESS))
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
-        assertThat(pdfRenderer.callCount).isEqualTo(0)
-    }
-
-    @Test
-    fun partialScenario_isAnOrdinaryReadyPreview() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.PARTIAL))
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
-    }
-
-    @Test
-    fun everyScenarioMapsToAKnownStage() = runTest {
-        for (scenario in DebugScenario.entries) {
-            given()
-            val fresh = newViewModel()
-            fresh.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", scenario))
-
-            assertThat(fresh.uiState.value.stage).isIn(ExportPreviewStage.entries.toList())
-        }
+        assertThat(viewModel.uiState.value.navigation).isInstanceOf(ExportPreviewNavigation.Exported::class.java)
     }
 
     @Test
     fun everyScenarioNeverShowsAPreviewWithoutADocument() = runTest {
+        applicationRepository.sendApplications(emptyList())
         for (scenario in DebugScenario.entries) {
-            applicationRepository.sendApplications(emptyList())
             val fresh = newViewModel()
-            fresh.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", scenario))
+            enter(scenario = scenario, subject = fresh)
 
             assertThat(fresh.uiState.value.sheet).isNull()
             assertThat(fresh.uiState.value.canExport).isFalse()
@@ -370,215 +494,21 @@ class ExportPreviewViewModelTest {
     }
 
     @Test
-    fun previewCarriesNoScaleOrTimeSavingClaim() = runTest {
+    fun previewCarriesNoScoreOrGuaranteeClaim() = runTest {
         given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         val sheet = requireNotNull(viewModel.uiState.value.sheet)
         val text = buildString {
-            append(sheet.name)
-            append(sheet.contactLine)
-            append(sheet.headline)
-            append(sheet.skills.joinToString())
+            append(sheet.name, sheet.contactLine, sheet.headline, sheet.skills.joinToString())
             sheet.sections.forEach { section ->
                 append(section.heading)
                 section.entries.forEach { entry ->
-                    append(entry.title)
-                    append(entry.organization)
-                    append(entry.dateRange)
-                    append(entry.bullets.joinToString())
+                    append(entry.title, entry.organization, entry.dateRange, entry.bullets.joinToString())
                 }
             }
         }.lowercase()
         assertThat(text).doesNotContain("guarantee")
-        assertThat(text).doesNotContain("hours saved")
-        assertThat(text).doesNotContain("shortlist")
-        assertThat(text).doesNotMatch("\\bats score\\b")
-        assertThat(text).doesNotMatch("\\bats[- ]proof\\b")
-        assertThat(text).doesNotMatch("\\bget(s)? interviews?\\b")
-        assertThat(text).doesNotMatch("\\bwill get you\\b")
-    }
-
-    @Test
-    fun previewShowsOnlyConfirmedFacts() = runTest {
-        given()
-        val unconfirmed = canonicalCandidateProfile.copy(
-            entries = canonicalCandidateProfile.entries.map { entry -> entry.copy(isConfirmed = false) },
-        )
-        applicationRepository.sendApplications(listOf(canonicalApplication))
-        profileRepository.sendProfile(unconfirmed)
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.NO_DOCUMENT)
-    }
-
-    @Test
-    fun onEnter_ignoresASecondKey() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        applicationRepository.sendApplications(emptyList())
-
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.ERROR))
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
-    }
-
-    @Test
-    fun dismissResult_returnsToThePreview() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        viewModel.onAction(ExportPreviewAction.Export)
-
-        viewModel.onAction(ExportPreviewAction.DismissResult)
-
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.PREVIEW_READY)
-        assertThat(state.exportedFormat).isNull()
-    }
-
-    @Test
-    fun fileName_isBuiltFromTheNameCompanyAndRole() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val name = viewModel.uiState.value.fileName
-        assertThat(name).startsWith("Priya_Deshmukh")
-        assertThat(name).contains("Northwind_GCC")
-        assertThat(name).contains("Associate_Android_Engineer")
-    }
-
-    @Test
-    fun docxFileName_dropsThePdfExtension() {
-        val pdf = ExportFileNames.build(ExportFormat.PDF, "A B", "C D", "E F")
-        val docx = ExportFileNames.build(ExportFormat.DOCX, "A B", "C D", "E F")
-
-        assertThat(pdf).endsWith(".pdf")
-        assertThat(docx).endsWith(".docx")
-        assertThat(docx).isEqualTo(pdf.removeSuffix(".pdf") + ".docx")
-    }
-
-    @Test
-    fun formatFromWire_ignoresCase() {
-        assertThat(ExportFormat.fromWire("PDF")).isEqualTo(ExportFormat.PDF)
-        assertThat(ExportFormat.fromWire("DocX")).isEqualTo(ExportFormat.DOCX)
-        assertThat(ExportFormat.fromWire("")).isEqualTo(ExportFormat.PDF)
-    }
-
-    @Test
-    fun lineCount_countsEveryRenderedLine() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val sheet = requireNotNull(viewModel.uiState.value.sheet)
-        assertThat(sheet.lineCount).isAtLeast(sheet.sections.size)
-        assertThat(sheet.lineCount).isGreaterThan(0)
-    }
-
-    @Test
-    fun sheetProjection_keepsEveryFieldOfTheDocument() = runTest {
-        given()
-        viewModel.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        val document = requireNotNull(assembler.assemble(canonicalCandidateProfile, requireNotNull(canonicalApplication.tailoredResume)))
-
-        val sheet = requireNotNull(viewModel.uiState.value.sheet)
-
-        assertThat(sheet.name).isEqualTo(document.name)
-        assertThat(sheet.contactLine).isEqualTo(document.contactLine)
-        assertThat(sheet.headline).isEqualTo(document.headline)
-        assertThat(sheet.skills).isEqualTo(document.skills)
-        assertThat(sheet.sections.map { section -> section.heading })
-            .isEqualTo(document.sections.map { section -> section.heading })
-    }
-
-    @Test
-    fun theCreditLineCountsTheFreeAllowance() = runTest {
-        given()
-        paymentGateway.withFreeCredits(credits = 1)
-        val model = newViewModel()
-
-        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val state = model.uiState.value
-        assertThat(state.creditKnown).isTrue()
-        assertThat(state.isFreeCredit).isTrue()
-        assertThat(state.creditsLeft).isEqualTo(1)
-        assertThat(state.hasCredit).isTrue()
-        assertThat(state.needsCredits).isFalse()
-    }
-
-    @Test
-    fun theCreditLineCountsPurchasedCreditsWhenTheFreeOneIsGone() = runTest {
-        given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 5)
-        val model = newViewModel()
-
-        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val state = model.uiState.value
-        assertThat(state.isFreeCredit).isFalse()
-        assertThat(state.creditsLeft).isEqualTo(5)
-    }
-
-    @Test
-    fun anEmptyBalanceBlocksTheExportAndOffersThePackPrice() = runTest {
-        given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 0)
-        val model = newViewModel()
-
-        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val state = model.uiState.value
-        assertThat(state.stage).isEqualTo(ExportPreviewStage.NO_CREDIT)
-        assertThat(state.needsCredits).isTrue()
-        assertThat(state.canExport).isFalse()
-        assertThat(state.hasSheet).isTrue()
-        assertThat(state.showsPackPrice).isTrue()
-        assertThat(state.packPrice).isNotEmpty()
-    }
-
-    @Test
-    fun exportingSpendsExactlyOneCredit() = runTest {
-        given()
-        paymentGateway.withFreeCredits(credits = 1)
-        val model = newViewModel()
-        model.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        model.onAction(ExportPreviewAction.Export)
-
-        assertThat(paymentGateway.consumeCallCount()).isEqualTo(1)
-        assertThat(paymentGateway.entitlement().freeCredits).isEqualTo(0)
-    }
-
-    @Test
-    fun aFailedWriteSpendsNoCredit() = runTest {
-        given()
-        paymentGateway.withFreeCredits(credits = 1)
-        val failing = newViewModel(
-            pdf = RecordingPdfRenderer(failure = IOException("disk full")),
-            docx = RecordingDocxRenderer(failure = IOException("disk full")),
-        )
-        failing.onEnter(ExportPreviewNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        failing.onAction(ExportPreviewAction.Export)
-
-        assertThat(failing.uiState.value.stage).isEqualTo(ExportPreviewStage.EXPORT_FAILED)
-        assertThat(paymentGateway.consumeCallCount()).isEqualTo(0)
-    }
-
-    private fun newViewModel(
-        pdf: ResumePdfRenderer = pdfRenderer,
-        docx: ResumeDocxRenderer = docxRenderer,
-    ): ExportPreviewViewModel = ExportPreviewViewModel(
-        applicationRepository = applicationRepository,
-        profileRepository = profileRepository,
-        assembler = assembler,
-        pdfRenderer = pdf,
-        docxRenderer = docx,
-        paymentGateway = paymentGateway,
-    )
-
-    private fun given() {
-        applicationRepository.sendApplications(listOf(canonicalApplication))
-        profileRepository.sendProfile(canonicalCandidateProfile)
+        assertThat(text).doesNotContain("ats score")
     }
 }

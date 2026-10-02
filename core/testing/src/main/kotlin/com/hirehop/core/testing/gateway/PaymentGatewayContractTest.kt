@@ -5,6 +5,9 @@ import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseResult
+import com.hirehop.core.domain.PurchaseState
+import com.hirehop.core.model.CreditKind
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -221,6 +224,97 @@ abstract class PaymentGatewayContractTest {
 
         assertThat(cleared.totalCredits).isEqualTo(0)
         assertThat(gateway.entitlement()).isEqualTo(cleared)
+    }
+
+    @Test
+    fun aNewAccountHasNoPurchaseHistory() = runTest {
+        val gateway = createPaymentGateway()
+
+        assertThat(gateway.purchaseHistory()).isEmpty()
+    }
+
+    @Test
+    fun aCompletedPurchaseAppearsOnceInTheHistoryWithAnOrderId() = runTest {
+        val gateway = createPaymentGateway()
+        val pack = gateway.packs().first()
+
+        val result = gateway.purchase(pack.id)
+
+        if (result is PurchaseResult.Completed) {
+            val record = gateway.purchaseHistory().single()
+            assertThat(record.packId).isEqualTo(pack.id)
+            assertThat(record.orderId).isNotEmpty()
+            assertThat(record.state).isEqualTo(PurchaseState.COMPLETED)
+        }
+    }
+
+    @Test
+    fun aCancelledOrFailedPurchaseLeavesNoHistory() = runTest {
+        val gateway = createPaymentGateway()
+        val pack = gateway.packs().first()
+
+        val result = gateway.purchase(pack.id)
+
+        if (result is PurchaseResult.Cancelled || result is PurchaseResult.Failed) {
+            assertThat(gateway.purchaseHistory()).isEmpty()
+        }
+    }
+
+    @Test
+    fun theHistoryListsTheNewestPurchaseFirst() = runTest {
+        val gateway = createPaymentGateway()
+        val packs = gateway.packs()
+        val first = gateway.purchase(packs.first().id)
+        val second = gateway.purchase(packs.last().id)
+
+        if (first is PurchaseResult.Completed && second is PurchaseResult.Completed) {
+            assertThat(gateway.purchaseHistory().first().packId).isEqualTo(packs.last().id)
+        }
+    }
+
+    @Test
+    fun observedEntitlementStartsWithTheCurrentEntitlementAndFollowsASpend() = runTest {
+        val gateway = createPaymentGateway()
+        gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
+        val before = gateway.entitlement()
+        assertThat(gateway.observeEntitlement().first()).isEqualTo(before)
+
+        val spend = gateway.consumeCredit()
+
+        if (spend is CreditSpend.Spent) {
+            assertThat(gateway.observeEntitlement().first()).isEqualTo(spend.entitlement)
+        }
+    }
+
+    @Test
+    fun observedHistoryMatchesTheHistory() = runTest {
+        val gateway = createPaymentGateway()
+        gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
+
+        assertThat(gateway.observePurchaseHistory().first()).isEqualTo(gateway.purchaseHistory())
+    }
+
+    @Test
+    fun aSpendReportsTheKindOfCreditThatPaid() = runTest {
+        val gateway = createPaymentGateway()
+        val before = gateway.entitlement()
+
+        val spend = gateway.consumeCredit()
+
+        if (spend is CreditSpend.Spent) {
+            val expected = if (before.freeCredits > 0) CreditKind.FREE else CreditKind.PURCHASED
+            assertThat(spend.kind).isEqualTo(expected)
+        }
+    }
+
+    @Test
+    fun clearingCreditsAlsoClearsThePurchaseHistory() = runTest {
+        val gateway = createPaymentGateway()
+        gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
+
+        gateway.clearCredits()
+
+        assertThat(gateway.purchaseHistory()).isEmpty()
     }
 
     private fun ApplicationPack.isSellable(): Boolean =

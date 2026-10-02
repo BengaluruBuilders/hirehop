@@ -1,6 +1,10 @@
 package com.hirehop.feature.onboarding.impl.pastejd
 
+import com.hirehop.core.data.repository.UsageAllowance
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.DebugScenario
+
+const val FREE_ANALYSES_PER_DAY: Int = UsageAllowance.DAILY_ANALYSES
 
 const val PASTE_JD_MIN_WORDS: Int = 10
 
@@ -12,12 +16,6 @@ enum class PasteJobDescriptionProblem { LINK_ONLY, TOO_SHORT, TOO_LONG }
 
 enum class PasteJobDescriptionMessage { PASTE_FAILED, NOTHING_TO_READ, PASTE_PARTIAL }
 
-data class PasteJobDescriptionHandoff(
-    val text: String,
-    val company: String,
-    val role: String,
-)
-
 data class PasteJobDescriptionUiState(
     val isLoading: Boolean = false,
     val isOffline: Boolean = false,
@@ -26,12 +24,15 @@ data class PasteJobDescriptionUiState(
     val role: String = "",
     val arrival: PasteJobDescriptionArrival = PasteJobDescriptionArrival.TYPED,
     val message: PasteJobDescriptionMessage? = null,
-    val analysisRequest: PasteJobDescriptionHandoff? = null,
+    val freeAnalysesLeft: Int = FREE_ANALYSES_PER_DAY,
+    val nextStep: OnboardingStep? = null,
 ) {
+    val isDailyLimitReached: Boolean get() = freeAnalysesLeft <= 0
     val wordCount: Int get() = pasteJdWordCount(text)
     val problem: PasteJobDescriptionProblem? get() = pasteJdProblem(text = text, wordCount = wordCount)
     val canClear: Boolean get() = text.isNotEmpty()
-    val canAnalyse: Boolean get() = !isLoading && text.isNotBlank() && problem == null
+    val canAnalyse: Boolean
+        get() = !isLoading && !isDailyLimitReached && text.isNotBlank() && problem == null
 }
 
 fun pasteJobDescriptionStateFor(
@@ -54,7 +55,7 @@ fun pasteJobDescriptionStateFor(
             message = if (text.isEmpty()) PasteJobDescriptionMessage.PASTE_PARTIAL else null,
         )
 
-        DebugScenario.SUCCESS -> base
+        DebugScenario.PENDING -> base.copy(freeAnalysesLeft = 0)
         else -> base
     }
 }

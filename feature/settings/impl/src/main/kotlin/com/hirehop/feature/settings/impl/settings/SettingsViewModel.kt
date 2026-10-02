@@ -2,65 +2,77 @@ package com.hirehop.feature.settings.impl.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.SignInGateway
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.settings.api.navigation.SettingsNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val paymentGateway: PaymentGateway,
+    sessionRepository: SessionRepository,
+    paymentGateway: PaymentGateway,
+    connectivityMonitor: ConnectivityMonitor,
     private val signInGateway: SignInGateway,
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(SettingsUiState())
+    private val local = MutableStateFlow(LocalState())
 
-    private var hasEntered = false
-
-    private var isOffline = false
-
-    val uiState: StateFlow<SettingsUiState> = mutableState.asStateFlow()
+    val uiState: StateFlow<SettingsUiState> = combine(
+        sessionRepository.observeAccount(),
+        sessionRepository.observeConsent(),
+        paymentGateway.observeEntitlement(),
+        connectivityMonitor.isOnline,
+        local,
+    ) { account, consent, entitlement, isOnline, localState ->
+        SettingsUiState.Content(
+            account = account,
+            creditsLeft = entitlement.totalCredits,
+            consentAcceptedAt = consent?.acceptedAt,
+            isOffline = !isOnline || localState.forcedOffline,
+            isSignOutConfirmVisible = localState.isSignOutConfirmVisible,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        initialValue = SettingsUiState.Loading,
+    )
 
     fun onEnter(key: SettingsNavKey) {
-        if (hasEntered) return
-        hasEntered = true
-        isOffline = settingsIsOffline(key.scenario)
-        viewModelScope.launch { load() }
+        local.update { state -> state.copy(forcedOffline = key.scenario == DebugScenario.OFFLINE) }
     }
 
-    fun onAction(action: SettingsAction) {
-        when (action) {
-            is SettingsAction.DestinationSelected -> onDestinationSelected(action.destination)
-            SettingsAction.DestinationConsumed -> mutableState.update { it.copy(destination = null) }
-        }
+    fun onSignOutRequested() {
+        val content = uiState.value as? SettingsUiState.Content ?: return
+        if (content.isOffline) return
+        local.update { state -> state.copy(isSignOutConfirmVisible = true) }
     }
 
-    private suspend fun load() {
-        val account = runCatching { signInGateway.currentAccount() }.getOrNull()
-        val entitlement = runCatching { paymentGateway.entitlement() }.getOrNull()
-        mutableState.value = settingsStateFor(
-            accountDisplayName = account?.displayName,
-            creditsLeft = entitlement?.totalCredits ?: 0,
-            isOffline = isOffline,
-        )
+    fun onSignOutDismissed() {
+        local.update { state -> state.copy(isSignOutConfirmVisible = false) }
     }
 
-    private fun onDestinationSelected(destination: SettingsDestination) {
-        mutableState.update { state ->
-            val row = state.groups
-                .flatMap { group -> group.rows }
-                .firstOrNull { candidate -> candidate.destination == destination }
-            if (row == null || !row.isEnabled) {
-                state
-            } else {
-                state.copy(destination = destination)
-            }
-        }
+    fun onSignOutConfirmed() {
+        local.update { state -> state.copy(isSignOutConfirmVisible = false) }
+        viewModelScope.launch { signInGateway.signOut() }
+    }
+
+    private data class LocalState(
+        val forcedOffline: Boolean = false,
+        val isSignOutConfirmVisible: Boolean = false,
+    )
+
+    private companion object {
+        const val STOP_TIMEOUT_MS = 5_000L
     }
 }

@@ -1,0 +1,3717 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Colour.dc.html": {
+      "h": 2977,
+      "page": "foundations",
+      "title": "02 · Colour",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "ComponentsDark.dc.html": {
+      "h": 3625,
+      "page": "foundations",
+      "title": "06 · Components, dark",
+      "w": 1440,
+      "x": 1520,
+      "y": 5599
+    },
+    "ComponentsLight.dc.html": {
+      "h": 3625,
+      "page": "foundations",
+      "title": "06 · Components, light",
+      "w": 1440,
+      "x": 0,
+      "y": 5599
+    },
+    "Illustration.dc.html": {
+      "h": 2382,
+      "page": "foundations",
+      "title": "04 · Illustration",
+      "w": 1440,
+      "x": 0,
+      "y": 3097
+    },
+    "Main.dc.html": {
+      "h": 2068,
+      "page": "foundations",
+      "title": "01 · Overview and type",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Motion.dc.html": {
+      "h": 1903,
+      "page": "foundations",
+      "title": "05 · Motion",
+      "w": 1440,
+      "x": 1520,
+      "y": 3097
+    },
+    "Surface.dc.html": {
+      "h": 2075,
+      "page": "foundations",
+      "title": "03 · Surface and elevation",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "f1-s1-welcome-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 1220
+    },
+    "f1-s1-welcome-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 300
+    },
+    "f1-s1-welcome-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · original line · dark",
+      "w": 360,
+      "x": 440,
+      "y": 1220
+    },
+    "f1-s1-welcome-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · original line · light",
+      "w": 360,
+      "x": 440,
+      "y": 300
+    },
+    "f1-s1-welcome-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · rewrite · dark",
+      "w": 360,
+      "x": 880,
+      "y": 1220
+    },
+    "f1-s1-welcome-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · rewrite · light",
+      "w": 360,
+      "x": 880,
+      "y": 300
+    },
+    "f1-s1-welcome-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · thread drawn · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 1220
+    },
+    "f1-s1-welcome-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · hero · thread drawn · light",
+      "w": 360,
+      "x": 1320,
+      "y": 300
+    },
+    "f1-s1-welcome-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · reduce motion · static final · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 1220
+    },
+    "f1-s1-welcome-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S1 · Welcome · reduce motion · static final · light",
+      "w": 360,
+      "x": 1760,
+      "y": 300
+    },
+    "f1-s2-paste-jd-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · empty · dark",
+      "w": 360,
+      "x": 0,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · empty · light",
+      "w": 360,
+      "x": 0,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · pasted · dark",
+      "w": 360,
+      "x": 440,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · pasted · light",
+      "w": 360,
+      "x": 440,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · shared from WhatsApp · dark",
+      "w": 360,
+      "x": 880,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · shared from WhatsApp · light",
+      "w": 360,
+      "x": 880,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · link only · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · link only · light",
+      "w": 360,
+      "x": 1320,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · too short · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · too short · light",
+      "w": 360,
+      "x": 1760,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · offline · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-06-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · offline · light",
+      "w": 360,
+      "x": 2200,
+      "y": 2580
+    },
+    "f1-s2-paste-jd-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · daily limit reached · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 3500
+    },
+    "f1-s2-paste-jd-07-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S2 · Paste JD · daily limit reached · light",
+      "w": 360,
+      "x": 2640,
+      "y": 2580
+    },
+    "f1-s3-sign-in-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 5780
+    },
+    "f1-s3-sign-in-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 4860
+    },
+    "f1-s3-sign-in-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · box not ticked · Continue tapped · dark",
+      "w": 360,
+      "x": 440,
+      "y": 5780
+    },
+    "f1-s3-sign-in-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · box not ticked · Continue tapped · light",
+      "w": 360,
+      "x": 440,
+      "y": 4860
+    },
+    "f1-s3-sign-in-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · ready · dark",
+      "w": 360,
+      "x": 880,
+      "y": 5780
+    },
+    "f1-s3-sign-in-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · ready · light",
+      "w": 360,
+      "x": 880,
+      "y": 4860
+    },
+    "f1-s3-sign-in-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · Google account picker (system) · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 5780
+    },
+    "f1-s3-sign-in-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · Google account picker (system) · light",
+      "w": 360,
+      "x": 1320,
+      "y": 4860
+    },
+    "f1-s3-sign-in-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · under 18 · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 5780
+    },
+    "f1-s3-sign-in-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · under 18 · light",
+      "w": 360,
+      "x": 1760,
+      "y": 4860
+    },
+    "f1-s3-sign-in-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · sign-in failed · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 5780
+    },
+    "f1-s3-sign-in-06-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · sign-in failed · light",
+      "w": 360,
+      "x": 2200,
+      "y": 4860
+    },
+    "f1-s3-sign-in-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · offline · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 5780
+    },
+    "f1-s3-sign-in-07-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S3 · Sign in · offline · light",
+      "w": 360,
+      "x": 2640,
+      "y": 4860
+    },
+    "f1-s4-consent-notice-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 8060
+    },
+    "f1-s4-consent-notice-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 7140
+    },
+    "f1-s4-consent-notice-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · acknowledging · marks ink in · dark",
+      "w": 360,
+      "x": 440,
+      "y": 8060
+    },
+    "f1-s4-consent-notice-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · acknowledging · marks ink in · light",
+      "w": 360,
+      "x": 440,
+      "y": 7140
+    },
+    "f1-s4-consent-notice-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · all purposes acknowledged · dark",
+      "w": 360,
+      "x": 880,
+      "y": 8060
+    },
+    "f1-s4-consent-notice-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · all purposes acknowledged · light",
+      "w": 360,
+      "x": 880,
+      "y": 7140
+    },
+    "f1-s4-consent-notice-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · declined · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 8060
+    },
+    "f1-s4-consent-notice-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · declined · light",
+      "w": 360,
+      "x": 1320,
+      "y": 7140
+    },
+    "f1-s4-consent-notice-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · read only from Settings · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 8060
+    },
+    "f1-s4-consent-notice-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S4 · Consent notice · read only from Settings · light",
+      "w": 360,
+      "x": 1760,
+      "y": 7140
+    },
+    "f1-s5-import-resume-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · choose · dark",
+      "w": 360,
+      "x": 0,
+      "y": 10340
+    },
+    "f1-s5-import-resume-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · choose · light",
+      "w": 360,
+      "x": 0,
+      "y": 9420
+    },
+    "f1-s5-import-resume-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · picking (system file picker) · dark",
+      "w": 360,
+      "x": 440,
+      "y": 10340
+    },
+    "f1-s5-import-resume-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · picking (system file picker) · light",
+      "w": 360,
+      "x": 440,
+      "y": 9420
+    },
+    "f1-s5-import-resume-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · reading · step 2 · dark",
+      "w": 360,
+      "x": 880,
+      "y": 10340
+    },
+    "f1-s5-import-resume-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · reading · step 2 · light",
+      "w": 360,
+      "x": 880,
+      "y": 9420
+    },
+    "f1-s5-import-resume-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · reading · step 3 · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 10340
+    },
+    "f1-s5-import-resume-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · reading · step 3 · light",
+      "w": 360,
+      "x": 1320,
+      "y": 9420
+    },
+    "f1-s5-import-resume-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · scanned PDF · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 10340
+    },
+    "f1-s5-import-resume-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · scanned PDF · light",
+      "w": 360,
+      "x": 1760,
+      "y": 9420
+    },
+    "f1-s5-import-resume-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · unsupported file · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 10340
+    },
+    "f1-s5-import-resume-06-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · unsupported file · light",
+      "w": 360,
+      "x": 2200,
+      "y": 9420
+    },
+    "f1-s5-import-resume-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · failed · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 10340
+    },
+    "f1-s5-import-resume-07-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · failed · light",
+      "w": 360,
+      "x": 2640,
+      "y": 9420
+    },
+    "f1-s5-import-resume-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · offline · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 10340
+    },
+    "f1-s5-import-resume-08-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S5 · Import resume · offline · light",
+      "w": 360,
+      "x": 3080,
+      "y": 9420
+    },
+    "f1-s6-confirm-your-facts-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · all pending · dark",
+      "w": 360,
+      "x": 0,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · all pending · light",
+      "w": 360,
+      "x": 0,
+      "y": 11700
+    },
+    "f1-s6-confirm-your-facts-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · partly confirmed · dark",
+      "w": 360,
+      "x": 440,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · partly confirmed · light",
+      "w": 360,
+      "x": 440,
+      "y": 11700
+    },
+    "f1-s6-confirm-your-facts-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · confirm stamps · counter ticks · dark",
+      "w": 360,
+      "x": 880,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · confirm stamps · counter ticks · light",
+      "w": 360,
+      "x": 880,
+      "y": 11700
+    },
+    "f1-s6-confirm-your-facts-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · all confirmed · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · all confirmed · light",
+      "w": 360,
+      "x": 1320,
+      "y": 11700
+    },
+    "f1-s6-confirm-your-facts-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · empty section · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · empty section · light",
+      "w": 360,
+      "x": 1760,
+      "y": 11700
+    },
+    "f1-s6-confirm-your-facts-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · offline · edits queue · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 12620
+    },
+    "f1-s6-confirm-your-facts-06-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S6 · Confirm your facts · offline · edits queue · light",
+      "w": 360,
+      "x": 2200,
+      "y": 11700
+    },
+    "f1-s7-gap-analysis-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · honest waiting · dark",
+      "w": 360,
+      "x": 0,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-01-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · honest waiting · light",
+      "w": 360,
+      "x": 0,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · reveal · must-have gaps arriving · dark",
+      "w": 360,
+      "x": 440,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-02-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · reveal · must-have gaps arriving · light",
+      "w": 360,
+      "x": 440,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · result · settled · dark",
+      "w": 360,
+      "x": 880,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-03-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · result · settled · light",
+      "w": 360,
+      "x": 880,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · result · scrolled to met · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-04-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · result · scrolled to met · light",
+      "w": 360,
+      "x": 1320,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · row overflow menu · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-05-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · row overflow menu · light",
+      "w": 360,
+      "x": 1760,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · source fact sheet over a met row · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-06-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · source fact sheet over a met row · light",
+      "w": 360,
+      "x": 2200,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · I have this · question sheet · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-07-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · I have this · question sheet · light",
+      "w": 360,
+      "x": 2640,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · saved as user-stated · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-08-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · saved as user-stated · light",
+      "w": 360,
+      "x": 3080,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · gap closed · hop · 10 / 14 · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-09-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · gap closed · hop · 10 / 14 · light",
+      "w": 360,
+      "x": 3520,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-10-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · added to prep plan · Undo · dark",
+      "w": 360,
+      "x": 3960,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-10-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · added to prep plan · Undo · light",
+      "w": 360,
+      "x": 3960,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-11-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · many gaps · thin profile · dark",
+      "w": 360,
+      "x": 4400,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-11-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · many gaps · thin profile · light",
+      "w": 360,
+      "x": 4400,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-12-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · all met · dark",
+      "w": 360,
+      "x": 4840,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-12-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · all met · light",
+      "w": 360,
+      "x": 4840,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-13-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · error · dark",
+      "w": 360,
+      "x": 5280,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-13-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · error · light",
+      "w": 360,
+      "x": 5280,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-14-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · offline · last result · dark",
+      "w": 360,
+      "x": 5720,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-14-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · offline · last result · light",
+      "w": 360,
+      "x": 5720,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-15-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · daily limit · dark",
+      "w": 360,
+      "x": 6160,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-15-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · daily limit · light",
+      "w": 360,
+      "x": 6160,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-16-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · free tailoring limit · dark",
+      "w": 360,
+      "x": 6600,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-16-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · free tailoring limit · light",
+      "w": 360,
+      "x": 6600,
+      "y": 13980
+    },
+    "f1-s7-gap-analysis-17-dark.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · text at 200% · dark",
+      "w": 360,
+      "x": 7040,
+      "y": 14900
+    },
+    "f1-s7-gap-analysis-17-light.dc.html": {
+      "h": 800,
+      "page": "flow1",
+      "title": "S7 · Gap analysis · text at 200% · light",
+      "w": 360,
+      "x": 7040,
+      "y": 13980
+    },
+    "f2-s10-cover-letter-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · offer · dark",
+      "w": 360,
+      "x": 0,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-01-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · offer · light",
+      "w": 360,
+      "x": 0,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · generating · dark",
+      "w": 360,
+      "x": 440,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-02-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · generating · light",
+      "w": 360,
+      "x": 440,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · ready · dark",
+      "w": 360,
+      "x": 880,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-03-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · ready · light",
+      "w": 360,
+      "x": 880,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · margin citation tapped · sources light · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-04-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · margin citation tapped · sources light · light",
+      "w": 360,
+      "x": 1320,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · paragraph flagged · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-05-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · paragraph flagged · light",
+      "w": 360,
+      "x": 1760,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · editing in place · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-06-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · editing in place · light",
+      "w": 360,
+      "x": 2200,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · user-edited · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-07-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · user-edited · light",
+      "w": 360,
+      "x": 2640,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · error · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-08-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · error · light",
+      "w": 360,
+      "x": 3080,
+      "y": 4860
+    },
+    "f2-s10-cover-letter-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · offline · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 5780
+    },
+    "f2-s10-cover-letter-09-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S10 · Cover letter · offline · light",
+      "w": 360,
+      "x": 3520,
+      "y": 4860
+    },
+    "f2-s11-prep-questions-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · generating · dark",
+      "w": 360,
+      "x": 0,
+      "y": 8060
+    },
+    "f2-s11-prep-questions-01-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · generating · light",
+      "w": 360,
+      "x": 0,
+      "y": 7140
+    },
+    "f2-s11-prep-questions-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · ready · JD phrase in evidence · dark",
+      "w": 360,
+      "x": 440,
+      "y": 8060
+    },
+    "f2-s11-prep-questions-02-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · ready · JD phrase in evidence · light",
+      "w": 360,
+      "x": 440,
+      "y": 7140
+    },
+    "f2-s11-prep-questions-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · your gaps · dark",
+      "w": 360,
+      "x": 880,
+      "y": 8060
+    },
+    "f2-s11-prep-questions-03-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · your gaps · light",
+      "w": 360,
+      "x": 880,
+      "y": 7140
+    },
+    "f2-s11-prep-questions-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · error · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 8060
+    },
+    "f2-s11-prep-questions-04-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · error · light",
+      "w": 360,
+      "x": 1320,
+      "y": 7140
+    },
+    "f2-s11-prep-questions-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · offline · saved list · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 8060
+    },
+    "f2-s11-prep-questions-05-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S11 · Prep questions · offline · saved list · light",
+      "w": 360,
+      "x": 1760,
+      "y": 7140
+    },
+    "f2-s8-tailored-resume-review-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · loading · honest waiting · dark",
+      "w": 360,
+      "x": 0,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-01-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · loading · honest waiting · light",
+      "w": 360,
+      "x": 0,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · notification permission · first time · dark",
+      "w": 360,
+      "x": 440,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-02-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · notification permission · first time · light",
+      "w": 360,
+      "x": 440,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · background · you left · dark",
+      "w": 360,
+      "x": 880,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-03-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · background · you left · light",
+      "w": 360,
+      "x": 880,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · background · notification (system) · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-04-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · background · notification (system) · light",
+      "w": 360,
+      "x": 1320,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · ready · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-05-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · ready · light",
+      "w": 360,
+      "x": 1760,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · partly reviewed · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-06-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · partly reviewed · light",
+      "w": 360,
+      "x": 2200,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · scrolled · Not added to your resume · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-07-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · scrolled · Not added to your resume · light",
+      "w": 360,
+      "x": 2640,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · line tapped · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-08-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · line tapped · light",
+      "w": 360,
+      "x": 3080,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · thread drawn · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-09-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · thread drawn · light",
+      "w": 360,
+      "x": 3520,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-10-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · source fact sheet · dark",
+      "w": 360,
+      "x": 3960,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-10-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · source link · source fact sheet · light",
+      "w": 360,
+      "x": 3960,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-11-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · all reviewed · 7 of 7 · hop · dark",
+      "w": 360,
+      "x": 4400,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-11-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · all reviewed · 7 of 7 · hop · light",
+      "w": 360,
+      "x": 4400,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-12-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · section overflow · regenerate · dark",
+      "w": 360,
+      "x": 4840,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-12-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · section overflow · regenerate · light",
+      "w": 360,
+      "x": 4840,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-13-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · regenerate · confirm · dark",
+      "w": 360,
+      "x": 5280,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-13-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · regenerate · confirm · light",
+      "w": 360,
+      "x": 5280,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-14-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · regenerations used · dark",
+      "w": 360,
+      "x": 5720,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-14-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · regenerations used · light",
+      "w": 360,
+      "x": 5720,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-15-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · job failed · dark",
+      "w": 360,
+      "x": 6160,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-15-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · job failed · light",
+      "w": 360,
+      "x": 6160,
+      "y": 300
+    },
+    "f2-s8-tailored-resume-review-16-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · offline · dark",
+      "w": 360,
+      "x": 6600,
+      "y": 1220
+    },
+    "f2-s8-tailored-resume-review-16-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S8 · Tailored resume review · offline · light",
+      "w": 360,
+      "x": 6600,
+      "y": 300
+    },
+    "f2-s9-bullet-review-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · resting · diff marked · dark",
+      "w": 360,
+      "x": 0,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-01-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · resting · diff marked · light",
+      "w": 360,
+      "x": 0,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · diff writing in · dark",
+      "w": 360,
+      "x": 440,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-02-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · diff writing in · light",
+      "w": 360,
+      "x": 440,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · accepted · filed into the document · dark",
+      "w": 360,
+      "x": 880,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-03-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · accepted · filed into the document · light",
+      "w": 360,
+      "x": 880,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · Keep original · snapped back · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-04-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · Keep original · snapped back · light",
+      "w": 360,
+      "x": 1320,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · flagged verb · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-05-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · flagged verb · light",
+      "w": 360,
+      "x": 1760,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · flagged scale word · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-06-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · flagged scale word · light",
+      "w": 360,
+      "x": 2200,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · repair failed · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-07-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · repair failed · light",
+      "w": 360,
+      "x": 2640,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · edit by hand · sheet · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-08-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · edit by hand · sheet · light",
+      "w": 360,
+      "x": 3080,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · user-edited · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-09-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · user-edited · light",
+      "w": 360,
+      "x": 3520,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-10-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · merged sources · dark",
+      "w": 360,
+      "x": 3960,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-10-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · merged sources · light",
+      "w": 360,
+      "x": 3960,
+      "y": 2580
+    },
+    "f2-s9-bullet-review-11-dark.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · text at 200% · dark",
+      "w": 360,
+      "x": 4400,
+      "y": 3500
+    },
+    "f2-s9-bullet-review-11-light.dc.html": {
+      "h": 800,
+      "page": "flow2",
+      "title": "S9 · Bullet review · text at 200% · light",
+      "w": 360,
+      "x": 4400,
+      "y": 2580
+    },
+    "f3-s12-export-preview-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · rendering · dark",
+      "w": 360,
+      "x": 0,
+      "y": 1220
+    },
+    "f3-s12-export-preview-01-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · rendering · light",
+      "w": 360,
+      "x": 0,
+      "y": 300
+    },
+    "f3-s12-export-preview-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · ready · 1 free credit · Plain · dark",
+      "w": 360,
+      "x": 440,
+      "y": 1220
+    },
+    "f3-s12-export-preview-02-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · ready · 1 free credit · Plain · light",
+      "w": 360,
+      "x": 440,
+      "y": 300
+    },
+    "f3-s12-export-preview-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · template switch · mid cross-fade · dark",
+      "w": 360,
+      "x": 880,
+      "y": 1220
+    },
+    "f3-s12-export-preview-03-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · template switch · mid cross-fade · light",
+      "w": 360,
+      "x": 880,
+      "y": 300
+    },
+    "f3-s12-export-preview-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · template switch · Compact · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 1220
+    },
+    "f3-s12-export-preview-04-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · template switch · Compact · light",
+      "w": 360,
+      "x": 1320,
+      "y": 300
+    },
+    "f3-s12-export-preview-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · scrolled · end of page · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 1220
+    },
+    "f3-s12-export-preview-05-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · scrolled · end of page · light",
+      "w": 360,
+      "x": 1760,
+      "y": 300
+    },
+    "f3-s12-export-preview-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · DOCX selected · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 1220
+    },
+    "f3-s12-export-preview-06-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · DOCX selected · light",
+      "w": 360,
+      "x": 2200,
+      "y": 300
+    },
+    "f3-s12-export-preview-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · no credit · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 1220
+    },
+    "f3-s12-export-preview-07-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · no credit · light",
+      "w": 360,
+      "x": 2640,
+      "y": 300
+    },
+    "f3-s12-export-preview-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · R1 beta · free downloads · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 1220
+    },
+    "f3-s12-export-preview-08-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · R1 beta · free downloads · light",
+      "w": 360,
+      "x": 3080,
+      "y": 300
+    },
+    "f3-s12-export-preview-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · Download tapped · making the file · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 1220
+    },
+    "f3-s12-export-preview-09-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · Download tapped · making the file · light",
+      "w": 360,
+      "x": 3520,
+      "y": 300
+    },
+    "f3-s12-export-preview-10-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · render error · dark",
+      "w": 360,
+      "x": 3960,
+      "y": 1220
+    },
+    "f3-s12-export-preview-10-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · render error · light",
+      "w": 360,
+      "x": 3960,
+      "y": 300
+    },
+    "f3-s12-export-preview-11-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · offline · dark",
+      "w": 360,
+      "x": 4400,
+      "y": 1220
+    },
+    "f3-s12-export-preview-11-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S12 · Export preview · offline · light",
+      "w": 360,
+      "x": 4400,
+      "y": 300
+    },
+    "f3-s13-application-pack-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 3500
+    },
+    "f3-s13-application-pack-01-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 2580
+    },
+    "f3-s13-application-pack-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · Google Play sheet (system) · dark",
+      "w": 360,
+      "x": 440,
+      "y": 3500
+    },
+    "f3-s13-application-pack-02-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · Google Play sheet (system) · light",
+      "w": 360,
+      "x": 440,
+      "y": 2580
+    },
+    "f3-s13-application-pack-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · purchase pending · dark",
+      "w": 360,
+      "x": 880,
+      "y": 3500
+    },
+    "f3-s13-application-pack-03-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · purchase pending · light",
+      "w": 360,
+      "x": 880,
+      "y": 2580
+    },
+    "f3-s13-application-pack-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · success · 0 → 5 · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 3500
+    },
+    "f3-s13-application-pack-04-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · success · 0 → 5 · light",
+      "w": 360,
+      "x": 1320,
+      "y": 2580
+    },
+    "f3-s13-application-pack-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · cancelled · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 3500
+    },
+    "f3-s13-application-pack-05-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · cancelled · light",
+      "w": 360,
+      "x": 1760,
+      "y": 2580
+    },
+    "f3-s13-application-pack-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · payment failed · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 3500
+    },
+    "f3-s13-application-pack-06-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · payment failed · light",
+      "w": 360,
+      "x": 2200,
+      "y": 2580
+    },
+    "f3-s13-application-pack-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · offline · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 3500
+    },
+    "f3-s13-application-pack-07-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · offline · light",
+      "w": 360,
+      "x": 2640,
+      "y": 2580
+    },
+    "f3-s13-application-pack-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · test variant · 1 application · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 3500
+    },
+    "f3-s13-application-pack-08-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · test variant · 1 application · light",
+      "w": 360,
+      "x": 3080,
+      "y": 2580
+    },
+    "f3-s13-application-pack-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · text at 200% · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 3500
+    },
+    "f3-s13-application-pack-09-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S13 · Application pack · text at 200% · light",
+      "w": 360,
+      "x": 3520,
+      "y": 2580
+    },
+    "f3-s14-exported-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · paid credit used · 5 → 4 · hop · dark",
+      "w": 360,
+      "x": 0,
+      "y": 5780
+    },
+    "f3-s14-exported-01-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · paid credit used · 5 → 4 · hop · light",
+      "w": 360,
+      "x": 0,
+      "y": 4860
+    },
+    "f3-s14-exported-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · free credit used · dark",
+      "w": 360,
+      "x": 440,
+      "y": 5780
+    },
+    "f3-s14-exported-02-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · free credit used · light",
+      "w": 360,
+      "x": 440,
+      "y": 4860
+    },
+    "f3-s14-exported-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · share sheet (system) · dark",
+      "w": 360,
+      "x": 880,
+      "y": 5780
+    },
+    "f3-s14-exported-03-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · share sheet (system) · light",
+      "w": 360,
+      "x": 880,
+      "y": 4860
+    },
+    "f3-s14-exported-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · status sheet · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 5780
+    },
+    "f3-s14-exported-04-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · status sheet · light",
+      "w": 360,
+      "x": 1320,
+      "y": 4860
+    },
+    "f3-s14-exported-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · marked Applied · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 5780
+    },
+    "f3-s14-exported-05-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S14 · Exported · marked Applied · light",
+      "w": 360,
+      "x": 1760,
+      "y": 4860
+    },
+    "f3-s15-credits-and-help-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · no purchases · free application · dark",
+      "w": 360,
+      "x": 0,
+      "y": 8060
+    },
+    "f3-s15-credits-and-help-01-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · no purchases · free application · light",
+      "w": 360,
+      "x": 0,
+      "y": 7140
+    },
+    "f3-s15-credits-and-help-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · purchases · dark",
+      "w": 360,
+      "x": 440,
+      "y": 8060
+    },
+    "f3-s15-credits-and-help-02-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · purchases · light",
+      "w": 360,
+      "x": 440,
+      "y": 7140
+    },
+    "f3-s15-credits-and-help-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · pending purchase · dark",
+      "w": 360,
+      "x": 880,
+      "y": 8060
+    },
+    "f3-s15-credits-and-help-03-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · pending purchase · light",
+      "w": 360,
+      "x": 880,
+      "y": 7140
+    },
+    "f3-s15-credits-and-help-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · offline · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 8060
+    },
+    "f3-s15-credits-and-help-04-light.dc.html": {
+      "h": 800,
+      "page": "flow3",
+      "title": "S15 · Credits and help · offline · light",
+      "w": 360,
+      "x": 1320,
+      "y": 7140
+    },
+    "f4-s16-profile-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · empty · dark",
+      "w": 360,
+      "x": 0,
+      "y": 1220
+    },
+    "f4-s16-profile-01-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · empty · light",
+      "w": 360,
+      "x": 0,
+      "y": 300
+    },
+    "f4-s16-profile-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · partly confirmed · dark",
+      "w": 360,
+      "x": 440,
+      "y": 1220
+    },
+    "f4-s16-profile-02-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · partly confirmed · light",
+      "w": 360,
+      "x": 440,
+      "y": 300
+    },
+    "f4-s16-profile-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · full · dark",
+      "w": 360,
+      "x": 880,
+      "y": 1220
+    },
+    "f4-s16-profile-03-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · full · light",
+      "w": 360,
+      "x": 880,
+      "y": 300
+    },
+    "f4-s16-profile-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · full · scrolled to the end · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 1220
+    },
+    "f4-s16-profile-04-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · full · scrolled to the end · light",
+      "w": 360,
+      "x": 1320,
+      "y": 300
+    },
+    "f4-s16-profile-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · section expanded · Projects · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 1220
+    },
+    "f4-s16-profile-05-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · section expanded · Projects · light",
+      "w": 360,
+      "x": 1760,
+      "y": 300
+    },
+    "f4-s16-profile-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · offline · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 1220
+    },
+    "f4-s16-profile-06-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S16 · Profile · offline · light",
+      "w": 360,
+      "x": 2200,
+      "y": 300
+    },
+    "f4-s17-fact-editor-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · new · dark",
+      "w": 360,
+      "x": 0,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-01-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · new · light",
+      "w": 360,
+      "x": 0,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · editing · dark",
+      "w": 360,
+      "x": 440,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-02-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · editing · light",
+      "w": 360,
+      "x": 440,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · editing · dates, numbers, live line · dark",
+      "w": 360,
+      "x": 880,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-03-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · editing · dates, numbers, live line · light",
+      "w": 360,
+      "x": 880,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · validation error · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-04-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · validation error · light",
+      "w": 360,
+      "x": 1320,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · delete dialog · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-05-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · delete dialog · light",
+      "w": 360,
+      "x": 1760,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · offline · saves queue · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-06-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · offline · saves queue · light",
+      "w": 360,
+      "x": 2200,
+      "y": 2580
+    },
+    "f4-s17-fact-editor-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · text at 200% · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 3500
+    },
+    "f4-s17-fact-editor-07-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S17 · Fact editor · text at 200% · light",
+      "w": 360,
+      "x": 2640,
+      "y": 2580
+    },
+    "f4-s18-guided-form-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · arrived from a scanned PDF · dark",
+      "w": 360,
+      "x": 0,
+      "y": 5780
+    },
+    "f4-s18-guided-form-01-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · arrived from a scanned PDF · light",
+      "w": 360,
+      "x": 0,
+      "y": 4860
+    },
+    "f4-s18-guided-form-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 1 · Contact · dark",
+      "w": 360,
+      "x": 440,
+      "y": 5780
+    },
+    "f4-s18-guided-form-02-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 1 · Contact · light",
+      "w": 360,
+      "x": 440,
+      "y": 4860
+    },
+    "f4-s18-guided-form-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 2 · Education · dark",
+      "w": 360,
+      "x": 880,
+      "y": 5780
+    },
+    "f4-s18-guided-form-03-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 2 · Education · light",
+      "w": 360,
+      "x": 880,
+      "y": 4860
+    },
+    "f4-s18-guided-form-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step folds into fact cards · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 5780
+    },
+    "f4-s18-guided-form-04-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step folds into fact cards · light",
+      "w": 360,
+      "x": 1320,
+      "y": 4860
+    },
+    "f4-s18-guided-form-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 3 · Skills · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 5780
+    },
+    "f4-s18-guided-form-05-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 3 · Skills · light",
+      "w": 360,
+      "x": 1760,
+      "y": 4860
+    },
+    "f4-s18-guided-form-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 4 · Experience · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 5780
+    },
+    "f4-s18-guided-form-06-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · step 4 · Experience · light",
+      "w": 360,
+      "x": 2200,
+      "y": 4860
+    },
+    "f4-s18-guided-form-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · hand-off to evidence path · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 5780
+    },
+    "f4-s18-guided-form-07-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · hand-off to evidence path · light",
+      "w": 360,
+      "x": 2640,
+      "y": 4860
+    },
+    "f4-s18-guided-form-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · saved for later · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 5780
+    },
+    "f4-s18-guided-form-08-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · saved for later · light",
+      "w": 360,
+      "x": 3080,
+      "y": 4860
+    },
+    "f4-s18-guided-form-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · offline · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 5780
+    },
+    "f4-s18-guided-form-09-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S18 · Guided form · offline · light",
+      "w": 360,
+      "x": 3520,
+      "y": 4860
+    },
+    "f4-s19-evidence-path-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · category picker · dark",
+      "w": 360,
+      "x": 0,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-01-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · category picker · light",
+      "w": 360,
+      "x": 0,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · question · dark",
+      "w": 360,
+      "x": 440,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-02-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · question · light",
+      "w": 360,
+      "x": 440,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · typed answer · dark",
+      "w": 360,
+      "x": 880,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-03-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · typed answer · light",
+      "w": 360,
+      "x": 880,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · card stamped user-stated · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-04-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · card stamped user-stated · light",
+      "w": 360,
+      "x": 1320,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · filed into Projects · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-05-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · filed into Projects · light",
+      "w": 360,
+      "x": 1760,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · skipped · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-06-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · skipped · light",
+      "w": 360,
+      "x": 2200,
+      "y": 7140
+    },
+    "f4-s19-evidence-path-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · all done · 5 new facts · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 8060
+    },
+    "f4-s19-evidence-path-07-light.dc.html": {
+      "h": 800,
+      "page": "flow4",
+      "title": "S19 · Evidence path · all done · 5 new facts · light",
+      "w": 360,
+      "x": 2640,
+      "y": 7140
+    },
+    "f5-s20-applications-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · empty · dark",
+      "w": 360,
+      "x": 0,
+      "y": 1220
+    },
+    "f5-s20-applications-01-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · empty · light",
+      "w": 360,
+      "x": 0,
+      "y": 300
+    },
+    "f5-s20-applications-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · list · dark",
+      "w": 360,
+      "x": 440,
+      "y": 1220
+    },
+    "f5-s20-applications-02-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · list · light",
+      "w": 360,
+      "x": 440,
+      "y": 300
+    },
+    "f5-s20-applications-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · list enter · staggered · dark",
+      "w": 360,
+      "x": 880,
+      "y": 1220
+    },
+    "f5-s20-applications-03-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · list enter · staggered · light",
+      "w": 360,
+      "x": 880,
+      "y": 300
+    },
+    "f5-s20-applications-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · scrolled · compact header · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 1220
+    },
+    "f5-s20-applications-04-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · scrolled · compact header · light",
+      "w": 360,
+      "x": 1320,
+      "y": 300
+    },
+    "f5-s20-applications-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · offline · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 1220
+    },
+    "f5-s20-applications-05-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · offline · light",
+      "w": 360,
+      "x": 1760,
+      "y": 300
+    },
+    "f5-s20-applications-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · sync pending on one row · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 1220
+    },
+    "f5-s20-applications-06-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · sync pending on one row · light",
+      "w": 360,
+      "x": 2200,
+      "y": 300
+    },
+    "f5-s20-applications-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · text at 200% · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 1220
+    },
+    "f5-s20-applications-07-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S20 · Applications · text at 200% · light",
+      "w": 360,
+      "x": 2640,
+      "y": 300
+    },
+    "f5-s21-application-workspace-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · shared element · row pressed · dark",
+      "w": 360,
+      "x": 0,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-01-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · shared element · row pressed · light",
+      "w": 360,
+      "x": 0,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · shared element · mid-transition · dark",
+      "w": 360,
+      "x": 440,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-02-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · shared element · mid-transition · light",
+      "w": 360,
+      "x": 440,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · full · header settled · dark",
+      "w": 360,
+      "x": 880,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-03-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · full · header settled · light",
+      "w": 360,
+      "x": 880,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · scrolled · prep, notes, JD, R2 · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-04-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · scrolled · prep, notes, JD, R2 · light",
+      "w": 360,
+      "x": 1320,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · not exported yet · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-05-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · not exported yet · light",
+      "w": 360,
+      "x": 1760,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · notes saved · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-06-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · notes saved · light",
+      "w": 360,
+      "x": 2200,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-07-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · offline read · dark",
+      "w": 360,
+      "x": 2640,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-07-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · offline read · light",
+      "w": 360,
+      "x": 2640,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-08-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · status sheet open · dark",
+      "w": 360,
+      "x": 3080,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-08-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · status sheet open · light",
+      "w": 360,
+      "x": 3080,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-09-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · status sheet · Interview chosen · dark",
+      "w": 360,
+      "x": 3520,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-09-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · status sheet · Interview chosen · light",
+      "w": 360,
+      "x": 3520,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-10-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · chip updated · dark",
+      "w": 360,
+      "x": 3960,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-10-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · chip updated · light",
+      "w": 360,
+      "x": 3960,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-11-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · overflow menu · dark",
+      "w": 360,
+      "x": 4400,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-11-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · overflow menu · light",
+      "w": 360,
+      "x": 4400,
+      "y": 2580
+    },
+    "f5-s21-application-workspace-12-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · delete dialog · dark",
+      "w": 360,
+      "x": 4840,
+      "y": 3500
+    },
+    "f5-s21-application-workspace-12-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S21 · Application workspace · delete dialog · light",
+      "w": 360,
+      "x": 4840,
+      "y": 2580
+    },
+    "f5-s22-settings-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 5780
+    },
+    "f5-s22-settings-01-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 4860
+    },
+    "f5-s22-settings-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · scrolled · privacy, about, delete · dark",
+      "w": 360,
+      "x": 440,
+      "y": 5780
+    },
+    "f5-s22-settings-02-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · scrolled · privacy, about, delete · light",
+      "w": 360,
+      "x": 440,
+      "y": 4860
+    },
+    "f5-s22-settings-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · sign-out confirm · dark",
+      "w": 360,
+      "x": 880,
+      "y": 5780
+    },
+    "f5-s22-settings-03-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · sign-out confirm · light",
+      "w": 360,
+      "x": 880,
+      "y": 4860
+    },
+    "f5-s22-settings-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · offline · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 5780
+    },
+    "f5-s22-settings-04-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S22 · Settings · offline · light",
+      "w": 360,
+      "x": 1320,
+      "y": 4860
+    },
+    "f5-s23-your-data-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 8060
+    },
+    "f5-s23-your-data-01-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 7140
+    },
+    "f5-s23-your-data-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · scrolled · purchases, uploaded resume · dark",
+      "w": 360,
+      "x": 440,
+      "y": 8060
+    },
+    "f5-s23-your-data-02-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · scrolled · purchases, uploaded resume · light",
+      "w": 360,
+      "x": 440,
+      "y": 7140
+    },
+    "f5-s23-your-data-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · export · preparing · dark",
+      "w": 360,
+      "x": 880,
+      "y": 8060
+    },
+    "f5-s23-your-data-03-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · export · preparing · light",
+      "w": 360,
+      "x": 880,
+      "y": 7140
+    },
+    "f5-s23-your-data-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · export · share sheet (system) · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 8060
+    },
+    "f5-s23-your-data-04-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · export · share sheet (system) · light",
+      "w": 360,
+      "x": 1320,
+      "y": 7140
+    },
+    "f5-s23-your-data-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · delete dialog · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 8060
+    },
+    "f5-s23-your-data-05-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · delete dialog · light",
+      "w": 360,
+      "x": 1760,
+      "y": 7140
+    },
+    "f5-s23-your-data-06-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · offline · dark",
+      "w": 360,
+      "x": 2200,
+      "y": 8060
+    },
+    "f5-s23-your-data-06-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S23 · Your data · offline · light",
+      "w": 360,
+      "x": 2200,
+      "y": 7140
+    },
+    "f5-s24-delete-account-01-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · default · dark",
+      "w": 360,
+      "x": 0,
+      "y": 10340
+    },
+    "f5-s24-delete-account-01-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · default · light",
+      "w": 360,
+      "x": 0,
+      "y": 9420
+    },
+    "f5-s24-delete-account-02-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · deleting · dark",
+      "w": 360,
+      "x": 440,
+      "y": 10340
+    },
+    "f5-s24-delete-account-02-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · deleting · light",
+      "w": 360,
+      "x": 440,
+      "y": 9420
+    },
+    "f5-s24-delete-account-03-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · done · account deleted · dark",
+      "w": 360,
+      "x": 880,
+      "y": 10340
+    },
+    "f5-s24-delete-account-03-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · done · account deleted · light",
+      "w": 360,
+      "x": 880,
+      "y": 9420
+    },
+    "f5-s24-delete-account-04-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · error · dark",
+      "w": 360,
+      "x": 1320,
+      "y": 10340
+    },
+    "f5-s24-delete-account-04-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · error · light",
+      "w": 360,
+      "x": 1320,
+      "y": 9420
+    },
+    "f5-s24-delete-account-05-dark.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · offline · dark",
+      "w": 360,
+      "x": 1760,
+      "y": 10340
+    },
+    "f5-s24-delete-account-05-light.dc.html": {
+      "h": 800,
+      "page": "flow5",
+      "title": "S24 · Delete account · offline · light",
+      "w": 360,
+      "x": 1760,
+      "y": 9420
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-01T17:19:14Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "nS1": {
+      "kind": "title1",
+      "maxW": 2120,
+      "page": "flow1",
+      "text": "S1 · Welcome — show the value and the promise before any ask",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "nS10": {
+      "kind": "title1",
+      "maxW": 3880,
+      "page": "flow2",
+      "text": "S10 · Cover letter — offer a short letter only after the resume, every paragraph sourced",
+      "w": 240,
+      "x": 0,
+      "y": 4560
+    },
+    "nS11": {
+      "kind": "title1",
+      "maxW": 2120,
+      "page": "flow2",
+      "text": "S11 · Prep questions — give likely interview questions, each tied to facts",
+      "w": 240,
+      "x": 0,
+      "y": 6840
+    },
+    "nS12": {
+      "kind": "title1",
+      "maxW": 4760,
+      "page": "flow3",
+      "text": "S12 · Export preview — show the full resume exactly as it will export, before any payment",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "nS13": {
+      "kind": "title1",
+      "maxW": 3880,
+      "page": "flow3",
+      "text": "S13 · Application pack — let the user buy credits, only when they choose to download",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "nS14": {
+      "kind": "title1",
+      "maxW": 2120,
+      "page": "flow3",
+      "text": "S14 · Exported — confirm the file, share it, and save the application",
+      "w": 240,
+      "x": 0,
+      "y": 4560
+    },
+    "nS15": {
+      "kind": "title1",
+      "maxW": 1680,
+      "page": "flow3",
+      "text": "S15 · Credits and help — show credits, purchases, and the refund path in plain words",
+      "w": 240,
+      "x": 0,
+      "y": 6840
+    },
+    "nS16": {
+      "kind": "title1",
+      "maxW": 2560,
+      "page": "flow4",
+      "text": "S16 · Profile — see and correct every fact HireHop may use",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "nS17": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "flow4",
+      "text": "S17 · Fact editor — correct, add, or delete one fact",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "nS18": {
+      "kind": "title1",
+      "maxW": 3880,
+      "page": "flow4",
+      "text": "S18 · Guided form — build a profile without a resume",
+      "w": 240,
+      "x": 0,
+      "y": 4560
+    },
+    "nS19": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "flow4",
+      "text": "S19 · Evidence path — turn work, projects, coursework, competitions and roles into facts",
+      "w": 240,
+      "x": 0,
+      "y": 6840
+    },
+    "nS2": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "flow1",
+      "text": "S2 · Paste JD — get the JD in with no friction",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "nS20": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "flow5",
+      "text": "S20 · Applications — see every application and where each one stands",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "nS21": {
+      "kind": "title1",
+      "maxW": 5200,
+      "page": "flow5",
+      "text": "S21 · Application workspace — everything for one application in one place",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "nS22": {
+      "kind": "title1",
+      "maxW": 1680,
+      "page": "flow5",
+      "text": "S22 · Settings — account, credits, data and privacy, each one tap away",
+      "w": 240,
+      "x": 0,
+      "y": 4560
+    },
+    "nS23": {
+      "kind": "title1",
+      "maxW": 2560,
+      "page": "flow5",
+      "text": "S23 · Your data — see, correct, download or erase what HireHop holds",
+      "w": 240,
+      "x": 0,
+      "y": 6840
+    },
+    "nS24": {
+      "kind": "title1",
+      "maxW": 2120,
+      "page": "flow5",
+      "text": "S24 · Delete account — delete the account with exact counts and an equal way out",
+      "w": 240,
+      "x": 0,
+      "y": 9120
+    },
+    "nS3": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "flow1",
+      "text": "S3 · Sign in — sign in at the first moment data would leave the phone",
+      "w": 240,
+      "x": 0,
+      "y": 4560
+    },
+    "nS4": {
+      "kind": "title1",
+      "maxW": 2120,
+      "page": "flow1",
+      "text": "S4 · Consent notice — get itemised consent before any upload",
+      "w": 240,
+      "x": 0,
+      "y": 6840
+    },
+    "nS5": {
+      "kind": "title1",
+      "maxW": 3440,
+      "page": "flow1",
+      "text": "S5 · Import resume — get the resume in with no storage permission",
+      "w": 240,
+      "x": 0,
+      "y": 9120
+    },
+    "nS6": {
+      "kind": "title1",
+      "maxW": 2560,
+      "page": "flow1",
+      "text": "S6 · Confirm your facts — confirm or edit every extracted item",
+      "w": 240,
+      "x": 0,
+      "y": 11400
+    },
+    "nS7": {
+      "kind": "title1",
+      "maxW": 7400,
+      "page": "flow1",
+      "text": "S7 · Gap analysis — show what the JD asks for and where Priya stands, free",
+      "w": 240,
+      "x": 0,
+      "y": 13680
+    },
+    "nS8": {
+      "kind": "title1",
+      "maxW": 6960,
+      "page": "flow2",
+      "text": "S8 · Tailored resume review — show what changed, what is left to decide, and what was left out",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "nS9": {
+      "kind": "title1",
+      "maxW": 4760,
+      "page": "flow2",
+      "text": "S9 · Bullet review — accept or reject one change with its source in view",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "t1": {
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "foundations",
+      "text": "HireHop foundations · Friendly Hero, Jade",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Colour.dc.html",
+    "Surface.dc.html",
+    "Illustration.dc.html",
+    "Motion.dc.html",
+    "ComponentsLight.dc.html",
+    "ComponentsDark.dc.html",
+    "f1-s1-welcome-01-light.dc.html",
+    "f1-s1-welcome-01-dark.dc.html",
+    "f1-s1-welcome-02-light.dc.html",
+    "f1-s1-welcome-02-dark.dc.html",
+    "f1-s1-welcome-03-light.dc.html",
+    "f1-s1-welcome-03-dark.dc.html",
+    "f1-s1-welcome-04-light.dc.html",
+    "f1-s1-welcome-04-dark.dc.html",
+    "f1-s1-welcome-05-light.dc.html",
+    "f1-s1-welcome-05-dark.dc.html",
+    "f1-s2-paste-jd-01-light.dc.html",
+    "f1-s2-paste-jd-01-dark.dc.html",
+    "f1-s2-paste-jd-02-light.dc.html",
+    "f1-s2-paste-jd-02-dark.dc.html",
+    "f1-s2-paste-jd-03-light.dc.html",
+    "f1-s2-paste-jd-03-dark.dc.html",
+    "f1-s2-paste-jd-04-light.dc.html",
+    "f1-s2-paste-jd-04-dark.dc.html",
+    "f1-s2-paste-jd-05-light.dc.html",
+    "f1-s2-paste-jd-05-dark.dc.html",
+    "f1-s2-paste-jd-06-light.dc.html",
+    "f1-s2-paste-jd-06-dark.dc.html",
+    "f1-s2-paste-jd-07-light.dc.html",
+    "f1-s2-paste-jd-07-dark.dc.html",
+    "f1-s3-sign-in-01-light.dc.html",
+    "f1-s3-sign-in-01-dark.dc.html",
+    "f1-s3-sign-in-02-light.dc.html",
+    "f1-s3-sign-in-02-dark.dc.html",
+    "f1-s3-sign-in-03-light.dc.html",
+    "f1-s3-sign-in-03-dark.dc.html",
+    "f1-s3-sign-in-04-light.dc.html",
+    "f1-s3-sign-in-04-dark.dc.html",
+    "f1-s3-sign-in-05-light.dc.html",
+    "f1-s3-sign-in-05-dark.dc.html",
+    "f1-s3-sign-in-06-light.dc.html",
+    "f1-s3-sign-in-06-dark.dc.html",
+    "f1-s3-sign-in-07-light.dc.html",
+    "f1-s3-sign-in-07-dark.dc.html",
+    "f1-s4-consent-notice-01-light.dc.html",
+    "f1-s4-consent-notice-01-dark.dc.html",
+    "f1-s4-consent-notice-02-light.dc.html",
+    "f1-s4-consent-notice-02-dark.dc.html",
+    "f1-s4-consent-notice-03-light.dc.html",
+    "f1-s4-consent-notice-03-dark.dc.html",
+    "f1-s4-consent-notice-04-light.dc.html",
+    "f1-s4-consent-notice-04-dark.dc.html",
+    "f1-s4-consent-notice-05-light.dc.html",
+    "f1-s4-consent-notice-05-dark.dc.html",
+    "f1-s5-import-resume-01-light.dc.html",
+    "f1-s5-import-resume-01-dark.dc.html",
+    "f1-s5-import-resume-02-light.dc.html",
+    "f1-s5-import-resume-02-dark.dc.html",
+    "f1-s5-import-resume-03-light.dc.html",
+    "f1-s5-import-resume-03-dark.dc.html",
+    "f1-s5-import-resume-04-light.dc.html",
+    "f1-s5-import-resume-04-dark.dc.html",
+    "f1-s5-import-resume-05-light.dc.html",
+    "f1-s5-import-resume-05-dark.dc.html",
+    "f1-s5-import-resume-06-light.dc.html",
+    "f1-s5-import-resume-06-dark.dc.html",
+    "f1-s5-import-resume-07-light.dc.html",
+    "f1-s5-import-resume-07-dark.dc.html",
+    "f1-s5-import-resume-08-light.dc.html",
+    "f1-s5-import-resume-08-dark.dc.html",
+    "f1-s6-confirm-your-facts-01-light.dc.html",
+    "f1-s6-confirm-your-facts-01-dark.dc.html",
+    "f1-s6-confirm-your-facts-02-light.dc.html",
+    "f1-s6-confirm-your-facts-02-dark.dc.html",
+    "f1-s6-confirm-your-facts-03-light.dc.html",
+    "f1-s6-confirm-your-facts-03-dark.dc.html",
+    "f1-s6-confirm-your-facts-04-light.dc.html",
+    "f1-s6-confirm-your-facts-04-dark.dc.html",
+    "f1-s6-confirm-your-facts-05-light.dc.html",
+    "f1-s6-confirm-your-facts-05-dark.dc.html",
+    "f1-s6-confirm-your-facts-06-light.dc.html",
+    "f1-s6-confirm-your-facts-06-dark.dc.html",
+    "f1-s7-gap-analysis-01-light.dc.html",
+    "f1-s7-gap-analysis-01-dark.dc.html",
+    "f1-s7-gap-analysis-02-light.dc.html",
+    "f1-s7-gap-analysis-02-dark.dc.html",
+    "f1-s7-gap-analysis-03-light.dc.html",
+    "f1-s7-gap-analysis-03-dark.dc.html",
+    "f1-s7-gap-analysis-04-light.dc.html",
+    "f1-s7-gap-analysis-04-dark.dc.html",
+    "f1-s7-gap-analysis-05-light.dc.html",
+    "f1-s7-gap-analysis-05-dark.dc.html",
+    "f1-s7-gap-analysis-06-light.dc.html",
+    "f1-s7-gap-analysis-06-dark.dc.html",
+    "f1-s7-gap-analysis-07-light.dc.html",
+    "f1-s7-gap-analysis-07-dark.dc.html",
+    "f1-s7-gap-analysis-08-light.dc.html",
+    "f1-s7-gap-analysis-08-dark.dc.html",
+    "f1-s7-gap-analysis-09-light.dc.html",
+    "f1-s7-gap-analysis-09-dark.dc.html",
+    "f1-s7-gap-analysis-10-light.dc.html",
+    "f1-s7-gap-analysis-10-dark.dc.html",
+    "f1-s7-gap-analysis-11-light.dc.html",
+    "f1-s7-gap-analysis-11-dark.dc.html",
+    "f1-s7-gap-analysis-12-light.dc.html",
+    "f1-s7-gap-analysis-12-dark.dc.html",
+    "f1-s7-gap-analysis-13-light.dc.html",
+    "f1-s7-gap-analysis-13-dark.dc.html",
+    "f1-s7-gap-analysis-14-light.dc.html",
+    "f1-s7-gap-analysis-14-dark.dc.html",
+    "f1-s7-gap-analysis-15-light.dc.html",
+    "f1-s7-gap-analysis-15-dark.dc.html",
+    "f1-s7-gap-analysis-16-light.dc.html",
+    "f1-s7-gap-analysis-16-dark.dc.html",
+    "f1-s7-gap-analysis-17-light.dc.html",
+    "f1-s7-gap-analysis-17-dark.dc.html",
+    "f2-s8-tailored-resume-review-01-light.dc.html",
+    "f2-s8-tailored-resume-review-01-dark.dc.html",
+    "f2-s8-tailored-resume-review-02-light.dc.html",
+    "f2-s8-tailored-resume-review-02-dark.dc.html",
+    "f2-s8-tailored-resume-review-03-light.dc.html",
+    "f2-s8-tailored-resume-review-03-dark.dc.html",
+    "f2-s8-tailored-resume-review-04-light.dc.html",
+    "f2-s8-tailored-resume-review-04-dark.dc.html",
+    "f2-s8-tailored-resume-review-05-light.dc.html",
+    "f2-s8-tailored-resume-review-05-dark.dc.html",
+    "f2-s8-tailored-resume-review-06-light.dc.html",
+    "f2-s8-tailored-resume-review-06-dark.dc.html",
+    "f2-s8-tailored-resume-review-07-light.dc.html",
+    "f2-s8-tailored-resume-review-07-dark.dc.html",
+    "f2-s8-tailored-resume-review-08-light.dc.html",
+    "f2-s8-tailored-resume-review-08-dark.dc.html",
+    "f2-s8-tailored-resume-review-09-light.dc.html",
+    "f2-s8-tailored-resume-review-09-dark.dc.html",
+    "f2-s8-tailored-resume-review-10-light.dc.html",
+    "f2-s8-tailored-resume-review-10-dark.dc.html",
+    "f2-s8-tailored-resume-review-11-light.dc.html",
+    "f2-s8-tailored-resume-review-11-dark.dc.html",
+    "f2-s8-tailored-resume-review-12-light.dc.html",
+    "f2-s8-tailored-resume-review-12-dark.dc.html",
+    "f2-s8-tailored-resume-review-13-light.dc.html",
+    "f2-s8-tailored-resume-review-13-dark.dc.html",
+    "f2-s8-tailored-resume-review-14-light.dc.html",
+    "f2-s8-tailored-resume-review-14-dark.dc.html",
+    "f2-s8-tailored-resume-review-15-light.dc.html",
+    "f2-s8-tailored-resume-review-15-dark.dc.html",
+    "f2-s8-tailored-resume-review-16-light.dc.html",
+    "f2-s8-tailored-resume-review-16-dark.dc.html",
+    "f2-s9-bullet-review-01-light.dc.html",
+    "f2-s9-bullet-review-01-dark.dc.html",
+    "f2-s9-bullet-review-02-light.dc.html",
+    "f2-s9-bullet-review-02-dark.dc.html",
+    "f2-s9-bullet-review-03-light.dc.html",
+    "f2-s9-bullet-review-03-dark.dc.html",
+    "f2-s9-bullet-review-04-light.dc.html",
+    "f2-s9-bullet-review-04-dark.dc.html",
+    "f2-s9-bullet-review-05-light.dc.html",
+    "f2-s9-bullet-review-05-dark.dc.html",
+    "f2-s9-bullet-review-06-light.dc.html",
+    "f2-s9-bullet-review-06-dark.dc.html",
+    "f2-s9-bullet-review-07-light.dc.html",
+    "f2-s9-bullet-review-07-dark.dc.html",
+    "f2-s9-bullet-review-08-light.dc.html",
+    "f2-s9-bullet-review-08-dark.dc.html",
+    "f2-s9-bullet-review-09-light.dc.html",
+    "f2-s9-bullet-review-09-dark.dc.html",
+    "f2-s9-bullet-review-10-light.dc.html",
+    "f2-s9-bullet-review-10-dark.dc.html",
+    "f2-s9-bullet-review-11-light.dc.html",
+    "f2-s9-bullet-review-11-dark.dc.html",
+    "f2-s10-cover-letter-01-light.dc.html",
+    "f2-s10-cover-letter-01-dark.dc.html",
+    "f2-s10-cover-letter-02-light.dc.html",
+    "f2-s10-cover-letter-02-dark.dc.html",
+    "f2-s10-cover-letter-03-light.dc.html",
+    "f2-s10-cover-letter-03-dark.dc.html",
+    "f2-s10-cover-letter-04-light.dc.html",
+    "f2-s10-cover-letter-04-dark.dc.html",
+    "f2-s10-cover-letter-05-light.dc.html",
+    "f2-s10-cover-letter-05-dark.dc.html",
+    "f2-s10-cover-letter-06-light.dc.html",
+    "f2-s10-cover-letter-06-dark.dc.html",
+    "f2-s10-cover-letter-07-light.dc.html",
+    "f2-s10-cover-letter-07-dark.dc.html",
+    "f2-s10-cover-letter-08-light.dc.html",
+    "f2-s10-cover-letter-08-dark.dc.html",
+    "f2-s10-cover-letter-09-light.dc.html",
+    "f2-s10-cover-letter-09-dark.dc.html",
+    "f2-s11-prep-questions-01-light.dc.html",
+    "f2-s11-prep-questions-01-dark.dc.html",
+    "f2-s11-prep-questions-02-light.dc.html",
+    "f2-s11-prep-questions-02-dark.dc.html",
+    "f2-s11-prep-questions-03-light.dc.html",
+    "f2-s11-prep-questions-03-dark.dc.html",
+    "f2-s11-prep-questions-04-light.dc.html",
+    "f2-s11-prep-questions-04-dark.dc.html",
+    "f2-s11-prep-questions-05-light.dc.html",
+    "f2-s11-prep-questions-05-dark.dc.html",
+    "f3-s12-export-preview-01-light.dc.html",
+    "f3-s12-export-preview-01-dark.dc.html",
+    "f3-s12-export-preview-02-light.dc.html",
+    "f3-s12-export-preview-02-dark.dc.html",
+    "f3-s12-export-preview-03-light.dc.html",
+    "f3-s12-export-preview-03-dark.dc.html",
+    "f3-s12-export-preview-04-light.dc.html",
+    "f3-s12-export-preview-04-dark.dc.html",
+    "f3-s12-export-preview-05-light.dc.html",
+    "f3-s12-export-preview-05-dark.dc.html",
+    "f3-s12-export-preview-06-light.dc.html",
+    "f3-s12-export-preview-06-dark.dc.html",
+    "f3-s12-export-preview-07-light.dc.html",
+    "f3-s12-export-preview-07-dark.dc.html",
+    "f3-s12-export-preview-08-light.dc.html",
+    "f3-s12-export-preview-08-dark.dc.html",
+    "f3-s12-export-preview-09-light.dc.html",
+    "f3-s12-export-preview-09-dark.dc.html",
+    "f3-s12-export-preview-10-light.dc.html",
+    "f3-s12-export-preview-10-dark.dc.html",
+    "f3-s12-export-preview-11-light.dc.html",
+    "f3-s12-export-preview-11-dark.dc.html",
+    "f3-s13-application-pack-01-light.dc.html",
+    "f3-s13-application-pack-01-dark.dc.html",
+    "f3-s13-application-pack-02-light.dc.html",
+    "f3-s13-application-pack-02-dark.dc.html",
+    "f3-s13-application-pack-03-light.dc.html",
+    "f3-s13-application-pack-03-dark.dc.html",
+    "f3-s13-application-pack-04-light.dc.html",
+    "f3-s13-application-pack-04-dark.dc.html",
+    "f3-s13-application-pack-05-light.dc.html",
+    "f3-s13-application-pack-05-dark.dc.html",
+    "f3-s13-application-pack-06-light.dc.html",
+    "f3-s13-application-pack-06-dark.dc.html",
+    "f3-s13-application-pack-07-light.dc.html",
+    "f3-s13-application-pack-07-dark.dc.html",
+    "f3-s13-application-pack-08-light.dc.html",
+    "f3-s13-application-pack-08-dark.dc.html",
+    "f3-s13-application-pack-09-light.dc.html",
+    "f3-s13-application-pack-09-dark.dc.html",
+    "f3-s14-exported-01-light.dc.html",
+    "f3-s14-exported-01-dark.dc.html",
+    "f3-s14-exported-02-light.dc.html",
+    "f3-s14-exported-02-dark.dc.html",
+    "f3-s14-exported-03-light.dc.html",
+    "f3-s14-exported-03-dark.dc.html",
+    "f3-s14-exported-04-light.dc.html",
+    "f3-s14-exported-04-dark.dc.html",
+    "f3-s14-exported-05-light.dc.html",
+    "f3-s14-exported-05-dark.dc.html",
+    "f3-s15-credits-and-help-01-light.dc.html",
+    "f3-s15-credits-and-help-01-dark.dc.html",
+    "f3-s15-credits-and-help-02-light.dc.html",
+    "f3-s15-credits-and-help-02-dark.dc.html",
+    "f3-s15-credits-and-help-03-light.dc.html",
+    "f3-s15-credits-and-help-03-dark.dc.html",
+    "f3-s15-credits-and-help-04-light.dc.html",
+    "f3-s15-credits-and-help-04-dark.dc.html",
+    "f4-s16-profile-01-light.dc.html",
+    "f4-s16-profile-01-dark.dc.html",
+    "f4-s16-profile-02-light.dc.html",
+    "f4-s16-profile-02-dark.dc.html",
+    "f4-s16-profile-03-light.dc.html",
+    "f4-s16-profile-03-dark.dc.html",
+    "f4-s16-profile-04-light.dc.html",
+    "f4-s16-profile-04-dark.dc.html",
+    "f4-s16-profile-05-light.dc.html",
+    "f4-s16-profile-05-dark.dc.html",
+    "f4-s16-profile-06-light.dc.html",
+    "f4-s16-profile-06-dark.dc.html",
+    "f4-s17-fact-editor-01-light.dc.html",
+    "f4-s17-fact-editor-01-dark.dc.html",
+    "f4-s17-fact-editor-02-light.dc.html",
+    "f4-s17-fact-editor-02-dark.dc.html",
+    "f4-s17-fact-editor-03-light.dc.html",
+    "f4-s17-fact-editor-03-dark.dc.html",
+    "f4-s17-fact-editor-04-light.dc.html",
+    "f4-s17-fact-editor-04-dark.dc.html",
+    "f4-s17-fact-editor-05-light.dc.html",
+    "f4-s17-fact-editor-05-dark.dc.html",
+    "f4-s17-fact-editor-06-light.dc.html",
+    "f4-s17-fact-editor-06-dark.dc.html",
+    "f4-s17-fact-editor-07-light.dc.html",
+    "f4-s17-fact-editor-07-dark.dc.html",
+    "f4-s18-guided-form-01-light.dc.html",
+    "f4-s18-guided-form-01-dark.dc.html",
+    "f4-s18-guided-form-02-light.dc.html",
+    "f4-s18-guided-form-02-dark.dc.html",
+    "f4-s18-guided-form-03-light.dc.html",
+    "f4-s18-guided-form-03-dark.dc.html",
+    "f4-s18-guided-form-04-light.dc.html",
+    "f4-s18-guided-form-04-dark.dc.html",
+    "f4-s18-guided-form-05-light.dc.html",
+    "f4-s18-guided-form-05-dark.dc.html",
+    "f4-s18-guided-form-06-light.dc.html",
+    "f4-s18-guided-form-06-dark.dc.html",
+    "f4-s18-guided-form-07-light.dc.html",
+    "f4-s18-guided-form-07-dark.dc.html",
+    "f4-s18-guided-form-08-light.dc.html",
+    "f4-s18-guided-form-08-dark.dc.html",
+    "f4-s18-guided-form-09-light.dc.html",
+    "f4-s18-guided-form-09-dark.dc.html",
+    "f4-s19-evidence-path-01-light.dc.html",
+    "f4-s19-evidence-path-01-dark.dc.html",
+    "f4-s19-evidence-path-02-light.dc.html",
+    "f4-s19-evidence-path-02-dark.dc.html",
+    "f4-s19-evidence-path-03-light.dc.html",
+    "f4-s19-evidence-path-03-dark.dc.html",
+    "f4-s19-evidence-path-04-light.dc.html",
+    "f4-s19-evidence-path-04-dark.dc.html",
+    "f4-s19-evidence-path-05-light.dc.html",
+    "f4-s19-evidence-path-05-dark.dc.html",
+    "f4-s19-evidence-path-06-light.dc.html",
+    "f4-s19-evidence-path-06-dark.dc.html",
+    "f4-s19-evidence-path-07-light.dc.html",
+    "f4-s19-evidence-path-07-dark.dc.html",
+    "f5-s20-applications-01-light.dc.html",
+    "f5-s20-applications-01-dark.dc.html",
+    "f5-s20-applications-02-light.dc.html",
+    "f5-s20-applications-02-dark.dc.html",
+    "f5-s20-applications-03-light.dc.html",
+    "f5-s20-applications-03-dark.dc.html",
+    "f5-s20-applications-04-light.dc.html",
+    "f5-s20-applications-04-dark.dc.html",
+    "f5-s20-applications-05-light.dc.html",
+    "f5-s20-applications-05-dark.dc.html",
+    "f5-s20-applications-06-light.dc.html",
+    "f5-s20-applications-06-dark.dc.html",
+    "f5-s20-applications-07-light.dc.html",
+    "f5-s20-applications-07-dark.dc.html",
+    "f5-s21-application-workspace-01-light.dc.html",
+    "f5-s21-application-workspace-01-dark.dc.html",
+    "f5-s21-application-workspace-02-light.dc.html",
+    "f5-s21-application-workspace-02-dark.dc.html",
+    "f5-s21-application-workspace-03-light.dc.html",
+    "f5-s21-application-workspace-03-dark.dc.html",
+    "f5-s21-application-workspace-04-light.dc.html",
+    "f5-s21-application-workspace-04-dark.dc.html",
+    "f5-s21-application-workspace-05-light.dc.html",
+    "f5-s21-application-workspace-05-dark.dc.html",
+    "f5-s21-application-workspace-06-light.dc.html",
+    "f5-s21-application-workspace-06-dark.dc.html",
+    "f5-s21-application-workspace-07-light.dc.html",
+    "f5-s21-application-workspace-07-dark.dc.html",
+    "f5-s21-application-workspace-08-light.dc.html",
+    "f5-s21-application-workspace-08-dark.dc.html",
+    "f5-s21-application-workspace-09-light.dc.html",
+    "f5-s21-application-workspace-09-dark.dc.html",
+    "f5-s21-application-workspace-10-light.dc.html",
+    "f5-s21-application-workspace-10-dark.dc.html",
+    "f5-s21-application-workspace-11-light.dc.html",
+    "f5-s21-application-workspace-11-dark.dc.html",
+    "f5-s21-application-workspace-12-light.dc.html",
+    "f5-s21-application-workspace-12-dark.dc.html",
+    "f5-s22-settings-01-light.dc.html",
+    "f5-s22-settings-01-dark.dc.html",
+    "f5-s22-settings-02-light.dc.html",
+    "f5-s22-settings-02-dark.dc.html",
+    "f5-s22-settings-03-light.dc.html",
+    "f5-s22-settings-03-dark.dc.html",
+    "f5-s22-settings-04-light.dc.html",
+    "f5-s22-settings-04-dark.dc.html",
+    "f5-s23-your-data-01-light.dc.html",
+    "f5-s23-your-data-01-dark.dc.html",
+    "f5-s23-your-data-02-light.dc.html",
+    "f5-s23-your-data-02-dark.dc.html",
+    "f5-s23-your-data-03-light.dc.html",
+    "f5-s23-your-data-03-dark.dc.html",
+    "f5-s23-your-data-04-light.dc.html",
+    "f5-s23-your-data-04-dark.dc.html",
+    "f5-s23-your-data-05-light.dc.html",
+    "f5-s23-your-data-05-dark.dc.html",
+    "f5-s23-your-data-06-light.dc.html",
+    "f5-s23-your-data-06-dark.dc.html",
+    "f5-s24-delete-account-01-light.dc.html",
+    "f5-s24-delete-account-01-dark.dc.html",
+    "f5-s24-delete-account-02-light.dc.html",
+    "f5-s24-delete-account-02-dark.dc.html",
+    "f5-s24-delete-account-03-light.dc.html",
+    "f5-s24-delete-account-03-dark.dc.html",
+    "f5-s24-delete-account-04-light.dc.html",
+    "f5-s24-delete-account-04-dark.dc.html",
+    "f5-s24-delete-account-05-light.dc.html",
+    "f5-s24-delete-account-05-dark.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "foundations",
+      "name": "Foundations"
+    },
+    {
+      "id": "flow1",
+      "name": "Flow 1 · First run"
+    },
+    {
+      "id": "flow2",
+      "name": "Flow 2 · Tailoring"
+    },
+    {
+      "id": "flow3",
+      "name": "Flow 3 · Export and payment"
+    },
+    {
+      "id": "flow4",
+      "name": "Flow 4 · Profile"
+    },
+    {
+      "id": "flow5",
+      "name": "Flow 5 · Workspace and account"
+    }
+  ],
+  "title": "HireHop Foundations"
+}

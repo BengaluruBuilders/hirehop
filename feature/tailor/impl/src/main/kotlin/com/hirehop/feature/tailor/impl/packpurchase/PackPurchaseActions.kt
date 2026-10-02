@@ -1,20 +1,22 @@
 package com.hirehop.feature.tailor.impl.packpurchase
 
-sealed interface PackPurchaseAction {
-    data class SelectPack(val packId: String) : PackPurchaseAction
-
+internal sealed interface PackPurchaseAction {
     data class Buy(val packId: String) : PackPurchaseAction
 
-    data object Restore : PackPurchaseAction
+    data object RetryBuy : PackPurchaseAction
 
-    data object Dismiss : PackPurchaseAction
+    data object ReloadPacks : PackPurchaseAction
+
+    data object ReturnAfterPurchase : PackPurchaseAction
 }
 
-data class PackPurchaseActions(
-    val onSelectPack: (String) -> Unit,
+internal data class PackPurchaseActions(
     val onBuy: (String) -> Unit,
-    val onRestore: () -> Unit,
-    val onDismiss: () -> Unit,
+    val onRetryBuy: () -> Unit,
+    val onReloadPacks: () -> Unit,
     val onNotNow: () -> Unit,
+    val onBackToPreview: () -> Unit,
+    val onDownloadAfterPurchase: () -> Unit,
+    val onOpenCredits: () -> Unit,
     val onNavigateBack: () -> Unit,
 )

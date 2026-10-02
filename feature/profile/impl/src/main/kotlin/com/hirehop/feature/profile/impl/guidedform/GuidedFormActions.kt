@@ -6,27 +6,51 @@ sealed interface GuidedFormAction {
         val value: String,
     ) : GuidedFormAction
 
+    data object AddSkill : GuidedFormAction
+
+    data class RemoveSkill(val skill: String) : GuidedFormAction
+
+    data object StartForm : GuidedFormAction
+
     data object Next : GuidedFormAction
 
     data object Back : GuidedFormAction
 
     data object SaveAndFinishLater : GuidedFormAction
 
-    data object ContinueNow : GuidedFormAction
+    data object FinishSaved : GuidedFormAction
 
-    data object StartHandoff : GuidedFormAction
+    data object GoToProjects : GuidedFormAction
 
-    data object HandoffConsumed : GuidedFormAction
+    data object NavigationConsumed : GuidedFormAction
 
     data object DismissMessage : GuidedFormAction
 }
 
 data class GuidedFormActions(
     val onValueChange: (GuidedField, String) -> Unit,
+    val onAddSkill: () -> Unit,
+    val onRemoveSkill: (String) -> Unit,
+    val onStartForm: () -> Unit,
     val onNext: () -> Unit,
     val onBack: () -> Unit,
     val onSaveAndFinishLater: () -> Unit,
-    val onContinueNow: () -> Unit,
-    val onStartHandoff: () -> Unit,
-    val onDismissMessage: () -> Unit,
-)
+    val onFinishSaved: () -> Unit,
+    val onGoToProjects: () -> Unit,
+    val onAddJob: () -> Unit,
+) {
+    companion object {
+        val None = GuidedFormActions(
+            onValueChange = { _, _ -> },
+            onAddSkill = {},
+            onRemoveSkill = {},
+            onStartForm = {},
+            onNext = {},
+            onBack = {},
+            onSaveAndFinishLater = {},
+            onFinishSaved = {},
+            onGoToProjects = {},
+            onAddJob = {},
+        )
+    }
+}

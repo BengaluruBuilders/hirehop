@@ -1,8 +1,15 @@
 package com.hirehop.feature.analysis.impl
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.hirehop.core.designsystem.component.HhSheet
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.JobRequirement
@@ -31,37 +38,79 @@ class AnalysisScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun fullResult_readsInLightAndDark() = captureAnalysisGap("AnalysisGapFull", resultState())
+    fun waiting_f1s7_01() = capture("AnalysisWaiting", waitingState())
 
     @Test
-    fun manyGaps_readsInLightAndDark() = captureAnalysisGap("AnalysisGapManyGaps", manyGapsState())
+    fun resultSettled_f1s7_03() = capture("AnalysisResult", resultState())
 
     @Test
-    fun allMet_readsInLightAndDark() = captureAnalysisGap("AnalysisGapAllMet", allMetState())
+    fun rowMenu_f1s7_05() = capture("AnalysisRowMenu", resultState(overlay = AnalysisOverlay.Menu(SQL)))
 
     @Test
-    fun gapClosedAndPrepPlan_readsInLightAndDark() = captureAnalysisGap("AnalysisGapClosed", gapClosedState())
+    fun sourceSheet_f1s7_06() = capture("AnalysisSourceSheet", resultState()) {
+        SheetOver { SourceSheetContent(resultState().item(SQL), AnalysisActions()) }
+    }
 
     @Test
-    fun noKeyTerms_readsInLightAndDark() = captureAnalysisGap("AnalysisGapNoKeyTerms", noKeyTermsState())
+    fun questionSheet_f1s7_07() = capture("AnalysisQuestionSheet", resultState()) {
+        SheetOver { QuestionSheetContent(resultState().item(CLOUD), AnalysisActions()) }
+    }
+
+    @Test
+    fun shareSheet() = capture("AnalysisShareSheet", resultState()) {
+        SheetOver { ShareSheetContent(resultState(), AnalysisActions()) }
+    }
+
+    @Test
+    fun savedAsUserStated_f1s7_08() = capture("AnalysisSavedUserStated", savedState())
+
+    @Test
+    fun gapClosed_f1s7_09() = capture("AnalysisGapClosed", closedState())
+
+    @Test
+    fun prepPlanAdded_f1s7_10() = capture("AnalysisPrepAdded", prepAddedState())
+
+    @Test
+    fun manyGaps_f1s7_11() = capture("AnalysisManyGaps", manyGapsState())
+
+    @Test
+    fun allMet_f1s7_12() = capture("AnalysisAllMet", allMetState())
+
+    @Test
+    fun error_f1s7_13() = capture("AnalysisError", AnalysisUiState.Failed(JOB))
+
+    @Test
+    fun offline_f1s7_14() = capture("AnalysisOffline", resultState().copy(isOffline = true))
+
+    @Test
+    fun dailyLimit_f1s7_15() = capture("AnalysisDailyLimit", AnalysisUiState.DailyLimit(JOB))
+
+    @Test
+    fun freeTailoringLimit_f1s7_16() = capture("AnalysisTailorLimit", resultState().copy(tailorLimitReached = true))
+
+    @Test
+    fun noKeyTerms() = capture(
+        "AnalysisNoKeyTerms",
+        resultState().copy(keywordCoverage = KeywordCoverage(0, 0), sections = emptyList()),
+    )
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun fullResult_atLargeTextStacksAndWraps() = captureAnalysisGap(
-        screenName = "AnalysisGapFullFont200",
-        uiState = resultState(),
-        device = HhTestDevices.boardLargeFont,
-    )
+    fun text200_f1s7_17() = capture("AnalysisFont200", resultState(), device = HhTestDevices.boardLargeFont)
 
-    private fun captureAnalysisGap(
+    private fun capture(
         screenName: String,
         uiState: AnalysisUiState,
         device: HhTestDevice = HhTestDevices.board,
+        overlay: @Composable () -> Unit = {},
     ) = runBlocking {
         darkTheme.value = false
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
-                AnalysisScreen(uiState = uiState, actions = AnalysisActions())
+                Box(Modifier.fillMaxSize()) {
+                    AnalysisScreen(uiState = uiState, actions = AnalysisActions())
+                    overlay()
+                }
             }
         }
         composeRule.captureMultiTheme(TRACKED_OUTPUT_DIR, screenName, device) { dark ->
@@ -69,259 +118,179 @@ class AnalysisScreenshotTest {
         }
         Unit
     }
+
+    @Composable
+    private fun SheetOver(content: @Composable () -> Unit) {
+        Box(Modifier.fillMaxSize().background(HhTheme.colors.scrim)) {
+            HhSheet(Modifier.align(Alignment.BottomCenter)) {
+                content()
+            }
+        }
+    }
 }
 
 private const val TRACKED_OUTPUT_DIR = "src/test/screenshots"
+private const val CLOUD = "req-dw"
+private const val SQL = "req-sql"
 
-private fun resultState(): AnalysisUiState.Result = AnalysisUiState.Result(
-    title = "Associate Analyst",
-    company = "Northwind GCC",
+private val JOB = JobLabel(title = "Associate Analyst", company = "Northwind GCC")
+
+private fun AnalysisUiState.Result.item(id: String) = requireNotNull(itemOrNull(id))
+
+private fun waitingState() = AnalysisUiState.Analyzing(
+    job = JOB,
+    factCount = 18,
+    keyTermCount = 14,
+    requirementCount = 8,
+)
+
+private val cloud = item(CLOUD, "Cloud data warehouse (Snowflake or BigQuery)", MatchStatus.GAP)
+private val excel = item(
+    "req-excel",
+    "Advanced Excel — pivots yes, macros not yet",
+    MatchStatus.PARTIAL,
+    factRefs = listOf(
+        factRef("W-01", "Data Operations Associate", "Saffron Retail, Pune", listOf("Built weekly sales reports in Excel")),
+        factRef("I-01", "Data Intern", "Kiran Agro Exports", listOf("Built the attendance register in Excel")),
+    ),
+)
+private val sql = item(
+    SQL,
+    "SQL",
+    MatchStatus.MET,
+    factRefs = listOf(
+        factRef(
+            "W-01",
+            "Data Operations Associate",
+            "Saffron Retail, Pune",
+            listOf("Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL."),
+            start = "Jul 2025",
+        ),
+        factRef("C-01", "Coursework: DBMS (SQL)", "", emptyList()),
+    ),
+)
+private val bi = item(
+    "req-bi",
+    "Power BI or Tableau",
+    MatchStatus.MET,
+    factRefs = listOf(factRef("P-02", "Placement Stats Dashboard", "", listOf("Built a dashboard"))),
+)
+private val stats = item(
+    "req-stats",
+    "Statistics",
+    MatchStatus.MET,
+    priority = RequirementPriority.NICE_TO_HAVE,
+    factRefs = listOf(factRef("C-02", "Statistics coursework", "", emptyList())),
+)
+private val agile = item("req-agile", "Agile / JIRA", MatchStatus.GAP, priority = RequirementPriority.NICE_TO_HAVE)
+private val python = item("req-python", "Python", MatchStatus.GAP, priority = RequirementPriority.NICE_TO_HAVE)
+
+private fun resultState(overlay: AnalysisOverlay = AnalysisOverlay.None) = AnalysisUiState.Result(
+    job = JOB,
     keywordCoverage = KeywordCoverage(covered = 9, total = 14),
     sections = listOf(
-        RequirementSection(
-            RequirementGroup.MustHaveGaps,
-            listOf(
-                item(
-                    id = "req-dw",
-                    text = "Cloud data warehouse (Snowflake or BigQuery)",
-                    status = MatchStatus.GAP,
-                    type = RequirementType.TOOL,
-                    isInPrepPlan = true,
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.Partial,
-            listOf(
-                item(
-                    id = "req-excel",
-                    text = "Advanced Excel — pivots yes, macros not yet",
-                    status = MatchStatus.PARTIAL,
-                    type = RequirementType.TOOL,
-                    evidence = listOf("Built the attendance register in Excel for my internship"),
-                    factRefs = listOf(
-                        factRef("I-01", "Data intern, Kiran Agro Exports", FactSource.IMPORTED, true),
-                    ),
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.Met,
-            listOf(
-                item(
-                    id = "req-sql",
-                    text = "SQL databases",
-                    status = MatchStatus.MET,
-                    type = RequirementType.SKILL,
-                    evidence = listOf("Skill: SQL"),
-                    factRefs = listOf(factRef("C-01", "DBMS coursework", FactSource.USER_STATED, true)),
-                ),
-                item(
-                    id = "req-bi",
-                    text = "Power BI or Tableau",
-                    status = MatchStatus.MET,
-                    type = RequirementType.TOOL,
-                    evidence = listOf("Built a placement stats dashboard the college cell used"),
-                    factRefs = listOf(
-                        factRef("P-02", "Placement Stats Dashboard", FactSource.IMPORTED, false),
-                    ),
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.NiceToHaveGaps,
-            listOf(
-                item(
-                    id = "req-agile",
-                    text = "Agile / JIRA",
-                    status = MatchStatus.GAP,
-                    type = RequirementType.SOFT_SKILL,
-                    priority = RequirementPriority.NICE_TO_HAVE,
-                ),
-            ),
-        ),
+        RequirementSection(RequirementGroup.MustHaveGaps, listOf(cloud)),
+        RequirementSection(RequirementGroup.Partial, listOf(excel)),
+        RequirementSection(RequirementGroup.Met, listOf(sql, bi, stats)),
+        RequirementSection(RequirementGroup.NiceToHaveGaps, listOf(agile, python)),
     ),
-    prepPlanCount = 1,
-    canSave = true,
+    freeCredits = 1,
+    overlay = overlay,
 )
 
-private fun manyGapsState(): AnalysisUiState.Result = AnalysisUiState.Result(
-    title = "Associate Analyst",
-    company = "Northwind GCC",
-    keywordCoverage = KeywordCoverage(covered = 3, total = 14),
-    sections = listOf(
-        RequirementSection(
-            RequirementGroup.MustHaveGaps,
-            listOf(
-                item("req-dw", "Cloud data warehouse (Snowflake or BigQuery)", MatchStatus.GAP, RequirementType.TOOL),
-                item("req-sql", "SQL databases", MatchStatus.GAP, RequirementType.SKILL),
-                item("req-bi", "Power BI or Tableau", MatchStatus.GAP, RequirementType.TOOL),
-            ),
+private fun savedState(): AnalysisUiState.Result {
+    val saved = cloud.copy(factRefs = listOf(factRef("U-01", "Additional experience", "", emptyList(), FactSource.USER_STATED)))
+    return resultState().copy(
+        sections = resultState().sections.map { section ->
+            section.copy(items = section.items.map { if (it.id == CLOUD) saved else it })
+        },
+    )
+}
+
+private fun closedState(): AnalysisUiState.Result {
+    val closed = cloud.copy(
+        status = MatchStatus.MET,
+        factRefs = listOf(factRef("U-01", "Additional experience", "", emptyList(), FactSource.USER_STATED)),
+    )
+    return resultState().copy(
+        keywordCoverage = KeywordCoverage(covered = 10, total = 14),
+        sections = listOf(
+            RequirementSection(RequirementGroup.Partial, listOf(excel)),
+            RequirementSection(RequirementGroup.Met, listOf(closed, sql, bi, stats)),
+            RequirementSection(RequirementGroup.NiceToHaveGaps, listOf(agile, python)),
         ),
-        RequirementSection(
-            RequirementGroup.Met,
-            listOf(
-                item(
-                    id = "req-python",
-                    text = "Python scripting",
-                    status = MatchStatus.MET,
-                    type = RequirementType.SKILL,
-                    evidence = listOf("Skill: Python"),
-                    factRefs = listOf(factRef("X-01", "Smart India Hackathon 2024", FactSource.USER_STATED, false)),
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.NiceToHaveGaps,
-            listOf(
-                item(
-                    id = "req-agile",
-                    text = "Agile / JIRA",
-                    status = MatchStatus.GAP,
-                    type = RequirementType.SOFT_SKILL,
-                    priority = RequirementPriority.NICE_TO_HAVE,
-                ),
-                item(
-                    id = "req-stake",
-                    text = "Stakeholder communication",
-                    status = MatchStatus.GAP,
-                    type = RequirementType.SOFT_SKILL,
-                    priority = RequirementPriority.NICE_TO_HAVE,
-                ),
-            ),
-        ),
-    ),
-    prepPlanCount = 0,
-    canSave = true,
+        toast = AnalysisToast.GapClosed,
+        closedRequirementId = CLOUD,
+    )
+}
+
+private fun prepAddedState() = resultState().copy(
+    sections = resultState().sections.map { section ->
+        section.copy(items = section.items.map { if (it.id == CLOUD) it.copy(isInPrepPlan = true) else it })
+    },
+    toast = AnalysisToast.PrepAdded(CLOUD, cloud.requirement.text),
 )
 
-private fun allMetState(): AnalysisUiState.Result = AnalysisUiState.Result(
-    title = "Associate Analyst",
-    company = "Northwind GCC",
+private fun manyGapsState(): AnalysisUiState.Result {
+    val gaps = listOf(
+        cloud,
+        item("req-bi", "Power BI or Tableau", MatchStatus.GAP),
+        item("req-dbt", "dbt", MatchStatus.GAP),
+        item("req-etl", "ETL pipelines", MatchStatus.GAP),
+        agile,
+        python,
+        item("req-stake", "Stakeholder communication", MatchStatus.GAP, priority = RequirementPriority.NICE_TO_HAVE),
+    )
+    return resultState().copy(
+        keywordCoverage = KeywordCoverage(covered = 3, total = 14),
+        sections = listOf(
+            RequirementSection(RequirementGroup.MustHaveGaps, gaps.take(4)),
+            RequirementSection(RequirementGroup.Met, listOf(sql)),
+            RequirementSection(RequirementGroup.NiceToHaveGaps, gaps.drop(4)),
+        ),
+    )
+}
+
+private fun allMetState() = resultState().copy(
     keywordCoverage = KeywordCoverage(covered = 14, total = 14),
-    sections = listOf(
-        RequirementSection(
-            RequirementGroup.Met,
-            listOf(
-                item(
-                    id = "req-dw",
-                    text = "Cloud data warehouse (Snowflake or BigQuery)",
-                    status = MatchStatus.MET,
-                    type = RequirementType.TOOL,
-                    evidence = listOf("BigQuery sandbox, for my DBMS mini-project on a public dataset"),
-                    factRefs = listOf(factRef("U-01", "DBMS mini-project", FactSource.USER_STATED, true)),
-                ),
-                item(
-                    id = "req-sql",
-                    text = "SQL databases",
-                    status = MatchStatus.MET,
-                    type = RequirementType.SKILL,
-                    evidence = listOf("Wrote weekly SQL reports in PostgreSQL for the operations team"),
-                    factRefs = listOf(
-                        factRef("C-01", "DBMS coursework", FactSource.USER_STATED, true),
-                        factRef("I-01", "Data intern, Kiran Agro Exports", FactSource.IMPORTED, true),
-                    ),
-                ),
-            ),
-        ),
-    ),
-    prepPlanCount = 0,
-    canSave = true,
-)
-
-private fun gapClosedState(): AnalysisUiState.Result = resultState().copy(
-    keywordCoverage = KeywordCoverage(covered = 10, total = 14),
-    sections = listOf(
-        RequirementSection(RequirementGroup.MustHaveGaps, emptyList()).let { it },
-        RequirementSection(
-            RequirementGroup.Partial,
-            listOf(
-                item(
-                    id = "req-excel",
-                    text = "Advanced Excel — pivots yes, macros not yet",
-                    status = MatchStatus.PARTIAL,
-                    type = RequirementType.TOOL,
-                    evidence = listOf("Built the attendance register in Excel for my internship"),
-                    factRefs = listOf(
-                        factRef("I-01", "Data intern, Kiran Agro Exports", FactSource.IMPORTED, true),
-                    ),
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.Met,
-            listOf(
-                item(
-                    id = "req-dw",
-                    text = "Cloud data warehouse (Snowflake or BigQuery)",
-                    status = MatchStatus.MET,
-                    type = RequirementType.TOOL,
-                    evidence = listOf("BigQuery sandbox, for my DBMS mini-project on a public dataset"),
-                    factRefs = listOf(
-                        factRef("U-01", "DBMS mini-project", FactSource.USER_STATED, false),
-                    ),
-                ),
-                item(
-                    id = "req-sql",
-                    text = "SQL databases",
-                    status = MatchStatus.MET,
-                    type = RequirementType.SKILL,
-                    evidence = listOf("Skill: SQL"),
-                    factRefs = listOf(factRef("C-01", "DBMS coursework", FactSource.USER_STATED, true)),
-                ),
-            ),
-        ),
-        RequirementSection(
-            RequirementGroup.NiceToHaveGaps,
-            listOf(
-                item(
-                    id = "req-agile",
-                    text = "Agile / JIRA",
-                    status = MatchStatus.GAP,
-                    type = RequirementType.SOFT_SKILL,
-                    priority = RequirementPriority.NICE_TO_HAVE,
-                ),
-            ),
-        ),
-    ),
-    prepPlanCount = 0,
-)
-
-private fun noKeyTermsState(): AnalysisUiState.Result = AnalysisUiState.Result(
-    title = "Associate Analyst",
-    company = "Northwind GCC",
-    keywordCoverage = KeywordCoverage(covered = 0, total = 0),
-    sections = emptyList(),
-    prepPlanCount = 0,
-    canSave = true,
+    sections = listOf(RequirementSection(RequirementGroup.Met, listOf(sql, bi, stats))),
 )
 
 private fun item(
     id: String,
     text: String,
     status: MatchStatus,
-    type: RequirementType,
     priority: RequirementPriority = RequirementPriority.MUST_HAVE,
-    evidence: List<String> = emptyList(),
     factRefs: List<RequirementFactRef> = emptyList(),
-    isInPrepPlan: Boolean = false,
 ) = RequirementItem(
     requirement = JobRequirement(
         id = id,
         text = text,
-        type = type,
+        type = RequirementType.SKILL,
         priority = priority,
-        keywords = listOf(text.lowercase()),
+        keywords = listOf(text.substringBefore(" ").lowercase()),
     ),
     status = status,
-    evidence = evidence,
-    isInPrepPlan = isInPrepPlan,
+    skills = emptyList(),
+    isInPrepPlan = false,
     factRefs = factRefs,
 )
 
 private fun factRef(
     id: String,
-    text: String,
-    source: FactSource,
-    isConfirmed: Boolean,
-) = RequirementFactRef(factId = id, text = text, source = source, isConfirmed = isConfirmed)
+    title: String,
+    organization: String,
+    lines: List<String>,
+    source: FactSource = FactSource.IMPORTED,
+    start: String = "",
+) = RequirementFactRef(
+    factId = id,
+    displayId = id,
+    title = title,
+    organization = organization,
+    startDate = start,
+    endDate = "",
+    lines = lines,
+    source = source,
+    isConfirmed = source != FactSource.USER_STATED || id == "U-01",
+)

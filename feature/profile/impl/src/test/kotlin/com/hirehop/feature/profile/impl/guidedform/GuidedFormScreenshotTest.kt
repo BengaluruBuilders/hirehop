@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.EntryCategory
-import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.screenshot.HhTestDevice
@@ -29,200 +28,128 @@ class GuidedFormScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun contactStep_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormContact",
-            uiState = baseState(),
-        )
-    }
+    fun scannedArrival() = capture(
+        "GuidedFormScannedArrival",
+        GuidedFormUiState(arrival = GuidedArrival.FROM_SCANNED_PDF, showIntro = true),
+    )
 
     @Test
-    fun educationStep_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormEducation",
-            uiState = baseState(
-                stepIndex = 1,
-                values = mapOf(
-                    GuidedField.COURSE to "B.Tech Computer Science",
-                    GuidedField.COLLEGE to "Example Institute of Technology, Pune",
-                    GuidedField.EDUCATION_START to "2022",
-                    GuidedField.EDUCATION_END to "2026",
-                ),
-                completedSteps = listOf(GuidedStep.CONTACT),
+    fun contactStep() = capture(
+        "GuidedFormContact",
+        GuidedFormUiState(values = contactValues),
+    )
+
+    @Test
+    fun educationStep() = capture(
+        "GuidedFormEducation",
+        GuidedFormUiState(stepIndex = 1, values = educationValues, completedSteps = setOf(GuidedStep.CONTACT)),
+    )
+
+    @Test
+    fun educationStepWithProblem() = capture(
+        "GuidedFormEducationProblem",
+        GuidedFormUiState(
+            stepIndex = 1,
+            values = mapOf(GuidedField.COLLEGE to "Savitribai Phule Pune University"),
+            fieldProblems = mapOf(GuidedField.COURSE to GuidedFieldProblem.REQUIRED),
+        ),
+    )
+
+    @Test
+    fun skillsStepWithFiledEducation() = capture(
+        "GuidedFormSkillsFiled",
+        GuidedFormUiState(
+            stepIndex = 2,
+            skills = listOf("SQL", "Excel", "Power BI"),
+            filedEntries = listOf(
+                filed("U-01", "B.Tech Computer Science, Savitribai Phule Pune University, 2024"),
+                filed("U-02", "DBMS, Probability and Statistics"),
             ),
-        )
-    }
+        ),
+    )
 
     @Test
-    fun skillsStep_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormSkills",
-            uiState = baseState(
-                stepIndex = 2,
-                values = mapOf(GuidedField.SKILL to "Kotlin\nSQL\nPower BI\nExcel"),
-                completedSteps = listOf(GuidedStep.CONTACT, GuidedStep.EDUCATION),
-            ),
-        )
-    }
+    fun skillsStep() = capture(
+        "GuidedFormSkills",
+        GuidedFormUiState(stepIndex = 2, skills = listOf("SQL", "Excel", "Power BI")),
+    )
 
     @Test
-    fun experienceStep_reassuresAFresherAndOffersTheEvidencePath() {
-        captureBothThemes(
-            screenName = "GuidedFormExperienceHandoff",
-            uiState = baseState(
-                stepIndex = 3,
-                completedSteps = listOf(GuidedStep.CONTACT, GuidedStep.EDUCATION, GuidedStep.SKILLS),
-            ),
-        )
-    }
+    fun experienceStepHandsOffToTheEvidencePath() = capture(
+        "GuidedFormExperienceHandoff",
+        GuidedFormUiState(stepIndex = 3),
+    )
 
     @Test
-    fun scannedArrival_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormScannedArrival",
-            uiState = baseState(arrival = GuidedArrival.FROM_SCANNED_PDF),
-        )
-    }
+    fun savedForLater() = capture(
+        "GuidedFormSavedForLater",
+        GuidedFormUiState(
+            saved = GuidedSaved(completedSteps = 2, totalSteps = 4, entryIds = listOf("U-01", "U-02")),
+        ),
+    )
 
     @Test
-    fun offlineState_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormOffline",
-            uiState = baseState(isOffline = true),
-        )
-    }
+    fun offline() = capture(
+        "GuidedFormOffline",
+        GuidedFormUiState(stepIndex = 1, isOffline = true, values = educationValues),
+    )
 
     @Test
-    fun savedForLater_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormSavedForLater",
-            uiState = baseState(
-                stepIndex = 1,
-                values = mapOf(GuidedField.COURSE to "B.Tech Computer Science"),
-                previews = listOf(
-                    GuidedFactPreview(
-                        category = EntryCategory.EDUCATION,
-                        line = "B.Tech Computer Science · Example Institute of Technology, Pune · 2022 to 2026",
-                        entry = educationEntry,
-                    ),
-                ),
-                completedSteps = listOf(GuidedStep.CONTACT),
-                saved = GuidedSaved(completedSteps = 1, totalSteps = GUIDED_STEPS.size),
-                message = GuidedMessage.SAVED,
-            ),
-        )
-    }
-
-    @Test
-    fun saveRejected_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormSaveRejected",
-            uiState = baseState(
-                stepIndex = 1,
-                fieldProblems = mapOf(GuidedField.COURSE to GuidedFieldProblem.REQUIRED),
-                isSaveRejected = true,
-                message = GuidedMessage.SAVE_REJECTED,
-            ),
-        )
-    }
+    fun loading() = capture("GuidedFormLoading", GuidedFormUiState(isLoading = true))
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun educationStep_atLargeTextStacksFullWidth() {
-        captureBothThemes(
-            screenName = "GuidedFormEducationFont200",
-            uiState = baseState(
-                stepIndex = 1,
-                values = mapOf(
-                    GuidedField.COURSE to "B.Tech Computer Science",
-                    GuidedField.COLLEGE to "Example Institute of Technology, Pune",
-                ),
-                completedSteps = listOf(GuidedStep.CONTACT),
-            ),
-            device = HhTestDevices.boardLargeFont,
-        )
-    }
+    fun educationStep_atLargeText() = capture(
+        "GuidedFormEducationFont200",
+        GuidedFormUiState(stepIndex = 1, values = educationValues),
+        device = HhTestDevices.boardLargeFont,
+    )
 
-    @Test
-    fun loadingState_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "GuidedFormLoading",
-            uiState = baseState(isLoading = true),
-        )
-    }
-
-    private fun captureBothThemes(
+    private fun capture(
         screenName: String,
         uiState: GuidedFormUiState,
         device: HhTestDevice = HhTestDevices.board,
     ) = runBlocking {
-        showScreen(uiState)
-        composeRule.captureMultiTheme(
-            outputDirectory = OUTPUT,
-            screenName = screenName,
-            device = device,
-            setTheme = { dark -> composeRule.runOnUiThread { darkTheme.value = dark } },
-        )
-    }
-
-    private fun showScreen(uiState: GuidedFormUiState) {
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
-                GuidedFormScreen(uiState = uiState, actions = noOpActions)
+                GuidedFormScreen(uiState = uiState, actions = GuidedFormActions.None, onBack = {})
             }
         }
-        composeRule.waitForIdle()
+        composeRule.captureMultiTheme(
+            outputDirectory = SCREENSHOT_DIRECTORY,
+            screenName = screenName,
+            device = device,
+            setTheme = { dark -> darkTheme.value = dark },
+        )
+        Unit
     }
 
-    private val noOpActions = GuidedFormActions(
-        onValueChange = { _, _ -> },
-        onNext = {},
-        onBack = {},
-        onSaveAndFinishLater = {},
-        onContinueNow = {},
-        onStartHandoff = {},
-        onDismissMessage = {},
-    )
-
-    private fun baseState(
-        stepIndex: Int = 0,
-        isLoading: Boolean = false,
-        isOffline: Boolean = false,
-        arrival: GuidedArrival = GuidedArrival.NORMAL,
-        values: Map<GuidedField, String> = emptyMap(),
-        fieldProblems: Map<GuidedField, GuidedFieldProblem> = emptyMap(),
-        previews: List<GuidedFactPreview> = emptyList(),
-        isSaveRejected: Boolean = false,
-        completedSteps: List<GuidedStep> = emptyList(),
-        saved: GuidedSaved? = null,
-        message: GuidedMessage? = null,
-    ) = GuidedFormUiState(
-        isLoading = isLoading,
-        isOffline = isOffline,
-        arrival = arrival,
-        stepIndex = stepIndex,
-        values = values,
-        fieldProblems = fieldProblems,
-        previews = previews,
-        isSaveRejected = isSaveRejected,
-        completedSteps = completedSteps,
-        saved = saved,
-        message = message,
-    )
-
     private companion object {
-        const val OUTPUT = "src/test/screenshots"
+        const val SCREENSHOT_DIRECTORY = "src/test/screenshots"
 
-        val educationEntry = ProfileEntry(
-            id = "U-01",
+        val contactValues = mapOf(
+            GuidedField.FULL_NAME to "Priya Deshmukh",
+            GuidedField.EMAIL to "priya.d@example.com",
+            GuidedField.PHONE to "+91 98220 41873",
+        )
+
+        val educationValues = mapOf(
+            GuidedField.COURSE to "B.Tech Computer Science",
+            GuidedField.COLLEGE to "Savitribai Phule Pune University",
+            GuidedField.EDUCATION_END to "2024",
+            GuidedField.COURSEWORK to "DBMS, Probability and Statistics",
+        )
+
+        fun filed(id: String, title: String) = ProfileEntry(
+            id = id,
             category = EntryCategory.EDUCATION,
-            title = "B.Tech Computer Science",
-            organization = "Example Institute of Technology, Pune",
-            startDate = "2022",
-            endDate = "2026",
-            bullets = listOf(EvidenceBullet(id = "b-1", text = "Completed DBMS coursework.")),
+            title = title,
+            organization = "",
+            startDate = "",
+            endDate = "",
+            bullets = emptyList(),
             source = FactSource.USER_STATED,
-            isConfirmed = false,
+            isConfirmed = true,
         )
     }
 }

@@ -1,35 +1,40 @@
 package com.hirehop.core.domain.gateway
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.data.mock.NoMockLatency
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseOutcome
 import com.hirehop.core.domain.PurchaseResult
+import com.hirehop.core.domain.offline.MockPackCatalogue
 import com.hirehop.core.domain.offline.OfflinePaymentGateway
 import com.hirehop.core.testing.gateway.PaymentGatewayContractTest
+import com.hirehop.core.testing.mock.TestMockStateStore
+import com.hirehop.core.testing.util.TestClock
+import com.hirehop.core.testing.util.TestIdGenerator
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
 
-    override fun createPaymentGateway(): PaymentGateway = OfflinePaymentGateway()
+    override fun createPaymentGateway(): PaymentGateway = offlineGateway()
 
     @Test
     fun theCatalogueHoldsTheTwoNonRenewingProducts() = runTest {
-        val gateway = OfflinePaymentGateway()
+        val gateway = offlineGateway()
 
         val packs = gateway.packs()
 
         assertThat(packs).containsExactly(
-            ApplicationPack.applicationPackFive,
-            ApplicationPack.singleApplication,
+            MockPackCatalogue.applicationPackFive,
+            MockPackCatalogue.singleApplication,
         ).inOrder()
     }
 
     @Test
     fun aNewAccountHasTheFreeAllowanceAndNoPurchasedCredits() = runTest {
-        val gateway = OfflinePaymentGateway()
+        val gateway = offlineGateway()
 
         val entitlement = gateway.entitlement()
 
@@ -87,7 +92,7 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
 
     @Test
     fun theFailedOutcomeReportsAReasonAndAddsNoCredits() = runTest {
-        val gateway = OfflinePaymentGateway()
+        val gateway = offlineGateway()
             .withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Failed)
             .withFailureReason(PurchaseFailureReason.PaymentDeclined)
 
@@ -101,7 +106,7 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
     @Test
     fun eachFailureReasonCanBeForced() = runTest {
         PurchaseFailureReason.entries.forEach { reason ->
-            val gateway = OfflinePaymentGateway()
+            val gateway = offlineGateway()
                 .withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Failed)
                 .withFailureReason(reason)
 
@@ -132,7 +137,7 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
 
     @Test
     fun restoreReturnsWhatTheAccountAlreadyOwns() = runTest {
-        val gateway = OfflinePaymentGateway()
+        val gateway = offlineGateway()
         gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
 
@@ -144,7 +149,7 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
 
     @Test
     fun buyingTheSameConsumablePackTwiceGrantsItTwice() = runTest {
-        val gateway = OfflinePaymentGateway()
+        val gateway = offlineGateway()
 
         gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
         gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
@@ -152,8 +157,11 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
         assertThat(gateway.entitlement().purchasedCredits).isEqualTo(2)
     }
 
+    private fun offlineGateway(): OfflinePaymentGateway =
+        OfflinePaymentGateway(TestMockStateStore(), NoMockLatency, TestClock(), TestIdGenerator("order"))
+
     private fun scripted(
         packId: String,
         outcome: PurchaseOutcome,
-    ): OfflinePaymentGateway = OfflinePaymentGateway().withOutcome(packId, outcome)
+    ): OfflinePaymentGateway = offlineGateway().withOutcome(packId, outcome)
 }

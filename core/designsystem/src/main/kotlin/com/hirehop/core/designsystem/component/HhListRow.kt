@@ -37,8 +37,8 @@ fun HhListRow(
             modifier = Modifier
                 .defaultMinSize(minHeight = HhHeightListRow)
                 .padding(
-                    horizontal = HhTheme.spacing.d20,
-                    vertical = HhSpacingFourteen,
+                    horizontal = HhTheme.spacing.gutter,
+                    vertical = HhTheme.spacing.cardPadding,
                 ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
@@ -84,19 +84,19 @@ private fun HhListRowPreviewColumn() {
         HhListRow(showDivider = false) {
             Text(
                 text = HH_LIST_ROW_SAMPLE_TITLE,
-                style = HhTheme.typography.bodyLarge,
+                style = HhTheme.typography.bodyL,
                 color = HhTheme.colors.onSurface,
             )
             Text(
                 text = HH_LIST_ROW_SAMPLE_BODY,
-                style = HhTheme.typography.bodySmall,
+                style = HhTheme.typography.bodyS,
                 color = HhTheme.colors.onSurfaceVariant,
             )
         }
         HhListRow {
             Text(
                 text = HH_LIST_ROW_SAMPLE_TITLE,
-                style = HhTheme.typography.bodyLarge,
+                style = HhTheme.typography.bodyL,
                 color = HhTheme.colors.onSurface,
             )
         }

@@ -8,33 +8,50 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.feature.profile.api.navigation.GuidedProfileFormNavKey
+import com.hirehop.feature.profile.impl.ProfileExit
+
+internal data class GuidedFormNavigation(
+    val onBack: () -> Unit,
+    val onOpenEvidence: (category: String) -> Unit,
+    val onAddJob: () -> Unit,
+    val onExit: (ProfileExit) -> Unit,
+)
 
 @Composable
 internal fun GuidedFormRoute(
     key: GuidedProfileFormNavKey,
-    onNavigateToEvidence: (String) -> Unit,
+    navigation: GuidedFormNavigation,
     modifier: Modifier = Modifier,
     viewModel: GuidedFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) { viewModel.toActions() }
+    val actions = remember(viewModel, navigation) { viewModel.toActions(navigation) }
     LaunchedEffect(key) { viewModel.onEnter(key) }
-    LaunchedEffect(uiState.handoff?.category) {
-        val category = uiState.handoff?.category
-        if (category != null) {
-            viewModel.onAction(GuidedFormAction.HandoffConsumed)
-            onNavigateToEvidence(category)
+    LaunchedEffect(uiState.navigation) {
+        when (val target = uiState.navigation) {
+            null -> Unit
+            is GuidedNavigation.Evidence -> {
+                viewModel.onAction(GuidedFormAction.NavigationConsumed)
+                navigation.onOpenEvidence(target.category)
+            }
+            is GuidedNavigation.Exit -> {
+                viewModel.onAction(GuidedFormAction.NavigationConsumed)
+                navigation.onExit(target.exit)
+            }
         }
     }
-    GuidedFormScreen(uiState = uiState, actions = actions, modifier = modifier)
+    GuidedFormScreen(uiState = uiState, actions = actions, onBack = navigation.onBack, modifier = modifier)
 }
 
-private fun GuidedFormViewModel.toActions(): GuidedFormActions = GuidedFormActions(
+private fun GuidedFormViewModel.toActions(navigation: GuidedFormNavigation): GuidedFormActions = GuidedFormActions(
     onValueChange = { field, value -> onAction(GuidedFormAction.ValueChanged(field, value)) },
+    onAddSkill = { onAction(GuidedFormAction.AddSkill) },
+    onRemoveSkill = { onAction(GuidedFormAction.RemoveSkill(it)) },
+    onStartForm = { onAction(GuidedFormAction.StartForm) },
     onNext = { onAction(GuidedFormAction.Next) },
     onBack = { onAction(GuidedFormAction.Back) },
     onSaveAndFinishLater = { onAction(GuidedFormAction.SaveAndFinishLater) },
-    onContinueNow = { onAction(GuidedFormAction.ContinueNow) },
-    onStartHandoff = { onAction(GuidedFormAction.StartHandoff) },
-    onDismissMessage = { onAction(GuidedFormAction.DismissMessage) },
+    onFinishSaved = { onAction(GuidedFormAction.FinishSaved) },
+    onGoToProjects = { onAction(GuidedFormAction.GoToProjects) },
+    onAddJob = navigation.onAddJob,
 )

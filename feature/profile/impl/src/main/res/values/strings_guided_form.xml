@@ -1,71 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_profile_impl_guided_form_title">Build your profile</string>
-    <string name="feature_profile_impl_guided_form_step_counter_description">Step %1$d of %2$d</string>
-    <string name="feature_profile_impl_guided_form_navigation_back_description">Go back one step</string>
-    <string name="feature_profile_impl_guided_form_navigation_back_content_description">Go back</string>
-
+    <string name="feature_profile_impl_guided_form_subtitle">Without a resume</string>
+    <string name="feature_profile_impl_guided_form_back">Back</string>
     <string name="feature_profile_impl_guided_form_loading">Getting your profile ready</string>
     <string name="feature_profile_impl_guided_form_load_failed">We could not open this form. Your answers are still on this phone.</string>
+    <string name="feature_profile_impl_guided_form_save_failed">HireHop could not save this step. Your answers are still here.</string>
 
-    <string name="feature_profile_impl_guided_form_scanned_arrival">Your PDF is a scan, so we could not read it. Let\'s build your profile here.</string>
-    <string name="feature_profile_impl_guided_form_offline_message">You are offline. Your answers stay on this phone and sync when you are back.</string>
+    <string name="feature_profile_impl_guided_form_scanned_arrival">Your PDF is a scan, so we couldn’t read it. Let’s build your profile here.</string>
+    <string name="feature_profile_impl_guided_form_offline_message">You’re offline. Keep going: what you type is saved on this phone and syncs when you’re back.</string>
+    <string name="feature_profile_impl_guided_form_intro">Four short steps: contact, education, skills, experience. Each answer becomes a fact you can correct later. You can stop after any step.</string>
 
     <string name="feature_profile_impl_guided_form_step_contact">Contact</string>
     <string name="feature_profile_impl_guided_form_step_education">Education</string>
     <string name="feature_profile_impl_guided_form_step_skills">Skills</string>
     <string name="feature_profile_impl_guided_form_step_experience">Experience</string>
+    <string name="feature_profile_impl_guided_form_step_of">%1$d of %2$d</string>
+    <string name="feature_profile_impl_guided_form_step_counter_description">Step %1$d of %2$d. %3$s.</string>
 
-    <string name="feature_profile_impl_guided_form_step_contact_subtitle">How someone reaches you. Nothing else is asked for.</string>
-    <string name="feature_profile_impl_guided_form_step_education_subtitle">What you are studying, and where.</string>
-    <string name="feature_profile_impl_guided_form_step_skills_subtitle">Tools and methods you already use.</string>
-    <string name="feature_profile_impl_guided_form_step_experience_subtitle">Internships, part-time jobs, or freelance work.</string>
-
-    <string name="feature_profile_impl_guided_form_field_full_name">Your name</string>
+    <string name="feature_profile_impl_guided_form_field_full_name">Full name</string>
     <string name="feature_profile_impl_guided_form_field_email">Email</string>
     <string name="feature_profile_impl_guided_form_field_phone">Phone</string>
-    <string name="feature_profile_impl_guided_form_field_course">What are you studying?</string>
-    <string name="feature_profile_impl_guided_form_field_college">Where are you studying?</string>
-    <string name="feature_profile_impl_guided_form_field_role">Add an internship or job</string>
-    <string name="feature_profile_impl_guided_form_field_employer">Which company?</string>
-    <string name="feature_profile_impl_guided_form_field_start">Start</string>
-    <string name="feature_profile_impl_guided_form_field_end">End</string>
-    <string name="feature_profile_impl_guided_form_field_date_hint">For example, May 2025</string>
+    <string name="feature_profile_impl_guided_form_field_course">Degree</string>
+    <string name="feature_profile_impl_guided_form_field_college">University or institute</string>
+    <string name="feature_profile_impl_guided_form_field_year">Year you finished</string>
+    <string name="feature_profile_impl_guided_form_field_coursework">Coursework you can talk about</string>
+    <string name="feature_profile_impl_guided_form_field_coursework_optional">Coursework you can talk about (optional)</string>
+    <string name="feature_profile_impl_guided_form_field_skill">Add a skill you have used</string>
+    <string name="feature_profile_impl_guided_form_skill_placeholder">Type a skill, then tap Add</string>
+    <string name="feature_profile_impl_guided_form_skills_hint">Add tools you actually used. You can add where you used them on the next steps.</string>
 
-    <string name="feature_profile_impl_guided_form_skills_title">Your skills</string>
-    <string name="feature_profile_impl_guided_form_skills_placeholder">Type a tool or method</string>
-    <string name="feature_profile_impl_guided_form_skills_hint">One per line.</string>
-    <string name="feature_profile_impl_guided_form_skips_reassurance">No work experience yet? That\'s normal. Next, we\'ll ask about your projects.</string>
+    <string name="feature_profile_impl_guided_form_filed_caption">%1$s is done · filed into your profile</string>
+    <string name="feature_profile_impl_guided_form_experience_question">Have you had a job or an internship?</string>
+    <string name="feature_profile_impl_guided_form_skips_reassurance">No work experience yet? That is fine. Next, we’ll ask about your projects.</string>
+    <string name="feature_profile_impl_guided_form_add_job">Add a job or internship</string>
+    <string name="feature_profile_impl_guided_form_go_to_projects">Go to my projects</string>
 
-    <string name="feature_profile_impl_guided_form_never_asks">HireHop never asks for your date of birth, photo, religion, caste, or marital status.</string>
-    <string name="feature_profile_impl_guided_form_user_stated_note">What you enter here is saved as user-stated facts.</string>
-    <string name="feature_profile_impl_guided_form_live_line_description">How this fact will read: %1$s</string>
-
-    <string name="feature_profile_impl_guided_form_back">Back</string>
-    <string name="feature_profile_impl_guided_form_next">Next</string>
     <string name="feature_profile_impl_guided_form_save_and_finish_later">Save and finish later</string>
-    <string name="feature_profile_impl_guided_form_continue_now">Continue now</string>
+    <string name="feature_profile_impl_guided_form_start_with_contact">Start with contact</string>
+    <string name="feature_profile_impl_guided_form_next">Next</string>
+    <string name="feature_profile_impl_guided_form_next_evidence">Next · Evidence path</string>
     <string name="feature_profile_impl_guided_form_back_to_profile">Back to Profile</string>
-    <string name="feature_profile_impl_guided_form_add_evidence">Add evidence</string>
 
-    <string name="feature_profile_impl_guided_form_saved_message">Saved. Finish any time.</string>
-    <string name="feature_profile_impl_guided_form_saved_summary">You finished %1$d of %2$d. What you entered is on your profile. Pick up from Profile when you are ready.</string>
-    <string name="feature_profile_impl_guided_form_offline_queued_message">Saved on this phone. Nothing leaves this device.</string>
-    <string name="feature_profile_impl_guided_form_save_rejected_title">We could not save that</string>
-    <string name="feature_profile_impl_guided_form_save_rejected_body">Nothing was lost. Fix the highlighted line and try again.</string>
-    <string name="feature_profile_impl_guided_form_error_required">This one is needed.</string>
+    <string name="feature_profile_impl_guided_form_saved_title">Saved for later</string>
+    <plurals name="feature_profile_impl_guided_form_saved_summary">
+        <item quantity="one">%1$d of %2$d steps done. Your answers are saved as user-stated facts. Pick up where you left off from Profile.</item>
+        <item quantity="other">%1$d of %2$d steps done. Your answers are saved as user-stated facts. Pick up where you left off from Profile.</item>
+    </plurals>
+
+    <string name="feature_profile_impl_guided_form_error_required">Add this to save.</string>
     <string name="feature_profile_impl_guided_form_error_end_before_start">This date comes before the start date.</string>
     <string name="feature_profile_impl_guided_form_error_too_long">This is longer than HireHop stores. Keep the main line.</string>
-
-    <string name="feature_profile_impl_guided_form_folded_caption">Added to your profile</string>
-    <string name="feature_profile_impl_guided_form_folded_card_description">%1$s. %2$s. Fact %3$s.</string>
-    <string name="feature_profile_impl_guided_form_handoff_title">Next: your projects</string>
-    <string name="feature_profile_impl_guided_form_handoff_body">Projects, internships, coursework, competitions and roles you have held all count. We ask one short question at a time.</string>
-    <string name="feature_profile_impl_guided_form_handoff_continue">Continue to your projects</string>
-
-    <string name="feature_profile_impl_guided_form_section_education">Education</string>
-    <string name="feature_profile_impl_guided_form_section_experience">Experience</string>
-    <string name="feature_profile_impl_guided_form_section_projects">Projects</string>
-    <string name="feature_profile_impl_guided_form_section_certifications">Certifications</string>
-    <string name="feature_profile_impl_guided_form_section_extras">Extras</string>
 </resources>

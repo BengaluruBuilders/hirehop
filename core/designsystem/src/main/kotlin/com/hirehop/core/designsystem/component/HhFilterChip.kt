@@ -2,6 +2,7 @@ package com.hirehop.core.designsystem.component
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,6 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
+
+private const val FILTER_CHIP_MILLIS = 150
 
 @Immutable
 data class HhFilterChipColors(
@@ -53,11 +55,10 @@ fun HhFilterChip(
     colors: HhFilterChipColors = HhFilterChipDefaults.colors(),
 ) {
     val reducedMotion = hhReducedMotion()
-    val hopMs = HhTheme.motion.hop
     val containerSpec: AnimationSpec<Color> = if (reducedMotion) {
         snap()
     } else {
-        tween(durationMillis = hopMs, easing = HhTheme.motion.standard)
+        tween(durationMillis = FILTER_CHIP_MILLIS, easing = LinearOutSlowInEasing)
     }
     val targetContainer = if (selected) colors.selectedContainer else colors.container
     val containerColor by animateColorAsState(
@@ -78,7 +79,7 @@ fun HhFilterChip(
                 indication = ripple(),
                 onClick = onClick,
             ),
-        shape = RoundedCornerShape(HhTheme.shapes.full),
+        shape = HhTheme.shapes.pill,
         color = containerColor,
         border = BorderStroke(
             width = if (selected) HhWidthStroke else HhWidthHairline,
@@ -106,14 +107,14 @@ fun HhFilterChip(
             }
             Text(
                 text = label,
-                style = HhTheme.typography.labelLarge,
+                style = HhTheme.typography.labelL,
                 color = contentColor,
                 maxLines = 1,
             )
             if (count != null) {
                 Text(
                     text = count.toString(),
-                    style = HhTheme.typography.monoSmall.copy(fontFeatureSettings = HH_TABULAR_FIGURES),
+                    style = HhTheme.typography.labelL,
                     color = contentColor,
                     maxLines = 1,
                 )
@@ -132,9 +133,9 @@ object HhFilterChipDefaults {
     fun colors(
         selectedContainer: Color = HhTheme.colors.primaryContainer,
         onSelectedContainer: Color = HhTheme.colors.onPrimaryContainer,
-        container: Color = HhTheme.colors.surface,
+        container: Color = HhTheme.colors.card,
         onContainer: Color = HhTheme.colors.onSurface,
-        border: Color = HhTheme.colors.hairlineStrong,
+        border: Color = HhTheme.colors.outlineSoft,
         selectedBorder: Color = HhTheme.colors.primary,
     ): HhFilterChipColors = HhFilterChipColors(
         selectedContainer = selectedContainer,

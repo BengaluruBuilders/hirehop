@@ -1,7 +1,6 @@
 package com.hirehop.feature.analysis.impl
 
 import com.hirehop.core.data.repository.ApplicationRepository
-import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.FabricationGuard
 import com.hirehop.core.domain.GapMatcher
 import com.hirehop.core.domain.JobDescriptionAnalyzer
@@ -73,6 +72,7 @@ fun unconfirmedProfile() = confirmedProfile().let { profile ->
 
 class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
     var failing = false
+    var withoutRequirements = false
 
     override fun analyze(rawText: String): JobDescription {
         check(!failing) { "analyzer failure" }
@@ -83,7 +83,11 @@ class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
         title = "Android Developer",
         company = "Acme",
         rawText = rawText,
-        requirements = listOf(kotlinRequirement, graphQlRequirement, sqlRequirement, dockerRequirement),
+        requirements = if (withoutRequirements) {
+            emptyList()
+        } else {
+            listOf(kotlinRequirement, graphQlRequirement, sqlRequirement, dockerRequirement)
+        },
     )
 }
 
@@ -133,28 +137,13 @@ class AcceptingFabricationGuard : FabricationGuard {
     ): List<GuardrailViolation> = emptyList()
 }
 
-class FlakyProfileRepository(private val delegate: ProfileRepository) : ProfileRepository by delegate {
-    var failOnSave = false
-
-    override suspend fun saveProfile(profile: CandidateProfile) {
-        check(!failOnSave) { "profile save failure" }
-        delegate.saveProfile(profile)
-    }
-}
-
 class FlakyApplicationRepository(
     private val delegate: ApplicationRepository,
 ) : ApplicationRepository by delegate {
     var failOnUpsert = false
-    var failOnNotes = false
 
     override suspend fun upsertApplication(application: JobApplication) {
         check(!failOnUpsert) { "application save failure" }
         delegate.upsertApplication(application)
-    }
-
-    override suspend fun updateNotes(id: String, notes: String) {
-        check(!failOnNotes) { "notes update failure" }
-        delegate.updateNotes(id, notes)
     }
 }

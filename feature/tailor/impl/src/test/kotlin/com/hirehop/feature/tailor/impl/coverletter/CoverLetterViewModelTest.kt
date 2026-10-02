@@ -7,13 +7,19 @@ import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.MatchStatus
+import com.hirehop.core.model.ReportedItemKind
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.data.canonicalProfileWithoutEntries
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestContentReportRepository
+import com.hirehop.core.testing.repository.TestCoverLetterRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.CoverLetterNavKey
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -26,16 +32,31 @@ class CoverLetterViewModelTest {
 
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val reports = TestContentReportRepository()
+    private val coverLetters = TestCoverLetterRepository()
+    private val clock = TestClock()
 
     private lateinit var viewModel: CoverLetterViewModel
 
     @Before
     fun setup() {
-        viewModel = CoverLetterViewModel(
-            applicationRepository = applicationRepository,
-            profileRepository = profileRepository,
-            generateCoverLetter = GenerateCoverLetterUseCase(),
-        )
+        viewModel = newViewModel()
+    }
+
+    private fun newViewModel() = CoverLetterViewModel(
+        applicationRepository = applicationRepository,
+        profileRepository = profileRepository,
+        generateCoverLetter = GenerateCoverLetterUseCase(),
+        connectivityMonitor = connectivity,
+        contentReportRepository = reports,
+        coverLetterRepository = coverLetters,
+        clock = clock,
+    )
+
+    private fun CoverLetterViewModel.enterAndWrite(key: CoverLetterNavKey) {
+        onEnter(key)
+        onAction(CoverLetterAction.WriteOne)
     }
 
     @Test
@@ -55,9 +76,20 @@ class CoverLetterViewModelTest {
     }
 
     @Test
-    fun defaultScenario_rendersTheLetterTheDomainComposed() = runTest {
+    fun defaultScenario_startsOnTheOfferWithTheReviewCount() = runTest {
         given()
         viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        val state = viewModel.uiState.value
+        assertThat(state.stage).isEqualTo(CoverLetterStage.OFFER)
+        assertThat(state.paragraphs).isEmpty()
+        assertThat(state.jobCompany).isEqualTo("Northwind GCC")
+    }
+
+    @Test
+    fun writeOne_rendersTheLetterTheDomainComposed() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(CoverLetterStage.READY)
@@ -73,9 +105,52 @@ class CoverLetterViewModelTest {
     }
 
     @Test
+    fun writeOne_storesTheLetterForTheApplication() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        val stored = coverLetters.observeLetter(APPLICATION_ID).first()
+        assertThat(stored?.paragraphs?.map { it.text })
+            .containsExactlyElementsIn(viewModel.uiState.value.paragraphs.map { it.text }).inOrder()
+        assertThat(stored?.writtenAt).isEqualTo(clock.now())
+        assertThat(stored?.wordCount).isEqualTo(viewModel.uiState.value.wordCount)
+    }
+
+    @Test
+    fun enter_withAStoredLetter_opensTheLetterInsteadOfTheOffer() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        val written = viewModel.uiState.value
+
+        val reopened = newViewModel()
+        reopened.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(reopened.uiState.value.stage).isEqualTo(CoverLetterStage.READY)
+        assertThat(reopened.uiState.value.paragraphs.map { it.text }).isEqualTo(written.paragraphs.map { it.text })
+        assertThat(reopened.uiState.value.paragraphs.map { it.isGreeting }).isEqualTo(written.paragraphs.map { it.isGreeting })
+    }
+
+    @Test
+    fun saveEdit_storesTheEditAndKeepsItAfterReopening() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.onAction(CoverLetterAction.BeginEdit(2))
+        viewModel.onAction(CoverLetterAction.EditTextChanged("I wrote this line myself."))
+        viewModel.onAction(CoverLetterAction.SaveEdit)
+
+        val reopened = newViewModel()
+        reopened.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        val edited = reopened.uiState.value.paragraphs.single { it.ordinal == 2 }
+        assertThat(edited.text).isEqualTo("I wrote this line myself.")
+        assertThat(edited.isUserEdited).isTrue()
+        assertThat(reopened.uiState.value.paragraphs.count { it.isUserEdited }).isEqualTo(1)
+    }
+
+    @Test
     fun readyLetter_quotesTheConfirmedFactAndShowsItsId() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val evidence = viewModel.uiState.value.paragraphs.single { paragraph ->
             paragraph.basis == CoverLetterBasis.CONFIRMED_FACT
@@ -90,7 +165,7 @@ class CoverLetterViewModelTest {
     @Test
     fun readyLetter_showsEverySentenceItRenders() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
         assertThat(state.paragraphs.flatMap { paragraph -> paragraph.sentences }.map { sentence -> sentence.text })
@@ -101,7 +176,7 @@ class CoverLetterViewModelTest {
     @Test
     fun readyLetter_neverNamesAnEmployerContact() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val letter = viewModel.uiState.value.letterText.lowercase()
         assertThat(letter).doesNotContain("dear hiring team at")
@@ -113,7 +188,7 @@ class CoverLetterViewModelTest {
     @Test
     fun readyLetter_carriesNoScaleOrTimeSavingClaim() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val letter = viewModel.uiState.value.letterText.lowercase()
         assertThat(letter).doesNotContain("ats")
@@ -125,7 +200,7 @@ class CoverLetterViewModelTest {
     @Test
     fun wordCount_countsOnlyWhatIsRendered() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
         assertThat(state.wordCount).isEqualTo(61)
@@ -135,7 +210,7 @@ class CoverLetterViewModelTest {
     @Test
     fun noMatchingEvidence_surfacesTheComposerConstantAsAnExplanation() = runTest {
         given(gapAllGaps())
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.EMPTY))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.EMPTY))
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(CoverLetterStage.NO_MATCHING_EVIDENCE)
@@ -150,7 +225,7 @@ class CoverLetterViewModelTest {
     @Test
     fun noMatchingEvidence_doesNotUseTheErrorColourOrWording() = runTest {
         given(gapAllGaps())
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.EMPTY))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.EMPTY))
 
         assertThat(viewModel.uiState.value.stage).isNotEqualTo(CoverLetterStage.ERROR)
     }
@@ -159,7 +234,7 @@ class CoverLetterViewModelTest {
     fun emptyProfile_asksForAFactInsteadOfWritingALetter() = runTest {
         applicationRepository.sendApplications(listOf(canonicalApplication))
         profileRepository.sendProfile(canonicalProfileWithoutEntries)
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(CoverLetterStage.EMPTY_PROFILE)
@@ -171,7 +246,7 @@ class CoverLetterViewModelTest {
     fun missingProfile_asksForAFactInsteadOfWritingALetter() = runTest {
         applicationRepository.sendApplications(listOf(canonicalApplication))
         profileRepository.sendProfile(null)
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(CoverLetterStage.EMPTY_PROFILE)
     }
@@ -179,19 +254,31 @@ class CoverLetterViewModelTest {
     @Test
     fun offlineScenario_keepsTheLetterReadableUnderTheBanner() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.OFFLINE))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.OFFLINE))
 
         val state = viewModel.uiState.value
         assertThat(state.isOffline).isTrue()
-        assertThat(state.stage).isEqualTo(CoverLetterStage.OFFLINE)
+        assertThat(state.stage).isEqualTo(CoverLetterStage.READY)
         assertThat(state.paragraphs).hasSize(4)
+    }
+
+    @Test
+    fun connectivityLoss_marksTheLetterOffline() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        assertThat(viewModel.uiState.value.isOffline).isFalse()
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+        assertThat(viewModel.uiState.value.paragraphs).hasSize(4)
     }
 
     @Test
     fun missingApplication_isAFailure() = runTest {
         profileRepository.sendProfile(canonicalCandidateProfile)
         applicationRepository.sendApplications(emptyList())
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(CoverLetterStage.ERROR)
     }
@@ -202,7 +289,7 @@ class CoverLetterViewModelTest {
         applicationRepository.sendApplications(
             listOf(canonicalApplication.copy(gapAnalysis = null)),
         )
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(CoverLetterStage.NO_MATCHING_EVIDENCE)
@@ -213,11 +300,7 @@ class CoverLetterViewModelTest {
     fun everyScenarioMapsToAKnownStage() = runTest {
         for (scenario in DebugScenario.entries) {
             given()
-            val fresh = CoverLetterViewModel(
-                applicationRepository = applicationRepository,
-                profileRepository = profileRepository,
-                generateCoverLetter = GenerateCoverLetterUseCase(),
-            )
+            val fresh = newViewModel()
             fresh.onEnter(CoverLetterNavKey(APPLICATION_ID, scenario))
 
             val state = fresh.uiState.value
@@ -227,7 +310,7 @@ class CoverLetterViewModelTest {
                     CoverLetterStage.READY,
                     CoverLetterStage.NO_MATCHING_EVIDENCE,
                     CoverLetterStage.EMPTY_PROFILE,
-                    CoverLetterStage.OFFLINE,
+                    CoverLetterStage.OFFER,
                     CoverLetterStage.ERROR,
                 ),
             )
@@ -237,16 +320,12 @@ class CoverLetterViewModelTest {
     @Test
     fun successAndProvenanceScenarios_renderTheSameReadyLetter() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         val expected = viewModel.uiState.value.stage
         for (scenario in listOf(DebugScenario.SUCCESS, DebugScenario.PARTIAL, DebugScenario.USER_STATED)) {
             given()
-            val fresh = CoverLetterViewModel(
-                applicationRepository = applicationRepository,
-                profileRepository = profileRepository,
-                generateCoverLetter = GenerateCoverLetterUseCase(),
-            )
-            fresh.onEnter(CoverLetterNavKey(APPLICATION_ID, scenario))
+            val fresh = newViewModel()
+            fresh.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, scenario))
 
             assertThat(fresh.uiState.value.stage).isEqualTo(expected)
         }
@@ -255,7 +334,7 @@ class CoverLetterViewModelTest {
     @Test
     fun onEnter_ignoresASecondKey() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         applicationRepository.sendApplications(emptyList())
 
         viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.ERROR))
@@ -266,7 +345,7 @@ class CoverLetterViewModelTest {
     @Test
     fun editParagraph_keepsTheFactCitationAndMarksTheTextAsYours() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         val ordinal = viewModel.uiState.value.paragraphs
             .single { paragraph -> paragraph.basis == CoverLetterBasis.CONFIRMED_FACT }
             .ordinal
@@ -290,7 +369,7 @@ class CoverLetterViewModelTest {
     @Test
     fun cancelEdit_keepsTheComposedParagraph() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         val before = viewModel.uiState.value.letterText
 
         viewModel.onAction(CoverLetterAction.BeginEdit(2))
@@ -304,7 +383,7 @@ class CoverLetterViewModelTest {
     @Test
     fun saveEdit_withNothingTyped_keepsTheComposedParagraph() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         val before = viewModel.uiState.value.letterText
 
         viewModel.onAction(CoverLetterAction.BeginEdit(2))
@@ -317,7 +396,7 @@ class CoverLetterViewModelTest {
     @Test
     fun beginEdit_onAnUnknownParagraph_doesNothing() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         viewModel.onAction(CoverLetterAction.BeginEdit(99))
 
@@ -325,56 +404,57 @@ class CoverLetterViewModelTest {
     }
 
     @Test
-    fun copyLetter_handsBackExactlyWhatIsOnScreen() = runTest {
+    fun reportInaccurate_savesTheReportAndThanksThePerson() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        val letter = viewModel.uiState.value.letterText
-
-        viewModel.onAction(CoverLetterAction.CopyLetter(letter))
-
-        assertThat(viewModel.uiState.value.copiedText).isEqualTo(letter)
-        assertThat(viewModel.uiState.value.message).isEqualTo(CoverLetterMessage.COPIED)
-    }
-
-    @Test
-    fun copyLetter_afterAnEdit_copiesTheEditedLetter() = runTest {
-        given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        viewModel.onAction(CoverLetterAction.BeginEdit(2))
-        viewModel.onAction(CoverLetterAction.EditTextChanged("My own opening line."))
-        viewModel.onAction(CoverLetterAction.SaveEdit)
-
-        viewModel.onAction(CoverLetterAction.CopyLetter(viewModel.uiState.value.letterText))
-
-        assertThat(viewModel.uiState.value.copiedText).contains("My own opening line.")
-        assertThat(viewModel.uiState.value.copiedText).doesNotContain("I am applying for")
-    }
-
-    @Test
-    fun reportInaccurate_doesNotClaimTheReportWasSent() = runTest {
-        given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         viewModel.onAction(CoverLetterAction.ReportInaccurate(1))
 
-        assertThat(viewModel.uiState.value.message).isEqualTo(CoverLetterMessage.REPORT_UNAVAILABLE)
+        assertThat(viewModel.uiState.value.message).isEqualTo(CoverLetterMessage.REPORTED)
+        val saved = reports.observeReports(APPLICATION_ID).first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.COVER_LETTER)
+        assertThat(saved.itemId).isEqualTo("1")
+        assertThat(saved.reportedAt).isEqualTo(clock.instant)
+    }
+
+    @Test
+    fun reportInaccurate_marksTheParagraphAsReportedWhenTheScreenOpensAgain() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.onAction(CoverLetterAction.ReportInaccurate(1))
+
+        val reopened = newViewModel()
+        reopened.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(reopened.uiState.value.reportedIds).containsExactly("1")
+    }
+
+    @Test
+    fun readyLetter_showsTheDesignIdOfEveryCitedFact() = runTest {
+        given()
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        val cited = viewModel.uiState.value.paragraphs.flatMap { paragraph -> paragraph.facts }
+        assertThat(cited.map { fact -> fact.displayId }).contains("P-03")
+        assertThat(cited.map { fact -> fact.displayId }).containsNoneIn(cited.map { fact -> fact.factId }.filter { "-b" in it })
     }
 
     @Test
     fun reportInaccurate_onAnUnknownParagraph_doesNothing() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         viewModel.onAction(CoverLetterAction.ReportInaccurate(99))
 
         assertThat(viewModel.uiState.value.message).isNull()
+        assertThat(reports.observeReports(APPLICATION_ID).first()).isEmpty()
     }
 
     @Test
     fun dismissMessage_clearsTheNote() = runTest {
         given()
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        viewModel.onAction(CoverLetterAction.CopyLetter("x"))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.onAction(CoverLetterAction.ReportInaccurate(1))
 
         viewModel.onAction(CoverLetterAction.DismissMessage)
 
@@ -401,7 +481,7 @@ class CoverLetterViewModelTest {
         )
         applicationRepository.sendApplications(listOf(canonicalApplication))
         profileRepository.sendProfile(withoutConfirmed)
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(CoverLetterStage.EMPTY_PROFILE)
     }
@@ -420,7 +500,7 @@ class CoverLetterViewModelTest {
         )
         applicationRepository.sendApplications(listOf(canonicalApplication))
         profileRepository.sendProfile(onlyUserStated)
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(CoverLetterStage.EMPTY_PROFILE)
     }

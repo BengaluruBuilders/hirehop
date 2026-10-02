@@ -44,4 +44,5 @@ data class TailoredBulletDto(
 @Serializable
 data class TailoredResumeDto(
     val bullets: List<TailoredBulletDto>,
+    val entryIds: List<String>? = null,
 )

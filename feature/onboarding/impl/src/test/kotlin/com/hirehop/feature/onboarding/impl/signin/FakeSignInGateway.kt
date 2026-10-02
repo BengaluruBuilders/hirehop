@@ -5,7 +5,7 @@ import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.SignInOutcome
 import com.hirehop.core.domain.SignInResult
-import com.hirehop.core.domain.offline.OfflineSignInGateway
+import com.hirehop.core.testing.gateway.TestSignInGateway
 
 class FakeSignInGateway(
     private val result: SignInResult = SignInResult.SignedIn(SignInAccount.localAccount),
@@ -54,6 +54,6 @@ class RecoveringSignInGateway(
     }
 }
 
-fun offlineGatewayWith(outcome: SignInOutcome): OfflineSignInGateway = OfflineSignInGateway().withOutcome(outcome)
+fun offlineGatewayWith(outcome: SignInOutcome): TestSignInGateway = TestSignInGateway().withOutcome(outcome)
 
 fun failureWith(reason: SignInFailureReason): SignInResult = SignInResult.Failed(reason)

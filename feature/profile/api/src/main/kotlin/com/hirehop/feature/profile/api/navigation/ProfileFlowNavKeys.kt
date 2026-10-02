@@ -21,18 +21,18 @@ data class GuidedProfileFormNavKey(
 
 @Serializable
 data class FactEvidenceNavKey(
-    val category: String = "projects",
+    val category: String = "",
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
-fun Navigator.navigateToFactEditor(entryId: String?) {
-    navigate(FactEditorNavKey(entryId = entryId))
+fun Navigator.navigateToFactEditor(entryId: String?, entryType: String = "project") {
+    navigate(FactEditorNavKey(entryId = entryId, entryType = entryType))
 }
 
 fun Navigator.navigateToGuidedProfileForm(resumedFromScan: Boolean = false) {
     navigate(GuidedProfileFormNavKey(resumedFromScan = resumedFromScan))
 }
 
-fun Navigator.navigateToFactEvidence(category: String = "projects") {
+fun Navigator.navigateToFactEvidence(category: String = "") {
     navigate(FactEvidenceNavKey(category = category))
 }

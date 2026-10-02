@@ -1,37 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_paste_jd_title">Paste the job description</string>
+    <string name="feature_onboarding_impl_paste_jd_title">New analysis</string>
+    <string name="feature_onboarding_impl_paste_jd_subtitle">Paste a job description</string>
     <string name="feature_onboarding_impl_paste_jd_navigation_back_description">Go back</string>
-    <string name="feature_onboarding_impl_paste_jd_field_label">Job description</string>
-    <string name="feature_onboarding_impl_paste_jd_field_placeholder">Paste the job description text</string>
-    <string name="feature_onboarding_impl_paste_jd_field_hint">Paste the text, not a link. HireHop does not open links.</string>
+    <string name="feature_onboarding_impl_paste_jd_field_label">Paste the job description text</string>
+    <string name="feature_onboarding_impl_paste_jd_field_placeholder">Copy the full job post from the job site or WhatsApp, then tap Paste.</string>
     <string name="feature_onboarding_impl_paste_jd_company_label">Company</string>
-    <string name="feature_onboarding_impl_paste_jd_company_placeholder">For example, Northwind GCC</string>
+    <string name="feature_onboarding_impl_paste_jd_company_placeholder">Type the company</string>
     <string name="feature_onboarding_impl_paste_jd_role_label">Role</string>
-    <string name="feature_onboarding_impl_paste_jd_role_placeholder">For example, Associate Analyst</string>
-    <string name="feature_onboarding_impl_paste_jd_optional_hint">Optional. Type it or correct it. HireHop does not read these from the text.</string>
+    <string name="feature_onboarding_impl_paste_jd_role_placeholder">Type the role</string>
     <string name="feature_onboarding_impl_paste_jd_word_count_description">Words pasted so far</string>
-    <string name="feature_onboarding_impl_paste_jd_not_read_yet">Nothing here is read or decided until you tap Analyse.</string>
-    <plurals name="feature_onboarding_impl_paste_jd_word_count">
-        <item quantity="one">%1$d word</item>
-        <item quantity="other">%1$d words</item>
+    <plurals name="feature_onboarding_impl_paste_jd_word_unit">
+        <item quantity="one">word</item>
+        <item quantity="other">words</item>
     </plurals>
+    <string name="feature_onboarding_impl_paste_jd_action_paste">Paste</string>
     <string name="feature_onboarding_impl_paste_jd_action_clear">Clear</string>
-    <string name="feature_onboarding_impl_paste_jd_action_clear_description">Clear the job description</string>
     <string name="feature_onboarding_impl_paste_jd_action_analyse">Analyse this JD</string>
-    <string name="feature_onboarding_impl_paste_jd_disclosure_stays_on_phone">Your JD stays on this phone until you tap Analyse.</string>
-    <string name="feature_onboarding_impl_paste_jd_disclosure_nothing_to_analyse">Paste the job description to turn this on.</string>
+    <string name="feature_onboarding_impl_paste_jd_action_analyse_later">Analyse when I\'m back</string>
+    <string name="feature_onboarding_impl_paste_jd_free_left">%1$d of %2$d</string>
+    <string name="feature_onboarding_impl_paste_jd_disclosure">%1$s free analyses left today\nYour JD stays on this phone until you tap Analyse.</string>
+    <plurals name="feature_onboarding_impl_paste_jd_disclosure_limit">
+        <item quantity="one">You\'ve used today\'s %1$d free analysis. You get %1$d more tomorrow.</item>
+        <item quantity="other">You\'ve used today\'s %1$d free analyses. You get %1$d more tomorrow.</item>
+    </plurals>
+    <string name="feature_onboarding_impl_paste_jd_reason_empty">Analyse is off until you paste the JD text.</string>
+    <string name="feature_onboarding_impl_paste_jd_reason_incomplete">Analyse is off until the JD text is complete.</string>
     <string name="feature_onboarding_impl_paste_jd_problem_link_only">Paste the JD text, not the link. HireHop does not open links.</string>
     <string name="feature_onboarding_impl_paste_jd_problem_too_short">This looks shorter than a job description. Paste the full text.</string>
     <string name="feature_onboarding_impl_paste_jd_problem_too_long">This is longer than one job description. Paste just the role you are applying for.</string>
-    <string name="feature_onboarding_impl_paste_jd_offline_message">You are offline</string>
-    <string name="feature_onboarding_impl_paste_jd_offline_support">We\'ll analyse this when you\'re back. The text stays on this phone.</string>
+    <string name="feature_onboarding_impl_paste_jd_offline_message">You\'re offline. We\'ll analyse this when you\'re back.</string>
     <string name="feature_onboarding_impl_paste_jd_loading">Reading the job description you shared in</string>
     <string name="feature_onboarding_impl_paste_jd_error_title">We could not read the text you shared</string>
     <string name="feature_onboarding_impl_paste_jd_error_body">Nothing was kept. Paste the text here instead.</string>
-    <string name="feature_onboarding_impl_paste_jd_message_nothing_to_read">That share had no text in it. Paste the job description here.</string>
+    <string name="feature_onboarding_impl_paste_jd_message_nothing_to_read">There was no text to paste. Copy the job description first.</string>
     <string name="feature_onboarding_impl_paste_jd_message_partial">We could only read part of that share. Paste the full text here.</string>
-    <string name="feature_onboarding_impl_paste_jd_arrival_shared_in">Pasted in from another app</string>
+    <string name="feature_onboarding_impl_paste_jd_arrival_shared_in">Shared from another app</string>
     <string name="feature_onboarding_impl_paste_jd_try_again">Try again</string>
-    <string name="feature_onboarding_impl_paste_jd_dismiss">Dismiss</string>
 </resources>

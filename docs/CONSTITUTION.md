@@ -114,7 +114,7 @@ Adopted in the PR that introduces the design-fidelity UI work.
 | Item | Why | Gate |
 |---|---|---|
 | Coverage report (Kover) | The design-fidelity work is the first large change to `core:domain`, `core:data` and every ViewModel. Adopting coverage only after the fabrication set would have let those modules grow unchecked for five pull requests. | `koverVerify` fails above 80% line coverage on `core:domain` and `core:data`. Every ViewModel test class must exist for a ViewModel that exists. |
-| Roborazzi screenshot tests | Design fidelity is not verifiable by unit tests. The designs in `design/claude-design` are the acceptance criterion, so the only way to prove a screen matches its frame is to compare a rendered screenshot against a committed baseline. | `verifyHhRoborazziDebug` runs in `tools/ci/verify-local.sh` and in CI with `roborazzi.test.verify=true`. Any unexpected image difference fails the build. |
+| Roborazzi screenshot tests | Design fidelity is not verifiable by unit tests. The designs in `design/claude-design` are the acceptance criterion, so the only way to prove a screen matches its frame is to compare a rendered screenshot against a committed baseline. | `verifyRoborazziDebug` runs in `tools/ci/verify-local.sh` and in CI with `roborazzi.test.verify=true`. Any unexpected image difference fails the build. |
 | Design-system import check (II.5) | Part of the custom lint module above, implemented cheaply as a source scan. The full custom lint module is still deferred. | `tools/ci/check-constitution.sh` fails if a feature module imports a raw Material component or reads a design-system token without going through the design system. |
 
 Kover was chosen over JaCoCo. Roborazzi and Robolectric are build-time test dependencies and

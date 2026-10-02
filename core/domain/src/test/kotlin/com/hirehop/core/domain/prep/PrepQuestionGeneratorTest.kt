@@ -224,6 +224,24 @@ class PrepQuestionGeneratorTest {
         assertThat(questions.map { it.id }).containsExactly("prep-gap-requirement", "prep-gap-requirement-1").inOrder()
     }
 
+    @Test
+    fun promptDropsTheMarkerAndTheClosingPunctuationOfTheRequirement() {
+        val raw = canonicalKotlinRequirement.copy(text = "Must have Kotlin for Android apps.")
+        val question = only(generate(raw, MatchStatus.MET, "I-01-b1"))
+
+        assertThat(question.prompt).contains("Your record already covers kotlin for Android apps. Be ready")
+        assertThat(question.prompt).doesNotContain("..")
+        assertThat(question.requirementText).isEqualTo("Must have Kotlin for Android apps.")
+    }
+
+    @Test
+    fun promptKeepsTheCapitalsOfAnAcronymAtTheStart() {
+        val raw = canonicalAgileRequirement.copy(text = "Nice to have SQL for reporting.")
+        val question = only(generate(raw, MatchStatus.GAP))
+
+        assertThat(question.prompt).contains("This posting asks for SQL for reporting. You have")
+    }
+
     private fun kindOrder(kind: PrepQuestionKind): Int = when (kind) {
         PrepQuestionKind.GAP -> 0
         PrepQuestionKind.CLARIFY -> 1

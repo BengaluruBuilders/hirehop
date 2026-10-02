@@ -7,6 +7,7 @@ import com.hirehop.core.domain.prep.PrepQuestionSource
 import com.hirehop.core.model.CandidateProfile
 
 internal class TestPrepQuestionSource(
+    private val gapQuestions: Int = 0,
     private val answer: (JobAnalysisResult, CandidateProfile) -> Int = { _, _ -> 0 },
 ) : PrepQuestionSource {
 
@@ -20,6 +21,14 @@ internal class TestPrepQuestionSource(
             kind = PrepQuestionKind.STRENGTH,
             prompt = "Prompt $index",
             requirementText = analysis.job.requirements.getOrNull(index)?.text.orEmpty(),
+            backingFactId = null,
+        )
+    } + List(gapQuestions) { index ->
+        PrepQuestion(
+            id = "gap-$index",
+            kind = PrepQuestionKind.GAP,
+            prompt = "Gap $index",
+            requirementText = "",
             backingFactId = null,
         )
     }

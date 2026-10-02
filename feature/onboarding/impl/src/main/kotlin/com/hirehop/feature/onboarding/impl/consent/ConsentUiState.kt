@@ -1,8 +1,9 @@
 package com.hirehop.feature.onboarding.impl.consent
 
+import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.model.DebugScenario
-
-enum class ConsentPurpose { READ_AND_BUILD, ANALYSE_ON_DEVICE, KEEP_CONFIRMED_FACTS }
+import kotlin.time.Instant
 
 data class ConsentPurposeState(
     val purpose: ConsentPurpose,
@@ -12,43 +13,30 @@ data class ConsentPurposeState(
 data class ConsentUiState(
     val entries: List<ConsentPurposeState> = consentPurposeStates(),
     val isSaving: Boolean = false,
-    val isOffline: Boolean = false,
     val isDeclined: Boolean = false,
+    val isReadOnly: Boolean = false,
+    val agreedAt: Instant? = null,
+    val nextStep: OnboardingStep? = null,
 ) {
     val acknowledgedCount: Int get() = entries.count { it.isAcknowledged }
     val isEveryPurposeAcknowledged: Boolean get() = entries.isNotEmpty() && entries.all { it.isAcknowledged }
-    val canAgree: Boolean get() = isEveryPurposeAcknowledged && !isSaving
-    val showAgreementActions: Boolean get() = !isDeclined
+    val canAgree: Boolean get() = isEveryPurposeAcknowledged && !isSaving && !isReadOnly
+    val showAgreementActions: Boolean get() = !isDeclined && !isReadOnly
 }
 
 fun consentPurposeStates(): List<ConsentPurposeState> = ConsentPurpose.entries.map { ConsentPurposeState(purpose = it) }
 
-fun consentStateFor(scenario: DebugScenario): ConsentUiState = when (scenario) {
-    DebugScenario.DEFAULT,
-    DebugScenario.ERROR,
-    DebugScenario.PARTIAL,
-    DebugScenario.USER_STATED,
-    DebugScenario.SCANNED,
-    DebugScenario.IMPORTED,
-    DebugScenario.FULLY_CONFIRMED,
-    DebugScenario.PARTLY_CONFIRMED,
-    DebugScenario.DELETING,
-    DebugScenario.EXPORTING,
-    DebugScenario.PURCHASED,
-    DebugScenario.PENDING,
-    DebugScenario.CANCELLED,
-    DebugScenario.RESTORED,
-    -> ConsentUiState()
-
-    DebugScenario.LOADING -> ConsentUiState(isSaving = true)
-
-    DebugScenario.EMPTY -> ConsentUiState(isDeclined = true)
-
-    DebugScenario.OFFLINE -> ConsentUiState(isOffline = true)
-
-    DebugScenario.SUCCESS -> ConsentUiState(
+fun consentStateFor(scenario: DebugScenario, readOnly: Boolean = false): ConsentUiState = when {
+    readOnly -> ConsentUiState(isReadOnly = true)
+    scenario == DebugScenario.LOADING -> ConsentUiState(isSaving = true)
+    scenario == DebugScenario.EMPTY -> ConsentUiState(isDeclined = true)
+    scenario == DebugScenario.SUCCESS -> ConsentUiState(
         entries = consentPurposeStates().map { it.copy(isAcknowledged = true) },
     )
+    scenario == DebugScenario.PARTIAL -> ConsentUiState(
+        entries = consentPurposeStates().mapIndexed { index, entry -> entry.copy(isAcknowledged = index < 2) },
+    )
+    else -> ConsentUiState()
 }
 
 fun ConsentUiState.isAcknowledged(purpose: ConsentPurpose): Boolean =

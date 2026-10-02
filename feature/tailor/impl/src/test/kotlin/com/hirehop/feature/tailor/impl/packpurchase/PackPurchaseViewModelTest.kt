@@ -2,15 +2,23 @@ package com.hirehop.feature.tailor.impl.packpurchase
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.ApplicationPack
-import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
-import com.hirehop.core.domain.PurchaseResult
+import com.hirehop.core.domain.PurchaseOutcome
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.data.canonicalApplication
+import com.hirehop.core.testing.gateway.TestPaymentGateway
+import com.hirehop.core.testing.repository.TestApplicationRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.PackPurchaseNavKey
+import com.hirehop.feature.tailor.impl.R
+import com.hirehop.feature.tailor.impl.exportpreview.PendingExportStart
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+
+private const val APPLICATION_ID = "application-northwind-1"
 
 class PackPurchaseViewModelTest {
 
@@ -18,14 +26,38 @@ class PackPurchaseViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val gateway = TestPaymentGateway()
+    private val applicationRepository = TestApplicationRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val pendingExportStart = PendingExportStart()
 
-    private fun viewModel(gateway: TestPaymentGateway = this.gateway) = PackPurchaseViewModel(paymentGateway = gateway)
+    private fun viewModel() = PackPurchaseViewModel(
+        paymentGateway = gateway,
+        applicationRepository = applicationRepository,
+        connectivityMonitor = connectivity,
+        pendingExportStart = pendingExportStart,
+        clock = TestClock(),
+    )
+
+    private fun key(
+        scenario: DebugScenario = DebugScenario.DEFAULT,
+        packId: String = ApplicationPack.APPLICATION_PACK_FIVE,
+        applicationId: String = APPLICATION_ID,
+        startExportOnReturn: Boolean = false,
+    ) = PackPurchaseNavKey(
+        applicationId = applicationId,
+        packId = packId,
+        scenario = scenario,
+        startExportOnReturn = startExportOnReturn,
+    )
+
+    private fun entered(scenario: DebugScenario = DebugScenario.DEFAULT): PackPurchaseViewModel {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        return viewModel().also { subject -> subject.onEnter(key(scenario)) }
+    }
 
     @Test
-    fun defaultScenario_showsTheRealCatalogueAndTheRealBalance() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.DEFAULT))
+    fun defaultScenario_showsThePacksFromTheGatewayAndTheJob() = runTest {
+        val subject = entered()
 
         val state = subject.uiState.value
         assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
@@ -33,353 +65,202 @@ class PackPurchaseViewModelTest {
             ApplicationPack.APPLICATION_PACK_FIVE,
             ApplicationPack.SINGLE_APPLICATION,
         ).inOrder()
-        assertThat(state.freeCredits).isEqualTo(1)
-        assertThat(state.purchasedCredits).isEqualTo(0)
+        assertThat(state.selectedPack?.id).isEqualTo(ApplicationPack.APPLICATION_PACK_FIVE)
+        assertThat(state.otherPacks.map(ApplicationPack::id)).containsExactly(ApplicationPack.SINGLE_APPLICATION)
+        assertThat(state.jobCompany).isEqualTo("Northwind GCC")
+        assertThat(state.totalCredits).isEqualTo(1)
+        assertThat(state.canBuy).isTrue()
+    }
+
+    @Test
+    fun noApplication_leavesTheHeadlineGeneric() = runTest {
+        val subject = viewModel()
+
+        subject.onEnter(key(applicationId = ""))
+
+        assertThat(subject.uiState.value.jobCompany).isEmpty()
+        assertThat(subject.uiState.value.hasApplication).isFalse()
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
+        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
+            .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
+        assertThat(packHeadlineRes(subject.uiState.value, compact = true))
+            .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
+    }
+
+    @Test
+    fun applicationWithACompany_usesTheResumeHeadline() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+
+        subject.onEnter(key())
+
+        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
+            .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline)
+    }
+
+    @Test
+    fun returnAfterPurchase_startsTheExportWhenThePersonTappedDownloadFirst() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+        subject.onEnter(key(startExportOnReturn = true))
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        subject.onAction(PackPurchaseAction.ReturnAfterPurchase)
+
+        assertThat(pendingExportStart.applicationId.value).isEqualTo(APPLICATION_ID)
+    }
+
+    @Test
+    fun returnAfterPurchase_justReturnsWhenThePersonDidNotTapDownloadFirst() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+        subject.onEnter(key(startExportOnReturn = false))
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        subject.onAction(PackPurchaseAction.ReturnAfterPurchase)
+
+        assertThat(pendingExportStart.applicationId.value).isNull()
+    }
+
+    @Test
+    fun returnAfterPurchase_neverStartsAnExportBeforeTheMoneyIsTaken() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+        subject.onEnter(key(startExportOnReturn = true))
+
+        subject.onAction(PackPurchaseAction.ReturnAfterPurchase)
+
+        assertThat(pendingExportStart.applicationId.value).isNull()
+    }
+
+    @Test
+    fun returnAfterPurchase_withNoApplicationStartsNothing() = runTest {
+        val subject = viewModel()
+        subject.onEnter(key(applicationId = "", startExportOnReturn = true))
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        subject.onAction(PackPurchaseAction.ReturnAfterPurchase)
+
+        assertThat(pendingExportStart.applicationId.value).isNull()
     }
 
     @Test
     fun loadingScenario_neverAsksTheGateway() = runTest {
-        val subject = viewModel()
+        val subject = entered(DebugScenario.LOADING)
 
-        subject.onEnter(key(DebugScenario.LOADING))
-
-        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.LOADING_PACKS)
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.LOADING)
         assertThat(subject.uiState.value.packs).isEmpty()
     }
 
     @Test
-    fun emptyScenario_showsNoPacksAndStillNoFailure() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.EMPTY))
+    fun errorScenario_isACatalogueFailureWithoutInventingAPack() = runTest {
+        val subject = entered(DebugScenario.ERROR)
 
         val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
+        assertThat(state.isCatalogueFailure).isTrue()
         assertThat(state.packs).isEmpty()
-        assertThat(state.hasCatalogue).isFalse()
+
+        subject.onAction(PackPurchaseAction.ReloadPacks)
+        assertThat(subject.uiState.value.isCatalogueFailure).isTrue()
     }
 
     @Test
-    fun offlineScenario_staysOfflineAndStillShowsTheSavedCatalogue() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.OFFLINE))
+    fun offlineScenario_blocksTheBuyButKeepsTheCatalogue() = runTest {
+        val subject = entered(DebugScenario.OFFLINE)
 
         val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.OFFLINE)
         assertThat(state.isOffline).isTrue()
         assertThat(state.hasCatalogue).isTrue()
+        assertThat(state.canBuy).isFalse()
+
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
+        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(0)
     }
 
     @Test
-    fun errorScenario_reportsACatalogueFailureWithoutInventingAPack() = runTest {
+    fun theConnectivityMonitorDecidesOffline() = runTest {
+        connectivity.setOnline(false)
+        val subject = entered()
+        assertThat(subject.uiState.value.canBuy).isFalse()
+
+        connectivity.setOnline(true)
+
+        assertThat(subject.uiState.value.canBuy).isTrue()
+    }
+
+    @Test
+    fun aRequestedSecondPackIsTheSelectedOne() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
         val subject = viewModel()
 
-        subject.onEnter(key(DebugScenario.ERROR))
+        subject.onEnter(key(packId = ApplicationPack.SINGLE_APPLICATION))
 
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.FAILED)
-        assertThat(state.isCatalogueFailure).isTrue()
-        assertThat(state.failureReason).isNull()
-        assertThat(state.packs).isEmpty()
+        assertThat(subject.uiState.value.selectedPack?.id).isEqualTo(ApplicationPack.SINGLE_APPLICATION)
     }
 
     @Test
-    fun aGatewayThatCannotListPacks_reportsACatalogueFailure() = runTest {
-        val subject = viewModel(gateway = TestPaymentGateway().withPacksFailure())
+    fun success_countsFromTheOldBalanceToTheNewOneAndKeepsAReceipt() = runTest {
+        val subject = entered()
+        gateway.consumeCredit()
 
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        assertThat(subject.uiState.value.isCatalogueFailure).isTrue()
-    }
-
-    @Test
-    fun aGatewayThatCannotReadTheBalance_reportsACatalogueFailure() = runTest {
-        val subject = viewModel(gateway = TestPaymentGateway().withEntitlementFailure())
-
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        assertThat(subject.uiState.value.isCatalogueFailure).isTrue()
-    }
-
-    @Test
-    fun partialScenario_showsAFreeAllowanceThatIsUsedUp() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.PARTIAL))
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(state.freeCredits).isEqualTo(0)
-        assertThat(state.purchasedCredits).isEqualTo(5)
-    }
-
-    @Test
-    fun successScenario_showsTheRecordedPackAndItsCredits() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.SUCCESS))
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
 
         val state = subject.uiState.value
         assertThat(state.stage).isEqualTo(PackPurchaseStage.SUCCESS)
-        assertThat(state.purchasedCredits).isEqualTo(5)
+        assertThat(state.creditsBefore).isEqualTo(0)
+        assertThat(state.totalCredits).isEqualTo(5)
+        assertThat(state.receipt?.credits).isEqualTo(5)
+        assertThat(state.receipt?.formattedPrice).isEqualTo("₹149")
+        assertThat(state.receipt?.formattedDate).isNotEmpty()
+        assertThat(state.creditsNeverExpire).isTrue()
     }
 
     @Test
-    fun purchasedScenario_showsTheRecordedPack() = runTest {
-        val subject = viewModel()
+    fun pending_addsNoCredits() = runTest {
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Pending)
+        val subject = entered()
 
-        subject.onEnter(key(DebugScenario.PURCHASED))
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.PENDING)
+        assertThat(subject.uiState.value.totalCredits).isEqualTo(1)
+    }
+
+    @Test
+    fun cancelled_chargesNothing() = runTest {
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Cancelled)
+        val subject = entered()
+
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.CANCELLED)
+        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun failed_keepsTheRealReasonAndTryAgainBuysTheSamePack() = runTest {
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Failed)
+            .withFailureReason(PurchaseFailureReason.PaymentDeclined)
+        val subject = entered()
+        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.FAILED)
+        assertThat(subject.uiState.value.failureReason).isEqualTo(PurchaseFailureReason.PaymentDeclined)
+
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Success)
+        subject.onAction(PackPurchaseAction.RetryBuy)
 
         assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.SUCCESS)
+        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(5)
     }
 
     @Test
-    fun deletingScenario_showsThePurchaseInFlight() = runTest {
-        val subject = viewModel()
+    fun buyingAnUnknownPack_isIgnored() = runTest {
+        val subject = entered()
 
-        subject.onEnter(key(DebugScenario.DELETING))
+        subject.onAction(PackPurchaseAction.Buy("no-such-pack"))
 
-        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.PURCHASING)
-    }
-
-    @Test
-    fun buyingTheFivePack_recordsTheCreditsAndNoMoney() = runTest {
-        val subject = viewModel()
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.SUCCESS)
-        assertThat(state.purchasedCredits).isEqualTo(5)
-        assertThat(state.failureReason).isNull()
-    }
-
-    @Test
-    fun buyingTheSinglePack_recordsOneCredit() = runTest {
-        val subject = viewModel()
-        subject.onEnter(key(DebugScenario.DEFAULT, ApplicationPack.SINGLE_APPLICATION))
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.SINGLE_APPLICATION))
-
-        assertThat(subject.uiState.value.purchasedCredits).isEqualTo(1)
-    }
-
-    @Test
-    fun aPendingPurchase_addsNoCreditsAndSaysSo() = runTest {
-        val gateway = TestPaymentGateway().withResult(
-            PurchaseResult.Pending(entitlement = PurchaseEntitlement(1, 0, listOf(ApplicationPack.APPLICATION_PACK_FIVE))),
-        )
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.PENDING)
-        assertThat(state.purchasedCredits).isEqualTo(0)
-        assertThat(state.pendingPackIds).contains(ApplicationPack.APPLICATION_PACK_FIVE)
-    }
-
-    @Test
-    fun aCancelledPurchase_grantsNothingAndIsNotAFailure() = runTest {
-        val gateway = TestPaymentGateway().withResult(PurchaseResult.Cancelled)
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.CANCELLED)
-        assertThat(state.failureReason).isNull()
-        assertThat(state.purchasedCredits).isEqualTo(0)
-    }
-
-    @Test
-    fun aFailedPurchase_doesNotChangeTheBalance() = runTest {
-        val gateway = TestPaymentGateway()
-            .withPurchasedCredits(5)
-            .withFreeCredits(1)
-            .withResult(
-                PurchaseResult.Failed(
-                    reason = PurchaseFailureReason.PaymentDeclined,
-                    entitlement = PurchaseEntitlement(freeCredits = 1, purchasedCredits = 5, pendingPackIds = emptyList()),
-                ),
-            )
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-        val before = subject.uiState.value
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-        val after = subject.uiState.value
-        assertThat(after.stage).isEqualTo(PackPurchaseStage.FAILED)
-        assertThat(after.failureReason).isEqualTo(PurchaseFailureReason.PaymentDeclined)
-        assertThat(after.purchasedCredits).isEqualTo(before.purchasedCredits)
-        assertThat(after.freeCredits).isEqualTo(before.freeCredits)
-    }
-
-    @Test
-    fun everyFailureReason_reachesTheScreenWithItsOwnReason() = runTest {
-        PurchaseFailureReason.entries.forEach { reason ->
-            val gateway = TestPaymentGateway().withResult(
-                PurchaseResult.Failed(
-                    reason = reason,
-                    entitlement = PurchaseEntitlement(freeCredits = 1, purchasedCredits = 0, pendingPackIds = emptyList()),
-                ),
-            )
-            val subject = viewModel(gateway = gateway)
-            subject.onEnter(key(DebugScenario.DEFAULT))
-
-            subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-            val state = subject.uiState.value
-            assertThat(state.stage).isEqualTo(PackPurchaseStage.FAILED)
-            assertThat(state.failureReason).isEqualTo(reason)
-        }
-    }
-
-    @Test
-    fun buyingAPackThatIsNotInTheCatalogue_reportsPurchaseUnavailable() = runTest {
-        val subject = viewModel()
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Buy("pack_that_does_not_exist"))
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.FAILED)
-        assertThat(state.failureReason).isEqualTo(PurchaseFailureReason.PurchaseUnavailable)
-        assertThat(gateway.purchaseCallCount()).isEqualTo(1)
-    }
-
-    @Test
-    fun aFailedPurchase_keepsTheBalanceTheGatewayAlreadyReported() = runTest {
-        val gateway = TestPaymentGateway().withPurchasedCredits(5).withFreeCredits(2)
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.SINGLE_APPLICATION))
-
-        assertThat(subject.uiState.value.purchasedCredits).isEqualTo(6)
-        assertThat(subject.uiState.value.freeCredits).isEqualTo(2)
-    }
-
-    @Test
-    fun restore_keepsTheCreditsAndSaysNothingWasRestored() = runTest {
-        val gateway = TestPaymentGateway().withPurchasedCredits(5)
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Restore)
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.RESTORED)
-        assertThat(state.purchasedCredits).isEqualTo(5)
-        assertThat(state.failureReason).isNull()
-    }
-
-    @Test
-    fun aFailedRestore_reportsAFailureAndKeepsTheBalance() = runTest {
-        val gateway = TestPaymentGateway().withPurchasedCredits(5).withRestoreFailure()
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.Restore)
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.FAILED)
-        assertThat(state.failureReason).isEqualTo(PurchaseFailureReason.PurchaseUnavailable)
-        assertThat(state.purchasedCredits).isEqualTo(5)
-    }
-
-    @Test
-    fun dismiss_returnsToReady() = runTest {
-        val gateway = TestPaymentGateway().withResult(
-            PurchaseResult.Failed(
-                reason = PurchaseFailureReason.PaymentUnavailable,
-                entitlement = PurchaseEntitlement(1, 0, emptyList()),
-            ),
-        )
-        val subject = viewModel(gateway = gateway)
-        subject.onEnter(key(DebugScenario.DEFAULT))
-        subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
-
-        subject.onAction(PackPurchaseAction.Dismiss)
-
-        val state = subject.uiState.value
-        assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(state.failureReason).isNull()
-    }
-
-    @Test
-    fun selectingTheOtherPack_swapsThePriceOnScreen() = runTest {
-        val subject = viewModel()
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        subject.onAction(PackPurchaseAction.SelectPack(ApplicationPack.SINGLE_APPLICATION))
-
-        val state = subject.uiState.value
-        assertThat(state.selectedPackId).isEqualTo(ApplicationPack.SINGLE_APPLICATION)
-        assertThat(state.selectedPack?.credits).isEqualTo(1)
-        assertThat(state.otherPacks.map(ApplicationPack::id)).containsExactly(ApplicationPack.APPLICATION_PACK_FIVE)
-    }
-
-    @Test
-    fun selectingAPackThatDoesNotExist_changesNothing() = runTest {
-        val subject = viewModel()
-        subject.onEnter(key(DebugScenario.DEFAULT))
-        val before = subject.uiState.value
-
-        subject.onAction(PackPurchaseAction.SelectPack("pack_that_does_not_exist"))
-
-        assertThat(subject.uiState.value.selectedPackId).isEqualTo(before.selectedPackId)
-    }
-
-    @Test
-    fun anUnknownPackIdInTheKey_fallsBackToTheFirstRealPack() = runTest {
-        val subject = viewModel()
-
-        subject.onEnter(key(DebugScenario.DEFAULT, "pack_that_does_not_exist"))
-
-        assertThat(subject.uiState.value.selectedPackId).isEqualTo(ApplicationPack.APPLICATION_PACK_FIVE)
-    }
-
-    @Test
-    fun expiryIsReadFromTheRealPackAndNotAssumed() {
-        assertThat(ApplicationPack.applicationPackFive.creditsExpire).isFalse()
-        assertThat(ApplicationPack.singleApplication.creditsExpire).isFalse()
-        val expiring = ApplicationPack.applicationPackFive.copy(id = "expiring", creditsExpire = true)
-        val state = PackPurchaseUiState(
-            packs = ApplicationPack.catalogue + expiring,
-            entitlement = PurchaseEntitlement(1, 5, emptyList()),
-        )
-        assertThat(state.purchasedCreditsNeverExpire).isFalse()
-        assertThat(state.purchasedCreditsMayExpire).isTrue()
-    }
-
-    @Test
-    fun theFreeAllowanceIsNeverAddedToThePurchasedCreditsInTheState() = runTest {
-        val gateway = TestPaymentGateway().withFreeCredits(3).withPurchasedCredits(5)
-        val subject = viewModel(gateway = gateway)
-
-        subject.onEnter(key(DebugScenario.DEFAULT))
-
-        val state = subject.uiState.value
-        assertThat(state.freeCredits).isEqualTo(3)
-        assertThat(state.purchasedCredits).isEqualTo(5)
-    }
-
-    private fun key(
-        scenario: DebugScenario,
-        packId: String = ApplicationPack.APPLICATION_PACK_FIVE,
-    ) = PackPurchaseNavKey(
-        applicationId = APPLICATION_ID,
-        packId = packId,
-        scenario = scenario,
-    )
-
-    private companion object {
-        const val APPLICATION_ID = "application_1"
+        assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
     }
 }

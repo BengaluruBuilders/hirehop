@@ -18,6 +18,7 @@ import kotlin.time.Clock
 internal class OfflineFirstApplicationRepository @Inject constructor(
     private val jobApplicationDao: JobApplicationDao,
     private val clock: Clock,
+    private val cleanup: ApplicationCleanup,
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ApplicationRepository {
 
@@ -40,6 +41,8 @@ internal class OfflineFirstApplicationRepository @Inject constructor(
     override suspend fun updateNotes(id: String, notes: String) =
         jobApplicationDao.updateNotes(id = id, notes = notes, updatedAt = clock.now())
 
-    override suspend fun deleteApplication(id: String) =
+    override suspend fun deleteApplication(id: String) {
         jobApplicationDao.deleteApplication(id)
+        cleanup.clearFor(id)
+    }
 }

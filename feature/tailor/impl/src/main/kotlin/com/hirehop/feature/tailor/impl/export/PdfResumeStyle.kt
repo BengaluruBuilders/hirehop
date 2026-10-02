@@ -5,7 +5,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
 
-internal class PdfResumeStyle {
+internal class PdfResumeStyle(private val textScale: Float = 1f) {
     val name: TextPaint = textPaint(size = 22f, bold = true, color = INK)
     val headline: TextPaint = textPaint(size = 11f, bold = false, color = INK)
     val contact: TextPaint = textPaint(size = 10f, bold = false, color = MUTED)
@@ -20,7 +20,7 @@ internal class PdfResumeStyle {
 
     private fun textPaint(size: Float, bold: Boolean, color: Int): TextPaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = size
+            textSize = size * textScale
             this.color = color
             typeface = Typeface.create(Typeface.SANS_SERIF, if (bold) Typeface.BOLD else Typeface.NORMAL)
         }

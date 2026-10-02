@@ -2,14 +2,21 @@ package com.hirehop.feature.tailor.impl.exportpreview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.CreditSpend
 import com.hirehop.core.domain.PaymentGateway
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
-import com.hirehop.feature.tailor.impl.credits.formattedPrice
+import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
+import com.hirehop.feature.tailor.impl.export.RenderedResume
 import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
 import com.hirehop.feature.tailor.impl.export.docx.ResumeDocxRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Clock
 
 @HiltViewModel
 internal class ExportPreviewViewModel @Inject constructor(
@@ -30,6 +38,10 @@ internal class ExportPreviewViewModel @Inject constructor(
     private val pdfRenderer: ResumePdfRenderer,
     private val docxRenderer: ResumeDocxRenderer,
     private val paymentGateway: PaymentGateway,
+    private val exportHistoryRepository: ExportHistoryRepository,
+    private val connectivityMonitor: ConnectivityMonitor,
+    private val pendingExportStart: PendingExportStart,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(ExportPreviewUiState())
@@ -49,28 +61,59 @@ internal class ExportPreviewViewModel @Inject constructor(
         hasEntered = true
         applicationId = key.applicationId
         scenario = key.scenario
-        val format = ExportFormat.fromWire(key.format)
         mutableState.value = ExportPreviewUiState(
             stage = exportPreviewStageFor(key.scenario),
-            format = format,
+            format = exportFormatFromWire(key.format),
             isOffline = exportPreviewIsOffline(key.scenario),
         )
         if (exportPreviewIsStatic(key.scenario)) return
+        observeCredits()
+        observeConnectivity()
+        observePendingExportStart()
         viewModelScope.launch {
             loadDocument()
-            loadCredits()
-            if (exportPreviewExportsOnEntry(key.scenario)) export()
+            if (scenario == DebugScenario.EXPORTING) export()
         }
     }
 
     fun onAction(action: ExportPreviewAction) {
         when (action) {
             is ExportPreviewAction.SelectFormat -> onSelectFormat(action.format)
+            is ExportPreviewAction.SelectTemplate -> onSelectTemplate(action.template)
             ExportPreviewAction.Export -> export()
-            ExportPreviewAction.RetryPreview -> onRetryPreview()
-            ExportPreviewAction.DismissResult -> onDismissResult()
-            ExportPreviewAction.NavigateBack -> Unit
-            is ExportPreviewAction.OpenExported -> Unit
+            ExportPreviewAction.RetryPreview -> onRetry()
+            ExportPreviewAction.NavigationHandled -> mutableState.update { state -> state.copy(navigation = null) }
+        }
+    }
+
+    private fun observePendingExportStart() {
+        viewModelScope.launch {
+            pendingExportStart.applicationId.collect { requested ->
+                if (requested == applicationId && pendingExportStart.consume(requested)) export()
+            }
+        }
+    }
+
+    private fun observeCredits() {
+        viewModelScope.launch {
+            paymentGateway.observeEntitlement().collect { entitlement ->
+                mutableState.update { state ->
+                    state.copy(
+                        creditsKnown = true,
+                        freeCredits = entitlement.freeCredits,
+                        purchasedCredits = entitlement.purchasedCredits,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun observeConnectivity() {
+        if (exportPreviewIsOffline(scenario)) return
+        viewModelScope.launch {
+            connectivityMonitor.isOnline.collect { online ->
+                mutableState.update { state -> state.copy(isOffline = !online) }
+            }
         }
     }
 
@@ -78,145 +121,166 @@ internal class ExportPreviewViewModel @Inject constructor(
         val application = applicationRepository.observeApplication(applicationId).first()
         if (application == null) {
             document = null
-            mutableState.value = mutableState.value.copy(
-                stage = ExportPreviewStage.PREVIEW_FAILED,
-                sheet = null,
-            )
+            mutableState.update { state -> state.copy(stage = ExportPreviewStage.PREVIEW_FAILED, sheet = null) }
             return
         }
         val profile = profileRepository.observeProfile().first()
         val resume = application.tailoredResume
-        if (profile == null || resume == null) {
+        val assembled = if (profile == null || resume == null) {
+            null
+        } else {
+            assembler.assemble(profile = profile, resume = resume).takeUnless { assembled -> assembled.isEmpty }
+        }
+        if (assembled == null) {
             document = null
-            mutableState.value = mutableState.value.copy(
-                stage = ExportPreviewStage.NO_DOCUMENT,
-                jobTitle = application.job.title,
-                jobCompany = application.job.company,
-                sheet = null,
-                fileName = "",
-            )
+            mutableState.update { state ->
+                state.copy(
+                    stage = ExportPreviewStage.NO_DOCUMENT,
+                    jobTitle = application.job.title,
+                    jobCompany = application.job.company,
+                    sheet = null,
+                    fileName = "",
+                )
+            }
             return
         }
-        val assembled = assembler.assemble(profile = profile, resume = resume)
-        if (assembled.isEmpty) {
-            document = null
-            mutableState.value = mutableState.value.copy(
-                stage = ExportPreviewStage.NO_DOCUMENT,
-                jobTitle = application.job.title,
-                jobCompany = application.job.company,
-                sheet = null,
-                fileName = "",
-            )
-            return
-        }
-        document = assembled
-        mutableState.value = mutableState.value.copy(
-            stage = if (exportPreviewIsOffline(scenario)) {
-                ExportPreviewStage.OFFLINE
-            } else {
-                ExportPreviewStage.PREVIEW_READY
-            },
-            jobTitle = application.job.title,
-            jobCompany = application.job.company,
-            sheet = exportPreviewSheetOf(assembled),
-            fileName = ExportFileNames.build(
-                format = mutableState.value.format,
-                name = assembled.name,
-                company = application.job.company,
-                role = application.job.title,
-            ),
-        )
-    }
-
-    private suspend fun loadCredits() {
-        val entitlement = runCatching { paymentGateway.entitlement() }.getOrNull() ?: return
-        val packs = runCatching { paymentGateway.packs() }.getOrNull().orEmpty()
-        val fromFree = entitlement.freeCredits > 0
-        val left = if (fromFree) entitlement.freeCredits else entitlement.purchasedCredits
+        val localized = assembled.copy(template = mutableState.value.template)
+        document = localized
         mutableState.update { state ->
             state.copy(
-                creditsLeft = left,
-                isFreeCredit = fromFree,
-                creditKnown = true,
-                packPrice = packs.firstOrNull()?.formattedPrice().orEmpty(),
-                stage = if (left == 0 && state.stage == ExportPreviewStage.PREVIEW_READY) {
-                    ExportPreviewStage.NO_CREDIT
-                } else {
-                    state.stage
-                },
+                stage = ExportPreviewStage.PREVIEW_READY,
+                jobTitle = application.job.title,
+                jobCompany = application.job.company,
+                sheet = exportPreviewSheetOf(localized),
+                fileName = fileNameFor(format = state.format, document = localized, state = state),
             )
         }
     }
 
-    private fun fileNameFor(state: ExportPreviewUiState, document: ResumeDocument): String = ExportFileNames.build(
-        format = state.format,
-        name = document.name,
-        company = state.jobCompany,
-        role = state.jobTitle,
-    )
+    private fun fileNameFor(format: ExportFormat, document: ResumeDocument, state: ExportPreviewUiState): String =
+        ExportFileNames.build(
+            format = format,
+            name = document.name,
+            company = state.jobCompany,
+            role = state.jobTitle,
+        )
 
     private fun onSelectFormat(format: ExportFormat) {
         val current = mutableState.value
-        if (current.format == format) return
-        if (current.stage == ExportPreviewStage.EXPORTING) return
-        val ready = current.stage != ExportPreviewStage.PREVIEW_READY
-        val fileName = document
-            ?.let { assembled -> fileNameFor(state = current.copy(format = format), document = assembled) }
-            .orEmpty()
+        if (current.format == format || current.stage == ExportPreviewStage.EXPORTING) return
+        val source = document
         mutableState.update { state ->
             state.copy(
                 format = format,
-                fileName = fileName,
-                stage = if (ready) state.stage else ExportPreviewStage.PREVIEW_READY,
-                exportedFormat = null,
+                fileName = source?.let { assembled -> fileNameFor(format = format, document = assembled, state = state) }
+                    .orEmpty(),
             )
         }
+    }
+
+    private fun onSelectTemplate(template: ExportTemplate) {
+        val current = mutableState.value
+        if (current.template == template || current.stage == ExportPreviewStage.EXPORTING) return
+        document = document?.copy(template = template)
+        mutableState.update { state -> state.copy(template = template) }
     }
 
     private fun export() {
         val state = mutableState.value
         val source = document
         if (source == null || !state.canExport) return
-        mutableState.value = state.copy(stage = ExportPreviewStage.EXPORTING)
+        if (state.needsCredits) {
+            mutableState.update { current -> current.copy(navigation = ExportPreviewNavigation.BuyCredits) }
+            return
+        }
+        val exportedDocument = source.copy(template = state.template)
+        val format = state.format
+        val fileName = state.fileName
+        mutableState.update { current -> current.copy(stage = ExportPreviewStage.EXPORTING) }
         viewModelScope.launch {
-            val format = mutableState.value.format
-            val fileName = mutableState.value.fileName
-            val written = try {
+            val rendered = try {
                 when (format) {
-                    ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
-                    ExportFormat.DOCX -> docxRenderer.render(document = source, fileName = fileName)
+                    ExportFormat.PDF -> pdfRenderer.render(document = exportedDocument, fileName = fileName)
+                    ExportFormat.DOCX -> RenderedResume(
+                        file = docxRenderer.render(document = exportedDocument, fileName = fileName),
+                        pageCount = null,
+                    )
                 }
-                true
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (failure: Exception) {
-                false
+                null
             }
-            if (written) spendCredit()
-            mutableState.value = mutableState.value.copy(
-                stage = if (written) ExportPreviewStage.EXPORT_SUCCEEDED else ExportPreviewStage.EXPORT_FAILED,
-                exportedFormat = if (written) format else null,
-            )
+            if (rendered != null) {
+                finishExport(
+                    format = format,
+                    fileName = fileName,
+                    template = exportedDocument.template,
+                    pageCount = rendered.pageCount,
+                )
+            } else {
+                markExportFailed()
+            }
         }
     }
 
-    private suspend fun spendCredit() {
-        runCatching { paymentGateway.consumeCredit() }
+    private suspend fun finishExport(
+        format: ExportFormat,
+        fileName: String,
+        template: ExportTemplate,
+        pageCount: Int?,
+    ) {
+        when (val spend = runCatching { paymentGateway.consumeCredit() }.getOrNull()) {
+            is CreditSpend.Spent -> {
+                exportHistoryRepository.record(
+                    ExportRecord(
+                        applicationId = applicationId,
+                        format = format,
+                        fileName = fileName,
+                        exportedAt = clock.now(),
+                        creditKind = spend.kind,
+                        pageCount = pageCount,
+                        templateName = template.recordName(),
+                    ),
+                )
+                mutableState.update { state ->
+                    state.copy(
+                        stage = ExportPreviewStage.PREVIEW_READY,
+                        navigation = ExportPreviewNavigation.Exported(
+                            format = format,
+                            spentFreeCredit = spend.kind == CreditKind.FREE,
+                        ),
+                    )
+                }
+            }
+
+            CreditSpend.NoCreditLeft -> mutableState.update { state ->
+                state.copy(stage = ExportPreviewStage.PREVIEW_READY, navigation = ExportPreviewNavigation.BuyCredits)
+            }
+
+            null -> markExportFailed()
+        }
     }
 
-    private fun onRetryPreview() {
-        mutableState.value = mutableState.value.copy(
-            stage = ExportPreviewStage.RENDERING,
-            sheet = null,
-            fileName = "",
-        )
-        viewModelScope.launch { loadDocument() }
+    private fun markExportFailed() {
+        mutableState.update { state -> state.copy(stage = ExportPreviewStage.EXPORT_FAILED) }
     }
 
-    private fun onDismissResult() {
-        mutableState.value = mutableState.value.copy(
-            stage = if (document == null) ExportPreviewStage.NO_DOCUMENT else ExportPreviewStage.PREVIEW_READY,
-            exportedFormat = null,
-        )
+    private fun onRetry() {
+        when (mutableState.value.stage) {
+            ExportPreviewStage.EXPORT_FAILED -> {
+                mutableState.update { state -> state.copy(stage = ExportPreviewStage.PREVIEW_READY) }
+                export()
+            }
+
+            ExportPreviewStage.PREVIEW_FAILED -> {
+                mutableState.update { state -> state.copy(stage = ExportPreviewStage.RENDERING, sheet = null) }
+                viewModelScope.launch { loadDocument() }
+            }
+
+            else -> Unit
+        }
     }
 }
+
+private fun ExportTemplate.recordName(): String = name.lowercase().replaceFirstChar { it.uppercase() }

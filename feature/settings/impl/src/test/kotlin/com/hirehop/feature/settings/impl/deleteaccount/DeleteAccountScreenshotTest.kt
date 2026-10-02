@@ -1,11 +1,12 @@
 package com.hirehop.feature.settings.impl.deleteaccount
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.account.AccountDeletionCounts
-import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.domain.account.AccountDeletionStep
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
@@ -28,46 +29,72 @@ class DeleteAccountScreenshotTest {
 
     @Test
     fun default_readsInLightAndDark() {
-        captureBothThemes(screenName = "DeleteAccountDefault", scenario = DebugScenario.DEFAULT)
+        captureBothThemes(screenName = "DeleteAccountDefault", uiState = ready())
     }
 
     @Test
     fun deleting_readsInLightAndDark() {
-        captureBothThemes(screenName = "DeleteAccountDeleting", scenario = DebugScenario.DELETING)
+        captureBothThemes(
+            screenName = "DeleteAccountDeleting",
+            uiState = DeleteAccountUiState.Deleting(
+                counts = COUNTS,
+                accountEmail = EMAIL,
+                step = AccountDeletionStep.DELETING_PROFILE_FACTS,
+            ),
+        )
     }
 
     @Test
     fun done_readsInLightAndDark() {
-        captureBothThemes(screenName = "DeleteAccountDone", scenario = DebugScenario.SUCCESS)
+        capture(screenName = "DeleteAccountDone") { AccountDeletedScreen(onDone = {}) }
     }
 
     @Test
     fun error_readsInLightAndDark() {
-        captureBothThemes(screenName = "DeleteAccountError", scenario = DebugScenario.ERROR)
+        captureBothThemes(
+            screenName = "DeleteAccountError",
+            uiState = ready(failure = DeleteAccountFailure.DATA_INTACT),
+        )
+    }
+
+    @Test
+    fun partlyDeleted_readsInLightAndDark() {
+        captureBothThemes(
+            screenName = "DeleteAccountPartlyDeleted",
+            uiState = ready(failure = DeleteAccountFailure.PARTLY_DELETED),
+        )
     }
 
     @Test
     fun offline_readsInLightAndDark() {
-        captureBothThemes(screenName = "DeleteAccountOffline", scenario = DebugScenario.OFFLINE)
+        captureBothThemes(screenName = "DeleteAccountOffline", uiState = ready(isOffline = true))
     }
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun default_atLargeTextStacksFullWidth() {
+    fun default_atLargeText() {
         captureBothThemes(
             screenName = "DeleteAccountDefaultFont200",
-            scenario = DebugScenario.DEFAULT,
+            uiState = ready(),
             device = HhTestDevices.boardLargeFont,
         )
     }
 
     private fun captureBothThemes(
         screenName: String,
-        scenario: DebugScenario,
+        uiState: DeleteAccountUiState,
         device: HhTestDevice = HhTestDevices.board,
+    ) = capture(screenName, device) { DeleteAccountScreen(uiState = uiState, actions = noActions) }
+
+    private fun capture(
+        screenName: String,
+        device: HhTestDevice = HhTestDevices.board,
+        content: @Composable () -> Unit,
     ) = runBlocking {
-        val uiState = deleteAccountStateFor(scenario = scenario, counts = DESIGN_COUNTS)
-        showScreen(uiState)
+        composeRule.setContent {
+            HhTheme(darkTheme = darkTheme.value) { content() }
+        }
+        composeRule.waitForIdle()
         composeRule.captureMultiTheme(
             outputDirectory = OUTPUT,
             screenName = screenName,
@@ -76,30 +103,26 @@ class DeleteAccountScreenshotTest {
         )
     }
 
-    private fun showScreen(uiState: DeleteAccountUiState) {
-        composeRule.setContent {
-            HhTheme(darkTheme = darkTheme.value) {
-                DeleteAccountScreen(uiState = uiState, actions = noOpActions)
-            }
-        }
-        composeRule.waitForIdle()
-    }
+    private fun ready(
+        isOffline: Boolean = false,
+        failure: DeleteAccountFailure? = null,
+    ) = DeleteAccountUiState.Ready(
+        counts = COUNTS,
+        accountEmail = EMAIL,
+        isOffline = isOffline,
+        failure = failure,
+    )
 
-    private val noOpActions = DeleteAccountActions(
+    private val noActions = DeleteAccountActions(
         onBack = {},
         onKeepAccount = {},
         onDeleteAccount = {},
         onDownloadData = {},
-        onBackToWelcome = {},
     )
 
     private companion object {
         const val OUTPUT = "src/test/screenshots"
-
-        val DESIGN_COUNTS = AccountDeletionCounts(
-            profileFacts = 18,
-            applications = 4,
-            unusedCredits = 4,
-        )
+        const val EMAIL = "priya.d@example.com"
+        val COUNTS = AccountDeletionCounts(profileFacts = 18, applications = 4, unusedCredits = 4)
     }
 }

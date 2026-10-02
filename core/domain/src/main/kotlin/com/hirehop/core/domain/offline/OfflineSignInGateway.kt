@@ -1,37 +1,51 @@
 package com.hirehop.core.domain.offline
 
+import com.hirehop.core.data.mock.MockLatency
+import com.hirehop.core.data.mock.MockOperation
+import com.hirehop.core.data.mock.MockStateStore
+import com.hirehop.core.data.mock.readValue
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.SignInAccount
 import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.SignInOutcome
 import com.hirehop.core.domain.SignInResult
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class OfflineSignInGateway @Inject constructor() : SignInGateway {
-
-    private val mutex = Mutex()
+@Singleton
+class OfflineSignInGateway @Inject constructor(
+    private val sessionRepository: SessionRepository,
+    private val latency: MockLatency,
+    private val store: MockStateStore,
+) : SignInGateway {
 
     private var outcome: SignInOutcome = SignInOutcome.SignedIn
     private var account: SignInAccount = SignInAccount.localAccount
-    private var signedInAccount: SignInAccount? = null
 
     fun withOutcome(outcome: SignInOutcome): OfflineSignInGateway = apply { this.outcome = outcome }
 
     fun withAccount(account: SignInAccount): OfflineSignInGateway = apply { this.account = account }
 
-    override suspend fun currentAccount(): SignInAccount? = mutex.withLock { signedInAccount }
+    override suspend fun currentAccount(): SignInAccount? = sessionRepository.observeAccount().first()
 
-    override suspend fun signIn(): SignInResult = mutex.withLock {
-        when (outcome) {
-            SignInOutcome.SignedIn -> SignInResult.SignedIn(account).also { signedInAccount = account }
+    override suspend fun signIn(): SignInResult {
+        latency.await(MockOperation.SIGN_IN)
+        return when (outcome) {
+            SignInOutcome.SignedIn -> {
+                if (store.readValue(PAYMENT_STATE_KEY, PaymentState.serializer())?.closed == true) {
+                    store.remove(PAYMENT_STATE_KEY)
+                }
+                sessionRepository.saveAccount(account)
+                SignInResult.SignedIn(account)
+            }
             SignInOutcome.Cancelled -> SignInResult.Cancelled
             SignInOutcome.Failed -> SignInResult.Failed(SignInFailureReason.ProviderUnavailable)
         }
     }
 
     override suspend fun signOut() {
-        mutex.withLock { signedInAccount = null }
+        sessionRepository.signOut()
     }
 }

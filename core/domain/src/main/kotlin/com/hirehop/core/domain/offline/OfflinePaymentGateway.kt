@@ -1,27 +1,42 @@
 package com.hirehop.core.domain.offline
 
+import com.hirehop.core.data.mock.MockLatency
+import com.hirehop.core.data.mock.MockOperation
+import com.hirehop.core.data.mock.MockStateStore
+import com.hirehop.core.data.mock.observeValue
+import com.hirehop.core.data.mock.readValue
+import com.hirehop.core.data.mock.writeValue
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.CreditSpend
+import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseOutcome
+import com.hirehop.core.domain.PurchaseRecord
 import com.hirehop.core.domain.PurchaseResult
+import com.hirehop.core.model.CreditKind
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.time.Clock
 
-class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
+@Singleton
+class OfflinePaymentGateway @Inject constructor(
+    private val store: MockStateStore,
+    private val latency: MockLatency,
+    private val clock: Clock,
+    private val idGenerator: IdGenerator,
+) : PaymentGateway {
 
     private val mutex = Mutex()
-
-    private val catalogue: List<ApplicationPack> = ApplicationPack.catalogue
     private val scriptedOutcomes = mutableMapOf<String, PurchaseOutcome>()
-    private val confirmedPackIds = mutableListOf<String>()
-    private val pendingPackIds = mutableListOf<String>()
-    private var freeCredits: Int = DEFAULT_FREE_CREDITS
-    private var spentPurchasedCredits: Int = 0
     private var failureReason: PurchaseFailureReason = PurchaseFailureReason.PaymentUnavailable
+    private var startingFreeCredits: Int = DEFAULT_FREE_CREDITS
 
     fun withOutcome(
         packId: String,
@@ -32,76 +47,89 @@ class OfflinePaymentGateway @Inject constructor() : PaymentGateway {
         failureReason = reason
     }
 
-    fun withFreeCredits(credits: Int): OfflinePaymentGateway = apply { freeCredits = credits }
+    fun withFreeCredits(credits: Int): OfflinePaymentGateway = apply { startingFreeCredits = credits }
 
-    override suspend fun packs(): List<ApplicationPack> = mutex.withLock { catalogue }
+    override suspend fun packs(): List<ApplicationPack> {
+        latency.await(MockOperation.LOAD_PACKS)
+        return MockPackCatalogue.all
+    }
 
-    override suspend fun purchase(packId: String): PurchaseResult = mutex.withLock {
-        val pack = catalogue.find { candidate -> candidate.id == packId }
-            ?: return@withLock PurchaseResult.Failed(
-                reason = PurchaseFailureReason.PurchaseUnavailable,
-                entitlement = currentEntitlement(),
-            )
-        when (outcomeFor(pack.id)) {
-            PurchaseOutcome.Success -> confirm(pack)
-            PurchaseOutcome.Pending -> hold(pack)
-            PurchaseOutcome.Cancelled -> PurchaseResult.Cancelled
-            PurchaseOutcome.Failed -> PurchaseResult.Failed(reason = failureReason, entitlement = currentEntitlement())
+    override suspend fun purchase(packId: String): PurchaseResult {
+        latency.await(MockOperation.PURCHASE)
+        return mutex.withLock {
+            val state = load()
+            val pack = MockPackCatalogue.all.find { candidate -> candidate.id == packId }
+            if (pack == null) {
+                PurchaseResult.Failed(PurchaseFailureReason.PurchaseUnavailable, state.toEntitlement())
+            } else {
+                resolve(state, pack)
+            }
         }
     }
 
-    override suspend fun entitlement(): PurchaseEntitlement = mutex.withLock { currentEntitlement() }
+    override suspend fun entitlement(): PurchaseEntitlement = mutex.withLock { load().toEntitlement() }
 
-    override suspend fun restorePurchases(): PurchaseEntitlement = mutex.withLock { currentEntitlement() }
+    override fun observeEntitlement(): Flow<PurchaseEntitlement> =
+        observeState().map(PaymentState::toEntitlement).distinctUntilChanged()
+
+    override suspend fun purchaseHistory(): List<PurchaseRecord> = mutex.withLock { load().history() }
+
+    override fun observePurchaseHistory(): Flow<List<PurchaseRecord>> =
+        observeState().map { state -> state.history() }.distinctUntilChanged()
+
+    override suspend fun restorePurchases(): PurchaseEntitlement {
+        latency.await(MockOperation.RESTORE)
+        return entitlement()
+    }
 
     override suspend fun consumeCredit(): CreditSpend = mutex.withLock {
+        val state = load()
         when {
-            freeCredits > 0 -> {
-                freeCredits -= 1
-                CreditSpend.Spent(currentEntitlement())
-            }
-
-            purchasedCredits() > 0 -> {
-                spentPurchasedCredits += 1
-                CreditSpend.Spent(currentEntitlement())
-            }
-
+            state.freeCredits > 0 -> spend(state.copy(freeCredits = state.freeCredits - 1), CreditKind.FREE)
+            state.purchasedCredits > 0 ->
+                spend(state.copy(spentPurchasedCredits = state.spentPurchasedCredits + 1), CreditKind.PURCHASED)
             else -> CreditSpend.NoCreditLeft
         }
     }
 
-    private fun purchasedCredits(): Int =
-        (confirmedPackIds.sumOf { id -> creditsOf(id) } - spentPurchasedCredits).coerceAtLeast(0)
-
     override suspend fun clearCredits(): PurchaseEntitlement = mutex.withLock {
-        freeCredits = 0
-        spentPurchasedCredits = confirmedPackIds.sumOf { id -> creditsOf(id) }
-        pendingPackIds.clear()
-        currentEntitlement()
+        save(PaymentState(freeCredits = 0, closed = true)).toEntitlement()
     }
 
-    private fun outcomeFor(packId: String): PurchaseOutcome = scriptedOutcomes[packId] ?: PurchaseOutcome.Success
+    private suspend fun resolve(state: PaymentState, pack: ApplicationPack): PurchaseResult =
+        when (scriptedOutcomes[pack.id] ?: PurchaseOutcome.Success) {
+            PurchaseOutcome.Success -> {
+                val saved = save(state.confirm(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
+                PurchaseResult.Completed(saved.toEntitlement())
+            }
+            PurchaseOutcome.Pending -> {
+                val saved = save(state.hold(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
+                PurchaseResult.Pending(saved.toEntitlement())
+            }
+            PurchaseOutcome.Cancelled -> PurchaseResult.Cancelled
+            PurchaseOutcome.Failed -> PurchaseResult.Failed(failureReason, state.toEntitlement())
+        }
 
-    private fun confirm(pack: ApplicationPack): PurchaseResult {
-        confirmedPackIds += pack.id
-        pendingPackIds -= pack.id
-        return PurchaseResult.Completed(currentEntitlement())
+    private suspend fun spend(next: PaymentState, kind: CreditKind): CreditSpend =
+        CreditSpend.Spent(save(next).toEntitlement(), kind)
+
+    private fun newOrderId(): String = ORDER_PREFIX + idGenerator.newId()
+
+    private fun PaymentState.history(): List<PurchaseRecord> = purchases.map { it.toModel() }.reversed()
+
+    private fun observeState(): Flow<PaymentState> =
+        store.observeValue(PAYMENT_STATE_KEY, PaymentState.serializer()).map { it ?: PaymentState(startingFreeCredits) }
+
+    private suspend fun load(): PaymentState =
+        store.readValue(PAYMENT_STATE_KEY, PaymentState.serializer()) ?: PaymentState(startingFreeCredits)
+
+    private suspend fun save(state: PaymentState): PaymentState {
+        store.writeValue(PAYMENT_STATE_KEY, PaymentState.serializer(), state)
+        return state
     }
-
-    private fun hold(pack: ApplicationPack): PurchaseResult {
-        if (pack.id !in pendingPackIds) pendingPackIds += pack.id
-        return PurchaseResult.Pending(currentEntitlement())
-    }
-
-    private fun currentEntitlement(): PurchaseEntitlement = PurchaseEntitlement(
-        freeCredits = freeCredits,
-        purchasedCredits = purchasedCredits(),
-        pendingPackIds = pendingPackIds.toList(),
-    )
-
-    private fun creditsOf(packId: String): Int = catalogue.find { pack -> pack.id == packId }?.credits ?: 0
 
     private companion object {
         const val DEFAULT_FREE_CREDITS = 1
+        const val ORDER_PREFIX = "mock-order-"
     }
 }

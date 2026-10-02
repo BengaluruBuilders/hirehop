@@ -2,19 +2,22 @@ package com.hirehop.feature.profile.impl.evidencepath
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.AddUserStatedFactsUseCase
-import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.fact.FactDraftValidator
-import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
-import com.hirehop.core.testing.data.sampleProfile
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestIdGenerator
+import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 import com.hirehop.feature.profile.api.navigation.FactEvidenceNavKey
+import com.hirehop.feature.profile.impl.ProfileExit
+import com.hirehop.feature.profile.impl.ProfileExitResolver
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,285 +27,188 @@ class EvidencePathViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = TestProfileRepository()
-    private var nextBulletId = 0
+    private val session = TestSessionRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val viewModel = EvidencePathViewModel(
+        addUserStatedFacts = AddUserStatedFactsUseCase(repository, TestIdGenerator()),
+        exitResolver = ProfileExitResolver(NextOnboardingStepUseCase(session, repository), session),
+        connectivityMonitor = connectivity,
+    )
 
-    private val idGenerator = IdGenerator { "bullet-${nextBulletId++}" }
+    private val dashboardAnswer =
+        "Placement Stats Dashboard. Power BI and Excel. The T&P cell used it for the 2024 placement report."
 
-    private lateinit var viewModel: EvidencePathViewModel
+    private fun enter(category: String = "") = viewModel.onEnter(FactEvidenceNavKey(category = category))
 
-    @Before
-    fun setup() {
-        repository.sendProfile(blankProfile())
-        viewModel = EvidencePathViewModel(
-            addUserStatedFacts = AddUserStatedFactsUseCase(
-                profileRepository = repository,
-                idGenerator = idGenerator,
-            ),
-        )
+    private fun act(action: EvidencePathAction) = viewModel.onAction(action)
+
+    private fun answer(text: String) = act(EvidencePathAction.AnswerChanged(text))
+
+    @Test
+    fun splitAnswer_usesTheFirstSentenceAsTheTitleAndKeepsTheRestAsDetail() {
+        val parts = splitAnswer(dashboardAnswer)
+
+        assertThat(parts.title).isEqualTo("Placement Stats Dashboard")
+        assertThat(parts.detail).isEqualTo("Power BI and Excel. The T&P cell used it for the 2024 placement report.")
     }
 
     @Test
-    fun onEnter_startsOnTheFirstQuestionOfTheCarriedCategory() {
-        viewModel.onEnter(FactEvidenceNavKey())
+    fun splitAnswer_splitsOnTheFirstLineBreak() {
+        val parts = splitAnswer("Treasurer, coding club\nManaged a 40,000 rupee event budget")
+
+        assertThat(parts.title).isEqualTo("Treasurer, coding club")
+        assertThat(parts.detail).isEqualTo("Managed a 40,000 rupee event budget")
+    }
+
+    @Test
+    fun splitAnswer_aShortAnswerIsAllTitle() {
+        val parts = splitAnswer("  Weekly sales reports, 40 stores.  ")
+
+        assertThat(parts.title).isEqualTo("Weekly sales reports, 40 stores")
+        assertThat(parts.detail).isEmpty()
+    }
+
+    @Test
+    fun splitAnswer_aLongFirstSentenceMovesTheOverflowIntoTheDetail() {
+        val long = "word ".repeat(30).trim()
+
+        val parts = splitAnswer(long)
+
+        assertThat(parts.title.length).isAtMost(80)
+        assertThat("${parts.title} ${parts.detail}").isEqualTo(long)
+    }
+
+    @Test
+    fun onEnter_withoutACategoryShowsThePicker() {
+        enter()
+
+        assertThat(viewModel.uiState.value.isPicker).isTrue()
+    }
+
+    @Test
+    fun onEnter_withACategoryStartsOnItsFirstQuestion() {
+        enter("projects")
 
         val state = viewModel.uiState.value
-        assertThat(state.startCategory).isEqualTo(EvidenceCategory.PROJECTS)
         assertThat(state.category).isEqualTo(EvidenceCategory.PROJECTS)
-        assertThat(state.question?.prompt).isEqualTo(EvidencePrompt.TITLE)
+        assertThat(state.questionNumber).isEqualTo(1)
+        assertThat(state.questionTotal).isEqualTo(2)
     }
 
     @Test
-    fun categoryChosen_opensTheFirstQuestionOfThatCategory() {
-        viewModel.onEnter(FactEvidenceNavKey())
+    fun onEnter_forcedScenariosSeedTheState() {
+        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.ERROR))
 
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.COMPETITIONS))
-
-        val question = viewModel.uiState.value.question
-        assertThat(question?.category).isEqualTo(EvidenceCategory.COMPETITIONS)
-        assertThat(question?.prompt).isEqualTo(EvidencePrompt.TITLE)
-        assertThat(question?.totalPrompts).isEqualTo(2)
+        assertThat(viewModel.uiState.value.message).isEqualTo(EvidenceMessage.LOAD_FAILED)
     }
 
     @Test
-    fun categoryChosen_forInternships_asksForTheCompanyToo() {
-        viewModel.onEnter(FactEvidenceNavKey())
+    fun connectivity_marksThePathOffline() {
+        enter()
 
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.INTERNSHIPS))
+        connectivity.setOnline(false)
 
-        assertThat(viewModel.uiState.value.question?.totalPrompts).isEqualTo(3)
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
     }
 
     @Test
-    fun categoryChosen_keepsTheFactsAlreadyFolded() = runTest {
-        answerProjectsAndSave()
-
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.COURSEWORK))
-
-        assertThat(viewModel.uiState.value.cards).hasSize(1)
+    fun categories_includeWorkWithOneQuestion() {
+        assertThat(EVIDENCE_CATEGORIES.map { it.key }).containsExactly(
+            "work",
+            "projects",
+            "internships",
+            "coursework",
+            "competitions",
+            "positions",
+        ).inOrder()
+        assertThat(EvidenceCategory.WORK.questionCount).isEqualTo(1)
+        assertThat(EvidenceCategory.WORK.entryCategory).isEqualTo(EntryCategory.EXPERIENCE)
     }
 
     @Test
-    fun answerChanged_keepsOnlyWhatTheUserTyped() {
-        viewModel.onEnter(FactEvidenceNavKey())
+    fun save_filesAUserStatedFactAndMovesToTheNextQuestion() = runTest {
+        enter("projects")
+        answer(dashboardAnswer)
 
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Placement Stats Dashboard"))
-
-        assertThat(viewModel.uiState.value.question?.title).isEqualTo("Placement Stats Dashboard")
-    }
-
-    @Test
-    fun nextPrompt_movesThroughTheQuestionsOfTheCategory() {
-        chooseProjects()
-
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        assertThat(viewModel.uiState.value.question?.prompt).isEqualTo(EvidencePrompt.DETAIL)
-
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        assertThat(viewModel.uiState.value.question?.isLastPrompt).isTrue()
-    }
-
-    @Test
-    fun nextPrompt_onTheLastQuestion_doesNothing() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-
-        assertThat(viewModel.uiState.value.question?.promptIndex).isEqualTo(1)
-    }
-
-    @Test
-    fun backPrompt_goesBackOneQuestion() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-
-        viewModel.onAction(EvidencePathAction.BackPrompt)
-
-        assertThat(viewModel.uiState.value.question?.promptIndex).isEqualTo(0)
-    }
-
-    @Test
-    fun backPrompt_onTheFirstQuestion_returnsToThePicker() {
-        chooseProjects()
-
-        viewModel.onAction(EvidencePathAction.BackPrompt)
+        act(EvidencePathAction.Save)
 
         val state = viewModel.uiState.value
-        assertThat(state.isPicker).isTrue()
-        assertThat(state.question).isNull()
+        assertThat(state.questionNumber).isEqualTo(2)
+        assertThat(state.answer).isEmpty()
+        val card = state.categoryCards.single()
+        assertThat(card.entry.title).isEqualTo("Placement Stats Dashboard")
+        assertThat(card.entry.source).isEqualTo(FactSource.USER_STATED)
+        assertThat(repository.observeProfile().first().let(::checkNotNull).entries.single().id).isEqualTo(card.entry.id)
     }
 
     @Test
-    fun skipPrompt_movesOnWithoutAnAnswer() {
-        chooseProjects()
+    fun save_withABlankAnswerDoesNothing() = runTest {
+        enter("projects")
+        answer("   ")
 
-        viewModel.onAction(EvidencePathAction.SkipPrompt)
+        act(EvidencePathAction.Save)
 
-        val question = viewModel.uiState.value.question
-        assertThat(question?.promptIndex).isEqualTo(1)
-        assertThat(question?.title).isEmpty()
+        assertThat(viewModel.uiState.value.cards).isEmpty()
+        assertThat(repository.observeProfile().first()).isNull()
     }
 
     @Test
-    fun skipPrompt_onTheLastQuestion_recordsTheCategoryAsSkipped() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.NextPrompt)
+    fun save_withAnAnswerThatIsTooLongFlagsTheAnswer() = runTest {
+        enter("projects")
+        answer("Title. " + "x".repeat(FactDraftValidator.DETAIL_LIMIT + 1))
 
-        viewModel.onAction(EvidencePathAction.SkipPrompt)
+        act(EvidencePathAction.Save)
 
-        val state = viewModel.uiState.value
-        assertThat(state.skipped).containsExactly(EvidenceCategory.PROJECTS)
-        assertThat(state.category).isEqualTo(EvidenceCategory.INTERNSHIPS)
-    }
-
-    @Test
-    fun skipCategory_leavesTheQuestionAndMovesOn() {
-        chooseProjects()
-
-        viewModel.onAction(EvidencePathAction.SkipCategory)
-
-        val state = viewModel.uiState.value
-        assertThat(state.skipped).containsExactly(EvidenceCategory.PROJECTS)
-        assertThat(state.cards).isEmpty()
-    }
-
-    @Test
-    fun save_whenTheTitleIsBlank_showsTheProblemOnThatQuestion() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-
-        viewModel.onAction(EvidencePathAction.Save)
-
-        val state = viewModel.uiState.value
-        assertThat(state.isSaveRejected).isTrue()
-        assertThat(state.message).isEqualTo(EvidenceMessage.SAVE_REJECTED)
-        assertThat(state.question?.problems)
-            .containsEntry(EvidencePrompt.TITLE, EvidenceFieldProblem.REQUIRED)
-    }
-
-    @Test
-    fun skipCategory_onTheLastCategory_showsTheSummaryWithTheSkipCounted() = runTest {
-        viewModel.onEnter(FactEvidenceNavKey())
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.POSITIONS))
-
-        viewModel.onAction(EvidencePathAction.SkipCategory)
-
-        assertThat(viewModel.uiState.value.done)
-            .isEqualTo(EvidenceDone(addedCount = 0, skippedCount = 1))
-    }
-
-    @Test
-    fun save_withACompleteAnswer_foldsAFactCardStampedUserStated() = runTest {
-        answerProjectsAndSave()
-
-        val card = viewModel.uiState.value.cards.single()
-        assertThat(card.category).isEqualTo(EvidenceCategory.PROJECTS)
-        assertThat(card.entryCategory).isEqualTo(EntryCategory.PROJECT)
-        assertThat(card.line).contains("Placement Stats Dashboard")
-    }
-
-    @Test
-    fun save_putsTheFactInTheProfileAsUserStated() = runTest {
-        answerProjectsAndSave()
-
-        val saved = checkNotNull(repository.observeProfile().first()) { "Expected a saved profile" }
-        val added = saved.entries.single()
-        assertThat(added.title).isEqualTo("Placement Stats Dashboard")
-        assertThat(added.organization).isEmpty()
-        assertThat(added.bullets.single().text)
-            .isEqualTo("Power BI and Excel. The T and P cell used it for the 2024 placement report.")
-        assertThat(added.source).isEqualTo(FactSource.USER_STATED)
-        assertThat(added.isConfirmed).isFalse()
-    }
-
-    @Test
-    fun save_givesTheFoldedCardTheRealFactId() = runTest {
-        answerProjectsAndSave()
-
-        val entry = viewModel.uiState.value.cards.single().entry
-        assertThat(entry).isNotNull()
-        assertThat(entry?.id).isNotEmpty()
-    }
-
-    @Test
-    fun save_movesToTheNextCategory() = runTest {
-        answerProjectsAndSave()
-
-        val state = viewModel.uiState.value
-        assertThat(state.category).isEqualTo(EvidenceCategory.INTERNSHIPS)
-        assertThat(state.message).isEqualTo(EvidenceMessage.SAVED)
-        assertThat(state.done).isNull()
-    }
-
-    @Test
-    fun save_onTheLastCategory_showsTheAllDoneSummary() = runTest {
-        viewModel.onEnter(FactEvidenceNavKey())
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.POSITIONS))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Treasurer, coding club"))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.DETAIL, "Managed the event budget."))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.ORGANIZATION, "Example Institute"))
-
-        viewModel.onAction(EvidencePathAction.Save)
-
-        val done = viewModel.uiState.value.done
-        assertThat(done).isEqualTo(EvidenceDone(addedCount = 1, skippedCount = 0))
-    }
-
-    @Test
-    fun save_afterSkippingCountsBothTheFactsAndTheSkipsInTheSummary() = runTest {
-        answerProjectsAndSave()
-        viewModel.onAction(EvidencePathAction.SkipCategory)
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.COMPETITIONS))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Smart India Hackathon"))
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.DETAIL, "Finalist, team of 6."))
-
-        viewModel.onAction(EvidencePathAction.Save)
-        assertThat(viewModel.uiState.value.done).isNull()
-        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.POSITIONS)
-
-        viewModel.onAction(EvidencePathAction.SkipCategory)
-
-        assertThat(viewModel.uiState.value.done)
-            .isEqualTo(EvidenceDone(addedCount = 2, skippedCount = 2))
-    }
-
-    @Test
-    fun save_whenTheDetailIsTooLong_showsTheProblemOnThatQuestion() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Placement Stats Dashboard"))
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(
-            EvidencePathAction.AnswerChanged(
-                EvidencePrompt.DETAIL,
-                "x".repeat(FactDraftValidator.DETAIL_LIMIT + 1),
-            ),
-        )
-
-        viewModel.onAction(EvidencePathAction.Save)
-
-        val question = viewModel.uiState.value.question
-        assertThat(question?.problems).containsEntry(EvidencePrompt.DETAIL, EvidenceFieldProblem.TOO_LONG)
+        assertThat(viewModel.uiState.value.problem).isEqualTo(EvidenceFieldProblem.TOO_LONG)
         assertThat(viewModel.uiState.value.cards).isEmpty()
     }
 
     @Test
-    fun save_whenOffline_reassuresThatNothingLeftTheDevice() = runTest {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.OFFLINE))
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.PROJECTS))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Placement Stats Dashboard"))
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.DETAIL, "Power BI and Excel."))
+    fun skip_onTheLastQuestionMovesToTheFirstUnvisitedCategoryAndNotesTheSkip() {
+        enter("projects")
+        act(EvidencePathAction.Skip)
+        assertThat(viewModel.uiState.value.questionNumber).isEqualTo(2)
 
-        viewModel.onAction(EvidencePathAction.Save)
+        act(EvidencePathAction.Skip)
 
-        assertThat(viewModel.uiState.value.message).isEqualTo(EvidenceMessage.OFFLINE_QUEUED)
+        val state = viewModel.uiState.value
+        assertThat(state.category).isEqualTo(EvidenceCategory.WORK)
+        assertThat(state.skipNote).isEqualTo(EvidenceSkipNote(EvidenceCategory.PROJECTS, 2))
     }
 
     @Test
-    fun addMore_keepsTheFoldedFactsAndOpensThePicker() = runTest {
-        answerProjectsAndSave()
-        viewModel.onAction(EvidencePathAction.AddMore)
+    fun skippingEveryQuestion_endsOnTheAllDoneState() {
+        enter("projects")
+        repeat(EVIDENCE_CATEGORIES.sumOf { it.questionCount }) { act(EvidencePathAction.Skip) }
+
+        val state = viewModel.uiState.value
+        assertThat(state.isDone).isTrue()
+        assertThat(state.cards).isEmpty()
+        assertThat(state.category).isNull()
+    }
+
+    @Test
+    fun chooseCategory_jumpsThereAndClearsTheDraft() {
+        enter()
+        act(EvidencePathAction.CategoryChosen(EvidenceCategory.COURSEWORK))
+        answer("DBMS")
+
+        act(EvidencePathAction.CategoryChosen(EvidenceCategory.WORK))
+
+        val state = viewModel.uiState.value
+        assertThat(state.category).isEqualTo(EvidenceCategory.WORK)
+        assertThat(state.answer).isEmpty()
+        assertThat(state.questionNumber).isEqualTo(1)
+    }
+
+    @Test
+    fun addMore_returnsToThePickerAndKeepsTheSavedCards() = runTest {
+        enter("work")
+        answer("Weekly sales reports, 40 stores")
+        act(EvidencePathAction.Save)
+        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.PROJECTS)
+
+        act(EvidencePathAction.AddMore)
 
         val state = viewModel.uiState.value
         assertThat(state.isPicker).isTrue()
@@ -310,117 +216,24 @@ class EvidencePathViewModelTest {
     }
 
     @Test
-    fun finish_clearsTheDoneSummary() = runTest {
-        answerProjectsAndSave()
-        viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.POSITIONS))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Treasurer"))
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.DETAIL, "Event budget."))
-        viewModel.onAction(EvidencePathAction.AnswerChanged(EvidencePrompt.ORGANIZATION, "Example Institute"))
+    fun finish_whenOnboardingIsNotComplete_followsTheNextOnboardingStep() = runTest {
+        enter()
 
-        viewModel.onAction(EvidencePathAction.Save)
-        viewModel.onAction(EvidencePathAction.Finish)
+        act(EvidencePathAction.Finish)
 
-        assertThat(viewModel.uiState.value.done).isNull()
+        assertThat(viewModel.uiState.value.navigation)
+            .isEqualTo(EvidenceNavigation.Exit(ProfileExit.Step(SignInNavKey())))
+        act(EvidencePathAction.NavigationConsumed)
+        assertThat(viewModel.uiState.value.navigation).isNull()
     }
 
     @Test
-    fun dismissMessage_clearsTheMessage() {
-        chooseProjects()
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(EvidencePathAction.Save)
+    fun finish_whenOnboardingIsComplete_goesBackToTheProfile() = runTest {
+        session.sendOnboardingComplete(true)
+        enter()
 
-        viewModel.onAction(EvidencePathAction.DismissMessage)
+        act(EvidencePathAction.Finish)
 
-        assertThat(viewModel.uiState.value.message).isNull()
-        assertThat(viewModel.uiState.value.isSaveRejected).isFalse()
+        assertThat(viewModel.uiState.value.navigation).isEqualTo(EvidenceNavigation.Exit(ProfileExit.Profile))
     }
-
-    @Test
-    fun onEnter_whenCalledTwice_keepsTheFirstState() {
-        viewModel.onEnter(FactEvidenceNavKey(category = "projects"))
-        viewModel.onEnter(FactEvidenceNavKey(category = "competitions"))
-
-        assertThat(viewModel.uiState.value.startCategory).isEqualTo(EvidenceCategory.PROJECTS)
-    }
-
-    @Test
-    fun scenario_loading_showsTheLoadingState() {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.LOADING))
-
-        assertThat(viewModel.uiState.value.isLoading).isTrue()
-    }
-
-    @Test
-    fun scenario_offline_showsTheOfflineBanner() {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.OFFLINE))
-
-        assertThat(viewModel.uiState.value.isOffline).isTrue()
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
-    }
-
-    @Test
-    fun scenario_error_reportsThatThePathCouldNotOpen() {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.ERROR))
-
-        assertThat(viewModel.uiState.value.message).isEqualTo(EvidenceMessage.LOAD_FAILED)
-    }
-
-    @Test
-    fun scenario_empty_startsOnThePicker() {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.EMPTY))
-
-        assertThat(viewModel.uiState.value.isPicker).isTrue()
-    }
-
-    @Test
-    fun scenario_userStated_startsOnTheFirstQuestion() {
-        viewModel.onEnter(FactEvidenceNavKey(scenario = DebugScenario.USER_STATED))
-
-        val state = viewModel.uiState.value
-        assertThat(state.category).isEqualTo(EvidenceCategory.PROJECTS)
-        assertThat(state.question?.prompt).isEqualTo(EvidencePrompt.TITLE)
-    }
-
-    @Test
-    fun scenario_mapping_coversEveryDebugScenario() {
-        DebugScenario.entries.forEach { scenario ->
-            val state = evidencePathStateFor(scenario = scenario, category = "projects")
-            val isOnlyLoading = scenario == DebugScenario.LOADING || scenario == DebugScenario.DELETING
-            assertThat(state.isLoading).isEqualTo(isOnlyLoading)
-        }
-    }
-
-    @Test
-    fun categoryMapping_filesEachCategoryIntoItsProfileSection() {
-        assertThat(EvidenceCategory.PROJECTS.entryCategory).isEqualTo(EntryCategory.PROJECT)
-        assertThat(EvidenceCategory.INTERNSHIPS.entryCategory).isEqualTo(EntryCategory.EXPERIENCE)
-        assertThat(EvidenceCategory.COURSEWORK.entryCategory).isEqualTo(EntryCategory.EDUCATION)
-        assertThat(EvidenceCategory.COMPETITIONS.entryCategory).isEqualTo(EntryCategory.ACHIEVEMENT)
-        assertThat(EvidenceCategory.POSITIONS.entryCategory).isEqualTo(EntryCategory.ACHIEVEMENT)
-    }
-
-    private fun chooseProjects() {
-        viewModel.onEnter(FactEvidenceNavKey())
-        if (viewModel.uiState.value.category != EvidenceCategory.PROJECTS) {
-            viewModel.onAction(EvidencePathAction.CategoryChosen(EvidenceCategory.PROJECTS))
-        }
-    }
-
-    private suspend fun answerProjectsAndSave() {
-        chooseProjects()
-        viewModel.onAction(
-            EvidencePathAction.AnswerChanged(EvidencePrompt.TITLE, "Placement Stats Dashboard"),
-        )
-        viewModel.onAction(EvidencePathAction.NextPrompt)
-        viewModel.onAction(
-            EvidencePathAction.AnswerChanged(
-                EvidencePrompt.DETAIL,
-                "Power BI and Excel. The T and P cell used it for the 2024 placement report.",
-            ),
-        )
-        viewModel.onAction(EvidencePathAction.Save)
-    }
-
-    private fun blankProfile(): CandidateProfile = sampleProfile.copy(entries = emptyList())
 }

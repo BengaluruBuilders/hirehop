@@ -135,6 +135,7 @@ val testTailoredResume = TailoredResume(
             decision = BulletDecision.REJECTED,
         ),
     ),
+    entryIds = listOf("exp-1", "edu-1"),
 )
 
 val testApplication = JobApplication(

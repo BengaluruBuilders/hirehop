@@ -1,38 +1,36 @@
 package com.hirehop.feature.tailor.impl.credits
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.hirehop.core.designsystem.component.HhApplicationStatusChip
+import com.hirehop.core.designsystem.component.HhApplicationStatusKind
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhDivider
-import com.hirehop.core.designsystem.component.HhDividerStyle
 import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhHeroNumeral
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSectionCard
-import com.hirehop.core.designsystem.component.HhSpotIllustration
-import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.R
 
@@ -42,30 +40,36 @@ internal fun CreditsScreen(
     actions: CreditsActions,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
+    HhScreen(
         modifier = modifier,
-        topBar = {
-            HhTopAppBar(
+        sheet = false,
+        header = {
+            HhInnerHeader(
                 title = stringResource(R.string.feature_tailor_impl_credits_title),
-                navigationIcon = Icons.AutoMirrored.Rounded.ArrowBack,
-                navigationIconContentDescription = stringResource(
-                    R.string.feature_tailor_impl_credits_navigation_back_description,
-                ),
-                onNavigationClick = actions.onNavigateBack,
+                subtitle = stringResource(R.string.feature_tailor_impl_credits_subtitle),
+                onBack = actions.onNavigateBack,
+                backContentDescription = stringResource(R.string.feature_tailor_impl_credits_navigation_back_description),
             )
         },
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(horizontal = HhTheme.spacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
             when (uiState.stage) {
-                CreditsStage.LOADING,
-                CreditsStage.IDLE,
-                -> CreditsLoading()
-                CreditsStage.ERROR -> CreditsError(actions = actions)
-                else -> CreditsBody(uiState = uiState, actions = actions)
+                CreditsStage.LOADING -> CreditsLoading()
+                CreditsStage.ERROR -> HhErrorCallout(
+                    title = stringResource(R.string.feature_tailor_impl_credits_error_title),
+                    supportingText = stringResource(R.string.feature_tailor_impl_credits_error_body),
+                    actionLabel = stringResource(R.string.feature_tailor_impl_credits_error_retry),
+                    onAction = actions.onRetry,
+                )
+
+                CreditsStage.READY -> CreditsReady(uiState = uiState, actions = actions)
             }
         }
     }
@@ -73,314 +77,182 @@ internal fun CreditsScreen(
 
 @Composable
 private fun CreditsLoading() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
+    val loading = stringResource(R.string.feature_tailor_impl_credits_loading)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_credits_loading))
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_loading),
-            style = HhTheme.typography.titleLarge,
-            color = HhTheme.colors.onSurface,
-        )
+        HhLoadingWheel(contentDesc = loading)
+        Text(text = loading, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
     }
 }
 
 @Composable
-private fun CreditsError(actions: CreditsActions) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Error)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_error_heading),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_error_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        HhOutlinedButton(
-            onClick = actions.onRestore,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HhTheme.spacing.d48),
-            text = {
+private fun CreditsReady(
+    uiState: CreditsUiState,
+    actions: CreditsActions,
+) {
+    HhOfflineBanner(
+        message = stringResource(R.string.feature_tailor_impl_credits_offline_banner),
+        visible = uiState.isOffline,
+    )
+    CreditsHero(uiState = uiState, onGetPack = actions.onGetPack)
+    CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
+    CreditsPurchases(uiState = uiState)
+    CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
+    CreditsHelp(actions = actions)
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CreditsHero(
+    uiState: CreditsUiState,
+    onGetPack: () -> Unit,
+) {
+    val left = uiState.totalCredits
+    val description = pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left)
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs)) {
+            FlowRow(
+                modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+                itemVerticalAlignment = Alignment.Bottom,
+            ) {
                 Text(
-                    text = stringResource(R.string.feature_tailor_impl_credits_error_retry),
-                    style = HhTheme.typography.labelLarge,
+                    text = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
+                    style = HhTheme.typography.numeralHero,
+                    color = HhTheme.colors.onSurface,
                 )
-            },
-        )
-    }
-}
-
-@Composable
-private fun CreditsBody(
-    uiState: CreditsUiState,
-    actions: CreditsActions,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d16, vertical = HhTheme.spacing.d16),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhOfflineBanner(
-            message = stringResource(R.string.feature_tailor_impl_credits_offline_message),
-            supportingText = stringResource(R.string.feature_tailor_impl_credits_offline_supporting),
-            visible = uiState.isOffline,
-        )
-        CreditsStageNote(uiState = uiState, actions = actions)
-        CreditsBalance(uiState = uiState)
-        CreditsPurchases(uiState = uiState)
-        CreditsRefundsNote(actions = actions)
-    }
-}
-
-@Composable
-private fun CreditsStageNote(
-    uiState: CreditsUiState,
-    actions: CreditsActions,
-) {
-    when (uiState.stage) {
-        CreditsStage.RESTORING -> HhCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_restoring),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_credits_restoring))
-        }
-        CreditsStage.RESTORED -> HhCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_restored_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_restored_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
+                Text(
+                    text = stringResource(
+                        if (uiState.creditsNeverExpire) {
+                            R.string.feature_tailor_impl_credits_never_expire
+                        } else {
+                            R.string.feature_tailor_impl_credits_may_expire
+                        },
+                    ),
+                    style = HhTheme.typography.titleM,
+                    color = HhTheme.colors.onSurface,
+                )
+            }
+            if (uiState.showsFreeNote) {
+                Text(
+                    text = stringResource(R.string.feature_tailor_impl_credits_free_note),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+            }
+            HhSecondaryButton(
+                label = stringResource(R.string.feature_tailor_impl_credits_get_pack),
+                onClick = onGetPack,
+                enabled = uiState.canBuy,
+                trailingIcon = HhIcons.ArrowForward,
             )
         }
-        CreditsStage.ERROR -> HhErrorCallout(
-            title = stringResource(R.string.feature_tailor_impl_credits_error_heading),
-            supportingText = stringResource(R.string.feature_tailor_impl_credits_error_body),
-            actionLabel = stringResource(R.string.feature_tailor_impl_credits_error_retry),
-            onAction = actions.onDismiss,
-        )
-        CreditsStage.ZERO -> HhCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_zero_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_zero_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        else -> Unit
     }
 }
 
 @Composable
-private fun CreditsBalance(uiState: CreditsUiState) {
-    HhSectionCard {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_separate_note),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        CreditsBalanceRow(
-            eyebrow = stringResource(R.string.feature_tailor_impl_credits_free_eyebrow),
-            credits = uiState.freeCredits,
-            caption = stringResource(R.string.feature_tailor_impl_credits_free_caption),
-            description = pluralStringResource(
-                R.plurals.feature_tailor_impl_credits_free_value_description,
-                uiState.freeCredits,
-                uiState.freeCredits,
-            ),
-            note = stringResource(R.string.feature_tailor_impl_credits_free_note),
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        CreditsBalanceRow(
-            eyebrow = stringResource(R.string.feature_tailor_impl_credits_purchased_eyebrow),
-            credits = uiState.purchasedCredits,
-            caption = stringResource(R.string.feature_tailor_impl_credits_purchased_caption),
-            description = pluralStringResource(
-                R.plurals.feature_tailor_impl_credits_purchased_value_description,
-                uiState.purchasedCredits,
-                uiState.purchasedCredits,
-            ),
-            note = expiryNoteFor(uiState = uiState),
-        )
-    }
-}
-
-@Composable
-private fun CreditsBalanceRow(
-    eyebrow: String,
-    credits: Int,
-    caption: String,
-    description: String,
-    note: String,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-        Text(
-            text = eyebrow,
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhHeroNumeral(
-            value = credits.toString(),
-            caption = caption,
-            contentDescription = description,
-        )
-        Text(
-            text = note,
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun expiryNoteFor(uiState: CreditsUiState): String = when {
-    !uiState.hasPurchasedCredits -> stringResource(R.string.feature_tailor_impl_credits_purchased_expiry_unknown)
-    uiState.purchasedCreditsNeverExpire -> stringResource(R.string.feature_tailor_impl_credits_purchased_never_expire)
-    uiState.purchasedCreditsMayExpire -> stringResource(R.string.feature_tailor_impl_credits_purchased_may_expire)
-    else -> stringResource(R.string.feature_tailor_impl_credits_purchased_expiry_unknown)
+private fun CreditsSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = HhTheme.typography.titleS,
+        color = HhTheme.colors.onSurfaceVariant,
+        modifier = Modifier.padding(top = HhTheme.spacing.xs),
+    )
 }
 
 @Composable
 private fun CreditsPurchases(uiState: CreditsUiState) {
-    HhSectionCard {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_purchases_eyebrow),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        when {
-            uiState.hasPendingPurchase -> {
-                uiState.purchases.forEach { entry ->
-                    CreditsPendingRow(entry = entry)
-                }
+    if (uiState.purchases.isEmpty()) {
+        HhCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_credits_no_purchases),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+        }
+        return
+    }
+    uiState.purchases.forEach { entry -> CreditsPurchaseCard(entry = entry) }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CreditsPurchaseCard(entry: CreditsPurchaseEntry) {
+    HhCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    text = stringResource(R.string.feature_tailor_impl_credits_pending_body),
-                    style = HhTheme.typography.bodyMedium,
-                    color = HhTheme.colors.onSurfaceVariant,
+                    text = pluralStringResource(
+                        R.plurals.feature_tailor_impl_credits_purchase_title,
+                        entry.credits,
+                        entry.credits,
+                        entry.formattedPrice,
+                    ),
+                    style = HhTheme.typography.titleS,
+                    color = HhTheme.colors.onSurface,
+                )
+                if (entry.isPending) {
+                    HhApplicationStatusChip(
+                        kind = HhApplicationStatusKind.Saved,
+                        label = stringResource(R.string.feature_tailor_impl_credits_pending),
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+            Text(text = entry.orderId, style = HhTheme.typography.factId, color = HhTheme.colors.onSurface)
+            if (entry.isPending) {
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_tailor_impl_credits_pending_note,
+                        entry.credits,
+                        entry.credits,
+                    ),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.body,
                 )
             }
-            uiState.hasPurchasedCredits -> Text(
-                text = stringResource(
-                    R.string.feature_tailor_impl_credits_purchased_recorded_body,
-                    pluralStringResource(
-                        R.plurals.feature_tailor_impl_credits_purchased_count,
-                        uiState.purchasedCredits,
-                        uiState.purchasedCredits,
-                    ),
-                ),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurface,
-            )
-            uiState.hasFreeCredits -> Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_no_purchases_free_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            else -> Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_no_purchases_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CreditsPendingRow(entry: CreditsPurchaseEntry) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
-        Text(
-            text = entry.packName,
-            style = HhTheme.typography.titleMedium,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = pluralStringResource(
-                R.plurals.feature_tailor_impl_credits_pending_pack_line,
-                entry.credits,
-                entry.formattedPrice,
-                entry.credits,
-            ),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_pending_status),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun CreditsRefundsNote(actions: CreditsActions) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        HhDivider(style = HhDividerStyle.Dashed)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_refunds_eyebrow),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_refunds_note),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_credits_no_guarantee),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        ) {
-            CreditsTextLink(
-                label = stringResource(R.string.feature_tailor_impl_credits_restore_action),
-                onClick = actions.onRestore,
+private fun CreditsHelp(actions: CreditsActions) {
+    HhCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_credits_refund_summary),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
+                    onClick = actions.onAskRefund,
+                )
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
+                    onClick = actions.onContactHelp,
+                )
+            }
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_credits_help_summary),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
             )
         }
     }
-}
-
-@Composable
-private fun CreditsTextLink(
-    label: String,
-    onClick: () -> Unit,
-) {
-    Text(
-        text = label,
-        style = HhTheme.typography.labelLarge,
-        color = HhTheme.colors.primary,
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier
-            .defaultMinSize(minHeight = HhTheme.spacing.d48)
-            .clickable(onClick = onClick)
-            .padding(vertical = HhTheme.spacing.sm),
-    )
 }

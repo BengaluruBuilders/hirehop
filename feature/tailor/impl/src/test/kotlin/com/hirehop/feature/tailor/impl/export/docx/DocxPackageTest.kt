@@ -238,6 +238,7 @@ class DocxPackageTest {
         headline = "Staff Engineer",
         skills = skills,
         sections = sections ?: defaultSections(bullets),
+        skillsHeading = "Skills",
     )
 
     private fun defaultSections(bullets: List<String>): List<ResumeSection> = listOf(

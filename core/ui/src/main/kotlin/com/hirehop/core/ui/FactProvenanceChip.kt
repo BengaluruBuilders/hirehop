@@ -12,10 +12,8 @@ fun FactProvenanceChip(
     modifier: Modifier = Modifier,
     isConfirmed: Boolean = false,
 ) {
-    HhProvenanceChip(
-        kind = FactSourceProvenance().confirmedKindOf(source, isConfirmed),
-        modifier = modifier,
-    )
+    val kind = FactSourceProvenance().confirmedKindOf(source, isConfirmed)
+    HhProvenanceChip(kind = kind, modifier = modifier, label = kind.label())
 }
 
 @Composable
@@ -23,8 +21,6 @@ fun FactProvenanceChip(
     entry: ProfileEntry,
     modifier: Modifier = Modifier,
 ) {
-    HhProvenanceChip(
-        kind = FactSourceProvenance().kindOf(entry),
-        modifier = modifier,
-    )
+    val kind = FactSourceProvenance().kindOf(entry)
+    HhProvenanceChip(kind = kind, modifier = modifier, label = kind.label())
 }

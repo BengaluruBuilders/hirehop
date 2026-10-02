@@ -1,75 +1,99 @@
 package com.hirehop.feature.analysis.impl
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
+import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhLoadingWheel
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhTopAppBar
-import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhToastHost
+import com.hirehop.core.designsystem.component.HhToastResult
+import com.hirehop.core.designsystem.component.rememberHhToastState
+import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.DebugScenario
 
 data class AnalysisActions(
     val onBackClick: () -> Unit = {},
-    val onOpenProfile: () -> Unit = {},
-    val onJobTextChange: (String) -> Unit = {},
-    val onAnalyze: () -> Unit = {},
-    val onEditJobText: () -> Unit = {},
-    val onTitleChange: (String) -> Unit = {},
-    val onCompanyChange: (String) -> Unit = {},
-    val onSubmitEvidence: (requirementId: String, statement: String) -> Unit = { _, _ -> },
+    val onRetry: () -> Unit = {},
+    val onBackToJobDescription: () -> Unit = {},
+    val onOpenMenu: (String) -> Unit = {},
+    val onSeeSource: (String) -> Unit = {},
+    val onIHaveThis: (String) -> Unit = {},
+    val onOpenShareCard: () -> Unit = {},
+    val onDismissOverlay: () -> Unit = {},
+    val onReport: (String) -> Unit = {},
     val onTogglePrepPlan: (String) -> Unit = {},
-    val onSave: () -> Unit = {},
-    val onErrorShown: () -> Unit = {},
+    val onSubmitEvidence: (requirementId: String, statement: String) -> Unit = { _, _ -> },
+    val onEditFact: (String) -> Unit = {},
+    val onShareText: (String) -> Unit = {},
+    val onTailor: () -> Unit = {},
+    val onUndo: () -> Unit = {},
+    val onToastDismiss: () -> Unit = {},
 )
 
 @Composable
 internal fun AnalysisRoute(
+    scenario: DebugScenario,
     onBackClick: () -> Unit,
-    onOpenProfile: () -> Unit,
+    onLeave: (OnboardingStep) -> Unit,
     onOpenTailor: (applicationId: String) -> Unit,
+    onEditFact: (factId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AnalysisViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val savedApplicationId = (uiState as? AnalysisUiState.Saved)?.applicationId
-    LaunchedEffect(savedApplicationId) {
-        if (savedApplicationId != null) {
-            onOpenTailor(savedApplicationId)
-            viewModel.onNavigationConsumed()
+    val context = LocalContext.current
+    val shareTitle = stringResource(R.string.feature_analysis_impl_share_chooser)
+    LaunchedEffect(scenario) { viewModel.onEnter(scenario) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.onResume() }
+    LaunchedEffect(viewModel) {
+        viewModel.destinations.collect { destination ->
+            when (destination) {
+                is AnalysisDestination.Leave -> onLeave(destination.step)
+                is AnalysisDestination.Tailor -> onOpenTailor(destination.applicationId)
+            }
         }
     }
     AnalysisScreen(
         uiState = uiState,
         actions = AnalysisActions(
             onBackClick = onBackClick,
-            onOpenProfile = onOpenProfile,
-            onJobTextChange = viewModel::onJobTextChange,
-            onAnalyze = viewModel::onAnalyze,
-            onEditJobText = viewModel::onEditJobText,
-            onTitleChange = viewModel::onTitleChange,
-            onCompanyChange = viewModel::onCompanyChange,
-            onSubmitEvidence = viewModel::onSubmitEvidence,
+            onRetry = viewModel::onRetry,
+            onBackToJobDescription = viewModel::onBackToJobDescription,
+            onOpenMenu = viewModel::onOpenMenu,
+            onSeeSource = viewModel::onSeeSource,
+            onIHaveThis = viewModel::onIHaveThis,
+            onOpenShareCard = viewModel::onOpenShareCard,
+            onDismissOverlay = viewModel::onDismissOverlay,
+            onReport = viewModel::onReport,
             onTogglePrepPlan = viewModel::onTogglePrepPlan,
-            onSave = viewModel::onSave,
-            onErrorShown = viewModel::onErrorShown,
+            onSubmitEvidence = viewModel::onSubmitEvidence,
+            onEditFact = { factId ->
+                viewModel.onDismissOverlay()
+                onEditFact(factId)
+            },
+            onShareText = { text ->
+                viewModel.onDismissOverlay()
+                context.startActivity(shareTextIntent(shareTitle, text))
+            },
+            onTailor = viewModel::onTailor,
+            onUndo = viewModel::onUndo,
+            onToastDismiss = viewModel::onToastDismiss,
         ),
         modifier = modifier,
     )
@@ -81,105 +105,92 @@ internal fun AnalysisScreen(
     actions: AnalysisActions,
     modifier: Modifier = Modifier,
 ) {
-    var visibleError by remember { mutableStateOf<AnalysisError?>(null) }
-    val currentError = uiState.errorOrNull
-    LaunchedEffect(currentError) {
-        if (currentError != null) visibleError = currentError
+    val result = uiState as? AnalysisUiState.Result
+    var menuAnchor by remember { mutableStateOf(Rect.Zero) }
+    val menuId = (result?.overlay as? AnalysisOverlay.Menu)?.requirementId
+    val toastState = rememberHhToastState()
+    val toast = result?.toast
+    val toastMessage = toast?.let { toastText(it) }
+    val undoLabel = if (toast?.hasUndo == true) stringResource(R.string.feature_analysis_impl_undo) else null
+    LaunchedEffect(toast) {
+        if (toastMessage != null) {
+            val outcome = toastState.show(message = toastMessage, actionLabel = undoLabel)
+            if (outcome == HhToastResult.ActionPerformed) actions.onUndo() else actions.onToastDismiss()
+        }
     }
-    HhScaffold(
-        modifier = modifier,
-        topBar = {
-            HhTopAppBar(
-                title = stringResource(R.string.feature_analysis_impl_title),
-                navigationIcon = HhIcons.ArrowBack,
-                navigationIconContentDescription = stringResource(R.string.feature_analysis_impl_back),
-                onNavigationClick = actions.onBackClick,
-            )
-        },
-    ) { padding ->
-        AnalysisContent(
-            uiState = uiState,
-            actions = actions,
-            visibleError = visibleError,
-            onErrorDismiss = {
-                visibleError = null
-                actions.onErrorShown()
+    BackHandler(enabled = menuId != null, onBack = actions.onDismissOverlay)
+    Box(modifier = modifier.fillMaxSize()) {
+        HhScreen(
+            header = {
+                HhInnerHeader(
+                    title = uiState.headerTitle(),
+                    subtitle = uiState.headerSubtitle(),
+                    onBack = actions.onBackClick,
+                    backContentDescription = stringResource(R.string.feature_analysis_impl_back),
+                )
             },
-            modifier = Modifier.padding(padding),
-        )
+            sheet = false,
+            bottomBar = analysisBottomBar(uiState, actions),
+            bottomBarNotice = analysisBottomBarNotice(uiState),
+            snackbarHost = { HhToastHost(toastState) },
+        ) { padding ->
+            AnalysisBody(
+                uiState = uiState,
+                actions = actions,
+                contentPadding = padding,
+                onMenuAnchor = { id, bounds -> if (id == menuId) menuAnchor = bounds },
+            )
+        }
+        if (result != null) {
+            RowMenuOverlay(result, menuAnchor, actions)
+            AnalysisSheets(result, actions)
+        }
     }
 }
 
 @Composable
-private fun AnalysisContent(
+private fun AnalysisBody(
     uiState: AnalysisUiState,
     actions: AnalysisActions,
-    visibleError: AnalysisError?,
-    onErrorDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues,
+    onMenuAnchor: (String, Rect) -> Unit,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        when (uiState) {
-            AnalysisUiState.Loading, is AnalysisUiState.Saved ->
-                ProgressContent(R.string.feature_analysis_impl_loading)
-            AnalysisUiState.Analyzing -> ProgressContent(R.string.feature_analysis_impl_analyzing)
-            AnalysisUiState.Saving -> ProgressContent(R.string.feature_analysis_impl_saving)
-            AnalysisUiState.NoProfile -> NoProfileContent(actions.onOpenProfile)
-            is AnalysisUiState.Input -> InputContent(
-                state = uiState,
-                onJobTextChange = actions.onJobTextChange,
-                onAnalyze = actions.onAnalyze,
-            )
-            is AnalysisUiState.Result -> ResultContent(uiState, actions)
-        }
-        if (visibleError != null) {
-            HhErrorCallout(
-                title = stringResource(visibleError.titleRes()),
-                supportingText = stringResource(visibleError.supportingRes()),
-                actionLabel = stringResource(R.string.feature_analysis_impl_error_dismiss),
-                onAction = onErrorDismiss,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(screenPadding()),
-            )
-        }
+    when (uiState) {
+        AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding)
+        is AnalysisUiState.Analyzing -> WaitingContent(uiState, contentPadding)
+        is AnalysisUiState.Failed -> MessageContent(
+            title = stringResource(R.string.feature_analysis_impl_error_title),
+            body = stringResource(R.string.feature_analysis_impl_error_body),
+            contentPadding = contentPadding,
+        )
+        is AnalysisUiState.DailyLimit -> MessageContent(
+            title = stringResource(R.string.feature_analysis_impl_daily_limit_title),
+            body = stringResource(R.string.feature_analysis_impl_daily_limit_body),
+            note = stringResource(R.string.feature_analysis_impl_daily_limit_note),
+            contentPadding = contentPadding,
+        )
+        is AnalysisUiState.Result -> ResultContent(uiState, actions, contentPadding, onMenuAnchor)
     }
 }
 
-@Composable
-private fun ProgressContent(@StringRes messageRes: Int) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-        ) {
-            val message = stringResource(messageRes)
-            HhLoadingWheel(contentDesc = message)
-            Text(
-                text = message,
-                style = HhTheme.typography.bodyLarge,
-                color = HhTheme.colors.onSurface,
-            )
-        }
+internal fun shareTextIntent(chooserTitle: String, text: String): Intent {
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
     }
-}
-
-@StringRes
-private fun AnalysisError.titleRes(): Int = when (this) {
-    AnalysisError.AnalyzeFailed -> R.string.feature_analysis_impl_error_analyze
-    AnalysisError.AddEvidenceFailed -> R.string.feature_analysis_impl_error_add_evidence
-    AnalysisError.SaveFailed -> R.string.feature_analysis_impl_error_save
-}
-
-@StringRes
-private fun AnalysisError.supportingRes(): Int = when (this) {
-    AnalysisError.AnalyzeFailed -> R.string.feature_analysis_impl_error_analyze_supporting
-    AnalysisError.AddEvidenceFailed -> R.string.feature_analysis_impl_error_add_evidence_supporting
-    AnalysisError.SaveFailed -> R.string.feature_analysis_impl_error_save_supporting
+    return Intent.createChooser(send, chooserTitle)
 }
 
 @Composable
-internal fun screenPadding(): PaddingValues = PaddingValues(
-    horizontal = HhTheme.spacing.md,
-    vertical = HhTheme.spacing.sm,
-)
+private fun AnalysisUiState.headerTitle(): String = when {
+    job.title.isNotBlank() -> job.title
+    this is AnalysisUiState.Result -> stringResource(R.string.feature_analysis_impl_role_not_set)
+    else -> stringResource(R.string.feature_analysis_impl_title_fallback)
+}
+
+@Composable
+private fun AnalysisUiState.headerSubtitle(): String? = when {
+    job.company.isNotBlank() -> job.company
+    this is AnalysisUiState.Result -> stringResource(R.string.feature_analysis_impl_company_not_set)
+    else -> null
+}

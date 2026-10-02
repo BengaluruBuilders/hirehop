@@ -2,250 +2,246 @@ package com.hirehop.feature.profile.impl.guidedform
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hirehop.core.domain.AddUserStatedFactsUseCase
-import com.hirehop.core.domain.fact.AddFactsOutcome
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.domain.fact.FactDraft
-import com.hirehop.core.domain.fact.FactDraftError
 import com.hirehop.core.domain.fact.FactDraftErrorReason
 import com.hirehop.core.domain.fact.FactDraftValidator
 import com.hirehop.core.domain.fact.FactField
-import com.hirehop.core.domain.fact.FactLineRenderer
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.ProfileEntry
 import com.hirehop.feature.profile.api.navigation.GuidedProfileFormNavKey
+import com.hirehop.feature.profile.impl.ContactInput
+import com.hirehop.feature.profile.impl.FactWriteResult
+import com.hirehop.feature.profile.impl.ProfileExitResolver
+import com.hirehop.feature.profile.impl.UserFactWriter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class GuidedFormViewModel @Inject constructor(
-    private val addUserStatedFacts: AddUserStatedFactsUseCase,
+class GuidedFormViewModel @Inject internal constructor(
+    private val factWriter: UserFactWriter,
+    private val exitResolver: ProfileExitResolver,
+    private val connectivityMonitor: ConnectivityMonitor,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(GuidedFormUiState())
 
     private var hasEntered = false
+    private var forcedOffline = false
 
     val uiState: StateFlow<GuidedFormUiState> = mutableState.asStateFlow()
 
     fun onEnter(key: GuidedProfileFormNavKey) {
         if (hasEntered) return
         hasEntered = true
+        forcedOffline = key.scenario == DebugScenario.OFFLINE
         mutableState.value = guidedFormStateFor(
             scenario = key.scenario,
             startStep = key.startStep,
             resumedFromScan = key.resumedFromScan,
         )
+        connectivityMonitor.isOnline
+            .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: GuidedFormAction) {
         when (action) {
             is GuidedFormAction.ValueChanged -> onValueChanged(action.field, action.value)
+            GuidedFormAction.AddSkill -> onAddSkill()
+            is GuidedFormAction.RemoveSkill -> onRemoveSkill(action.skill)
+            GuidedFormAction.StartForm -> mutableState.update { it.copy(showIntro = false) }
             GuidedFormAction.Next -> onNext()
             GuidedFormAction.Back -> onBack()
             GuidedFormAction.SaveAndFinishLater -> onSaveAndFinishLater()
-            GuidedFormAction.ContinueNow -> onContinueNow()
-            GuidedFormAction.StartHandoff -> onStartHandoff()
-            GuidedFormAction.HandoffConsumed -> onHandoffConsumed()
-            GuidedFormAction.DismissMessage -> onDismissMessage()
+            GuidedFormAction.FinishSaved -> onFinish()
+            GuidedFormAction.GoToProjects -> onGoToProjects()
+            GuidedFormAction.NavigationConsumed -> mutableState.update { it.copy(navigation = null) }
+            GuidedFormAction.DismissMessage -> mutableState.update { it.copy(message = null) }
         }
     }
 
-    private fun onValueChanged(
-        field: GuidedField,
-        value: String,
-    ) {
+    private fun onValueChanged(field: GuidedField, value: String) {
         mutableState.update { state ->
             state.copy(
                 values = state.values + (field to value),
                 fieldProblems = state.fieldProblems - field,
-                isSaveRejected = false,
                 message = null,
             )
         }
     }
 
-    private fun onNext() {
-        val state = mutableState.value
-        val draft = draftForStep(state.step, state.values)
-        if (draft != null) {
-            val problems = problemsOf(state.step, FactDraftValidator.validate(draft))
-            if (problems.isNotEmpty()) {
-                mutableState.value = state.copy(
-                    fieldProblems = problems,
-                    isSaveRejected = true,
-                    message = GuidedMessage.SAVE_REJECTED,
-                )
-                return
-            }
-            mutableState.value = state.advanced(
-                previews = state.previews.withoutCategory(draft.category) + draft.toPreview(),
-            )
-            return
-        }
-        mutableState.value = state.advanced(previews = state.previews)
+    private fun onAddSkill() {
+        mutableState.update { state -> state.withPendingSkill() }
+    }
+
+    private fun onRemoveSkill(skill: String) {
+        mutableState.update { state -> state.copy(skills = state.skills.filterNot { it == skill }) }
     }
 
     private fun onBack() {
+        mutableState.update { state ->
+            if (state.isFirstStep) {
+                state
+            } else {
+                state.copy(
+                    stepIndex = state.stepIndex - 1,
+                    fieldProblems = emptyMap(),
+                    filedEntries = emptyList(),
+                    message = null,
+                )
+            }
+        }
+    }
+
+    private fun onNext() {
         val state = mutableState.value
-        if (state.isFirstStep) return
-        mutableState.value = state.copy(
-            stepIndex = (state.stepIndex - 1).coerceAtLeast(0),
-            fieldProblems = emptyMap(),
-            isSaveRejected = false,
-            message = null,
-            saved = null,
-        )
+        if (state.isSaving) return
+        if (state.isLastStep) {
+            onGoToProjects()
+            return
+        }
+        persistStep(state) { written ->
+            mutableState.update { current ->
+                current.copy(
+                    stepIndex = (current.stepIndex + 1).coerceAtMost(GUIDED_STEPS.lastIndex),
+                    filedEntries = written,
+                )
+            }
+        }
+    }
+
+    private fun onGoToProjects() {
+        mutableState.update { it.copy(navigation = GuidedNavigation.Evidence(EVIDENCE_HANDOFF_CATEGORY)) }
     }
 
     private fun onSaveAndFinishLater() {
         val state = mutableState.value
         if (state.isSaving) return
-        val drafts = state.completedSteps.mapNotNull { draftForStep(it, state.values) }
-        if (drafts.isEmpty()) {
-            mutableState.value = state.finishedSaving(emptyList())
+        if (state.showIntro) {
+            mutableState.update { it.finishedLater() }
             return
         }
-        mutableState.value = state.copy(isSaving = true, message = null)
+        persistStep(state) { mutableState.update { it.finishedLater() } }
+    }
+
+    private fun onFinish() {
         viewModelScope.launch {
-            when (val outcome = addUserStatedFacts(drafts)) {
-                is AddFactsOutcome.Added -> mutableState.update { it.finishedSaving(outcome.entries) }
-                is AddFactsOutcome.Rejected -> mutableState.update {
-                    it.copy(
+            val exit = exitResolver.resolve()
+            mutableState.update { it.copy(navigation = GuidedNavigation.Exit(exit)) }
+        }
+    }
+
+    private fun persistStep(
+        initial: GuidedFormUiState,
+        onDone: (written: List<ProfileEntry>) -> Unit,
+    ) {
+        val state = initial.withPendingSkill()
+        val step = state.step
+        val drafts = draftsFor(step, state.values)
+        val problems = problemsOf(step, drafts)
+        if (problems.isNotEmpty()) {
+            mutableState.value = state.copy(fieldProblems = problems)
+            return
+        }
+        mutableState.value = state.copy(isSaving = true, message = null, fieldProblems = emptyMap())
+        viewModelScope.launch {
+            val result = runCatching {
+                factWriter.write(
+                    drafts = drafts,
+                    replacing = state.stepEntryIds[step].orEmpty().toSet(),
+                    contact = if (step == GuidedStep.CONTACT) state.contactInput() else ContactInput(),
+                    skills = if (step == GuidedStep.SKILLS) state.skills else emptyList(),
+                )
+            }
+            val outcome = result.getOrNull()
+            if (outcome is FactWriteResult.Written) {
+                mutableState.update { current ->
+                    current.copy(
                         isSaving = false,
-                        isSaveRejected = true,
-                        fieldProblems = it.problemsFor(outcome.errors),
-                        message = GuidedMessage.SAVE_REJECTED,
+                        completedSteps = current.completedSteps + step,
+                        stepEntryIds = current.stepEntryIds + (step to outcome.entries.map { it.id }),
                     )
                 }
-
-                AddFactsOutcome.NothingToAdd -> mutableState.update { it.finishedSaving(emptyList()) }
+                onDone(outcome.entries)
+            } else if (outcome == FactWriteResult.NothingToWrite) {
+                mutableState.update { it.copy(isSaving = false) }
+                onDone(emptyList())
+            } else {
+                mutableState.update { it.copy(isSaving = false, message = GuidedMessage.SAVE_FAILED) }
             }
         }
     }
 
-    private fun onContinueNow() {
-        mutableState.update { it.copy(saved = null, message = null) }
-    }
-
-    private fun onStartHandoff() {
-        mutableState.update { state ->
-            if (state.isLastStep) state.copy(handoff = GuidedHandoff(EVIDENCE_HANDOFF_CATEGORY)) else state
-        }
-    }
-
-    private fun onHandoffConsumed() {
-        mutableState.update { it.copy(handoff = null) }
-    }
-
-    private fun onDismissMessage() {
-        mutableState.update { it.copy(message = null, isSaveRejected = false) }
-    }
-
-    private fun GuidedFormUiState.advanced(previews: List<GuidedFactPreview>): GuidedFormUiState = copy(
-        previews = previews,
-        stepIndex = (stepIndex + 1).coerceAtMost(GUIDED_STEPS.lastIndex),
-        completedSteps = (completedSteps + step).distinct(),
-        fieldProblems = emptyMap(),
-        isSaveRejected = false,
-        message = null,
-        saved = null,
-    )
-
-    private fun GuidedFormUiState.finishedSaving(entries: List<ProfileEntry>): GuidedFormUiState = copy(
-        isSaving = false,
-        previews = previews.withEntries(entries),
-        saved = GuidedSaved(completedSteps = completedSteps.size, totalSteps = GUIDED_STEPS.size),
-        isSaveRejected = false,
-        message = if (isOffline) GuidedMessage.OFFLINE_QUEUED else GuidedMessage.SAVED,
-    )
-
-    private fun draftForStep(
-        step: GuidedStep,
-        values: Map<GuidedField, String>,
-    ): FactDraft? {
-        val category = step.entryCategory() ?: return null
-        val title = when (step) {
-            GuidedStep.EDUCATION -> values[GuidedField.COURSE].orEmpty()
-            GuidedStep.EXPERIENCE -> values[GuidedField.ROLE].orEmpty()
-            GuidedStep.CONTACT, GuidedStep.SKILLS -> return null
-        }
-        val organization = when (step) {
-            GuidedStep.EDUCATION -> values[GuidedField.COLLEGE].orEmpty()
-            GuidedStep.EXPERIENCE -> values[GuidedField.EMPLOYER].orEmpty()
-            GuidedStep.CONTACT, GuidedStep.SKILLS -> ""
-        }
-        val start = when (step) {
-            GuidedStep.EDUCATION -> values[GuidedField.EDUCATION_START].orEmpty()
-            GuidedStep.EXPERIENCE -> values[GuidedField.EXPERIENCE_START].orEmpty()
-            GuidedStep.CONTACT, GuidedStep.SKILLS -> ""
-        }
-        val end = when (step) {
-            GuidedStep.EDUCATION -> values[GuidedField.EDUCATION_END].orEmpty()
-            GuidedStep.EXPERIENCE -> values[GuidedField.EXPERIENCE_END].orEmpty()
-            GuidedStep.CONTACT, GuidedStep.SKILLS -> ""
-        }
-        return FactDraft(
-            category = category,
-            title = title.trim(),
-            organization = organization.trim(),
-            startDate = start.trim(),
-            endDate = end.trim(),
-            detail = "",
+    private fun GuidedFormUiState.withPendingSkill(): GuidedFormUiState {
+        val typed = values[GuidedField.SKILL].orEmpty().trim()
+        if (typed.isEmpty()) return this
+        val known = skills.any { it.equals(typed, ignoreCase = true) }
+        return copy(
+            skills = if (known) skills else skills + typed,
+            values = values + (GuidedField.SKILL to ""),
         )
     }
 
-    private fun FactDraft.toPreview(): GuidedFactPreview = GuidedFactPreview(
-        category = category,
-        line = FactLineRenderer.render(this),
+    private fun GuidedFormUiState.finishedLater(): GuidedFormUiState = copy(
+        saved = GuidedSaved(
+            completedSteps = completedSteps.size,
+            totalSteps = GUIDED_STEPS.size,
+            entryIds = createdEntryIds,
+        ),
     )
 
-    private fun List<GuidedFactPreview>.withoutCategory(category: EntryCategory): List<GuidedFactPreview> =
-        filterNot { it.category == category }
+    private fun GuidedFormUiState.contactInput() = ContactInput(
+        fullName = values[GuidedField.FULL_NAME].orEmpty(),
+        email = values[GuidedField.EMAIL].orEmpty(),
+        phone = values[GuidedField.PHONE].orEmpty(),
+    )
 
-    private fun List<GuidedFactPreview>.withEntries(entries: List<ProfileEntry>): List<GuidedFactPreview> =
-        map { preview ->
-            val entry = entries.firstOrNull { it.category == preview.category } ?: return@map preview
-            preview.copy(entry = entry, line = FactLineRenderer.render(entry))
-        }
-
-    private fun problemsOf(
-        step: GuidedStep,
-        errors: List<FactDraftError>,
-    ): Map<GuidedField, GuidedFieldProblem> = errors
-        .mapNotNull { error -> error.field.toGuidedField(step)?.let { it to error.reason.toProblem() } }
-        .toMap()
-
-    private fun GuidedFormUiState.problemsFor(
-        errors: List<FactDraftError>,
-    ): Map<GuidedField, GuidedFieldProblem> = completedSteps
-        .fold(emptyMap<GuidedField, GuidedFieldProblem>()) { found, step ->
-            found + problemsOf(step, errors)
-        }
-
-    private fun FactField.toGuidedField(step: GuidedStep): GuidedField? = when (step) {
-        GuidedStep.EDUCATION -> when (this) {
-            FactField.TITLE -> GuidedField.COURSE
-            FactField.ORGANIZATION -> GuidedField.COLLEGE
-            FactField.START_DATE -> GuidedField.EDUCATION_START
-            FactField.END_DATE -> GuidedField.EDUCATION_END
-            FactField.DETAIL -> null
-        }
-
-        GuidedStep.EXPERIENCE -> when (this) {
-            FactField.TITLE -> GuidedField.ROLE
-            FactField.ORGANIZATION -> GuidedField.EMPLOYER
-            FactField.START_DATE -> GuidedField.EXPERIENCE_START
-            FactField.END_DATE -> GuidedField.EXPERIENCE_END
-            FactField.DETAIL -> null
-        }
-
-        GuidedStep.CONTACT, GuidedStep.SKILLS -> null
+    private fun draftsFor(step: GuidedStep, values: Map<GuidedField, String>): List<FactDraft> {
+        if (step != GuidedStep.EDUCATION) return emptyList()
+        val degree = FactDraft(
+            category = EntryCategory.EDUCATION,
+            title = values[GuidedField.COURSE].orEmpty().trim(),
+            organization = values[GuidedField.COLLEGE].orEmpty().trim(),
+            startDate = "",
+            endDate = values[GuidedField.EDUCATION_END].orEmpty().trim(),
+            detail = "",
+        )
+        val coursework = FactDraft(
+            category = EntryCategory.EDUCATION,
+            title = values[GuidedField.COURSEWORK].orEmpty().trim(),
+            organization = "",
+            startDate = "",
+            endDate = "",
+            detail = "",
+        )
+        return listOf(degree, coursework).filter { it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
     }
+
+    private fun problemsOf(step: GuidedStep, drafts: List<FactDraft>): Map<GuidedField, GuidedFieldProblem> =
+        drafts.flatMap { FactDraftValidator.validate(it) }
+            .mapNotNull { error -> error.field.toGuidedField(step)?.let { it to error.reason.toProblem() } }
+            .toMap()
+
+    private fun FactField.toGuidedField(step: GuidedStep): GuidedField? =
+        if (step != GuidedStep.EDUCATION) {
+            null
+        } else {
+            when (this) {
+                FactField.TITLE -> GuidedField.COURSE
+                FactField.ORGANIZATION -> GuidedField.COLLEGE
+                FactField.END_DATE -> GuidedField.EDUCATION_END
+                FactField.START_DATE, FactField.DETAIL -> null
+            }
+        }
 
     private fun FactDraftErrorReason.toProblem(): GuidedFieldProblem = when (this) {
         FactDraftErrorReason.REQUIRED -> GuidedFieldProblem.REQUIRED

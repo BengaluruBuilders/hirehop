@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
@@ -13,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -54,10 +56,14 @@ class ConsentScreenshotTest {
     }
 
     @Test
-    fun offline_readsInLightAndDark() {
+    fun readOnly_readsInLightAndDark() {
         captureBothThemes(
-            screenName = "ConsentOffline",
-            uiState = baseState(isOffline = true),
+            screenName = "ConsentReadOnly",
+            uiState = baseState(
+                acknowledged = ConsentPurpose.entries.toSet(),
+                isReadOnly = true,
+                agreedAt = Instant.fromEpochSeconds(1_800_000_000),
+            ),
         )
     }
 
@@ -106,11 +112,7 @@ class ConsentScreenshotTest {
     private fun showScreen(uiState: ConsentUiState) {
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
-                ConsentScreen(
-                    uiState = uiState,
-                    actions = noOpActions,
-                    onSkipToJobDescription = {},
-                )
+                ConsentScreen(uiState = uiState, actions = noOpActions)
             }
         }
         composeRule.waitForIdle()
@@ -121,18 +123,21 @@ class ConsentScreenshotTest {
         onAgree = {},
         onNotNow = {},
         onReadAgain = {},
+        onBack = {},
     )
 
     private fun baseState(
         acknowledged: Set<ConsentPurpose> = emptySet(),
         isSaving: Boolean = false,
-        isOffline: Boolean = false,
+        isReadOnly: Boolean = false,
         isDeclined: Boolean = false,
+        agreedAt: Instant? = null,
     ) = ConsentUiState(
         entries = consentPurposeStates().map { it.copy(isAcknowledged = it.purpose in acknowledged) },
         isSaving = isSaving,
-        isOffline = isOffline,
+        isReadOnly = isReadOnly,
         isDeclined = isDeclined,
+        agreedAt = agreedAt,
     )
 
     private companion object {

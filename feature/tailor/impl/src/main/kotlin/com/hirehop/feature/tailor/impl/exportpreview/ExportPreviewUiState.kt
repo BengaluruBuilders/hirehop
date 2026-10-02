@@ -1,32 +1,27 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 
 internal enum class ExportPreviewStage {
-    IDLE,
     RENDERING,
     PREVIEW_READY,
-    PREVIEW_FAILED,
     EXPORTING,
-    EXPORT_SUCCEEDED,
+    PREVIEW_FAILED,
     EXPORT_FAILED,
-    OFFLINE,
     NO_DOCUMENT,
-    NO_CREDIT,
 }
 
 internal data class ExportPreviewSheet(
     val name: String,
     val contactLine: String,
     val headline: String,
+    val skillsHeading: String,
     val skills: List<String>,
     val sections: List<ExportPreviewSection>,
-) {
-    val lineCount: Int
-        get() = 1 + listOf(contactLine, headline).count { line -> line.isNotBlank() } +
-            skills.size + sections.sumOf { section -> section.entries.sumOf { entry -> 1 + entry.bullets.size } + 1 }
-}
+)
 
 internal data class ExportPreviewSection(
     val heading: String,
@@ -40,58 +35,56 @@ internal data class ExportPreviewEntry(
     val bullets: List<String>,
 )
 
+internal sealed interface ExportPreviewNavigation {
+    data class Exported(val format: ExportFormat, val spentFreeCredit: Boolean) : ExportPreviewNavigation
+
+    data object BuyCredits : ExportPreviewNavigation
+}
+
 internal data class ExportPreviewUiState(
-    val stage: ExportPreviewStage = ExportPreviewStage.IDLE,
+    val stage: ExportPreviewStage = ExportPreviewStage.RENDERING,
     val format: ExportFormat = ExportFormat.PDF,
+    val template: ExportTemplate = ExportTemplate.PLAIN,
     val jobTitle: String = "",
     val jobCompany: String = "",
     val sheet: ExportPreviewSheet? = null,
     val fileName: String = "",
     val isOffline: Boolean = false,
-    val exportedFormat: ExportFormat? = null,
-    val creditsLeft: Int = 0,
-    val isFreeCredit: Boolean = true,
-    val packPrice: String = "",
-    val creditKnown: Boolean = false,
+    val creditsKnown: Boolean = false,
+    val freeCredits: Int = 0,
+    val purchasedCredits: Int = 0,
+    val isFreeBeta: Boolean = false,
+    val navigation: ExportPreviewNavigation? = null,
 ) {
-    val hasSheet: Boolean get() = sheet != null
+    val totalCredits: Int get() = freeCredits + purchasedCredits
 
-    val hasCredit: Boolean get() = creditsLeft > 0
-
-    val needsCredits: Boolean get() = creditKnown && !hasCredit
+    val needsCredits: Boolean get() = creditsKnown && !isFreeBeta && totalCredits == 0
 
     val canExport: Boolean
-        get() = stage == ExportPreviewStage.PREVIEW_READY && hasSheet && !isOffline && !needsCredits
+        get() = stage == ExportPreviewStage.PREVIEW_READY && sheet != null && !isOffline
 
-    val showsPackPrice: Boolean
-        get() = stage == ExportPreviewStage.NO_CREDIT && packPrice.isNotEmpty()
-
-    val exportFailed: Boolean get() = stage == ExportPreviewStage.EXPORT_FAILED
+    val showsDownload: Boolean
+        get() = stage == ExportPreviewStage.PREVIEW_READY
 }
+
+internal fun exportPreviewIsStatic(scenario: DebugScenario): Boolean =
+    scenario == DebugScenario.LOADING || scenario == DebugScenario.ERROR || scenario == DebugScenario.EMPTY
+
+internal fun exportPreviewIsOffline(scenario: DebugScenario): Boolean = scenario == DebugScenario.OFFLINE
 
 internal fun exportPreviewStageFor(scenario: DebugScenario): ExportPreviewStage = when (scenario) {
     DebugScenario.LOADING -> ExportPreviewStage.RENDERING
     DebugScenario.ERROR -> ExportPreviewStage.PREVIEW_FAILED
     DebugScenario.EMPTY -> ExportPreviewStage.NO_DOCUMENT
-    DebugScenario.OFFLINE -> ExportPreviewStage.OFFLINE
     DebugScenario.EXPORTING -> ExportPreviewStage.EXPORTING
-    else -> ExportPreviewStage.IDLE
+    else -> ExportPreviewStage.RENDERING
 }
-
-internal fun exportPreviewIsStatic(scenario: DebugScenario): Boolean =
-    scenario == DebugScenario.LOADING ||
-        scenario == DebugScenario.ERROR ||
-        scenario == DebugScenario.EMPTY
-
-internal fun exportPreviewIsOffline(scenario: DebugScenario): Boolean = scenario == DebugScenario.OFFLINE
-
-internal fun exportPreviewExportsOnEntry(scenario: DebugScenario): Boolean =
-    scenario == DebugScenario.EXPORTING
 
 internal fun exportPreviewSheetOf(document: ResumeDocument): ExportPreviewSheet = ExportPreviewSheet(
     name = document.name,
     contactLine = document.contactLine,
     headline = document.headline,
+    skillsHeading = document.skillsHeading,
     skills = document.skills,
     sections = document.sections.map { section ->
         ExportPreviewSection(

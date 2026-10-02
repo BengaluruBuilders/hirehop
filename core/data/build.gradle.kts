@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.hirehop.android.library)
     alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -19,6 +20,8 @@ dependencies {
     api(projects.core.database)
     api(projects.core.model)
     api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.datastore.preferences)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)

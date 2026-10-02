@@ -6,7 +6,12 @@ import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.SignInOutcome
 import com.hirehop.core.domain.SignInResult
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 import kotlinx.coroutines.test.runTest
@@ -19,6 +24,10 @@ class SignInViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val session = TestSessionRepository()
+
+    private val connectivity = TestConnectivityMonitor()
+
     private lateinit var gateway: FakeSignInGateway
 
     private lateinit var viewModel: SignInViewModel
@@ -26,8 +35,14 @@ class SignInViewModelTest {
     @Before
     fun setup() {
         gateway = FakeSignInGateway()
-        viewModel = SignInViewModel(signInGateway = gateway)
+        viewModel = newViewModel(gateway)
     }
+
+    private fun newViewModel(signInGateway: SignInGateway): SignInViewModel = SignInViewModel(
+        signInGateway = signInGateway,
+        nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
+        connectivityMonitor = connectivity,
+    )
 
     @Test
     fun defaultScenario_startsIdleAndUnticked() {
@@ -65,16 +80,69 @@ class SignInViewModelTest {
     }
 
     @Test
-    fun offlineScenario_isOfflineAndStillOffersAWorkingSignIn() = runTest {
+    fun offlineScenario_holdsTheContinueButton() = runTest {
         viewModel.onEnter(SignInNavKey(DebugScenario.OFFLINE))
         viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
 
         assertThat(viewModel.uiState.value.isOffline).isTrue()
-        assertThat(viewModel.uiState.value.canContinue).isTrue()
+        assertThat(viewModel.uiState.value.canContinue).isFalse()
 
         viewModel.onAction(SignInAction.Continue)
 
-        assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.SIGNED_IN)
+        assertThat(gateway.signInCount).isEqualTo(0)
+    }
+
+    @Test
+    fun whenTheDeviceGoesOffline_continueNeedsAConnection() = runTest {
+        viewModel.onEnter(SignInNavKey())
+        viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+        assertThat(viewModel.uiState.value.canContinue).isFalse()
+    }
+
+    @Test
+    fun signIn_onSuccess_asksForTheNextOnboardingStep() = runTest {
+        viewModel.onEnter(SignInNavKey())
+        viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
+        session.sendAccount(SignInAccount.localAccount)
+
+        viewModel.onAction(SignInAction.Continue)
+
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.Consent)
+    }
+
+    @Test
+    fun signIn_onFailure_doesNotMoveOn() = runTest {
+        val failing = viewModelWith(failureWith(SignInFailureReason.ProviderUnavailable))
+        failing.onEnter(SignInNavKey())
+        failing.onAction(SignInAction.AdultConfirmationChanged(true))
+
+        failing.onAction(SignInAction.Continue)
+
+        assertThat(failing.uiState.value.nextStep).isNull()
+    }
+
+    @Test
+    fun nextStepConsumed_clearsTheStep() = runTest {
+        viewModel.onEnter(SignInNavKey())
+        viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
+        viewModel.onAction(SignInAction.Continue)
+
+        viewModel.onAction(SignInAction.NextStepConsumed)
+
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+    }
+
+    @Test
+    fun referralCode_isKeptInTheState() = runTest {
+        viewModel.onEnter(SignInNavKey())
+
+        viewModel.onAction(SignInAction.ReferralCodeChanged("CAMPUS-7"))
+
+        assertThat(viewModel.uiState.value.referralCode).isEqualTo("CAMPUS-7")
     }
 
     @Test
@@ -134,14 +202,12 @@ class SignInViewModelTest {
     }
 
     @Test
-    fun continue_whileAlreadyInProgress_doesNotCallTheGatewayTwice() = runTest {
-        viewModel.onEnter(SignInNavKey())
-        viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
+    fun continue_whileAlreadyInProgress_doesNotCallTheGateway() = runTest {
+        viewModel.onEnter(SignInNavKey(DebugScenario.LOADING))
 
         viewModel.onAction(SignInAction.Continue)
-        viewModel.onAction(SignInAction.Continue)
 
-        assertThat(gateway.signInCount).isEqualTo(1)
+        assertThat(gateway.signInCount).isEqualTo(0)
     }
 
     @Test
@@ -157,7 +223,7 @@ class SignInViewModelTest {
 
     @Test
     fun adultTick_clearsAnEarlierFailure() = runTest {
-        val failing = SignInViewModel(signInGateway = FakeSignInGateway(failureWith(SignInFailureReason.ProviderUnavailable)))
+        val failing = newViewModel(FakeSignInGateway(failureWith(SignInFailureReason.ProviderUnavailable)))
         failing.onEnter(SignInNavKey())
         failing.onAction(SignInAction.Continue)
 
@@ -220,7 +286,7 @@ class SignInViewModelTest {
     @Test
     fun retryAfterAFailure_reachesTheGatewayAgain() = runTest {
         val failingGateway = FakeSignInGateway(failureWith(SignInFailureReason.ProviderUnavailable))
-        val failing = SignInViewModel(signInGateway = failingGateway)
+        val failing = newViewModel(failingGateway)
         failing.onEnter(SignInNavKey())
         failing.onAction(SignInAction.AdultConfirmationChanged(true))
 
@@ -237,7 +303,7 @@ class SignInViewModelTest {
             first = SignInResult.Failed(SignInFailureReason.ProviderUnavailable),
             then = SignInResult.SignedIn(SignInAccount.localAccount),
         )
-        val viewModelUnderTest = SignInViewModel(signInGateway = recovering)
+        val viewModelUnderTest = newViewModel(recovering)
         viewModelUnderTest.onEnter(SignInNavKey())
         viewModelUnderTest.onAction(SignInAction.AdultConfirmationChanged(true))
         viewModelUnderTest.onAction(SignInAction.Continue)
@@ -285,28 +351,6 @@ class SignInViewModelTest {
     }
 
     @Test
-    fun notNow_stopsProgressWithoutLosingTheAgeTick() = runTest {
-        viewModel.onEnter(SignInNavKey())
-        viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
-
-        viewModel.onAction(SignInAction.NotNow)
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.SKIPPED)
-        assertThat(viewModel.uiState.value.isAdultConfirmed).isTrue()
-        assertThat(gateway.signInCount).isEqualTo(0)
-    }
-
-    @Test
-    fun notNow_thenRevisit_returnsToAnIdleScreen() = runTest {
-        viewModel.onEnter(SignInNavKey())
-
-        viewModel.onAction(SignInAction.NotNow)
-        viewModel.onAction(SignInAction.Revisit)
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.IDLE)
-    }
-
-    @Test
     fun underEighteen_isACalmStopThatSendsNothing() = runTest {
         viewModel.onEnter(SignInNavKey())
         viewModel.onAction(SignInAction.AdultConfirmationChanged(true))
@@ -322,8 +366,8 @@ class SignInViewModelTest {
     }
 
     private fun viewModelWith(result: SignInResult): SignInViewModel =
-        SignInViewModel(signInGateway = FakeSignInGateway(result))
+        newViewModel(FakeSignInGateway(result))
 
     private fun viewModelWith(gateway: SignInGateway): SignInViewModel =
-        SignInViewModel(signInGateway = gateway)
+        newViewModel(gateway)
 }

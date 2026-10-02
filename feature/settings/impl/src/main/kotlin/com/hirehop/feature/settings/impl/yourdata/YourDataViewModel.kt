@@ -2,203 +2,156 @@ package com.hirehop.feature.settings.impl.yourdata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PaymentGateway
-import com.hirehop.core.domain.PurchaseEntitlement
+import com.hirehop.core.domain.PurchaseRecord
+import com.hirehop.core.domain.PurchaseState
+import com.hirehop.core.domain.account.ExportAccountDataUseCase
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.JobApplication
+import com.hirehop.core.model.ProfileFactCounts
+import com.hirehop.core.model.factCounts
 import com.hirehop.feature.settings.api.navigation.YourDataNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class YourDataViewModel @Inject constructor(
+    profileRepository: ProfileRepository,
+    paymentGateway: PaymentGateway,
+    connectivityMonitor: ConnectivityMonitor,
     private val applicationRepository: ApplicationRepository,
-    private val profileRepository: ProfileRepository,
-    private val paymentGateway: PaymentGateway,
+    private val exportHistoryRepository: ExportHistoryRepository,
+    private val exportAccountData: ExportAccountDataUseCase,
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(YourDataUiState())
+    private val local = MutableStateFlow(LocalState())
 
-    private var hasEntered = false
+    private val shareEvents = Channel<YourDataEvent>(Channel.BUFFERED)
 
-    private var isOffline = false
+    val events: Flow<YourDataEvent> = shareEvents.receiveAsFlow()
 
-    private var exportFileName: String = yourDataExportFileName(fullName = null)
+    private val ledger: Flow<Ledger> = combine(
+        profileRepository.observeProfile(),
+        applicationRepository.observeApplications(),
+        paymentGateway.observePurchaseHistory(),
+        flow { emit(runCatching { paymentGateway.packs() }.getOrDefault(emptyList())) },
+        ::Ledger,
+    )
 
-    private var entitlement: PurchaseEntitlement? = null
-
-    private var applicationsSnapshot: List<JobApplication> = emptyList()
-
-    private var profileSnapshot: CandidateProfile? = null
-
-    private var applicationCount: Int = 0
-
-    val uiState: StateFlow<YourDataUiState> = mutableState.asStateFlow()
+    val uiState: StateFlow<YourDataUiState> = combine(
+        ledger,
+        connectivityMonitor.isOnline,
+        local,
+    ) { ledger, isOnline, localState ->
+        val applications = ledger.applications.map { application -> application.toListItem() }
+        val counts = ledger.profile?.factCounts() ?: ProfileFactCounts(total = 0, confirmed = 0, userStated = 0)
+        YourDataUiState.Content(
+            profileFactCount = counts.total,
+            confirmedFactCount = counts.confirmed,
+            userStatedFactCount = counts.userStated,
+            applications = applications,
+            purchases = ledger.purchases.map { record -> record.toPurchase(ledger.packs) },
+            isOffline = !isOnline || localState.forcedOffline,
+            export = localState.export,
+            deleteTarget = applications.firstOrNull { item -> item.id == localState.deleteTargetId },
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        initialValue = YourDataUiState.Loading,
+    )
 
     fun onEnter(key: YourDataNavKey) {
-        if (hasEntered) return
-        hasEntered = true
-        isOffline = yourDataIsOffline(key.scenario)
-        mutableState.update { it.copy(isOffline = isOffline) }
-        loadEntitlement()
-        observeLedger()
-    }
-
-    fun onAction(action: YourDataAction) {
-        when (action) {
-            YourDataAction.DownloadTapped -> onDownloadTapped()
-            YourDataAction.ShareTapped -> onShareTapped()
-            is YourDataAction.LedgerActionTapped -> onLedgerActionTapped(action)
-            is YourDataAction.DeleteRequested -> onDeleteRequested(action.applicationId)
-            YourDataAction.DeleteConfirmed -> onDeleteConfirmed()
-            YourDataAction.DeleteDismissed -> onDeleteDismissed()
-            is YourDataAction.DestinationSelected -> onDestinationSelected(action.destination)
-            YourDataAction.DestinationConsumed -> mutableState.update { it.copy(destination = null) }
-        }
-    }
-
-    private fun loadEntitlement() {
-        viewModelScope.launch {
-            entitlement = runCatching { paymentGateway.entitlement() }.getOrNull()
-            refreshLedger(applications = applicationsSnapshot, profile = profileSnapshot)
-        }
-    }
-
-    private fun observeLedger() {
-        viewModelScope.launch {
-            combine(
-                applicationRepository.observeApplications(),
-                profileRepository.observeProfile(),
-            ) { applications, profile -> applications to profile }
-                .collect { (applications, profile) ->
-                    applicationsSnapshot = applications
-                    profileSnapshot = profile
-                    refreshLedger(applications = applications, profile = profile)
-                }
-        }
-    }
-
-    private fun refreshLedger(
-        applications: List<JobApplication>,
-        profile: CandidateProfile?,
-    ) {
-        exportFileName = yourDataExportFileName(fullName = profile?.fullName)
-        applicationCount = applications.size
-        mutableState.update { state ->
+        local.update { state ->
             state.copy(
-                ledger = yourDataLedger(
-                    profile = profile,
-                    applications = applications,
-                    entitlement = entitlement,
-                ),
-                profileFactCount = profile?.entries?.size ?: 0,
+                forcedOffline = key.scenario == DebugScenario.OFFLINE,
+                export = if (key.scenario == DebugScenario.EXPORTING) YourDataExport.PREPARING else state.export,
             )
         }
     }
 
-    private fun onDownloadTapped() {
-        if (isOffline || mutableState.value.isExporting) return
-        mutableState.update { state ->
-            state.copy(
-                stage = YourDataStage.PREPARING,
-                steps = yourDataExportSteps(
-                    currentIndex = 0,
-                    applicationCount = applicationCount,
-                ),
-            )
-        }
+    fun onDownload() {
+        val content = uiState.value as? YourDataUiState.Content ?: return
+        if (content.isOffline || content.export == YourDataExport.PREPARING) return
+        local.update { state -> state.copy(export = YourDataExport.PREPARING) }
         viewModelScope.launch {
-            for (index in 1 until YourDataExportStepKind.entries.size) {
-                delay(EXPORT_STEP_DELAY_MS)
-                mutableState.update { state ->
-                    state.copy(
-                        steps = yourDataExportSteps(
-                            currentIndex = index,
-                            applicationCount = applicationCount,
-                        ),
-                    )
-                }
-            }
-            mutableState.update { state ->
-                state.copy(
-                    stage = YourDataStage.READY,
-                    exportFileName = exportFileName,
-                )
+            try {
+                val archive = exportAccountData()
+                shareEvents.send(YourDataEvent.ShareArchive(archive.file))
+                local.update { state -> state.copy(export = YourDataExport.IDLE) }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Exception) {
+                local.update { state -> state.copy(export = YourDataExport.FAILED) }
             }
         }
     }
 
-    private fun onShareTapped() {
-        mutableState.update { state ->
-            if (state.stage == YourDataStage.READY && state.exportFileName != null) {
-                state.copy(destination = YourDataDestination.SHARE_SHEET)
-            } else {
-                state
-            }
-        }
+    fun onDeleteRequested(applicationId: String) {
+        val content = uiState.value as? YourDataUiState.Content ?: return
+        if (content.isOffline || content.applications.none { item -> item.id == applicationId }) return
+        local.update { state -> state.copy(deleteTargetId = applicationId) }
     }
 
-    private fun onLedgerActionTapped(action: YourDataAction.LedgerActionTapped) {
-        val destination = when (action.kind) {
-            YourDataLedgerKind.PROFILE -> if (action.action == YourDataLedgerAction.CORRECT) {
-                YourDataDestination.PROFILE_CORRECT
-            } else {
-                YourDataDestination.PROFILE_VIEW
-            }
-
-            YourDataLedgerKind.APPLICATIONS -> YourDataDestination.APPLICATIONS_VIEW
-            YourDataLedgerKind.PURCHASES -> YourDataDestination.PURCHASES_VIEW
-            YourDataLedgerKind.UPLOADED_RESUME -> null
-        }
-        mutableState.update { state ->
-            if (destination == null) state else state.copy(destination = destination)
-        }
+    fun onDeleteDismissed() {
+        local.update { state -> state.copy(deleteTargetId = null) }
     }
 
-    private fun onDeleteRequested(applicationId: String) {
-        mutableState.update { state ->
-            val item = state.ledger
-                .flatMap { row -> row.items }
-                .firstOrNull { candidate -> candidate.applicationId == applicationId }
-            if (item == null) {
-                state
-            } else {
-                state.copy(
-                    deleteTarget = YourDataDeleteTarget(
-                        applicationId = item.applicationId,
-                        title = item.title,
-                        company = item.company,
-                    ),
-                )
-            }
-        }
-    }
-
-    private fun onDeleteConfirmed() {
-        val target = mutableState.value.deleteTarget
-        if (target == null) return
-        mutableState.update { it.copy(deleteTarget = null) }
+    fun onDeleteConfirmed() {
+        val target = (uiState.value as? YourDataUiState.Content)?.deleteTarget ?: return
+        local.update { state -> state.copy(deleteTargetId = null) }
         viewModelScope.launch {
-            applicationRepository.deleteApplication(target.applicationId)
+            applicationRepository.deleteApplication(target.id)
+            exportHistoryRepository.clearFor(target.id)
         }
     }
 
-    private fun onDeleteDismissed() {
-        mutableState.update { it.copy(deleteTarget = null) }
-    }
+    private class Ledger(
+        val profile: CandidateProfile?,
+        val applications: List<JobApplication>,
+        val purchases: List<PurchaseRecord>,
+        val packs: List<ApplicationPack>,
+    )
 
-    private fun onDestinationSelected(destination: YourDataDestination) {
-        mutableState.update { it.copy(destination = destination) }
+    private data class LocalState(
+        val forcedOffline: Boolean = false,
+        val export: YourDataExport = YourDataExport.IDLE,
+        val deleteTargetId: String? = null,
+    )
+
+    private companion object {
+        const val STOP_TIMEOUT_MS = 5_000L
     }
 }
 
-internal const val EXPORT_STEP_DELAY_MS: Long = 900L
+private fun JobApplication.toListItem(): YourDataApplication =
+    YourDataApplication(id = id, title = job.title, company = job.company)
+
+private fun PurchaseRecord.toPurchase(packs: List<ApplicationPack>): YourDataPurchase {
+    val pack = packs.firstOrNull { candidate -> candidate.id == packId }
+    return YourDataPurchase(
+        credits = pack?.credits,
+        priceInPaise = pack?.priceInPaise,
+        currencyCode = pack?.currencyCode,
+        purchasedAt = purchasedAt,
+        isPending = state == PurchaseState.PENDING,
+    )
+}

@@ -1,15 +1,23 @@
 package com.hirehop.feature.onboarding.impl.confirmfacts
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.ConsentPurpose
+import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
+import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.sampleEducationEntry
 import com.hirehop.core.testing.data.sampleProfile
 import com.hirehop.core.testing.data.sampleProjectEntry
 import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.onboarding.api.navigation.ConfirmFactsNavKey
 import kotlinx.coroutines.flow.first
@@ -17,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
 class ConfirmFactsViewModelTest {
 
@@ -40,8 +49,14 @@ class ConfirmFactsViewModelTest {
         repository.sendProfile(importedProfile)
     }
 
+    private val session = TestSessionRepository()
+
+    private val connectivity = TestConnectivityMonitor()
+
     private fun createViewModel(scenario: DebugScenario = DebugScenario.DEFAULT) = ConfirmFactsViewModel(
         profileRepository = repository,
+        nextOnboardingStep = NextOnboardingStepUseCase(session, repository),
+        connectivityMonitor = connectivity,
     ).apply { onEnter(ConfirmFactsNavKey(scenario = scenario)) }
 
     @Test
@@ -175,18 +190,6 @@ class ConfirmFactsViewModelTest {
     }
 
     @Test
-    fun deleteOne_removesTheFactFromTheRepositoryAndTheScreen() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.onAction(ConfirmFactsAction.Delete("P-01"))
-
-        val stored = repository.observeProfile().first()
-        assertThat(stored?.entries?.map { it.id }).doesNotContain("P-01")
-        assertThat(viewModel.uiState.value.facts.map { it.id }).doesNotContain("P-01")
-        assertThat(viewModel.uiState.value.openCount).isEqualTo(3)
-    }
-
-    @Test
     fun offline_saysSoAndKeepsWorking() = runTest {
         val viewModel = createViewModel(DebugScenario.OFFLINE)
 
@@ -219,16 +222,6 @@ class ConfirmFactsViewModelTest {
     }
 
     @Test
-    fun removedNotice_canBeDismissed() {
-        val viewModel = createViewModel()
-        assertThat(viewModel.uiState.value.showRemovedNotice).isTrue()
-
-        viewModel.onAction(ConfirmFactsAction.DismissRemovedNotice)
-
-        assertThat(viewModel.uiState.value.showRemovedNotice).isFalse()
-    }
-
-    @Test
     fun sections_groupFactsByDesignSection() {
         val state = createViewModel().uiState.value
 
@@ -251,6 +244,75 @@ class ConfirmFactsViewModelTest {
             assertThat(text).doesNotContain(attribute)
         }
     }
+
+    @Test
+    fun continue_withAJobKept_asksForTheGapAnalysis() = runTest {
+        val job = KeptJobDescription(text = "SQL and Power BI", company = "Northwind GCC", role = "Associate Analyst")
+        session.sendAccount(SignInAccount.localAccount)
+        session.sendConsent(consentRecord())
+        repository.sendProfile(
+            importedProfile.copy(entries = importedProfile.entries.map { it.copy(isConfirmed = true) }),
+        )
+        session.keepJobDescription(job)
+        val viewModel = createViewModel()
+
+        viewModel.onAction(ConfirmFactsAction.Continue)
+
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.GapAnalysis(job))
+    }
+
+    @Test
+    fun continue_withNoJobKept_asksForThePasteStep() = runTest {
+        session.sendAccount(SignInAccount.localAccount)
+        session.sendConsent(consentRecord())
+        repository.sendProfile(
+            importedProfile.copy(entries = importedProfile.entries.map { it.copy(isConfirmed = true) }),
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onAction(ConfirmFactsAction.Continue)
+
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.PasteJobDescription)
+    }
+
+    @Test
+    fun nextStepConsumed_clearsTheStep() = runTest {
+        session.sendAccount(SignInAccount.localAccount)
+        session.sendConsent(consentRecord())
+        repository.sendProfile(
+            importedProfile.copy(entries = importedProfile.entries.map { it.copy(isConfirmed = true) }),
+        )
+        val viewModel = createViewModel()
+        viewModel.onAction(ConfirmFactsAction.Continue)
+
+        viewModel.onAction(ConfirmFactsAction.NextStepConsumed)
+
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+    }
+
+    @Test
+    fun whenTheDeviceGoesOffline_flagsOffline() {
+        val viewModel = createViewModel()
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+    }
+
+    @Test
+    fun anEditMadeElsewhere_reachesTheScreenWhenItComesBack() {
+        val viewModel = createViewModel()
+
+        repository.sendProfile(importedProfile.copy(entries = importedProfile.entries.map { it.copy(isConfirmed = true) }))
+
+        assertThat(viewModel.uiState.value.isFullyConfirmed).isTrue()
+    }
+
+    private fun consentRecord() = ConsentRecord(
+        purposes = ConsentPurpose.entries.toSet(),
+        acceptedAt = Instant.fromEpochSeconds(0),
+        noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+    )
 }
 
 private fun experienceEntry(id: String): ProfileEntry = ProfileEntry(

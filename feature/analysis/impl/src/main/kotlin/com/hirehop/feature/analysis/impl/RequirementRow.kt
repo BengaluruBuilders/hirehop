@@ -1,225 +1,238 @@
 package com.hirehop.feature.analysis.impl
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import com.hirehop.core.designsystem.component.HhButton
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhOutlinedButton
+import com.hirehop.core.designsystem.component.HhIconButton
+import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
+import com.hirehop.core.designsystem.component.HhProvenanceKind
+import com.hirehop.core.designsystem.component.HhRequirementTag
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
+import com.hirehop.core.designsystem.component.HhTermChip
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.MatchStatus
-import com.hirehop.core.model.RequirementType
-import com.hirehop.core.ui.FactIdTag
-import com.hirehop.core.ui.FactSourceProvenance
-import com.hirehop.core.ui.RequirementStatusDisc
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun RequirementRow(
     item: RequirementItem,
-    onIHaveThis: () -> Unit,
-    onTogglePrepPlan: () -> Unit,
+    isClosed: Boolean,
+    actions: AnalysisActions,
+    onMenuAnchor: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    HhCard(modifier = modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            RequirementHeader(item)
-            if (item.evidence.isNotEmpty()) EvidenceList(item)
-            if (item.isGap) GapActions(item, onIHaveThis, onTogglePrepPlan)
+    val hop = remember { Animatable(1f) }
+    val hopSpec = HhTheme.motion.hopSpecs.scale
+    LaunchedEffect(isClosed) {
+        if (isClosed) {
+            hop.snapTo(HOP_FROM_SCALE)
+            hop.animateTo(1f, hopSpec)
         }
     }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun RequirementHeader(item: RequirementItem) {
     val statusLabel = stringResource(item.status.labelRes())
     val priorityLabel = stringResource(item.priorityLabelRes())
-    val typeLabel = stringResource(item.requirement.type.typeRes())
-    val rowDescription = stringResource(
-        R.string.feature_analysis_impl_requirement_row_description,
-        item.requirement.text,
-        priorityLabel,
-        statusLabel,
-    )
-    val factDescription = item.factRefs.firstOrNull()?.let { ref ->
-        stringResource(R.string.feature_analysis_impl_fact_backed, ref.factId)
-    }
-    Row(
-        modifier = Modifier
+    val description = rowDescription(item, statusLabel, priorityLabel)
+    Box(
+        modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = listOfNotNull(rowDescription, factDescription).joinToString(" ") },
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.Top,
+            .graphicsLayer {
+                scaleX = hop.value
+                scaleY = hop.value
+            }
+            .semantics { contentDescription = description },
     ) {
-        RequirementStatusDisc(status = item.status)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
+        HhCard {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = HhTheme.spacing.touch - HhTheme.spacing.md),
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                HhStatusChip(kind = item.status.statusKind(), label = statusLabel)
+                HhRequirementTag(label = priorityLabel, mustHave = item.isMustHave)
+            }
             Text(
                 text = item.requirement.text,
-                modifier = Modifier.fillMaxWidth(),
-                style = HhTheme.typography.titleMedium,
+                style = HhTheme.typography.titleM,
                 color = HhTheme.colors.onSurface,
             )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-            ) {
-                Text(
-                    text = statusLabel,
-                    style = HhTheme.typography.labelLarge,
-                    color = item.status.statusTint(),
-                )
-                Text(
-                    text = typeLabel,
-                    style = HhTheme.typography.monoSmall,
-                    color = HhTheme.colors.onSurfaceVariant,
-                )
-                PriorityTag(item)
-            }
-            if (item.factRefs.isNotEmpty()) FactChips(item.factRefs)
+            RowFooter(item, actions)
+        }
+        if (item.hasMenu) {
+            HhIconButton(
+                icon = HhIcons.More,
+                contentDescription = stringResource(R.string.feature_analysis_impl_more_actions),
+                onClick = { actions.onOpenMenu(item.id) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = HhTheme.spacing.xxs, end = HhTheme.spacing.xs)
+                    .onGloballyPositioned { onMenuAnchor(it.boundsInRoot()) },
+                tint = HhTheme.colors.onSurfaceVariant,
+                containerColor = Color.Transparent,
+                borderColor = Color.Transparent,
+            )
         }
     }
 }
 
-@Composable
-private fun PriorityTag(item: RequirementItem) {
-    val label = stringResource(item.priorityLabelRes())
-    Text(
-        text = label.uppercase(),
-        modifier = Modifier
-            .background(
-                color = if (item.isMustHave) HhTheme.colors.onSurface else HhTheme.colors.spotContainer,
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(HhTheme.shapes.xs),
-            )
-            .padding(horizontal = HhTheme.spacing.sm, vertical = HhTheme.spacing.d4 / 2),
-        style = HhTheme.typography.labelSmall,
-        color = if (item.isMustHave) HhTheme.colors.background else HhTheme.colors.spotInk,
-    )
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FactChips(factRefs: List<RequirementFactRef>) {
+private fun RowFooter(item: RequirementItem, actions: AnalysisActions) {
+    if (item.isGap && !item.hasSource) {
+        GapActions(item, actions)
+        return
+    }
+    if (!item.hasSource) return
     FlowRow(
-        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        factRefs.forEach { ref ->
-            FactIdTag(factId = ref.factId)
+        item.factRefs.forEach { ref -> SourceFactChip(ref.displayId) { actions.onSeeSource(item.id) } }
+        item.skills.forEach { skill -> HhTermChip(label = skill) }
+        if (item.hasUserStatedFact) {
             HhProvenanceChip(
-                kind = FactSourceProvenance().confirmedKindOf(ref.source, ref.isConfirmed),
+                kind = HhProvenanceKind.UserStated,
+                label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
             )
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EvidenceList(item: RequirementItem) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_evidence_header),
-            style = HhTheme.typography.labelSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        item.evidence.forEach { text ->
-            Text(
-                text = text,
-                modifier = Modifier.fillMaxWidth(),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun GapActions(
-    item: RequirementItem,
-    onIHaveThis: () -> Unit,
-    onTogglePrepPlan: () -> Unit,
-) {
-    val requirementText = item.requirement.text
-    val iHaveThisDescription = stringResource(R.string.feature_analysis_impl_i_have_this_description, requirementText)
-    val prepDescription = stringResource(R.string.feature_analysis_impl_add_to_prep_plan_description, requirementText)
+private fun GapActions(item: RequirementItem, actions: AnalysisActions) {
+    val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
+    val prepDescription = stringResource(R.string.feature_analysis_impl_prep_description, item.requirement.text)
     val prepState = stringResource(
-        if (item.isInPrepPlan) {
-            R.string.feature_analysis_impl_prep_state_added
-        } else {
-            R.string.feature_analysis_impl_prep_state_not_added
-        },
+        if (item.isInPrepPlan) R.string.feature_analysis_impl_prep_added else R.string.feature_analysis_impl_prep_not_added,
     )
-    if (item.isInPrepPlan) {
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_in_prep_plan),
-            style = HhTheme.typography.titleSmall,
-            color = HhTheme.colors.onSurfaceVariant,
+    val iHaveThis: @Composable (Modifier) -> Unit = { modifier ->
+        HhOutlineButton(
+            label = stringResource(R.string.feature_analysis_impl_i_have_this),
+            onClick = { actions.onIHaveThis(item.id) },
+            modifier = modifier,
         )
-    } else {
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        ) {
-            HhOutlinedButton(
-                onClick = onIHaveThis,
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .heightIn(min = HhTheme.spacing.d48)
-                    .semantics { contentDescription = iHaveThisDescription },
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_analysis_impl_i_have_this),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
+    }
+    val prepPlan: @Composable (Modifier) -> Unit = { modifier ->
+        val semantic = modifier.semantics {
+            contentDescription = prepDescription
+            stateDescription = prepState
+            role = Role.Switch
+        }
+        if (item.isInPrepPlan) {
+            HhSecondaryButton(
+                label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
+                onClick = { actions.onTogglePrepPlan(item.id) },
+                modifier = semantic,
+                leadingIcon = HhIcons.Check,
             )
-            HhButton(
-                onClick = onTogglePrepPlan,
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .heightIn(min = HhTheme.spacing.d48)
-                    .semantics {
-                        contentDescription = prepDescription
-                        stateDescription = prepState
-                        role = Role.Switch
-                    },
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
+        } else {
+            HhOutlineButton(
+                label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
+                onClick = { actions.onTogglePrepPlan(item.id) },
+                modifier = semantic,
             )
         }
     }
+    if (stacked) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            iHaveThis(Modifier.fillMaxWidth())
+            prepPlan(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            iHaveThis(Modifier.weight(1f))
+            prepPlan(Modifier.weight(PREP_BUTTON_WEIGHT))
+        }
+    }
+}
+
+@Composable
+internal fun SourceFactChip(factId: String, onClick: () -> Unit) {
+    val colors = HhTheme.colors
+    val description = stringResource(R.string.feature_analysis_impl_source_fact, factId)
+    val underline = HhTheme.spacing.xxs
+    Box(
+        modifier = Modifier
+            .heightIn(min = HhTheme.spacing.touch)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(HhTheme.spacing.d32 - HhTheme.spacing.d2)
+                .clip(HhTheme.shapes.pill)
+                .background(colors.evidence)
+                .drawBehind {
+                    val y = size.height - underline.toPx() / 2f
+                    drawLine(colors.evidenceLine, Offset(0f, y), Offset(size.width, y), underline.toPx())
+                }
+                .padding(horizontal = HhTheme.spacing.md),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = factId, style = HhTheme.typography.factId, color = colors.onSurface)
+        }
+    }
+}
+
+@Composable
+private fun rowDescription(item: RequirementItem, status: String, priority: String): String {
+    val base = stringResource(R.string.feature_analysis_impl_row_description, item.requirement.text, priority, status)
+    return when {
+        item.isGap && !item.hasSource ->
+            base + " " + stringResource(R.string.feature_analysis_impl_row_actions)
+        item.factRefs.isNotEmpty() ->
+            base + " " + stringResource(
+                R.string.feature_analysis_impl_row_sources,
+                item.factRefs.joinToString { it.displayId },
+            )
+        else -> base
+    }
+}
+
+private fun MatchStatus.statusKind(): HhStatusKind = when (this) {
+    MatchStatus.MET -> HhStatusKind.Met
+    MatchStatus.PARTIAL -> HhStatusKind.Partial
+    MatchStatus.GAP -> HhStatusKind.Gap
 }
 
 @StringRes
@@ -236,24 +249,6 @@ private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
     R.string.feature_analysis_impl_priority_nice_to_have
 }
 
-@StringRes
-private fun RequirementType.typeRes(): Int = when (this) {
-    RequirementType.SKILL -> R.string.feature_analysis_impl_type_skill
-    RequirementType.TOOL -> R.string.feature_analysis_impl_type_tool
-    RequirementType.EXPERIENCE -> R.string.feature_analysis_impl_type_experience
-    RequirementType.EDUCATION -> R.string.feature_analysis_impl_type_education
-    RequirementType.SOFT_SKILL -> R.string.feature_analysis_impl_type_soft_skill
-}
-
-private fun MatchStatus.statusKind(): HhStatusKind = when (this) {
-    MatchStatus.MET -> HhStatusKind.Met
-    MatchStatus.PARTIAL -> HhStatusKind.Partial
-    MatchStatus.GAP -> HhStatusKind.Gap
-}
-
-@Composable
-private fun MatchStatus.statusTint(): Color = when (this) {
-    MatchStatus.MET -> HhTheme.colors.success
-    MatchStatus.PARTIAL -> HhTheme.colors.warning
-    MatchStatus.GAP -> HhTheme.colors.gap
-}
+private const val STACK_FONT_SCALE = 1.3f
+private const val HOP_FROM_SCALE = 0.94f
+private const val PREP_BUTTON_WEIGHT = 1.2f

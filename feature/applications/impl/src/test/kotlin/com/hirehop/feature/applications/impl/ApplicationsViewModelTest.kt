@@ -4,7 +4,11 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -19,16 +23,24 @@ class ApplicationsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val applicationRepository = TestApplicationRepository()
+    private val sessionRepository = TestSessionRepository()
+    private val paymentGateway = TestPaymentGateway().withFreeCredits(1)
+    private val connectivityMonitor = TestConnectivityMonitor()
     private lateinit var viewModel: ApplicationsViewModel
 
     @Before
     fun setUp() {
-        viewModel = ApplicationsViewModel(applicationRepository)
+        viewModel = ApplicationsViewModel(
+            applicationRepository = applicationRepository,
+            sessionRepository = sessionRepository,
+            paymentGateway = paymentGateway,
+            connectivityMonitor = connectivityMonitor,
+        )
     }
 
     @Test
     fun uiState_beforeRepositoryEmits_isLoading() {
-        assertThat(viewModel.uiState.value).isEqualTo(ApplicationsUiState.Loading)
+        assertThat(viewModel.uiState.value).isEqualTo(ApplicationsUiState.Loading())
     }
 
     @Test
@@ -37,7 +49,7 @@ class ApplicationsViewModelTest {
             applicationRepository.sendApplications(emptyList())
             runCurrent()
 
-            assertThat(current()).isEqualTo(ApplicationsUiState.Empty)
+            assertThat(current()).isInstanceOf(ApplicationsUiState.Empty::class.java)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -87,7 +99,7 @@ class ApplicationsViewModelTest {
             applicationRepository.sendApplications(emptyList())
             runCurrent()
 
-            assertThat(current()).isEqualTo(ApplicationsUiState.Empty)
+            assertThat(current()).isInstanceOf(ApplicationsUiState.Empty::class.java)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -182,6 +194,56 @@ class ApplicationsViewModelTest {
             val rows = current().rows()
             assertThat(rows.map { row -> row.id }).containsExactly("newest", "middle", "older").inOrder()
             assertThat(rows.single { row -> row.isSyncPending }.id).isEqualTo("newest")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_header_greetsTheSignedInPersonByFirstName() = runTest {
+        sessionRepository.sendAccount(SignInAccount.localAccount)
+
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("only")))
+            runCurrent()
+
+            assertThat(current().header.firstName).isEqualTo("Priya")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_header_withNoAccount_hasNoName() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(emptyList())
+            runCurrent()
+
+            assertThat(current().header.firstName).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_header_showsTheCreditsFromTheGateway() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(emptyList())
+            runCurrent()
+
+            assertThat(current().header.credits).isEqualTo(1)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_whenTheDeviceGoesOffline_showsTheOfflineBanner() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(testApplication("only")))
+            runCurrent()
+            assertThat(current().isOffline()).isFalse()
+
+            connectivityMonitor.setOnline(false)
+            runCurrent()
+
+            assertThat(current().isOffline()).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }

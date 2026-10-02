@@ -1,49 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_settings_impl_settings_screen_title">Settings</string>
-    <string name="feature_settings_impl_settings_offline_message">You\'re offline. You can read everything here.</string>
+    <string name="feature_settings_impl_settings_title">Settings</string>
+    <string name="feature_settings_impl_settings_header_signed_out">No account is signed in</string>
+    <string name="feature_settings_impl_settings_header_account">%1$s · %2$s</string>
+    <string name="feature_settings_impl_settings_offline_message">You\'re offline. Settings are readable. Sign out and deletion need a connection.</string>
 
-    <string name="feature_settings_impl_settings_group_account">ACCOUNT</string>
-    <string name="feature_settings_impl_settings_group_credits">CREDITS</string>
-    <string name="feature_settings_impl_settings_group_your_data">YOUR DATA</string>
-    <string name="feature_settings_impl_settings_group_privacy">PRIVACY</string>
-    <string name="feature_settings_impl_settings_group_about">ABOUT</string>
-    <string name="feature_settings_impl_settings_group_delete_account">DELETE ACCOUNT</string>
+    <string name="feature_settings_impl_settings_group_account">Account</string>
+    <string name="feature_settings_impl_settings_group_credits_data">Credits and data</string>
+    <string name="feature_settings_impl_settings_group_privacy">Privacy</string>
+    <string name="feature_settings_impl_settings_group_about">About</string>
 
-    <string name="feature_settings_impl_settings_row_account_title">Account on this phone</string>
-    <string name="feature_settings_impl_settings_row_account_signed_in">Signed in as %1$s</string>
-    <string name="feature_settings_impl_settings_row_account_signed_out">No account is signed in on this device.</string>
-    <string name="feature_settings_impl_settings_row_sign_out_title">Sign out</string>
-    <string name="feature_settings_impl_settings_row_sign_out_supporting">Removes the account from this phone. Your data stays until you delete it.</string>
+    <string name="feature_settings_impl_settings_account_provider">Google account</string>
+    <string name="feature_settings_impl_settings_account_missing">No account is signed in on this device.</string>
+    <string name="feature_settings_impl_settings_row_sign_out">Sign out</string>
 
-    <string name="feature_settings_impl_settings_row_credits_title">Credits and help</string>
-    <string name="feature_settings_impl_settings_row_credits_supporting">Purchases, refunds, and help</string>
-    <plurals name="feature_settings_impl_settings_credits_left">
-        <item quantity="one">%1$d left</item>
-        <item quantity="other">%1$d left</item>
+    <string name="feature_settings_impl_settings_row_credits">Credits and help</string>
+    <plurals name="feature_settings_impl_settings_row_credits_summary">
+        <item quantity="one">%1$d left · credits never expire</item>
+        <item quantity="other">%1$d left · credits never expire</item>
     </plurals>
+    <string name="feature_settings_impl_settings_row_your_data">Your data</string>
+    <string name="feature_settings_impl_settings_row_your_data_summary">See, correct, download or delete</string>
 
-    <string name="feature_settings_impl_settings_row_your_data_title">Your data</string>
-    <string name="feature_settings_impl_settings_row_your_data_supporting">See, correct, download, or delete it</string>
+    <string name="feature_settings_impl_settings_row_privacy_policy">Privacy policy</string>
+    <string name="feature_settings_impl_settings_privacy_policy_address">Address not set in this build</string>
+    <string name="feature_settings_impl_settings_row_consent_notice">Consent notice</string>
+    <string name="feature_settings_impl_settings_row_consent_read_only">Read only</string>
+    <string name="feature_settings_impl_settings_row_consent_read_only_dated">Read only · you agreed on %1$s</string>
+    <string name="feature_settings_impl_settings_row_grievance">Grievance contact</string>
+    <string name="feature_settings_impl_settings_grievance_address">Contact not set in this build</string>
+    <string name="feature_settings_impl_settings_address_pending">Copy pending</string>
 
-    <string name="feature_settings_impl_settings_row_privacy_policy_title">Privacy policy</string>
-    <string name="feature_settings_impl_settings_row_privacy_policy_offline_supporting">Opens in your browser. Needs a connection.</string>
-    <string name="feature_settings_impl_settings_row_privacy_policy_address_missing">No privacy policy address is set in this build.</string>
+    <string name="feature_settings_impl_settings_about_promise">We never invent anything about you.</string>
+    <string name="feature_settings_impl_settings_about_version">HireHop for Android · version %1$s</string>
+    <string name="feature_settings_impl_settings_about_version_missing">HireHop for Android</string>
 
-    <string name="feature_settings_impl_settings_row_consent_notice_title">Consent notice</string>
-    <string name="feature_settings_impl_settings_row_consent_notice_supporting">Read only. The notice you agreed to.</string>
+    <string name="feature_settings_impl_settings_row_delete_account">Delete account</string>
+    <string name="feature_settings_impl_settings_delete_web_lead">You can also delete your account on the web:</string>
+    <string name="feature_settings_impl_settings_delete_web_address">Address not set in this build</string>
 
-    <string name="feature_settings_impl_settings_row_grievance_title">Grievance contact</string>
-    <string name="feature_settings_impl_settings_row_grievance_address_missing">No grievance contact is set in this build. Add one before you ship.</string>
-
-    <string name="feature_settings_impl_settings_row_promise">We never invent anything about you.</string>
-
-    <string name="feature_settings_impl_settings_row_version_title">Version</string>
-    <string name="feature_settings_impl_settings_row_version_missing">This build does not record a version number.</string>
-
-    <string name="feature_settings_impl_settings_row_delete_account_title">Delete account</string>
-    <string name="feature_settings_impl_settings_row_delete_account_supporting">Your profile, applications, and credits</string>
-    <string name="feature_settings_impl_settings_row_delete_account_offline_supporting">Needs a connection.</string>
-    <string name="feature_settings_impl_settings_row_delete_account_web">You can also delete your account on the web:</string>
-    <string name="feature_settings_impl_settings_row_delete_account_web_missing">No web address is set in this build.</string>
+    <string name="feature_settings_impl_settings_sign_out_title">Sign out of HireHop?</string>
+    <string name="feature_settings_impl_settings_sign_out_body">Your facts and applications stay in your account. Sign in with %1$s to see them again.</string>
+    <string name="feature_settings_impl_settings_sign_out_body_no_email">Your facts and applications stay in your account. Sign in again to see them.</string>
+    <string name="feature_settings_impl_settings_sign_out_confirm">Sign out</string>
+    <string name="feature_settings_impl_settings_sign_out_cancel">Stay signed in</string>
 </resources>

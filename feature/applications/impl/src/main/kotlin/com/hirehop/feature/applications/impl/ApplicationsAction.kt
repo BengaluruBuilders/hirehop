@@ -5,7 +5,9 @@ import com.hirehop.core.model.ApplicationStatus
 sealed interface ApplicationsAction {
     data class ApplicationChosen(val id: String) : ApplicationsAction
 
-    data object NewApplicationChosen : ApplicationsAction
+    data object PasteJobChosen : ApplicationsAction
+
+    data object CreditsChosen : ApplicationsAction
 
     data class StatusChipChosen(val id: String) : ApplicationsAction
 

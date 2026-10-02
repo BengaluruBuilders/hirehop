@@ -11,10 +11,8 @@ fun ApplicationStatusChip(
     status: ApplicationStatus,
     modifier: Modifier = Modifier,
 ) {
-    HhApplicationStatusChip(
-        kind = ApplicationStatusKindMapper().kindOf(status),
-        modifier = modifier,
-    )
+    val kind = ApplicationStatusKindMapper().kindOf(status)
+    HhApplicationStatusChip(kind = kind, modifier = modifier, label = kind.label())
 }
 
 @Composable
@@ -22,8 +20,6 @@ fun ApplicationStatusChip(
     application: JobApplication,
     modifier: Modifier = Modifier,
 ) {
-    HhApplicationStatusChip(
-        kind = ApplicationStatusKindMapper().kindOf(application),
-        modifier = modifier,
-    )
+    val kind = ApplicationStatusKindMapper().kindOf(application)
+    HhApplicationStatusChip(kind = kind, modifier = modifier, label = kind.label())
 }

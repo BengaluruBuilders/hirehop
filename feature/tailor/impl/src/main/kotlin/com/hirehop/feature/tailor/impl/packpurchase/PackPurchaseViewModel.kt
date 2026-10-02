@@ -2,24 +2,34 @@ package com.hirehop.feature.tailor.impl.packpurchase
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PaymentGateway
-import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseResult
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.tailor.api.navigation.PackPurchaseNavKey
+import com.hirehop.feature.tailor.impl.credits.formattedDate
+import com.hirehop.feature.tailor.impl.credits.formattedPrice
+import com.hirehop.feature.tailor.impl.exportpreview.PendingExportStart
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Clock
 
 @HiltViewModel
-class PackPurchaseViewModel @Inject constructor(
+internal class PackPurchaseViewModel @Inject constructor(
     private val paymentGateway: PaymentGateway,
+    private val applicationRepository: ApplicationRepository,
+    private val connectivityMonitor: ConnectivityMonitor,
+    private val pendingExportStart: PendingExportStart,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(PackPurchaseUiState())
@@ -30,6 +40,10 @@ class PackPurchaseViewModel @Inject constructor(
 
     private var requestedPackId: String = ""
 
+    private var applicationId: String = ""
+
+    private var startExportOnReturn: Boolean = false
+
     val uiState: StateFlow<PackPurchaseUiState> = mutableState.asStateFlow()
 
     fun onEnter(key: PackPurchaseNavKey) {
@@ -37,168 +51,141 @@ class PackPurchaseViewModel @Inject constructor(
         hasEntered = true
         scenario = key.scenario
         requestedPackId = key.packId
+        applicationId = key.applicationId
+        startExportOnReturn = key.startExportOnReturn
         mutableState.value = PackPurchaseUiState(
-            stage = packPurchaseStageFor(key.scenario),
+            stage = PackPurchaseStage.LOADING,
             selectedPackId = key.packId,
             isOffline = packPurchaseIsOffline(key.scenario),
+            hasApplication = key.applicationId.isNotBlank(),
         )
         if (packPurchaseIsStatic(key.scenario)) return
+        observeCredits()
+        observeConnectivity()
         viewModelScope.launch { load() }
     }
 
     fun onAction(action: PackPurchaseAction) {
         when (action) {
-            is PackPurchaseAction.SelectPack -> onSelectPack(action.packId)
             is PackPurchaseAction.Buy -> onBuy(action.packId)
-            PackPurchaseAction.Restore -> onRestore()
-            PackPurchaseAction.Dismiss -> onDismiss()
+            PackPurchaseAction.RetryBuy -> mutableState.value.selectedPack?.let { pack -> onBuy(pack.id) }
+            PackPurchaseAction.ReloadPacks -> onReload()
+            PackPurchaseAction.ReturnAfterPurchase -> onReturnAfterPurchase()
+        }
+    }
+
+    private fun observeCredits() {
+        viewModelScope.launch {
+            paymentGateway.observeEntitlement().collect { entitlement ->
+                mutableState.update { state -> state.copy(totalCredits = entitlement.totalCredits) }
+            }
+        }
+    }
+
+    private fun observeConnectivity() {
+        if (packPurchaseIsOffline(scenario)) return
+        viewModelScope.launch {
+            connectivityMonitor.isOnline.collect { online ->
+                mutableState.update { state -> state.copy(isOffline = !online) }
+            }
         }
     }
 
     private suspend fun load() {
-        if (packPurchaseHidesCatalogue(scenario)) {
-            mutableState.value = mutableState.value.copy(
-                stage = PackPurchaseStage.FAILED,
-                packs = emptyList(),
-                entitlement = null,
-                failureReason = null,
-                isOffline = packPurchaseIsOffline(scenario),
-            )
+        loadJob()
+        val packs = if (packPurchaseHidesCatalogue(scenario)) null else runCatching { paymentGateway.packs() }.getOrNull()
+        if (packs == null) {
+            mutableState.update { state ->
+                state.copy(stage = PackPurchaseStage.FAILED, packs = emptyList(), failureReason = null)
+            }
             return
         }
-        val packs = runCatching { paymentGateway.packs() }.getOrNull()
-        val entitlement = if (packs == null) null else runCatching { paymentGateway.entitlement() }.getOrNull()
-        if (packs == null || entitlement == null) {
-            mutableState.value = mutableState.value.copy(
-                stage = PackPurchaseStage.FAILED,
-                packs = emptyList(),
-                entitlement = null,
-                failureReason = null,
-                isOffline = packPurchaseIsOffline(scenario),
-            )
-            return
-        }
-        val visiblePacks = if (packPurchaseShowsNoPacks(scenario)) emptyList() else packs
-        val selectedId = selectedPackIdFor(packs = packs, requestedPackId = requestedPackId)
-        mutableState.value = mutableState.value.copy(
-            stage = packPurchaseStageFor(scenario = scenario),
-            packs = visiblePacks,
-            selectedPackId = selectedId,
-            entitlement = seededEntitlement(
-                entitlement = entitlement,
+        mutableState.update { state ->
+            state.copy(
+                stage = PackPurchaseStage.READY,
                 packs = packs,
-                selectedPackId = selectedId,
-                scenario = scenario,
-            ),
-            failureReason = null,
-            isOffline = packPurchaseIsOffline(scenario),
-        )
+                selectedPackId = selectedPackIdFor(packs = packs),
+                failureReason = null,
+            )
+        }
     }
 
-    private fun onSelectPack(packId: String) {
+    private suspend fun loadJob() {
+        if (applicationId.isBlank()) return
+        val application = applicationRepository.observeApplication(applicationId).first() ?: return
         mutableState.update { state ->
-            val known = state.packs.any { pack -> pack.id == packId }
-            if (known) state.copy(selectedPackId = packId) else state
+            state.copy(jobTitle = application.job.title, jobCompany = application.job.company)
         }
+    }
+
+    private fun onReturnAfterPurchase() {
+        if (startExportOnReturn && applicationId.isNotBlank() && mutableState.value.stage == PackPurchaseStage.SUCCESS) {
+            pendingExportStart.request(applicationId)
+        }
+    }
+
+    private fun onReload() {
+        mutableState.update { state -> state.copy(stage = PackPurchaseStage.LOADING, failureReason = null) }
+        viewModelScope.launch { load() }
     }
 
     private fun onBuy(packId: String) {
         val state = mutableState.value
-        if (state.isBuying) return
-        mutableState.value = state.copy(
-            stage = PackPurchaseStage.PURCHASING,
-            selectedPackId = packId,
-            failureReason = null,
-        )
-        viewModelScope.launch {
-            val result = runCatching { paymentGateway.purchase(packId) }.getOrNull()
-            mutableState.value = if (result == null) {
-                state.copy(
-                    stage = PackPurchaseStage.FAILED,
-                    failureReason = PurchaseFailureReason.PaymentUnavailable,
-                )
-            } else {
-                stateFor(result = result)
-            }
-        }
-    }
-
-    private fun onRestore() {
-        val state = mutableState.value
-        if (state.isRestoring) return
-        mutableState.value = state.copy(stage = PackPurchaseStage.RESTORING, failureReason = null)
-        viewModelScope.launch {
-            val restored = runCatching { paymentGateway.restorePurchases() }.getOrNull()
-            mutableState.value = if (restored == null) {
-                state.copy(
-                    stage = PackPurchaseStage.FAILED,
-                    failureReason = PurchaseFailureReason.PurchaseUnavailable,
-                )
-            } else {
-                state.copy(
-                    stage = PackPurchaseStage.RESTORED,
-                    entitlement = restored,
-                    failureReason = null,
-                )
-            }
-        }
-    }
-
-    private fun onDismiss() {
-        mutableState.update { state ->
-            state.copy(
-                stage = if (state.isOffline) PackPurchaseStage.OFFLINE else PackPurchaseStage.READY,
+        val pack = state.packs.firstOrNull { candidate -> candidate.id == packId }
+        val buyable = state.stage == PackPurchaseStage.READY || state.stage == PackPurchaseStage.CANCELLED ||
+            state.stage == PackPurchaseStage.FAILED
+        if (pack == null || state.isOffline || !buyable) return
+        mutableState.update { current ->
+            current.copy(
+                stage = PackPurchaseStage.PURCHASING,
+                selectedPackId = packId,
+                creditsBefore = current.totalCredits,
                 failureReason = null,
             )
         }
-    }
-
-    private fun stateFor(result: PurchaseResult): PackPurchaseUiState = when (result) {
-        is PurchaseResult.Completed -> mutableState.value.copy(
-            stage = PackPurchaseStage.SUCCESS,
-            entitlement = result.entitlement,
-            failureReason = null,
-        )
-        is PurchaseResult.Pending -> mutableState.value.copy(
-            stage = PackPurchaseStage.PENDING,
-            entitlement = result.entitlement,
-            failureReason = null,
-        )
-        is PurchaseResult.Cancelled -> mutableState.value.copy(
-            stage = PackPurchaseStage.CANCELLED,
-            failureReason = null,
-        )
-        is PurchaseResult.Failed -> mutableState.value.copy(
-            stage = PackPurchaseStage.FAILED,
-            entitlement = result.entitlement,
-            failureReason = result.reason,
-        )
-    }
-
-    private fun seededEntitlement(
-        entitlement: PurchaseEntitlement,
-        packs: List<ApplicationPack>,
-        selectedPackId: String,
-        scenario: DebugScenario,
-    ): PurchaseEntitlement {
-        val purchased = entitlement.purchasedCredits + creditsOf(packs = packs, selectedPackId = selectedPackId)
-        return when {
-            packPurchaseSeedsRecordedPurchase(scenario) -> entitlement.copy(purchasedCredits = purchased)
-            packPurchaseSeedsPartlyUsed(scenario) -> entitlement.copy(
-                freeCredits = 0,
-                purchasedCredits = purchased,
-            )
-            else -> entitlement
+        viewModelScope.launch {
+            val result = runCatching { paymentGateway.purchase(packId) }.getOrNull()
+            mutableState.update { current -> stateFor(current = current, pack = pack, result = result) }
+            if (result is PurchaseResult.Completed) recordReceipt(pack)
         }
     }
 
-    private fun creditsOf(packs: List<ApplicationPack>, selectedPackId: String): Int {
-        val pack = packs.firstOrNull { candidate -> candidate.id == selectedPackId }
-            ?: packs.firstOrNull()
-        return pack?.credits ?: 0
+    private suspend fun recordReceipt(pack: ApplicationPack) {
+        val record = runCatching { paymentGateway.purchaseHistory() }.getOrNull()
+            ?.firstOrNull { entry -> entry.packId == pack.id }
+        val receipt = PackPurchaseReceipt(
+            credits = pack.credits,
+            formattedPrice = pack.formattedPrice(),
+            formattedDate = (record?.purchasedAt ?: clock.now()).formattedDate(),
+        )
+        mutableState.update { state -> state.copy(receipt = receipt) }
     }
 
-    private fun selectedPackIdFor(packs: List<ApplicationPack>, requestedPackId: String): String = when {
+    private fun stateFor(
+        current: PackPurchaseUiState,
+        pack: ApplicationPack,
+        result: PurchaseResult?,
+    ): PackPurchaseUiState = when (result) {
+        is PurchaseResult.Completed -> current.copy(
+            stage = PackPurchaseStage.SUCCESS,
+            totalCredits = result.entitlement.totalCredits,
+            receipt = PackPurchaseReceipt(
+                credits = pack.credits,
+                formattedPrice = pack.formattedPrice(),
+                formattedDate = clock.now().formattedDate(),
+            ),
+        )
+
+        is PurchaseResult.Pending -> current.copy(stage = PackPurchaseStage.PENDING)
+        PurchaseResult.Cancelled -> current.copy(stage = PackPurchaseStage.CANCELLED)
+        is PurchaseResult.Failed -> current.copy(stage = PackPurchaseStage.FAILED, failureReason = result.reason)
+        null -> current.copy(
+            stage = PackPurchaseStage.FAILED,
+            failureReason = PurchaseFailureReason.PaymentUnavailable,
+        )
+    }
+
+    private fun selectedPackIdFor(packs: List<ApplicationPack>): String = when {
         packs.any { pack -> pack.id == requestedPackId } -> requestedPackId
         else -> packs.firstOrNull()?.id.orEmpty()
     }

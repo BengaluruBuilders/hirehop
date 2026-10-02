@@ -1,54 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="feature_tailor_impl_title_review">Review changes</string>
-    <string name="feature_tailor_impl_title_preview">Preview</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="feature_tailor_impl_title_review">Tailored resume</string>
+    <string name="feature_tailor_impl_job_subtitle">%1$s · %2$s</string>
+    <string name="feature_tailor_impl_role_not_set">Role not set</string>
+    <string name="feature_tailor_impl_company_not_set">Company not set</string>
     <string name="feature_tailor_impl_back">Back</string>
-    <string name="feature_tailor_impl_loading">Loading your resume</string>
+    <string name="feature_tailor_impl_not_found_title">We could not find this resume</string>
     <string name="feature_tailor_impl_not_found">We could not find this application or your profile.</string>
-    <string name="feature_tailor_impl_progress">%1$d of %2$d changes reviewed</string>
-    <string name="feature_tailor_impl_honesty">Every experience line comes from your confirmed profile.</string>
-    <string name="feature_tailor_impl_accept_all">Accept all safe changes</string>
-    <string name="feature_tailor_impl_accept">Accept</string>
-    <string name="feature_tailor_impl_reject">Reject</string>
-    <string name="feature_tailor_impl_decision_accepted">Accepted: your resume uses this change.</string>
-    <string name="feature_tailor_impl_decision_rejected">Rejected: your resume keeps your original text and position.</string>
-    <string name="feature_tailor_impl_decision_pending">Not reviewed yet: your resume keeps your original text and position.</string>
-    <string name="feature_tailor_impl_original">Original</string>
-    <string name="feature_tailor_impl_proposed">Proposed</string>
-    <string name="feature_tailor_impl_based_on">Based on: %1$s</string>
-    <string name="feature_tailor_impl_no_change">No change needed</string>
-    <string name="feature_tailor_impl_violation_warning">We kept your original wording because the suggestion was not supported by your profile.</string>
-    <string name="feature_tailor_impl_edit_reworded">Reworded</string>
-    <string name="feature_tailor_impl_edit_reordered">Moved up</string>
-    <string name="feature_tailor_impl_edit_shortened">Shortened</string>
-    <string name="feature_tailor_impl_edit_emphasised">Emphasised</string>
-    <string name="feature_tailor_impl_edit_merged">Merged</string>
-    <string name="feature_tailor_impl_violation_missing_source">The suggestion did not cite a fact from your profile.</string>
-    <string name="feature_tailor_impl_violation_number">The number %1$s is not in your profile.</string>
-    <string name="feature_tailor_impl_violation_term">The term \"%1$s\" is not in your profile.</string>
-    <string name="feature_tailor_impl_violation_verb">The verb changed from \"%1$s\" to \"%2$s\". That claims a bigger role.</string>
-    <string name="feature_tailor_impl_violation_scale">The phrase \"%1$s\" claims a scale that your profile does not support.</string>
-    <string name="feature_tailor_impl_preview_action">Preview</string>
-    <string name="feature_tailor_impl_review_action">Back to review</string>
-    <string name="feature_tailor_impl_preview_note">This is your resume as the PDF will show it. Rejected and unreviewed changes keep your original wording.</string>
-    <string name="feature_tailor_impl_export">Export PDF</string>
-    <string name="feature_tailor_impl_exporting">Creating your PDF</string>
-    <string name="feature_tailor_impl_export_failed">We could not create the PDF. Try again.</string>
-    <string name="feature_tailor_impl_share_chooser">Share your resume</string>
-    <string name="feature_tailor_impl_share_subject">Resume: %1$s</string>
-    <string name="feature_tailor_impl_position_only">Only the position of this line changes. The wording stays the same.</string>
-    <string name="feature_tailor_impl_stale_title">Your profile changed since tailoring</string>
-    <string name="feature_tailor_impl_stale_body">We do not use this suggestion. Your resume uses the current text from your profile.</string>
-    <string name="feature_tailor_impl_changed_words">Added or changed words: %1$s</string>
-    <string name="feature_tailor_impl_removed_words">Removed or changed words: %1$s</string>
-    <string name="feature_tailor_impl_accept_description">Accept: %1$s</string>
-    <string name="feature_tailor_impl_reject_description">Reject: %1$s</string>
+    <string name="feature_tailor_impl_progress_value">%1$d of %2$d</string>
+    <string name="feature_tailor_impl_no_changes">No lines changed. Every line comes from your facts.</string>
     <string name="feature_tailor_impl_changes_reviewed">changes reviewed</string>
+    <string name="feature_tailor_impl_progress_description" tools:ignore="PluralsCandidate">%1$d of %2$d changes reviewed</string>
     <plurals name="feature_tailor_impl_flagged">
         <item quantity="one">%1$d flagged</item>
         <item quantity="other">%1$d flagged</item>
     </plurals>
-    <string name="feature_tailor_impl_keywords_used">JD keywords used</string>
-    <string name="feature_tailor_impl_backed_by_facts">Backed by facts: %1$s</string>
-    <string name="feature_tailor_impl_actions">Actions: %1$s</string>
+    <string name="feature_tailor_impl_all_reviewed" tools:ignore="PluralsCandidate">%1$d of %2$d reviewed. Every line in this resume traces to your facts.</string>
+    <string name="feature_tailor_impl_skills_heading">Skills</string>
+    <string name="feature_tailor_impl_section_experience">Experience</string>
+    <string name="feature_tailor_impl_section_projects">Projects</string>
+    <string name="feature_tailor_impl_section_certifications">Certifications</string>
+    <string name="feature_tailor_impl_section_achievements">Achievements</string>
+    <string name="feature_tailor_impl_section_education">Education</string>
+    <string name="feature_tailor_impl_entry_title">%1$s · %2$s</string>
+    <string name="feature_tailor_impl_not_added_title">Not added to your resume</string>
+    <plurals name="feature_tailor_impl_not_added_body">
+        <item quantity="one">%1$d JD need has no evidence in your profile, so we left it out: %2$s. You can add it to your prep plan from the gap analysis.</item>
+        <item quantity="other">%1$d JD needs have no evidence in your profile, so we left them out: %2$s. You can add them to your prep plan from the gap analysis.</item>
+    </plurals>
+    <string name="feature_tailor_impl_to_prepare">To prepare</string>
+    <string name="feature_tailor_impl_state_to_review">To review</string>
+    <string name="feature_tailor_impl_state_flagged">Flagged · to review</string>
+    <string name="feature_tailor_impl_state_accepted">Accepted</string>
+    <string name="feature_tailor_impl_state_original_kept">Original kept</string>
+    <string name="feature_tailor_impl_state_user_edited">User-edited</string>
+    <string name="feature_tailor_impl_state_source_changed">Source changed</string>
+    <string name="feature_tailor_impl_line_description">%1$s. %2$s. Source %3$s. Opens the change.</string>
+    <string name="feature_tailor_impl_source_description">Source %1$s</string>
+    <string name="feature_tailor_impl_decide_note">Decide on every change before you export. We never export a line you haven\'t reviewed.</string>
+    <plurals name="feature_tailor_impl_changes_left">
+        <item quantity="one">%1$d change left to review</item>
+        <item quantity="other">%1$d changes left to review</item>
+    </plurals>
+    <string name="feature_tailor_impl_preview_export">Preview export</string>
+    <string name="feature_tailor_impl_offline_message">You\'re offline. You can review this saved result. Your decisions sync when you\'re back.</string>
+    <string name="feature_tailor_impl_regenerations_used">You\'ve used both included regenerations for this application. You can still edit any line by hand.</string>
+    <string name="feature_tailor_impl_section_options">%1$s section options</string>
+    <string name="feature_tailor_impl_menu_regenerate">Regenerate this section</string>
+    <string name="feature_tailor_impl_menu_regenerate_left" tools:ignore="PluralsCandidate">%1$d of %2$d included left</string>
+    <string name="feature_tailor_impl_menu_regenerate_none">No included regenerations left</string>
+    <string name="feature_tailor_impl_menu_report">Report inaccurate content</string>
+    <string name="feature_tailor_impl_menu_reported">Reported</string>
+    <string name="feature_tailor_impl_regenerate_title">Regenerate %1$s?</string>
+    <plurals name="feature_tailor_impl_regenerate_message">
+        <item quantity="one">This uses %2$d of your %3$d included regenerations for this application. The %1$d line in this section goes back to “To review”. Your facts don’t change.</item>
+        <item quantity="other">This uses %2$d of your %3$d included regenerations for this application. The %1$d lines in this section go back to “To review”. Your facts don’t change.</item>
+    </plurals>
+    <string name="feature_tailor_impl_regenerate_confirm">Regenerate · uses %1$d of %2$d</string>
+    <string name="feature_tailor_impl_regenerate_cancel">Keep this section</string>
+    <string name="feature_tailor_impl_report_thanks">Thanks. We will check this.</string>
+    <string name="feature_tailor_impl_loading_caption">Up to 60 seconds · runs in the background</string>
+    <string name="feature_tailor_impl_loading_step_pick">Picking your facts for this JD</string>
+    <string name="feature_tailor_impl_loading_step_pick_detail" tools:ignore="PluralsCandidate">%1$d facts match this JD</string>
+    <string name="feature_tailor_impl_loading_step_write">Rewriting for this JD</string>
+    <string name="feature_tailor_impl_loading_step_write_detail" tools:ignore="PluralsCandidate">%1$d lines so far</string>
+    <string name="feature_tailor_impl_loading_step_check">Checking every line</string>
+    <string name="feature_tailor_impl_loading_footnote">You can leave. Your result will be here when you come back.</string>
+    <string name="feature_tailor_impl_loading_leave">Leave · I\'ll come back</string>
+    <string name="feature_tailor_impl_failed_title">That did not work</string>
+    <string name="feature_tailor_impl_failed_body">We couldn’t finish. Your profile and analysis are safe. Try again.</string>
+    <string name="feature_tailor_impl_failed_back">Back to analysis</string>
+    <string name="feature_tailor_impl_failed_retry">Try again</string>
+    <string name="feature_tailor_impl_toast_accepted" tools:ignore="PluralsCandidate">Change %1$d accepted and filed</string>
+    <string name="feature_tailor_impl_toast_undo">Undo</string>
 </resources>

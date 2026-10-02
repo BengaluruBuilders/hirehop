@@ -1,45 +1,47 @@
 package com.hirehop.feature.analysis.impl
 
+import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.core.model.CandidateProfile
-import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 
-internal fun AnalysisSession.Ready.toResultState(
+internal fun List<RequirementMatch>.toSections(
     profile: CandidateProfile,
-    error: AnalysisError?,
-): AnalysisUiState.Result {
+    prepRequirementIds: Set<String>,
+    reportedRequirementIds: Set<String>,
+): List<RequirementSection> {
     val resolver = EvidenceResolver(profile)
-    val items = analysis.gap.matches.map { match ->
-        match.toItem(resolver, isInPrepPlan = match.requirement.id in prepRequirementIds)
+    val items = map { match ->
+        match.toItem(
+            resolver = resolver,
+            isInPrepPlan = match.requirement.id in prepRequirementIds,
+            isReported = match.requirement.id in reportedRequirementIds,
+        )
     }
-    return AnalysisUiState.Result(
-        title = title,
-        company = company,
-        keywordCoverage = analysis.gap.keywordCoverage,
-        sections = items.toSections(),
-        prepPlanCount = prepRequirements().size,
-        canSave = title.isNotBlank(),
-        error = error,
-    )
-}
-
-private fun RequirementMatch.toItem(resolver: EvidenceResolver, isInPrepPlan: Boolean) = RequirementItem(
-    requirement = requirement,
-    status = status,
-    evidence = if (status == MatchStatus.GAP) emptyList() else resolver.resolve(evidenceIds),
-    isInPrepPlan = isInPrepPlan,
-    factRefs = if (status == MatchStatus.GAP) emptyList() else resolver.factRefsOf(evidenceIds),
-)
-
-private fun List<RequirementItem>.toSections(): List<RequirementSection> =
-    RequirementGroup.entries.mapNotNull { group ->
-        filter { it.group() == group }
+    return RequirementGroup.entries.mapNotNull { group ->
+        items.filter { it.group() == group }
             .takeIf { it.isNotEmpty() }
             ?.let { RequirementSection(group, it) }
     }
+}
+
+private fun RequirementMatch.toItem(
+    resolver: EvidenceResolver,
+    isInPrepPlan: Boolean,
+    isReported: Boolean,
+): RequirementItem {
+    val isGap = status == MatchStatus.GAP
+    return RequirementItem(
+        requirement = requirement,
+        status = status,
+        skills = if (isGap) emptyList() else resolver.skillsOf(evidenceIds),
+        isInPrepPlan = isInPrepPlan,
+        isReported = isReported,
+        factRefs = if (isGap) emptyList() else resolver.factRefsOf(evidenceIds),
+    )
+}
 
 private fun RequirementItem.group(): RequirementGroup = when (status) {
     MatchStatus.MET -> RequirementGroup.Met
@@ -50,7 +52,7 @@ private fun RequirementItem.group(): RequirementGroup = when (status) {
     }
 }
 
-internal class EvidenceResolver(profile: CandidateProfile) {
+internal class EvidenceResolver(private val profile: CandidateProfile) {
     private val bulletTextById: Map<String, String> = profile.entries
         .flatMap { it.bullets }
         .associate { it.id to it.text }
@@ -61,28 +63,33 @@ internal class EvidenceResolver(profile: CandidateProfile) {
 
     private val entryById: Map<String, ProfileEntry> = profile.entries.associateBy { it.id }
 
-    fun resolve(evidenceIds: List<String>): List<String> = evidenceIds.mapNotNull { id ->
-        if (id.startsWith(SKILL_ID_PREFIX)) {
-            "Skill: ${id.removePrefix(SKILL_ID_PREFIX)}"
-        } else {
-            bulletTextById[id]
+    fun skillsOf(evidenceIds: List<String>): List<String> = evidenceIds
+        .filter { it.startsWith(SKILL_ID_PREFIX) }
+        .map { it.removePrefix(SKILL_ID_PREFIX) }
+
+    fun factRefsOf(evidenceIds: List<String>): List<RequirementFactRef> {
+        val linesByEntry = linkedMapOf<ProfileEntry, MutableList<String>>()
+        evidenceIds.filterNot { it.startsWith(SKILL_ID_PREFIX) }.forEach { id ->
+            val entry = entryByBulletId[id] ?: entryById[id] ?: return@forEach
+            val lines = linesByEntry.getOrPut(entry) { mutableListOf() }
+            bulletTextById[id]?.let(lines::add)
         }
+        return linesByEntry.map { (entry, lines) -> entry.toRef(lines) }
     }
 
-    fun factRefsOf(evidenceIds: List<String>): List<RequirementFactRef> = evidenceIds.mapNotNull { id ->
-        if (id.startsWith(SKILL_ID_PREFIX)) {
-            null
-        } else {
-            val entry = entryByBulletId[id] ?: entryById[id]
-            val text = bulletTextById[id] ?: entry?.title
-            entry?.let { resolved -> text?.let { line -> RequirementFactRef(resolved.id, line, resolved.source, resolved.isConfirmed) } }
-        }
-    }
+    private fun ProfileEntry.toRef(lines: List<String>) = RequirementFactRef(
+        factId = id,
+        displayId = FactDisplayIds.of(this, profile.entries),
+        title = title,
+        organization = organization,
+        startDate = startDate,
+        endDate = endDate,
+        lines = lines,
+        source = source,
+        isConfirmed = isConfirmed,
+    )
 
     private companion object {
         const val SKILL_ID_PREFIX = "skill:"
     }
 }
-
-internal fun prepPlanNotes(requirements: List<JobRequirement>): String =
-    requirements.joinToString(separator = "\n") { "Prep: ${it.text}" }

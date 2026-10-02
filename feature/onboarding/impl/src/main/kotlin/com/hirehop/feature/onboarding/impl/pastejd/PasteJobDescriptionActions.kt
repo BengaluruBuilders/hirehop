@@ -3,6 +3,8 @@ package com.hirehop.feature.onboarding.impl.pastejd
 sealed interface PasteJobDescriptionAction {
     data class TextChanged(val value: String) : PasteJobDescriptionAction
 
+    data class Pasted(val value: String) : PasteJobDescriptionAction
+
     data class CompanyChanged(val value: String) : PasteJobDescriptionAction
 
     data class RoleChanged(val value: String) : PasteJobDescriptionAction
@@ -15,15 +17,16 @@ sealed interface PasteJobDescriptionAction {
 
     data object DismissMessageTapped : PasteJobDescriptionAction
 
-    data object AnalysisRequestConsumed : PasteJobDescriptionAction
+    data object NextStepConsumed : PasteJobDescriptionAction
 }
 
 data class PasteJobDescriptionActions(
     val onTextChange: (String) -> Unit,
+    val onPaste: () -> Unit,
     val onCompanyChange: (String) -> Unit,
     val onRoleChange: (String) -> Unit,
     val onClear: () -> Unit,
     val onAnalyse: () -> Unit,
     val onRetry: () -> Unit,
-    val onDismissMessage: () -> Unit,
+    val onBack: () -> Unit,
 )

@@ -7,31 +7,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 
 @Composable
 internal fun SignInRoute(
     key: SignInNavKey,
-    onSkipToJobDescription: () -> Unit,
+    onBack: () -> Unit,
+    onNavigateToStep: (OnboardingStep) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) { viewModel.toActions() }
+    val actions = remember(viewModel, onBack) { viewModel.toActions(onBack) }
     LaunchedEffect(key) { viewModel.onEnter(key) }
-    SignInScreen(
-        uiState = uiState,
-        actions = actions,
-        onSkipToJobDescription = onSkipToJobDescription,
-        modifier = modifier,
-    )
+    LaunchedEffect(uiState.nextStep) {
+        val step = uiState.nextStep
+        if (step != null) {
+            viewModel.onAction(SignInAction.NextStepConsumed)
+            onNavigateToStep(step)
+        }
+    }
+    SignInScreen(uiState = uiState, actions = actions, modifier = modifier)
 }
 
-private fun SignInViewModel.toActions(): SignInActions = SignInActions(
+private fun SignInViewModel.toActions(onBack: () -> Unit): SignInActions = SignInActions(
     onAdultConfirmationChange = { isConfirmed -> onAction(SignInAction.AdultConfirmationChanged(isConfirmed)) },
+    onReferralCodeChange = { value -> onAction(SignInAction.ReferralCodeChanged(value)) },
     onContinue = { onAction(SignInAction.Continue) },
-    onNotNow = { onAction(SignInAction.NotNow) },
-    onRevisit = { onAction(SignInAction.Revisit) },
     onUnderEighteen = { onAction(SignInAction.UnderEighteen) },
-    onBackFromUnderEighteen = { onAction(SignInAction.BackFromUnderEighteen) },
+    onBackFromUnderEighteen = {
+        onAction(SignInAction.BackFromUnderEighteen)
+        onBack()
+    },
+    onBack = onBack,
 )

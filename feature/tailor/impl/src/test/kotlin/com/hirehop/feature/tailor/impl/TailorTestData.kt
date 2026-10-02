@@ -7,6 +7,7 @@ import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
+import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.GuardrailViolation
 import com.hirehop.core.model.JobApplication
 import com.hirehop.core.model.JobDescription
@@ -69,13 +70,17 @@ internal fun testProfile(
     entries = entries,
 )
 
-internal fun testApplication(bullets: List<TailoredBullet>): JobApplication = JobApplication(
+internal fun testApplication(
+    bullets: List<TailoredBullet>,
+    gapAnalysis: GapAnalysis? = null,
+    entryIds: List<String>? = null,
+): JobApplication = JobApplication(
     id = "app-1",
     job = JobDescription(title = "Backend Engineer", company = "Acme", rawText = "", requirements = emptyList()),
     status = ApplicationStatus.SAVED,
     notes = "",
-    gapAnalysis = null,
-    tailoredResume = TailoredResume(bullets),
+    gapAnalysis = gapAnalysis,
+    tailoredResume = TailoredResume(bullets, entryIds),
     createdAt = Instant.fromEpochSeconds(0),
     updatedAt = Instant.fromEpochSeconds(0),
 )

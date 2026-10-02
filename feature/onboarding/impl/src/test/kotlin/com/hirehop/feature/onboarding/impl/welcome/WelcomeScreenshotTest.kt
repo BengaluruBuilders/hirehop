@@ -62,6 +62,14 @@ class WelcomeScreenshotTest {
     }
 
     @Test
+    fun heroRewritten_readsInLightAndDark() {
+        captureBothThemes(
+            screenName = "WelcomeHeroRewritten",
+            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.REWRITTEN),
+        )
+    }
+
+    @Test
     fun heroThreadDrawn_readsInLightAndDark() {
         captureBothThemes(
             screenName = "WelcomeHeroThreadDrawn",
@@ -70,10 +78,10 @@ class WelcomeScreenshotTest {
     }
 
     @Test
-    fun heroSettledWithReducedMotion_readsInLightAndDark() {
+    fun heroSettled_readsInLightAndDark() {
         captureBothThemes(
-            screenName = "WelcomeHeroReducedMotion",
-            uiState = WelcomeUiState(reduceMotion = true),
+            screenName = "WelcomeHeroSettled",
+            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.SETTLED),
         )
     }
 

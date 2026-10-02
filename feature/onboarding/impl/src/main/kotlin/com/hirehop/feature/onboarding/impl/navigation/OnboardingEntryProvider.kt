@@ -2,8 +2,10 @@ package com.hirehop.feature.onboarding.impl.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.navigation.Navigator
 import com.hirehop.feature.analysis.api.navigation.DefaultAnalysisNavKey
+import com.hirehop.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.hirehop.feature.onboarding.api.navigation.ConfirmFactsNavKey
 import com.hirehop.feature.onboarding.api.navigation.ConsentNavKey
 import com.hirehop.feature.onboarding.api.navigation.ImportResumeNavKey
@@ -21,6 +23,7 @@ import com.hirehop.feature.onboarding.impl.importresume.ImportResumeRoute
 import com.hirehop.feature.onboarding.impl.pastejd.PasteJobDescriptionRoute
 import com.hirehop.feature.onboarding.impl.signin.SignInRoute
 import com.hirehop.feature.onboarding.impl.welcome.WelcomeRoute
+import com.hirehop.feature.profile.api.navigation.FactEditorNavKey
 import com.hirehop.feature.profile.api.navigation.navigateToGuidedProfileForm
 
 fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
@@ -28,6 +31,8 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
         WelcomeRoute(
             key = key,
             onNavigateToPasteJobDescription = { navigator.navigateToPasteJobDescription() },
+            onNavigateToSignIn = { navigator.navigateToSignIn() },
+            onNavigateToConsent = { navigator.navigateToConsent() },
             onNavigateToImportResume = { navigator.navigateToImportResume() },
             onNavigateToBuildProfileStepByStep = { navigator.navigateToGuidedProfileForm() },
         )
@@ -36,26 +41,28 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
         PasteJobDescriptionRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
-            onAnalyseRequested = { navigator.navigateToSignIn() },
+            onNavigateToStep = { step -> navigator.navigateToStep(step) },
         )
     }
     entry<SignInNavKey> { key ->
         SignInRoute(
             key = key,
-            onSkipToJobDescription = { navigator.navigateToConsent() },
+            onBack = { navigator.goBack() },
+            onNavigateToStep = { step -> navigator.replaceWithStep(step) },
         )
     }
     entry<ConsentNavKey> { key ->
         ConsentRoute(
             key = key,
-            onSkipToJobDescription = { navigator.navigateToImportResume() },
+            onBack = { navigator.goBack() },
+            onNavigateToStep = { step -> navigator.replaceWithStep(step) },
         )
     }
     entry<ImportResumeNavKey> { key ->
         ImportResumeRoute(
             key = key,
             onBack = { navigator.goBack() },
-            onGoToGuidedForm = { navigator.navigateToGuidedProfileForm() },
+            onGoToGuidedForm = { resumedFromScan -> navigator.navigateToGuidedProfileForm(resumedFromScan) },
             onReviewFacts = { navigator.navigateToConfirmFacts() },
         )
     }
@@ -63,16 +70,29 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
         ConfirmFactsRoute(
             key = key,
             onBack = { navigator.goBack() },
-            onContinue = { navigator.navigate(DefaultAnalysisNavKey) },
-            onImportResume = { navigator.navigateToImportResume() },
+            onNavigateToStep = { step -> navigator.navigateToStep(step) },
+            onImportResume = { navigator.replace(ImportResumeNavKey()) },
             onEditFact = { factId, category ->
-                navigator.navigate(
-                    com.hirehop.feature.profile.api.navigation.FactEditorNavKey(
-                        entryId = factId,
-                        entryType = category,
-                    ),
-                )
+                navigator.navigate(FactEditorNavKey(entryId = factId, entryType = category))
             },
         )
     }
+}
+
+private fun Navigator.navigateToStep(step: OnboardingStep) {
+    navigate(step.toNavKey())
+}
+
+private fun Navigator.replaceWithStep(step: OnboardingStep) {
+    replace(step.toNavKey())
+}
+
+private fun OnboardingStep.toNavKey(): NavKey = when (this) {
+    OnboardingStep.SignIn -> SignInNavKey()
+    OnboardingStep.Consent -> ConsentNavKey()
+    OnboardingStep.ImportResume -> ImportResumeNavKey()
+    OnboardingStep.ConfirmFacts -> ConfirmFactsNavKey()
+    is OnboardingStep.GapAnalysis -> DefaultAnalysisNavKey
+    OnboardingStep.PasteJobDescription -> PasteJobDescriptionNavKey()
+    OnboardingStep.Applications -> DefaultApplicationsNavKey
 }

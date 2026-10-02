@@ -2,98 +2,118 @@ package com.hirehop.feature.settings.impl.deleteaccount
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.account.AccountDeletionCounts
 import com.hirehop.core.domain.account.AccountDeletionResult
 import com.hirehop.core.domain.account.AccountDeletionStep
 import com.hirehop.core.domain.account.DeleteAccountUseCase
+import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.navigation.PendingNavigation
+import com.hirehop.feature.settings.api.navigation.AccountDeletedNavKey
 import com.hirehop.feature.settings.api.navigation.DeleteAccountNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DeleteAccountViewModel @Inject constructor(
+    connectivityMonitor: ConnectivityMonitor,
+    private val sessionRepository: SessionRepository,
     private val deleteAccount: DeleteAccountUseCase,
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(DeleteAccountUiState())
+    private val snapshot = MutableStateFlow<Snapshot?>(null)
+
+    private val phase = MutableStateFlow(Phase())
 
     private var hasEntered = false
 
-    val uiState: StateFlow<DeleteAccountUiState> = mutableState.asStateFlow()
+    val uiState: StateFlow<DeleteAccountUiState> = combine(
+        snapshot,
+        phase,
+        connectivityMonitor.isOnline,
+    ) { snapshot, phase, isOnline ->
+        when {
+            snapshot == null -> DeleteAccountUiState.Loading
+            phase.stage == Stage.DELETING -> DeleteAccountUiState.Deleting(
+                counts = snapshot.counts,
+                accountEmail = snapshot.accountEmail,
+                step = phase.step,
+            )
+            else -> DeleteAccountUiState.Ready(
+                counts = snapshot.counts,
+                accountEmail = snapshot.accountEmail,
+                isOffline = !isOnline || phase.forcedOffline,
+                failure = phase.failure,
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        initialValue = DeleteAccountUiState.Loading,
+    )
 
     fun onEnter(key: DeleteAccountNavKey) {
         if (hasEntered) return
         hasEntered = true
-        mutableState.value = deleteAccountStateFor(
-            scenario = key.scenario,
-            counts = AccountDeletionCounts(profileFacts = 0, applications = 0, unusedCredits = 0),
-            isOffline = deleteAccountIsOffline(key.scenario),
-        )
+        phase.value = when (key.scenario) {
+            DebugScenario.OFFLINE -> Phase(forcedOffline = true)
+            DebugScenario.DELETING -> Phase(stage = Stage.DELETING, step = AccountDeletionStep.DELETING_PROFILE_FACTS)
+            DebugScenario.ERROR -> Phase(failure = DeleteAccountFailure.DATA_INTACT)
+            else -> Phase()
+        }
         viewModelScope.launch {
-            val counts = loadCounts()
-            mutableState.update { state ->
-                if (state.stage == DeleteAccountStage.DEFAULT) state.copy(counts = counts) else state
-            }
-        }
-    }
-
-    fun onAction(action: DeleteAccountAction) {
-        when (action) {
-            DeleteAccountAction.KeepAccountTapped -> Unit
-            DeleteAccountAction.DeleteAccountTapped -> onDeleteAccountTapped()
-            DeleteAccountAction.DownloadDataTapped -> select(DeleteAccountDestination.YOUR_DATA)
-            DeleteAccountAction.BackToWelcomeTapped -> select(DeleteAccountDestination.WELCOME)
-            DeleteAccountAction.DestinationConsumed -> mutableState.update { it.copy(destination = null) }
-        }
-    }
-
-    private fun onDeleteAccountTapped() {
-        if (!mutableState.value.isDeleteEnabled) return
-        mutableState.update { state ->
-            state.copy(
-                stage = DeleteAccountStage.DELETING,
-                steps = deleteAccountSteps(currentIndex = 0),
+            snapshot.value = Snapshot(
+                counts = deleteAccount.preview(),
+                accountEmail = sessionRepository.observeAccount().first()?.email,
             )
         }
-        viewModelScope.launch {
-            when (val result = deleteAccount(onStep = ::onStep)) {
-                is AccountDeletionResult.Deleted -> mutableState.update { state ->
-                    state.copy(
-                        stage = DeleteAccountStage.DONE,
-                        counts = result.counts,
-                        steps = deleteAccountSteps(currentIndex = AccountDeletionStep.entries.size),
-                    )
-                }
+    }
 
-                is AccountDeletionResult.Failed -> mutableState.update { state ->
-                    state.copy(
-                        stage = DeleteAccountStage.ERROR,
-                        isDataIntact = result.dataIntact,
-                        steps = deleteAccountSteps(currentIndex = 0),
-                    )
-                }
+    fun onDeleteTapped() {
+        val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
+        if (ready.isOffline) return
+        phase.update { Phase(stage = Stage.DELETING, step = AccountDeletionStep.entries.first()) }
+        PendingNavigation.set(listOf(AccountDeletedNavKey))
+        viewModelScope.launch {
+            val result = deleteAccount(onStep = ::onStep)
+            if (result is AccountDeletionResult.Failed) {
+                PendingNavigation.consume()
+                phase.update { Phase(failure = result.toFailure()) }
             }
         }
     }
+
+    private fun AccountDeletionResult.Failed.toFailure(): DeleteAccountFailure =
+        if (dataIntact) DeleteAccountFailure.DATA_INTACT else DeleteAccountFailure.PARTLY_DELETED
 
     private fun onStep(step: AccountDeletionStep) {
-        mutableState.update { state ->
-            state.copy(
-                steps = deleteAccountSteps(currentIndex = step.ordinal),
-            )
-        }
+        phase.update { current -> current.copy(step = step) }
     }
 
-    private fun select(destination: DeleteAccountDestination) {
-        mutableState.update { it.copy(destination = destination) }
-    }
+    private enum class Stage { READY, DELETING }
 
-    private suspend fun loadCounts(): AccountDeletionCounts =
-        runCatching { deleteAccount.preview() }
-            .getOrDefault(AccountDeletionCounts(profileFacts = 0, applications = 0, unusedCredits = 0))
+    private data class Snapshot(
+        val counts: AccountDeletionCounts,
+        val accountEmail: String?,
+    )
+
+    private data class Phase(
+        val stage: Stage = Stage.READY,
+        val step: AccountDeletionStep = AccountDeletionStep.entries.first(),
+        val failure: DeleteAccountFailure? = null,
+        val forcedOffline: Boolean = false,
+    )
+
+    private companion object {
+        const val STOP_TIMEOUT_MS = 5_000L
+    }
 }

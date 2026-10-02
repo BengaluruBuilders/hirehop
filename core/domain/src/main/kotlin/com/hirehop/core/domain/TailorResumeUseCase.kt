@@ -22,7 +22,10 @@ class TailorResumeUseCase @Inject constructor(
             .flatMap { it.bullets }
             .associateBy { it.id }
         val proposed = tailor.tailor(profile, job, gap)
-        return TailoredResume(proposed.bullets.mapNotNull { verified(it, confirmedSources, profile) })
+        return TailoredResume(
+            bullets = proposed.bullets.mapNotNull { verified(it, confirmedSources, profile) },
+            entryIds = profile.entries.filter { it.isConfirmed }.map { it.id },
+        )
     }
 
     private fun verified(

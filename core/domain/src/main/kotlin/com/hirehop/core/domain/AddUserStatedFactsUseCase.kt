@@ -5,6 +5,7 @@ import com.hirehop.core.domain.fact.AddFactsOutcome
 import com.hirehop.core.domain.fact.FactDraft
 import com.hirehop.core.domain.fact.FactDraftValidator
 import com.hirehop.core.domain.fact.FactIdAllocator
+import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
@@ -22,7 +23,7 @@ class AddUserStatedFactsUseCase @Inject constructor(
         if (drafts.isEmpty()) return AddFactsOutcome.NothingToAdd
         val errors = drafts.flatMap { FactDraftValidator.validate(it) }
         if (errors.isNotEmpty()) return AddFactsOutcome.Rejected(errors)
-        val profile = profileRepository.observeProfile().first() ?: return AddFactsOutcome.NothingToAdd
+        val profile = profileRepository.observeProfile().first() ?: blankProfile()
         val merged = drafts.fold(profile.entries) { entries, draft -> entries + newEntry(draft, entries) }
         profileRepository.saveProfile(profile.copy(entries = merged))
         return AddFactsOutcome.Added(merged.drop(profile.entries.size))
@@ -32,7 +33,7 @@ class AddUserStatedFactsUseCase @Inject constructor(
         val detail = draft.detail.trim()
         val bullet = if (detail.isEmpty()) null else EvidenceBullet(id = idGenerator.newId(), text = detail)
         return ProfileEntry(
-            id = idAllocator.nextId(draft.category, existing),
+            id = idAllocator.nextId(draft.category, existing, draft.title),
             category = draft.category,
             title = draft.title.trim(),
             organization = draft.organization.trim(),
@@ -40,9 +41,18 @@ class AddUserStatedFactsUseCase @Inject constructor(
             endDate = draft.endDate.trim(),
             bullets = listOfNotNull(bullet),
             source = FactSource.USER_STATED,
-            isConfirmed = false,
+            isConfirmed = true,
         )
     }
+
+    private fun blankProfile() = CandidateProfile(
+        fullName = "",
+        email = "",
+        phone = "",
+        headline = "",
+        skills = emptyList(),
+        entries = emptyList(),
+    )
 
     private fun FactDraft.hasContent(): Boolean =
         title.isNotBlank() ||

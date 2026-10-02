@@ -1,51 +1,45 @@
 package com.hirehop.feature.settings.impl.deleteaccount
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhButton
+import com.hirehop.core.designsystem.component.HhDestructiveButton
 import com.hirehop.core.designsystem.component.HhDivider
-import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSpotIllustration
-import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhStepProgress
+import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
+import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.domain.account.AccountDeletionCounts
 import com.hirehop.core.domain.account.AccountDeletionStep
-import com.hirehop.core.ui.component.DestructiveActionButton
 import com.hirehop.feature.settings.impl.R
+import com.hirehop.feature.settings.impl.common.SettingsAddressSlot
+import com.hirehop.feature.settings.impl.common.SettingsNeutralCallout
 
 @Composable
 internal fun DeleteAccountScreen(
@@ -53,37 +47,52 @@ internal fun DeleteAccountScreen(
     actions: DeleteAccountActions,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
+    HhScreen(
         modifier = modifier,
-        topBar = {
-            if (uiState.stage != DeleteAccountStage.DONE) {
-                HhTopAppBar(
-                    title = stringResource(R.string.feature_settings_impl_delete_account_screen_title),
-                    navigationIcon = if (uiState.isBackEnabled) HhIcons.ArrowBack else null,
-                    navigationIconContentDescription = stringResource(
-                        R.string.feature_settings_impl_delete_account_back_content_description,
-                    ),
-                    onNavigationClick = actions.onBack,
-                )
+        sheet = false,
+        header = { DeleteAccountHeader(uiState = uiState, onBack = actions.onBack) },
+        bottomBar = when (uiState) {
+            is DeleteAccountUiState.Ready -> {
+                { ReadyBar(uiState = uiState, actions = actions) }
             }
-        },
-        bottomBar = {
-            if (uiState.showsMainStage) {
-                DeleteAccountBottomBar(uiState = uiState, actions = actions)
-            }
+
+            else -> null
         },
     ) { padding ->
-        when {
-            uiState.showsMainStage -> DeleteAccountMain(uiState = uiState, actions = actions, padding = padding)
-            uiState.stage == DeleteAccountStage.DELETING -> DeleteAccountDeleting(uiState = uiState, padding = padding)
-            else -> DeleteAccountDone(actions = actions, padding = padding)
+        when (uiState) {
+            DeleteAccountUiState.Loading -> Unit
+            is DeleteAccountUiState.Ready -> ReadyContent(uiState = uiState, actions = actions, padding = padding)
+            is DeleteAccountUiState.Deleting -> DeletingContent(uiState = uiState, padding = padding)
         }
     }
 }
 
 @Composable
-private fun DeleteAccountMain(
-    uiState: DeleteAccountUiState,
+private fun DeleteAccountHeader(uiState: DeleteAccountUiState, onBack: () -> Unit) {
+    when (uiState) {
+        is DeleteAccountUiState.Deleting -> HhInnerHeader(
+            title = stringResource(R.string.feature_settings_impl_delete_account_title),
+            subtitle = uiState.accountEmail,
+        )
+
+        is DeleteAccountUiState.Ready -> HhInnerHeader(
+            title = stringResource(R.string.feature_settings_impl_delete_account_title),
+            subtitle = uiState.accountEmail,
+            onBack = onBack,
+            backContentDescription = stringResource(R.string.feature_settings_impl_delete_account_back),
+        )
+
+        DeleteAccountUiState.Loading -> HhInnerHeader(
+            title = stringResource(R.string.feature_settings_impl_delete_account_title),
+            onBack = onBack,
+            backContentDescription = stringResource(R.string.feature_settings_impl_delete_account_back),
+        )
+    }
+}
+
+@Composable
+private fun ReadyContent(
+    uiState: DeleteAccountUiState.Ready,
     actions: DeleteAccountActions,
     padding: PaddingValues,
 ) {
@@ -92,359 +101,193 @@ private fun DeleteAccountMain(
             .fillMaxSize()
             .padding(padding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d16)
-            .padding(top = HhTheme.spacing.d16, bottom = HhTheme.spacing.d16),
+            .padding(horizontal = HhTheme.spacing.gutter),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         if (uiState.isOffline) {
-            HhOfflineBanner(
-                message = stringResource(R.string.feature_settings_impl_delete_account_offline_banner),
-            )
+            OfflineCard()
         }
-        if (uiState.stage == DeleteAccountStage.ERROR) {
-            HhErrorCallout(
-                title = stringResource(R.string.feature_settings_impl_delete_account_error_title),
-                supportingText = stringResource(
-                    if (uiState.isDataIntact) {
-                        R.string.feature_settings_impl_delete_account_error_intact
-                    } else {
-                        R.string.feature_settings_impl_delete_account_error_partial
+        uiState.failure?.let { failure ->
+            SettingsNeutralCallout(
+                text = stringResource(
+                    when (failure) {
+                        DeleteAccountFailure.DATA_INTACT -> R.string.feature_settings_impl_delete_account_error_intact
+                        DeleteAccountFailure.PARTLY_DELETED -> R.string.feature_settings_impl_delete_account_error_partial
                     },
                 ),
             )
         }
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_headline),
-            style = HhTheme.typography.displayLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_deletes_lead),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        DeleteAccountCountCard(uiState = uiState)
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_not_undoable),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurface,
-        )
-        DeleteAccountDownloadLink(onClick = actions.onDownloadData)
-        DeleteAccountWebSlot()
-    }
-}
-
-@Composable
-private fun DeleteAccountCountCard(uiState: DeleteAccountUiState) {
-    val shape = RoundedCornerShape(HhTheme.shapes.md)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = HhTheme.colors.surface, shape = shape)
-            .border(width = 1.dp, color = HhTheme.colors.hairline, shape = shape),
-    ) {
-        DeleteAccountCountRow(
-            count = uiState.counts.profileFacts,
-            label = pluralStringResource(
-                R.plurals.feature_settings_impl_delete_account_row_facts,
-                uiState.counts.profileFacts,
-            ),
-        )
-        HhDivider()
-        DeleteAccountCountRow(
-            count = uiState.counts.applications,
-            label = pluralStringResource(
-                R.plurals.feature_settings_impl_delete_account_row_applications,
-                uiState.counts.applications,
-            ),
-        )
-        HhDivider()
-        DeleteAccountCountRow(
-            count = uiState.counts.unusedCredits,
-            label = pluralStringResource(
-                R.plurals.feature_settings_impl_delete_account_row_credits,
-                uiState.counts.unusedCredits,
-            ),
-        )
-    }
-}
-
-@Composable
-private fun DeleteAccountCountRow(
-    count: Int,
-    label: String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.d8),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        Text(
-            text = count.toString(),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-            modifier = Modifier.widthIn(min = 34.dp),
-        )
-        Text(
-            text = label,
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun DeleteAccountDownloadLink(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = HhTheme.spacing.d48)
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_download_first),
-            style = HhTheme.typography.titleMedium,
-            color = HhTheme.colors.primary,
-        )
-    }
-}
-
-@Composable
-private fun DeleteAccountWebSlot(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_web_lead),
-            style = HhTheme.typography.labelMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = HhTheme.colors.surfaceContainer,
-                        shape = RoundedCornerShape(HhTheme.shapes.xs),
-                    )
-                    .border(
-                        width = 1.dp,
-                        color = HhTheme.colors.onSurfaceVariant,
-                        shape = RoundedCornerShape(HhTheme.shapes.xs),
-                    )
-                    .padding(horizontal = HhTheme.spacing.d8, vertical = HhTheme.spacing.d2),
-            ) {
+        HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
                 Text(
-                    text = stringResource(R.string.feature_settings_impl_delete_account_web_address),
-                    style = HhTheme.typography.monoSmall,
-                    color = HhTheme.colors.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DeleteAccountDeleting(
-    uiState: DeleteAccountUiState,
-    padding: PaddingValues,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(horizontal = HhTheme.spacing.d24, vertical = HhTheme.spacing.d16),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d16),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_deleting_title),
-            style = HhTheme.typography.displayLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-        ) {
-            uiState.steps.forEach { step ->
-                DeleteAccountStepRow(step = step)
-            }
-        }
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_deleting_note),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun DeleteAccountStepRow(
-    step: DeleteAccountStepState,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = DELETE_ACCOUNT_STEP_MIN_HEIGHT),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        DeleteAccountStepMarker(step = step)
-        Text(
-            text = stringResource(step.step.labelRes()),
-            style = if (step.isCurrent) {
-                HhTheme.typography.titleSmall
-            } else {
-                HhTheme.typography.bodyMedium
-            },
-            color = if (step.isPending) {
-                HhTheme.colors.onSurfaceVariant
-            } else {
-                HhTheme.colors.onSurface
-            },
-        )
-    }
-}
-
-@Composable
-private fun DeleteAccountStepMarker(
-    step: DeleteAccountStepState,
-    modifier: Modifier = Modifier,
-) {
-    val color = HhTheme.colors
-    Canvas(
-        modifier = modifier.size(DELETE_ACCOUNT_MARKER_SIZE),
-    ) {
-        val radius = size.minDimension / 4f
-        val center = Offset(size.width / 2f, size.height / 2f)
-        when {
-            step.isDone -> {
-                val tick = Path().apply {
-                    moveTo(size.width * 0.28f, size.height * 0.52f)
-                    lineTo(size.width * 0.44f, size.height * 0.68f)
-                    lineTo(size.width * 0.74f, size.height * 0.32f)
-                }
-                drawPath(
-                    path = tick,
-                    color = color.primary,
-                    style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
-                )
-            }
-
-            step.isCurrent -> {
-                drawCircle(color = color.primaryContainer, radius = radius + MARKER_RING.toPx())
-                drawCircle(color = color.primary, radius = radius)
-            }
-
-            else -> drawCircle(
-                color = color.onSurfaceVariant,
-                radius = radius,
-                style = Stroke(width = 1.5.dp.toPx()),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DeleteAccountDone(
-    actions: DeleteAccountActions,
-    padding: PaddingValues,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(start = HhTheme.spacing.d24, end = HhTheme.spacing.d24, top = HhTheme.spacing.d40),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d16),
-    ) {
-        HhSpotIllustration(
-            kind = HhSpotKind.Done,
-            contentDescription = stringResource(
-                R.string.feature_settings_impl_delete_account_done_illustration,
-            ),
-        )
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_done_title),
-            style = HhTheme.typography.displayLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_done_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        HhButton(
-            onClick = actions.onBackToWelcome,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HhTheme.spacing.d48),
-        ) {
-            Text(
-                text = stringResource(R.string.feature_settings_impl_delete_account_back_to_welcome),
-                style = HhTheme.typography.titleMedium,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DeleteAccountBottomBar(
-    uiState: DeleteAccountUiState,
-    actions: DeleteAccountActions,
-) {
-    HhBottomActionBar(
-        creditDisclosure = {
-            if (uiState.isOffline) {
-                Text(
-                    text = stringResource(R.string.feature_settings_impl_delete_account_offline_button_note),
-                    style = HhTheme.typography.labelMedium,
+                    text = stringResource(R.string.feature_settings_impl_delete_account_list_title),
+                    style = HhTheme.typography.titleL,
                     color = HhTheme.colors.onSurface,
                 )
+                CountsList(counts = uiState.counts)
+                HhTextButton(
+                    label = stringResource(R.string.feature_settings_impl_delete_account_download_first),
+                    onClick = actions.onDownloadData,
+                    leadingIcon = HhIcons.Download,
+                )
+                Text(
+                    text = stringResource(R.string.feature_settings_impl_delete_account_web_lead),
+                    style = HhTheme.typography.bodyS,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+                SettingsAddressSlot(
+                    address = stringResource(R.string.feature_settings_impl_delete_account_web_address),
+                    pendingLabel = stringResource(R.string.feature_settings_impl_delete_account_web_pending),
+                )
             }
-        },
-    ) {
-        HhOutlinedButton(
-            onClick = actions.onKeepAccount,
-            enabled = uiState.isKeepEnabled,
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = HhTheme.spacing.d48),
+        }
+    }
+}
+
+@Composable
+private fun OfflineCard() {
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.cardPadding),
         ) {
+            IllustrationCircle(illustration = HhIllustration.Offline, size = OFFLINE_CIRCLE_SIZE)
             Text(
-                text = stringResource(R.string.feature_settings_impl_delete_account_keep),
-                style = HhTheme.typography.titleMedium,
+                text = stringResource(R.string.feature_settings_impl_delete_account_offline_message),
+                style = HhTheme.typography.bodyM,
                 color = HhTheme.colors.onSurface,
+                modifier = Modifier.weight(1f),
             )
         }
-        DestructiveActionButton(
+    }
+}
+
+@Composable
+internal fun IllustrationCircle(illustration: HhIllustration, size: Dp, description: String? = null) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.primaryContainer),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        HhCharacterIllustration(
+            illustration = illustration,
+            modifier = Modifier.size(size),
+            contentDescription = description,
+        )
+    }
+}
+
+@Composable
+private fun CountsList(counts: AccountDeletionCounts) {
+    CountLine(
+        count = counts.profileFacts,
+        label = pluralStringResource(
+            R.plurals.feature_settings_impl_delete_account_row_facts,
+            counts.profileFacts,
+        ),
+    )
+    CountLine(
+        count = counts.applications,
+        label = pluralStringResource(
+            R.plurals.feature_settings_impl_delete_account_row_applications,
+            counts.applications,
+        ),
+    )
+    CountLine(
+        count = counts.unusedCredits,
+        label = pluralStringResource(
+            R.plurals.feature_settings_impl_delete_account_row_credits,
+            counts.unusedCredits,
+        ),
+    )
+}
+
+@Composable
+private fun CountLine(count: Int, label: String) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = HhTheme.spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        ) {
+            Text(
+                text = count.toString(),
+                style = HhTheme.typography.headlineM,
+                color = HhTheme.colors.onSurface,
+                modifier = Modifier
+                    .widthIn(min = COUNT_MIN_WIDTH)
+                    .alignByBaseline(),
+            )
+            Text(
+                text = label,
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurface,
+                modifier = Modifier
+                    .weight(1f)
+                    .alignByBaseline(),
+            )
+        }
+        HhDivider()
+    }
+}
+
+@Composable
+private fun ReadyBar(uiState: DeleteAccountUiState.Ready, actions: DeleteAccountActions) {
+    HhBottomActionBar {
+        HhDestructiveButton(
             label = stringResource(R.string.feature_settings_impl_delete_account_confirm),
             onClick = actions.onDeleteAccount,
-            enabled = uiState.isDeleteEnabled,
+            modifier = Modifier.weight(1f),
+            enabled = !uiState.isOffline,
+        )
+        HhOutlineButton(
+            label = stringResource(R.string.feature_settings_impl_delete_account_keep),
+            onClick = actions.onKeepAccount,
             modifier = Modifier.weight(1f),
         )
     }
 }
 
-private fun AccountDeletionStep.labelRes(): Int = when (this) {
-    AccountDeletionStep.DELETING_APPLICATIONS ->
-        R.string.feature_settings_impl_delete_account_step_applications
-
-    AccountDeletionStep.DELETING_PROFILE_FACTS ->
-        R.string.feature_settings_impl_delete_account_step_facts
-
-    AccountDeletionStep.CLOSING_ACCOUNT ->
-        R.string.feature_settings_impl_delete_account_step_closing
+@Composable
+private fun DeletingContent(uiState: DeleteAccountUiState.Deleting, padding: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .padding(horizontal = HhTheme.spacing.gutter),
+    ) {
+        HhStepProgress(
+            stepNames = AccountDeletionStep.entries.map { step -> stepLabel(step = step, counts = uiState.counts) },
+            currentStepIndex = uiState.step.ordinal,
+            ordinalLabel = stringResource(R.string.feature_settings_impl_delete_account_deleting_title),
+            footnote = stringResource(R.string.feature_settings_impl_delete_account_deleting_note),
+        )
+    }
 }
 
-private val DELETE_ACCOUNT_STEP_MIN_HEIGHT = 36.dp
+@Composable
+private fun stepLabel(step: AccountDeletionStep, counts: AccountDeletionCounts): String = when (step) {
+    AccountDeletionStep.DELETING_APPLICATIONS -> pluralStringResource(
+        R.plurals.feature_settings_impl_delete_account_step_applications,
+        counts.applications,
+        counts.applications,
+    )
 
-private val DELETE_ACCOUNT_MARKER_SIZE = 18.dp
+    AccountDeletionStep.DELETING_PROFILE_FACTS -> pluralStringResource(
+        R.plurals.feature_settings_impl_delete_account_step_facts,
+        counts.profileFacts,
+        counts.profileFacts,
+    )
 
-private val MARKER_RING = 4.dp
+    AccountDeletionStep.CLOSING_ACCOUNT -> pluralStringResource(
+        R.plurals.feature_settings_impl_delete_account_step_closing,
+        counts.unusedCredits,
+        counts.unusedCredits,
+    )
+}
+
+private val COUNT_MIN_WIDTH = 32.dp
+private val OFFLINE_CIRCLE_SIZE = 96.dp

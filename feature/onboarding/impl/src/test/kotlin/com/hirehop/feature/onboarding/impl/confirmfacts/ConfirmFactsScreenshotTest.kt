@@ -58,8 +58,7 @@ class ConfirmFactsScreenshotTest {
     fun emptySectionOffersTwoEqualChoices() {
         captureBothThemes(
             screenName = "ConfirmFactsEmptySection",
-            uiState = stateFor(DebugScenario.PARTLY_CONFIRMED)
-                .copy(skippedSections = setOf(ConfirmFactsSection.Certifications, ConfirmFactsSection.Extras)),
+            uiState = stateFor(DebugScenario.FULLY_CONFIRMED),
         )
     }
 
@@ -131,12 +130,10 @@ class ConfirmFactsScreenshotTest {
         onBack = {},
         onConfirm = {},
         onEdit = { _, _ -> },
-        onRequestDelete = {},
         onAddOne = {},
         onSkip = {},
         onContinue = {},
         onImportResume = {},
-        onDismissRemovedNotice = {},
     )
 
     private companion object {
@@ -147,16 +144,16 @@ class ConfirmFactsScreenshotTest {
             email = "asha.rao@example.com",
             phone = "+91 90000 00000",
             headline = "",
-            skills = listOf("SQL", "Power BI", "Excel", "Python"),
+            skills = listOf("SQL", "Power BI", "Excel", "Pivot tables"),
             entries = listOf(
                 entry(
-                    id = "U-01",
-                    category = EntryCategory.EDUCATION,
-                    title = "B.Tech Computer Science",
-                    organization = "Example Institute of Technology, Pune",
-                    startDate = "2022",
-                    endDate = "2026",
-                    detail = "CGPA 8.1",
+                    id = "W-01",
+                    category = EntryCategory.EXPERIENCE,
+                    title = "Data Operations Associate, Saffron Retail",
+                    organization = "Pune",
+                    startDate = "Jul 2025",
+                    endDate = "now",
+                    detail = "Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.",
                 ),
                 entry(
                     id = "I-01",
@@ -165,19 +162,19 @@ class ConfirmFactsScreenshotTest {
                     organization = "Nashik",
                     startDate = "May 2025",
                     endDate = "Jul 2025",
-                    detail = "Cleaned 12,000 rows of sales data in Excel and built weekly pivot reports.",
+                    detail = "Cleaned 12,000 rows of sales data in Excel; built weekly pivot reports.",
                 ),
                 entry(
-                    id = "C-01",
+                    id = "P-02",
                     category = EntryCategory.PROJECT,
                     title = "Placement Stats Dashboard",
-                    organization = "Power BI, Excel",
+                    organization = "Power BI",
                     startDate = "2024",
                     endDate = "2024",
-                    detail = "Three batches of placement data for the college placement cell.",
+                    detail = "3 batches of placement data, built for the college T&P cell.",
                 ),
                 entry(
-                    id = "P-01",
+                    id = "X-01",
                     category = EntryCategory.ACHIEVEMENT,
                     title = "Smart India Hackathon 2024",
                     organization = "",

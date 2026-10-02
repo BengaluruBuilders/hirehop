@@ -109,6 +109,14 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
+    fun resultRecordsTheIdsOfTheConfirmedEntriesUsed() {
+        val result = useCaseReturning()(sampleProfile, emptyJob, emptyGap)
+
+        assertThat(result.entryIds).containsExactlyElementsIn(sampleProfile.entries.filter { it.isConfirmed }.map { it.id })
+        assertThat(result.entryIds).doesNotContain("unconfirmed-1")
+    }
+
+    @Test
     fun bulletWithNoSourceIdsIsDroppedAndOthersAreKept() {
         val text = "Wrote unit tests with JUnit to improve reliability"
         val result = useCaseReturning(

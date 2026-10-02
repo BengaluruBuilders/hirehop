@@ -2,14 +2,17 @@ package com.hirehop.feature.onboarding.impl.importresume
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.domain.fact.FactLineRenderer
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
 import com.hirehop.feature.onboarding.api.navigation.ImportResumeNavKey
+import com.hirehop.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,11 +28,14 @@ class ImportResumeViewModel @Inject constructor(
     private val resumeTextParser: ResumeTextParser,
     private val factIdAllocator: FactIdAllocator,
     private val profileRepository: ProfileRepository,
+    private val connectivityMonitor: ConnectivityMonitor,
 ) : ViewModel() {
 
     private val mutableUiState = MutableStateFlow(ImportResumeUiState())
 
     private var hasEntered = false
+
+    private var queuedFile: ResumeFile? = null
 
     internal var retainedText: String? = null
         private set
@@ -40,6 +46,17 @@ class ImportResumeViewModel @Inject constructor(
         if (hasEntered) return
         hasEntered = true
         mutableUiState.value = ImportResumeScenarioMapper.seed(key.scenario)
+        val forcedOffline = key.scenario == DebugScenario.OFFLINE
+        viewModelScope.launch {
+            connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
+                mutableUiState.update { it.copy(isOffline = offline) }
+                val waiting = queuedFile
+                if (!offline && waiting != null) {
+                    queuedFile = null
+                    startReading(waiting)
+                }
+            }
+        }
     }
 
     fun onPickRequested() {
@@ -53,6 +70,7 @@ class ImportResumeViewModel @Inject constructor(
 
     fun onFileChosen(file: ResumeFile) {
         if (mutableUiState.value.isOffline) {
+            queuedFile = file
             mutableUiState.update {
                 it.copy(
                     stage = ImportStage.Idle,
@@ -63,6 +81,10 @@ class ImportResumeViewModel @Inject constructor(
             }
             return
         }
+        startReading(file)
+    }
+
+    private fun startReading(file: ResumeFile) {
         mutableUiState.update {
             it.copy(
                 stage = ImportStage.Parsing,
@@ -92,11 +114,15 @@ class ImportResumeViewModel @Inject constructor(
 
     fun onChooseAnotherFile() {
         retainedText = null
-        mutableUiState.update { it.copy(stage = ImportStage.Idle, readStepIndex = 0, facts = emptyList()) }
+        queuedFile = null
+        mutableUiState.update {
+            it.copy(stage = ImportStage.Idle, readStepIndex = 0, facts = emptyList(), isQueued = false)
+        }
     }
 
     fun onStartGuidedForm() {
         retainedText = null
+        queuedFile = null
         mutableUiState.update { it.copy(stage = ImportStage.Idle, readStepIndex = 0, facts = emptyList()) }
     }
 
@@ -146,7 +172,7 @@ class ImportResumeViewModel @Inject constructor(
         val allocated = mutableListOf<ProfileEntry>()
         return map { entry ->
             val reidentified = entry.copy(
-                id = factIdAllocator.nextId(entry.category, allocated),
+                id = factIdAllocator.nextId(entry.category, allocated, entry.title),
                 source = FactSource.IMPORTED,
                 isConfirmed = false,
             )

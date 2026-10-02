@@ -1,233 +1,152 @@
 package com.hirehop.feature.settings.impl.settings
 
 import com.google.common.truth.Truth.assertThat
-import com.hirehop.core.domain.PurchaseEntitlement
-import com.hirehop.core.domain.SignInAccount
-import com.hirehop.core.domain.SignInGateway
-import com.hirehop.core.domain.offline.OfflineSignInGateway
+import com.hirehop.core.model.ConsentPurpose
+import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.gateway.TestPaymentGateway
+import com.hirehop.core.testing.gateway.TestSignInGateway
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.settings.api.navigation.SettingsNavKey
-import com.hirehop.feature.settings.impl.yourdata.TestSettingsPaymentGateway
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private lateinit var paymentGateway: TestSettingsPaymentGateway
-    private lateinit var signInGateway: SignInGateway
-    private lateinit var viewModel: SettingsViewModel
-
-    @Before
-    fun setup() {
-        paymentGateway = TestSettingsPaymentGateway(
-            entitlement = PurchaseEntitlement(
-                freeCredits = 1,
-                purchasedCredits = 3,
-                pendingPackIds = listOf("application_pack_5"),
-            ),
-        )
-        signInGateway = OfflineSignInGateway()
-        viewModel = SettingsViewModel(
+    private val sessionRepository = TestSessionRepository().apply { sendAccount(SignInAccount.localAccount) }
+    private val connectivity = TestConnectivityMonitor()
+    private val paymentGateway = TestPaymentGateway().withFreeCredits(CREDITS)
+    private val signInGateway = TestSignInGateway(sessionRepository)
+    private val viewModel by lazy {
+        SettingsViewModel(
+            sessionRepository = sessionRepository,
             paymentGateway = paymentGateway,
+            connectivityMonitor = connectivity,
             signInGateway = signInGateway,
         )
     }
 
     @Test
-    fun onEnter_beforeAnyEntry_showsEveryGroup() {
-        assertThat(viewModel.uiState.value.groups.map { group -> group.label }).containsExactly(
-            SettingsGroupLabel.ACCOUNT,
-            SettingsGroupLabel.CREDITS,
-            SettingsGroupLabel.YOUR_DATA,
-            SettingsGroupLabel.PRIVACY,
-            SettingsGroupLabel.ABOUT,
-            SettingsGroupLabel.DELETE_ACCOUNT,
+    fun content_readsTheAccountAndTheRealCreditTotal() = runTest {
+        collectState()
+
+        val content = viewModel.content()
+        assertThat(content.account).isEqualTo(SignInAccount.localAccount)
+        assertThat(content.creditsLeft).isEqualTo(CREDITS)
+        assertThat(content.isOffline).isFalse()
+        assertThat(content.isSignOutConfirmVisible).isFalse()
+    }
+
+    @Test
+    fun content_withoutAnAccount_hasNoAccount() = runTest {
+        sessionRepository.sendAccount(null)
+        collectState()
+
+        assertThat(viewModel.content().account).isNull()
+    }
+
+    @Test
+    fun content_carriesTheDateTheConsentWasGiven() = runTest {
+        sessionRepository.sendConsent(
+            ConsentRecord(
+                purposes = setOf(ConsentPurpose.READ_AND_BUILD),
+                acceptedAt = CONSENT_TIME,
+                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+            ),
         )
+        collectState()
+
+        assertThat(viewModel.content().consentAcceptedAt).isEqualTo(CONSENT_TIME)
     }
 
     @Test
-    fun onEnter_default_readsTheRealCreditTotalFromTheGateway() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+    fun content_withoutConsent_hasNoConsentDate() = runTest {
+        collectState()
 
-        val state = viewModel.uiState.first()
-        assertThat(state.creditsLeft).isEqualTo(4)
-        assertThat(state.isOffline).isFalse()
+        assertThat(viewModel.content().consentAcceptedAt).isNull()
     }
 
     @Test
-    fun onEnter_default_withNoSignedInAccount_saysSoInWords() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+    fun content_whenTheDeviceGoesOffline_isOffline() = runTest {
+        collectState()
 
-        val accountRow = viewModel.uiState.first().rowOf(SettingsRowKey.ACCOUNT)
-        assertThat(accountRow.supporting).isEqualTo(SettingsSupporting.NO_ACCOUNT)
-        assertThat(accountRow.showsAccountSignedInAs).isFalse()
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.content().isOffline).isTrue()
     }
 
     @Test
-    fun onEnter_default_afterSignIn_namesTheSignedInAccount() = runTest {
-        signInGateway = OfflineSignInGateway().apply {
-            signIn()
-        }
-        viewModel = SettingsViewModel(paymentGateway = paymentGateway, signInGateway = signInGateway)
+    fun onEnter_withTheOfflineScenario_forcesOffline() = runTest {
+        collectState()
 
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-
-        val state = viewModel.uiState.first()
-        assertThat(state.accountDisplayName).isEqualTo(SignInAccount.localAccount.displayName)
-        assertThat(state.rowOf(SettingsRowKey.ACCOUNT).showsAccountSignedInAs).isTrue()
-    }
-
-    @Test
-    fun onEnter_default_printsTheGrievanceContactRow() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-
-        val row = viewModel.uiState.first().rowOf(SettingsRowKey.GRIEVANCE_CONTACT)
-        assertThat(row.slot).isEqualTo(SettingsSlotKind.GRIEVANCE_CONTACT_ADDRESS)
-    }
-
-    @Test
-    fun onEnter_default_printsNoPrivacyOrWebAddressItCannotKnow() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-
-        val state = viewModel.uiState.first()
-        assertThat(state.rowOf(SettingsRowKey.PRIVACY_POLICY).slot)
-            .isEqualTo(SettingsSlotKind.PRIVACY_POLICY_ADDRESS)
-        assertThat(state.rowOf(SettingsRowKey.DELETE_ACCOUNT_WEB).slot)
-            .isEqualTo(SettingsSlotKind.DELETE_ACCOUNT_WEB_ADDRESS)
-    }
-
-    @Test
-    fun onEnter_default_omitsTheDesignFixtureConsentDate() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-
-        val row = viewModel.uiState.first().rowOf(SettingsRowKey.CONSENT_NOTICE)
-        assertThat(row.supporting).isEqualTo(SettingsSupporting.CONSENT_NOTICE)
-        assertThat(row.consentDate).isNull()
-    }
-
-    @Test
-    fun onEnter_offline_saysInWordsThatTheNetworkRowsAreOff() = runTest {
         viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
 
-        val state = viewModel.uiState.first()
-        assertThat(state.isOffline).isTrue()
-        assertThat(state.rowOf(SettingsRowKey.PRIVACY_POLICY).supporting)
-            .isEqualTo(SettingsSupporting.PRIVACY_POLICY_OFFLINE)
-        assertThat(state.rowOf(SettingsRowKey.DELETE_ACCOUNT).supporting)
-            .isEqualTo(SettingsSupporting.DELETE_ACCOUNT_OFFLINE)
+        assertThat(viewModel.content().isOffline).isTrue()
     }
 
     @Test
-    fun onEnter_offline_disablesTheDeleteAccountRowOnly() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
+    fun signOutRequested_showsTheConfirmDialog() = runTest {
+        collectState()
 
-        val state = viewModel.uiState.first()
-        assertThat(state.rowOf(SettingsRowKey.DELETE_ACCOUNT).isEnabled).isFalse()
-        assertThat(state.rowOf(SettingsRowKey.YOUR_DATA).isEnabled).isTrue()
-        assertThat(state.rowOf(SettingsRowKey.CONSENT_NOTICE).isEnabled).isTrue()
-        assertThat(state.rowOf(SettingsRowKey.GRIEVANCE_CONTACT).isEnabled).isTrue()
+        viewModel.onSignOutRequested()
+
+        assertThat(viewModel.content().isSignOutConfirmVisible).isTrue()
     }
 
     @Test
-    fun onEnter_whenTheGatewayFails_readsZeroCreditsRatherThanFailing() = runTest {
-        paymentGateway = TestSettingsPaymentGateway().withFailure()
-        viewModel = SettingsViewModel(paymentGateway = paymentGateway, signInGateway = signInGateway)
+    fun signOutDismissed_keepsTheAccount() = runTest {
+        collectState()
+        viewModel.onSignOutRequested()
 
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onSignOutDismissed()
 
-        assertThat(viewModel.uiState.first().creditsLeft).isEqualTo(0)
+        assertThat(viewModel.content().isSignOutConfirmVisible).isFalse()
+        assertThat(viewModel.content().account).isEqualTo(SignInAccount.localAccount)
     }
 
     @Test
-    fun onEnter_whenCalledTwice_keepsTheFirstState() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+    fun signOutConfirmed_signsOutAndClosesTheDialog() = runTest {
+        collectState()
+        viewModel.onSignOutRequested()
 
-        assertThat(viewModel.uiState.value.isOffline).isTrue()
+        viewModel.onSignOutConfirmed()
+
+        assertThat(viewModel.content().isSignOutConfirmVisible).isFalse()
+        assertThat(viewModel.content().account).isNull()
     }
 
     @Test
-    fun onAction_deleteAccountRow_asksForTheDeleteAccountScreen() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+    fun signOutRequested_whenOffline_isIgnored() = runTest {
+        collectState()
+        connectivity.setOnline(false)
 
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.DELETE_ACCOUNT))
+        viewModel.onSignOutRequested()
 
-        assertThat(viewModel.uiState.value.destination).isEqualTo(SettingsDestination.DELETE_ACCOUNT)
+        assertThat(viewModel.content().isSignOutConfirmVisible).isFalse()
     }
 
-    @Test
-    fun onAction_destinationConsumed_clearsTheDestination() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.YOUR_DATA))
-
-        viewModel.onAction(SettingsAction.DestinationConsumed)
-
-        assertThat(viewModel.uiState.value.destination).isNull()
+    private fun TestScope.collectState() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
     }
 
-    @Test
-    fun onAction_yourDataRow_asksForTheYourDataScreen() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
+    private fun SettingsViewModel.content(): SettingsUiState.Content =
+        uiState.value as SettingsUiState.Content
 
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.YOUR_DATA))
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(SettingsDestination.YOUR_DATA)
+    private companion object {
+        const val CREDITS = 4
+        val CONSENT_TIME = Instant.fromEpochSeconds(1_802_606_400)
     }
-
-    @Test
-    fun onAction_signOutRow_asksForSignOut() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.DEFAULT))
-
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.SIGN_OUT))
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(SettingsDestination.SIGN_OUT)
-    }
-
-    @Test
-    fun onAction_offline_ignoresADisabledDeleteAccountRow() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
-
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.DELETE_ACCOUNT))
-
-        assertThat(viewModel.uiState.value.destination).isNull()
-    }
-
-    @Test
-    fun onAction_offline_stillAllowsTheLocalRows() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
-
-        viewModel.onAction(SettingsAction.DestinationSelected(SettingsDestination.YOUR_DATA))
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(SettingsDestination.YOUR_DATA)
-    }
-
-    @Test
-    fun onEnter_offline_theConsentNoticeRowStillReadsLocally() = runTest {
-        viewModel.onEnter(SettingsNavKey(scenario = DebugScenario.OFFLINE))
-
-        val row = viewModel.uiState.value.rowOf(SettingsRowKey.CONSENT_NOTICE)
-        assertThat(row.isEnabled).isTrue()
-        assertThat(row.destination).isEqualTo(SettingsDestination.CONSENT_NOTICE)
-    }
-
-    @Test
-    fun settingsGroups_alwaysCarryTheAboutPromiseRow() {
-        val about = settingsGroups().first { group -> group.label == SettingsGroupLabel.ABOUT }
-
-        assertThat(about.rows.map { row -> row.key }).containsExactly(
-            SettingsRowKey.PROMISE,
-            SettingsRowKey.VERSION,
-        )
-    }
-
-    private fun SettingsUiState.rowOf(key: SettingsRowKey): SettingsRowState = groups
-        .flatMap { group -> group.rows }
-        .first { row -> row.key == key }
 }

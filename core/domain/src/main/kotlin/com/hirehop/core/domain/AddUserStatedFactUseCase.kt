@@ -1,6 +1,7 @@
 package com.hirehop.core.domain
 
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
@@ -14,6 +15,8 @@ class AddUserStatedFactUseCase @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val idGenerator: IdGenerator,
 ) {
+    private val idAllocator = FactIdAllocator()
+
     suspend operator fun invoke(requirement: JobRequirement, statement: String) {
         val trimmed = statement.trim()
         if (trimmed.isEmpty()) return
@@ -30,16 +33,19 @@ class AddUserStatedFactUseCase @Inject constructor(
 
     private fun CandidateProfile.withStatement(statement: String): CandidateProfile {
         val bullet = EvidenceBullet(id = idGenerator.newId(), text = statement)
-        val exists = entries.any { it.id == USER_STATED_ENTRY_ID }
-        val updated = if (exists) entries.map { it.appendingTo(bullet) } else entries + newEntry(bullet)
+        val exists = entries.any { it.isUserStatedCollection() }
+        val updated = if (exists) entries.map { it.appendingTo(bullet) } else entries + newEntry(bullet, entries)
         return copy(entries = updated)
     }
 
-    private fun ProfileEntry.appendingTo(bullet: EvidenceBullet): ProfileEntry =
-        if (id == USER_STATED_ENTRY_ID) copy(bullets = bullets + bullet) else this
+    private fun ProfileEntry.isUserStatedCollection(): Boolean =
+        source == FactSource.USER_STATED && title == USER_STATED_ENTRY_TITLE
 
-    private fun newEntry(bullet: EvidenceBullet) = ProfileEntry(
-        id = USER_STATED_ENTRY_ID,
+    private fun ProfileEntry.appendingTo(bullet: EvidenceBullet): ProfileEntry =
+        if (isUserStatedCollection()) copy(bullets = bullets + bullet) else this
+
+    private fun newEntry(bullet: EvidenceBullet, existing: List<ProfileEntry>) = ProfileEntry(
+        id = idAllocator.nextUncategorisedId(existing),
         category = EntryCategory.ACHIEVEMENT,
         title = USER_STATED_ENTRY_TITLE,
         organization = "",
@@ -51,7 +57,6 @@ class AddUserStatedFactUseCase @Inject constructor(
     )
 
     private companion object {
-        const val USER_STATED_ENTRY_ID = "user-stated"
         const val USER_STATED_ENTRY_TITLE = "Additional experience"
     }
 }

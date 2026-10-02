@@ -5,17 +5,22 @@ import android.text.TextPaint
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeEntry
 import com.hirehop.feature.tailor.impl.document.ResumeSection
-import com.hirehop.feature.tailor.impl.document.SKILLS_HEADING
 
 internal class ResumePdfComposer(
     private val writer: PdfPageWriter,
     private val style: PdfResumeStyle,
+    private val spaceScale: Float = 1f,
 ) {
+
+    private val sectionGap = SECTION_GAP * spaceScale
+    private val ruleGap = RULE_GAP * spaceScale
+    private val entryGap = ENTRY_GAP * spaceScale
+    private val bulletGap = BULLET_GAP * spaceScale
 
     fun compose(document: ResumeDocument) {
         header(document)
         document.sections.forEach(::section)
-        skills(document.skills)
+        skills(document)
         writer.finish()
     }
 
@@ -30,18 +35,18 @@ internal class ResumePdfComposer(
         section.entries.forEach(::entry)
     }
 
-    private fun skills(skills: List<String>) {
-        if (skills.isEmpty()) return
-        heading(SKILLS_HEADING)
-        block(skills.joinToString(", "), style.body)
+    private fun skills(document: ResumeDocument) {
+        if (document.skills.isEmpty()) return
+        heading(document.skillsHeading)
+        block(document.skills.joinToString(", "), style.body)
     }
 
     private fun heading(text: String) {
-        writer.space(SECTION_GAP)
+        writer.space(sectionGap)
         writer.drawBlock(layout(text, style.sectionHeading), keepWithNext = HEADING_KEEP_WITH_NEXT)
-        writer.space(RULE_GAP)
+        writer.space(ruleGap)
         writer.drawRule(style.rule)
-        writer.space(RULE_GAP)
+        writer.space(ruleGap)
     }
 
     private fun entry(entry: ResumeEntry) {
@@ -49,14 +54,14 @@ internal class ResumePdfComposer(
         block(titleLine, style.entryTitle, keepWithNext = ENTRY_KEEP_WITH_NEXT)
         block(entry.dateRange, style.entryDetail, keepWithNext = ENTRY_KEEP_WITH_NEXT)
         entry.bullets.forEach(::bullet)
-        writer.space(ENTRY_GAP)
+        writer.space(entryGap)
     }
 
     private fun bullet(text: String) {
         val marker = layout(BULLET_MARKER, style.body, width = BULLET_INDENT.toInt())
         val body = layout(text, style.body, width = writer.contentWidth - BULLET_INDENT.toInt())
         writer.drawHanging(marker, body, BULLET_INDENT)
-        writer.space(BULLET_GAP)
+        writer.space(bulletGap)
     }
 
     private fun block(text: String, paint: TextPaint, keepWithNext: Float = 0f) {

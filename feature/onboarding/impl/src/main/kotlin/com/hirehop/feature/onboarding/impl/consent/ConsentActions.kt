@@ -1,5 +1,7 @@
 package com.hirehop.feature.onboarding.impl.consent
 
+import com.hirehop.core.model.ConsentPurpose
+
 sealed interface ConsentAction {
     data class PurposeToggled(val purpose: ConsentPurpose) : ConsentAction
 
@@ -8,6 +10,8 @@ sealed interface ConsentAction {
     data object NotNow : ConsentAction
 
     data object ReadAgain : ConsentAction
+
+    data object NextStepConsumed : ConsentAction
 }
 
 data class ConsentActions(
@@ -15,4 +19,5 @@ data class ConsentActions(
     val onAgree: () -> Unit,
     val onNotNow: () -> Unit,
     val onReadAgain: () -> Unit,
+    val onBack: () -> Unit,
 )

@@ -21,15 +21,18 @@ internal fun SettingsRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val versionName = remember(context) { context.appVersionName() }
-    val actions = remember(viewModel) { viewModel.toActions() }
-    LaunchedEffect(key) { viewModel.onEnter(key) }
-    LaunchedEffect(uiState.destination) {
-        val destination = uiState.destination
-        if (destination != null) {
-            onNavigate(destination)
-            viewModel.onAction(SettingsAction.DestinationConsumed)
-        }
+    val actions = remember(viewModel, onNavigate) {
+        SettingsActions(
+            onSignOut = viewModel::onSignOutRequested,
+            onSignOutConfirm = viewModel::onSignOutConfirmed,
+            onSignOutDismiss = viewModel::onSignOutDismissed,
+            onCreditsAndHelp = { onNavigate(SettingsDestination.CREDITS_AND_HELP) },
+            onYourData = { onNavigate(SettingsDestination.YOUR_DATA) },
+            onConsentNotice = { onNavigate(SettingsDestination.CONSENT_NOTICE) },
+            onDeleteAccount = { onNavigate(SettingsDestination.DELETE_ACCOUNT) },
+        )
     }
+    LaunchedEffect(key) { viewModel.onEnter(key) }
     SettingsScreen(
         uiState = uiState,
         actions = actions,
@@ -42,12 +45,3 @@ private fun Context.appVersionName(): String? = runCatching {
     packageManager.getPackageInfo(packageName, 0).versionName
 }.getOrNull()
     ?.takeIf { name -> name.isNotBlank() }
-
-private fun SettingsViewModel.toActions(): SettingsActions = SettingsActions(
-    onRowClick = { row ->
-        val destination = row.destination
-        if (destination != null) {
-            onAction(SettingsAction.DestinationSelected(destination))
-        }
-    },
-)

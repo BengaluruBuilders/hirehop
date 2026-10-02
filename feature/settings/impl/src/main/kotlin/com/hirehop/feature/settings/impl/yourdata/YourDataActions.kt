@@ -1,11 +1,13 @@
 package com.hirehop.feature.settings.impl.yourdata
 
 data class YourDataActions(
-    val onBack: () -> Unit = {},
-    val onDownload: () -> Unit = {},
-    val onShare: () -> Unit = {},
-    val onLedgerAction: (YourDataLedgerKind, YourDataLedgerAction) -> Unit = { _, _ -> },
-    val onDeleteRequested: (String) -> Unit = {},
-    val onDeleteConfirmed: () -> Unit = {},
-    val onDeleteDismissed: () -> Unit = {},
+    val onBack: () -> Unit,
+    val onViewProfile: () -> Unit,
+    val onCorrectProfile: () -> Unit,
+    val onViewApplications: () -> Unit,
+    val onViewPurchases: () -> Unit,
+    val onDownload: () -> Unit,
+    val onDeleteRequest: (String) -> Unit,
+    val onDeleteConfirm: () -> Unit,
+    val onDeleteDismiss: () -> Unit,
 )

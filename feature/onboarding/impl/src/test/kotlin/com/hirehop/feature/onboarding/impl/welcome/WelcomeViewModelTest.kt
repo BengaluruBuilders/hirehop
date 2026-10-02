@@ -1,7 +1,13 @@
 package com.hirehop.feature.onboarding.impl.welcome
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.data.sampleProfile
+import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
 import kotlinx.coroutines.flow.first
@@ -9,17 +15,21 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
 class WelcomeViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val session = TestSessionRepository()
+    private val profile = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
     private lateinit var viewModel: WelcomeViewModel
 
     @Before
     fun setup() {
-        viewModel = WelcomeViewModel()
+        viewModel = WelcomeViewModel(NextOnboardingStepUseCase(session, profile), connectivity)
     }
 
     @Test
@@ -37,7 +47,7 @@ class WelcomeViewModelTest {
         assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
         assertThat(state.showsRewrittenLine).isTrue()
         assertThat(state.showsProvenanceThread).isTrue()
-        assertThat(state.showsHeroWaitingNote).isFalse()
+        assertThat(state.showsNeverInventsChip).isTrue()
         assertThat(state.isActionsEnabled).isTrue()
     }
 
@@ -66,7 +76,7 @@ class WelcomeViewModelTest {
         val state = viewModel.uiState.first()
         assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.ORIGINAL)
         assertThat(state.showsRewrittenLine).isFalse()
-        assertThat(state.showsHeroWaitingNote).isTrue()
+        assertThat(state.showsNeverInventsChip).isFalse()
         assertThat(state.showsProvenanceThread).isFalse()
     }
 
@@ -140,12 +150,49 @@ class WelcomeViewModelTest {
     }
 
     @Test
-    fun onAction_importResume_asksForTheImportStep() = runTest {
+    fun onAction_importResume_whenSignedOut_asksForSignIn() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.ImportResumeTapped)
+
+        assertThat(viewModel.uiState.value.destination).isEqualTo(WelcomeDestination.SIGN_IN)
+    }
+
+    @Test
+    fun onAction_importResume_whenSignedInWithoutConsent_asksForConsent() = runTest {
+        session.sendAccount(com.hirehop.core.model.SignInAccount.localAccount)
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.ImportResumeTapped)
+
+        assertThat(viewModel.uiState.value.destination).isEqualTo(WelcomeDestination.CONSENT)
+    }
+
+    @Test
+    fun onAction_importResume_whenConsentIsRecorded_asksForTheImportStep() = runTest {
+        session.sendAccount(com.hirehop.core.model.SignInAccount.localAccount)
+        session.sendConsent(
+            ConsentRecord(
+                purposes = com.hirehop.core.model.ConsentPurpose.entries.toSet(),
+                acceptedAt = Instant.fromEpochSeconds(0),
+                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+            ),
+        )
+        profile.sendProfile(sampleProfile.copy(entries = emptyList()))
         viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
 
         viewModel.onAction(WelcomeAction.ImportResumeTapped)
 
         assertThat(viewModel.uiState.value.destination).isEqualTo(WelcomeDestination.IMPORT_RESUME)
+    }
+
+    @Test
+    fun onEnter_whenTheDeviceGoesOffline_flagsOffline() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
     }
 
     @Test

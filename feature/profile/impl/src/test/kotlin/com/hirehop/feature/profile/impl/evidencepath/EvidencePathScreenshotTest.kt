@@ -29,192 +29,125 @@ class EvidencePathScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun categoryPicker_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathPicker",
-            uiState = pickerState(),
-        )
-    }
+    fun picker() = capture("EvidencePathPicker", EvidencePathUiState())
 
     @Test
-    fun question_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathQuestion",
-            uiState = questionState(),
-        )
-    }
+    fun question() = capture(
+        "EvidencePathQuestion",
+        EvidencePathUiState(category = EvidenceCategory.PROJECTS),
+    )
 
     @Test
-    fun typedAnswer_foldsIntoAFactCardStampedUserStated() {
-        captureBothThemes(
-            screenName = "EvidencePathAnswerFolded",
-            uiState = foldedState(),
-        )
-    }
+    fun TYPED_ANSWER() = capture(
+        "EvidencePathTypedAnswer",
+        EvidencePathUiState(category = EvidenceCategory.PROJECTS, answer = TYPED_ANSWER),
+    )
 
     @Test
-    fun skipNote_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathSkipped",
-            uiState = pickerState(skipped = listOf(EvidenceCategory.PROJECTS, EvidenceCategory.INTERNSHIPS)),
-        )
-    }
+    fun cardStampedUserStated() = capture(
+        "EvidencePathStamped",
+        EvidencePathUiState(
+            category = EvidenceCategory.PROJECTS,
+            questionIndex = 1,
+            cards = listOf(EvidenceFactCard(EvidenceCategory.PROJECTS, dashboard)),
+        ),
+    )
 
     @Test
-    fun allDone_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathAllDone",
-            uiState = foldedState(done = EvidenceDone(addedCount = 5, skippedCount = 1)),
-        )
-    }
+    fun skipped() = capture(
+        "EvidencePathSkipped",
+        EvidencePathUiState(
+            category = EvidenceCategory.WORK,
+            skipNote = EvidenceSkipNote(EvidenceCategory.PROJECTS, 2),
+            visited = setOf(EvidenceCategory.PROJECTS),
+        ),
+    )
 
     @Test
-    fun nothingAdded_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathNothingAdded",
-            uiState = pickerState(done = EvidenceDone(addedCount = 0, skippedCount = 3)),
-        )
-    }
-
-    @Test
-    fun saveRejected_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathSaveRejected",
-            uiState = questionState(
-                answers = mapOf(EvidencePrompt.TITLE to ""),
-                problems = mapOf(EvidencePrompt.TITLE to EvidenceFieldProblem.REQUIRED),
-                isSaveRejected = true,
-                message = EvidenceMessage.SAVE_REJECTED,
+    fun allDone() = capture(
+        "EvidencePathAllDone",
+        EvidencePathUiState(
+            isDone = true,
+            cards = listOf(
+                EvidenceFactCard(EvidenceCategory.PROJECTS, dashboard),
+                EvidenceFactCard(EvidenceCategory.WORK, entry("I-01", "Weekly sales reports, 40 stores")),
+                EvidenceFactCard(EvidenceCategory.COURSEWORK, entry("U-01", "DBMS: SQL joins, GROUP BY")),
+                EvidenceFactCard(EvidenceCategory.COMPETITIONS, entry("P-01", "Smart India Hackathon 2024")),
+                EvidenceFactCard(EvidenceCategory.POSITIONS, entry("P-02", "Treasurer, coding club")),
             ),
-        )
-    }
+        ),
+    )
 
     @Test
-    fun offlineState_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathOffline",
-            uiState = questionState(isOffline = true),
-        )
-    }
+    fun nothingAdded() = capture("EvidencePathNothingAdded", EvidencePathUiState(isDone = true))
+
+    @Test
+    fun offline() = capture(
+        "EvidencePathOffline",
+        EvidencePathUiState(isOffline = true, category = EvidenceCategory.PROJECTS, answer = TYPED_ANSWER),
+    )
+
+    @Test
+    fun saveFailed() = capture(
+        "EvidencePathSaveFailed",
+        EvidencePathUiState(
+            category = EvidenceCategory.PROJECTS,
+            answer = TYPED_ANSWER,
+            message = EvidenceMessage.SAVE_FAILED,
+        ),
+    )
+
+    @Test
+    fun loading() = capture("EvidencePathLoading", EvidencePathUiState(isLoading = true))
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun categoryPicker_atLargeTextWrapsTheChips() {
-        captureBothThemes(
-            screenName = "EvidencePathPickerFont200",
-            uiState = pickerState(),
-            device = HhTestDevices.boardLargeFont,
-        )
-    }
+    fun picker_atLargeText() = capture(
+        "EvidencePathPickerFont200",
+        EvidencePathUiState(),
+        device = HhTestDevices.boardLargeFont,
+    )
 
-    @Test
-    fun loadingState_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "EvidencePathLoading",
-            uiState = EvidencePathUiState(isLoading = true),
-        )
-    }
-
-    private fun captureBothThemes(
+    private fun capture(
         screenName: String,
         uiState: EvidencePathUiState,
         device: HhTestDevice = HhTestDevices.board,
     ) = runBlocking {
-        showScreen(uiState)
-        composeRule.captureMultiTheme(
-            outputDirectory = OUTPUT,
-            screenName = screenName,
-            device = device,
-            setTheme = { dark -> composeRule.runOnUiThread { darkTheme.value = dark } },
-        )
-    }
-
-    private fun showScreen(uiState: EvidencePathUiState) {
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
-                EvidencePathScreen(uiState = uiState, actions = noOpActions)
+                EvidencePathScreen(uiState = uiState, actions = EvidencePathActions.None, onBack = {})
             }
         }
-        composeRule.waitForIdle()
+        composeRule.captureMultiTheme(
+            outputDirectory = SCREENSHOT_DIRECTORY,
+            screenName = screenName,
+            device = device,
+            setTheme = { dark -> darkTheme.value = dark },
+        )
+        Unit
     }
 
-    private val noOpActions = EvidencePathActions(
-        onCategoryChosen = {},
-        onAnswerChanged = { _, _ -> },
-        onNextPrompt = {},
-        onBackPrompt = {},
-        onSkipPrompt = {},
-        onSave = {},
-        onSkipCategory = {},
-        onAddMore = {},
-        onGoToProfile = {},
-        onDismissMessage = {},
-    )
-
-    private fun pickerState(
-        isOffline: Boolean = false,
-        cards: List<EvidenceFactCard> = emptyList(),
-        skipped: List<EvidenceCategory> = emptyList(),
-        done: EvidenceDone? = null,
-    ) = EvidencePathUiState(
-        isOffline = isOffline,
-        cards = cards,
-        skipped = skipped,
-        done = done,
-    )
-
-    private fun questionState(
-        isOffline: Boolean = false,
-        answers: Map<EvidencePrompt, String> = emptyMap(),
-        problems: Map<EvidencePrompt, EvidenceFieldProblem> = emptyMap(),
-        isSaveRejected: Boolean = false,
-        message: EvidenceMessage? = null,
-    ) = EvidencePathUiState(
-        isOffline = isOffline,
-        category = EvidenceCategory.PROJECTS,
-        question = EvidenceQuestion(
-            category = EvidenceCategory.PROJECTS,
-            promptIndex = 0,
-            totalPrompts = 2,
-            answers = answers,
-            problems = problems,
-        ),
-        isSaveRejected = isSaveRejected,
-        message = message,
-    )
-
-    private fun foldedState(done: EvidenceDone? = null) = EvidencePathUiState(
-        cards = listOf(
-            EvidenceFactCard(
-                category = EvidenceCategory.PROJECTS,
-                entryCategory = EntryCategory.PROJECT,
-                line = "Placement Stats Dashboard · Power BI and Excel. The T and P cell used it for the " +
-                    "2024 placement report.",
-                answer = "Placement Stats Dashboard",
-                entry = projectEntry,
-            ),
-        ),
-        done = done,
-    )
-
     private companion object {
-        const val OUTPUT = "src/test/screenshots"
+        const val SCREENSHOT_DIRECTORY = "src/test/screenshots"
+        const val TYPED_ANSWER =
+            "Placement Stats Dashboard. Power BI and Excel. The T&P cell used it for the 2024 placement report."
 
-        val projectEntry = ProfileEntry(
-            id = "C-01",
-            category = EntryCategory.PROJECT,
+        val dashboard = entry(
+            id = "C-02",
             title = "Placement Stats Dashboard",
+            detail = "Power BI and Excel. The T&P cell used it for the 2024 placement report.",
+        )
+
+        fun entry(id: String, title: String, detail: String = "") = ProfileEntry(
+            id = id,
+            category = EntryCategory.PROJECT,
+            title = title,
             organization = "",
             startDate = "",
             endDate = "",
-            bullets = listOf(
-                EvidenceBullet(
-                    id = "b-1",
-                    text = "Power BI and Excel. The T and P cell used it for the 2024 placement report.",
-                ),
-            ),
+            bullets = if (detail.isEmpty()) emptyList() else listOf(EvidenceBullet(id = "$id-b", text = detail)),
             source = FactSource.USER_STATED,
-            isConfirmed = false,
+            isConfirmed = true,
         )
     }
 }

@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
 
@@ -39,10 +39,10 @@ private fun ProvenanceKindRow(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
         kinds.distinct().forEach { kind ->
-            HhProvenanceChip(kind = kind)
+            HhProvenanceChip(kind = kind, label = kind.label())
         }
     }
 }

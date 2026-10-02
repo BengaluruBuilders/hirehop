@@ -5,8 +5,13 @@ import com.hirehop.core.model.ProfileEntry
 import javax.inject.Inject
 
 class FactIdAllocator @Inject constructor() {
-    fun nextId(category: EntryCategory, existing: Collection<ProfileEntry>): String {
-        val prefix = prefixOf(category)
+    fun nextId(category: EntryCategory, existing: Collection<ProfileEntry>, title: String = ""): String =
+        nextId(prefixOf(category, title), existing)
+
+    fun nextUncategorisedId(existing: Collection<ProfileEntry>): String =
+        nextId(FactIdPrefix.UNCATEGORISED, existing)
+
+    private fun nextId(prefix: String, existing: Collection<ProfileEntry>): String {
         val taken = existing.map { it.id }.toSet()
         var index = 1
         while (idOf(prefix, index) in taken) {
@@ -17,11 +22,23 @@ class FactIdAllocator @Inject constructor() {
 
     private fun idOf(prefix: String, index: Int): String = prefix + "-" + index.toString().padStart(2, '0')
 
-    private fun prefixOf(category: EntryCategory): String = when (category) {
-        EntryCategory.EDUCATION -> "U"
-        EntryCategory.EXPERIENCE -> "I"
-        EntryCategory.PROJECT -> "C"
-        EntryCategory.CERTIFICATION -> "X"
-        EntryCategory.ACHIEVEMENT -> "P"
+    private fun prefixOf(category: EntryCategory, title: String): String = FactIdPrefix.of(category, title)
+}
+
+object FactIdPrefix {
+    const val EDUCATION = "E"
+    const val WORK = "W"
+    const val INTERNSHIP = "I"
+    const val PROJECT = "P"
+    const val CERTIFICATION = "CT"
+    const val ACHIEVEMENT = "X"
+    const val UNCATEGORISED = "U"
+
+    fun of(category: EntryCategory, title: String = ""): String = when (category) {
+        EntryCategory.EDUCATION -> EDUCATION
+        EntryCategory.EXPERIENCE -> if (title.contains("intern", ignoreCase = true)) INTERNSHIP else WORK
+        EntryCategory.PROJECT -> PROJECT
+        EntryCategory.CERTIFICATION -> CERTIFICATION
+        EntryCategory.ACHIEVEMENT -> ACHIEVEMENT
     }
 }

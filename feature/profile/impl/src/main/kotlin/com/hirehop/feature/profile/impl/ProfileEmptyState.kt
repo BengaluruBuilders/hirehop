@@ -2,90 +2,90 @@ package com.hirehop.feature.profile.impl
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhSpotIllustration
+import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhSpotKind
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.feature.profile.impl.common.SpotCircle
+
+private val SpotSize = 140.dp
+private val TextGap = 6.dp
 
 @Composable
-internal fun ProfileEmptyState(
-    onImportResume: () -> Unit,
-    onBuildStepByStep: () -> Unit,
+internal fun ProfileEmptyScreen(
+    state: ProfileUiState.Empty,
+    navigation: ProfileNavigation,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    ProfileFrame(
+        header = ProfileHeaderState(
+            headerLine = state.headerLine,
+            factCount = 0,
+            confirmedCount = 0,
+            userStatedCount = 0,
+            toConfirmCount = 0,
+        ),
+        onAddEvidence = navigation.onAddEvidence,
+        modifier = modifier,
     ) {
-        HhSpotIllustration(
-            kind = HhSpotKind.Empty,
-            contentDescription = stringResource(
-                R.string.feature_profile_impl_empty_illustration,
-            ),
-        )
-        Text(
-            text = stringResource(R.string.feature_profile_impl_empty_headline),
-            modifier = Modifier.fillMaxWidth(),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-            textAlign = TextAlign.Start,
-        )
-        Text(
-            text = stringResource(R.string.feature_profile_impl_empty_body),
-            modifier = Modifier.fillMaxWidth(),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-            textAlign = TextAlign.Start,
-        )
+        emptyContent(navigation)
+    }
+}
+
+private fun LazyListScope.emptyContent(navigation: ProfileNavigation) {
+    item(key = "empty") {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
         ) {
-            HhButton(
-                onClick = onImportResume,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_profile_impl_import_resume),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
+            SpotCircle(
+                kind = HhSpotKind.Empty,
+                size = SpotSize,
+                contentDescription = stringResource(R.string.feature_profile_impl_empty_illustration),
             )
-            HhOutlinedButton(
-                onClick = onBuildStepByStep,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_profile_impl_build_step_by_step),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(TextGap),
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_profile_impl_empty_headline),
+                    style = HhTheme.typography.titleL,
+                    color = HhTheme.colors.onSurface,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.feature_profile_impl_empty_body),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.body,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_profile_impl_import_resume),
+                    onClick = navigation.onImportResume,
+                    modifier = Modifier.weight(1f),
+                )
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_profile_impl_build_step_by_step),
+                    onClick = navigation.onBuildStepByStep,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
-        Text(
-            text = stringResource(R.string.feature_profile_impl_trust_copy),
-            modifier = Modifier.fillMaxWidth(),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-            textAlign = TextAlign.Start,
-        )
     }
 }

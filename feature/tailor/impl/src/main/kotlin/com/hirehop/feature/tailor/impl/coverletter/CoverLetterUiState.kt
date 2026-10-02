@@ -3,15 +3,20 @@ package com.hirehop.feature.tailor.impl.coverletter
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.coverletter.CoverLetterComposer
 import com.hirehop.core.domain.coverletter.CoverLetterDraft
+import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.EntryCategory
+import com.hirehop.core.model.WrittenCoverLetter
+import com.hirehop.core.model.WrittenParagraph
+import kotlin.time.Instant
 
 enum class CoverLetterStage {
+    OFFER,
     GENERATING,
     READY,
     NO_MATCHING_EVIDENCE,
     EMPTY_PROFILE,
-    OFFLINE,
     ERROR,
 }
 
@@ -24,13 +29,20 @@ enum class CoverLetterBasis {
 }
 
 enum class CoverLetterMessage {
-    COPIED,
     SAVED,
-    REPORT_UNAVAILABLE,
+    REPORTED,
 }
+
+data class CoverLetterFlag(
+    val quote: String,
+    val factId: String,
+)
 
 data class CoverLetterFactRef(
     val factId: String,
+    val displayId: String,
+    val entryId: String,
+    val category: EntryCategory,
     val entryTitle: String,
     val text: String,
 )
@@ -47,18 +59,24 @@ data class CoverLetterParagraph(
     val facts: List<CoverLetterFactRef>,
     val basis: CoverLetterBasis,
     val isUserEdited: Boolean = false,
+    val isGreeting: Boolean = false,
+    val flag: CoverLetterFlag? = null,
 )
 
 data class CoverLetterUiState(
-    val stage: CoverLetterStage = CoverLetterStage.GENERATING,
+    val stage: CoverLetterStage = CoverLetterStage.OFFER,
     val jobTitle: String = "",
     val jobCompany: String = "",
     val paragraphs: List<CoverLetterParagraph> = emptyList(),
     val isOffline: Boolean = false,
     val editingOrdinal: Int? = null,
     val editingText: String = "",
-    val copiedText: String = "",
     val message: CoverLetterMessage? = null,
+    val reviewedCount: Int = 0,
+    val totalCount: Int = 0,
+    val paragraphCount: Int = 0,
+    val factCount: Int = 0,
+    val reportedIds: Set<String> = emptySet(),
 ) {
     val wordCount: Int get() = paragraphs.sumOf { paragraph -> paragraph.text.wordCount() }
 
@@ -74,19 +92,16 @@ data class CoverLetterInputs(
     val profile: CandidateProfile?,
     val analysis: JobAnalysisResult,
     val draft: CoverLetterDraft,
-    val isOffline: Boolean,
 )
 
 fun coverLetterStageFor(scenario: DebugScenario): CoverLetterStage = when (scenario) {
     DebugScenario.LOADING -> CoverLetterStage.GENERATING
     DebugScenario.ERROR -> CoverLetterStage.ERROR
-    else -> CoverLetterStage.GENERATING
+    else -> CoverLetterStage.OFFER
 }
 
 fun coverLetterIsStatic(scenario: DebugScenario): Boolean =
     scenario == DebugScenario.LOADING || scenario == DebugScenario.ERROR
-
-fun coverLetterIsOffline(scenario: DebugScenario): Boolean = scenario == DebugScenario.OFFLINE
 
 fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
     val analysis = inputs.analysis
@@ -96,7 +111,6 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
             stage = CoverLetterStage.EMPTY_PROFILE,
             jobTitle = analysis.job.title,
             jobCompany = analysis.job.company,
-            isOffline = inputs.isOffline,
         )
     }
     val context = CoverLetterBasisContext(
@@ -105,6 +119,7 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
         jobCompany = analysis.job.company,
         facts = facts,
     )
+    val hasGreeting = inputs.draft.greeting.isNotBlank()
     val paragraphs = listOf(
         inputs.draft.greeting,
         inputs.draft.openingParagraph,
@@ -112,20 +127,58 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
         inputs.draft.closingParagraph,
     )
         .filter { part -> part.isNotBlank() }
-        .mapIndexed { index, part -> part.toParagraph(ordinal = index + 1, context = context) }
+        .mapIndexed { index, part ->
+            part.toParagraph(ordinal = index + 1, context = context).copy(isGreeting = hasGreeting && index == 0)
+        }
     val hasQuotedFact = paragraphs.any { paragraph -> paragraph.basis == CoverLetterBasis.CONFIRMED_FACT }
     return CoverLetterUiState(
-        stage = when {
-            inputs.isOffline -> CoverLetterStage.OFFLINE
-            hasQuotedFact -> CoverLetterStage.READY
-            else -> CoverLetterStage.NO_MATCHING_EVIDENCE
-        },
+        stage = if (hasQuotedFact) CoverLetterStage.READY else CoverLetterStage.NO_MATCHING_EVIDENCE,
         jobTitle = analysis.job.title,
         jobCompany = analysis.job.company,
         paragraphs = paragraphs,
-        isOffline = inputs.isOffline,
+        paragraphCount = paragraphs.count { !it.isGreeting },
+        factCount = paragraphs.flatMap { paragraph -> paragraph.facts.map { it.displayId } }.distinct().size,
     )
 }
+
+fun CoverLetterUiState.toWrittenLetter(writtenAt: Instant): WrittenCoverLetter = WrittenCoverLetter(
+    paragraphs = paragraphs.map { paragraph ->
+        WrittenParagraph(text = paragraph.text, isGreeting = paragraph.isGreeting, isUserEdited = paragraph.isUserEdited)
+    },
+    writtenAt = writtenAt,
+)
+
+fun restoredCoverLetterState(
+    profile: CandidateProfile?,
+    analysis: JobAnalysisResult,
+    written: WrittenCoverLetter,
+): CoverLetterUiState? {
+    val body = written.paragraphs.filterNot { it.isGreeting }.map { it.text }
+    val draft = CoverLetterDraft(
+        greeting = written.paragraphs.firstOrNull { it.isGreeting }?.text.orEmpty(),
+        openingParagraph = body.getOrElse(0) { "" },
+        evidenceParagraph = body.getOrElse(1) { "" },
+        closingParagraph = body.getOrElse(2) { "" },
+    )
+    val state = coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))
+    if (state.paragraphs.isEmpty()) return null
+    val editedOrdinals = written.paragraphs.mapIndexedNotNull { index, paragraph ->
+        (index + 1).takeIf { paragraph.isUserEdited }
+    }.toSet()
+    return state.copy(
+        stage = if (editedOrdinals.isEmpty()) state.stage else CoverLetterStage.READY,
+        paragraphs = state.paragraphs.map { paragraph ->
+            if (paragraph.ordinal in editedOrdinals) paragraph.withEditedText(paragraph.text) else paragraph
+        },
+    )
+}
+
+internal fun CoverLetterParagraph.withEditedText(replacement: String): CoverLetterParagraph = copy(
+    text = replacement,
+    isUserEdited = true,
+    flag = null,
+    sentences = replacement.sentences().map { sentence -> CoverLetterSentence(text = sentence, factId = null) },
+)
 
 private data class CoverLetterBasisContext(
     val fullName: String,
@@ -161,9 +214,13 @@ internal fun confirmedFactsOf(profile: CandidateProfile?): List<CoverLetterFactR
     return profile.entries
         .filter { entry -> entry.isConfirmed }
         .flatMap { entry ->
+            val displayId = FactDisplayIds.of(entry, profile.entries)
             entry.bullets.map { bullet ->
                 CoverLetterFactRef(
                     factId = bullet.id,
+                    displayId = displayId,
+                    entryId = entry.id,
+                    category = entry.category,
                     entryTitle = entry.title.trim(),
                     text = bullet.text,
                 )

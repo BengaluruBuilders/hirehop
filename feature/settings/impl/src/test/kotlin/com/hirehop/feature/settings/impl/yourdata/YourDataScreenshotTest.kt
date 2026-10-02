@@ -4,19 +4,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
-import com.hirehop.core.testing.data.canonicalApplication
-import com.hirehop.core.testing.data.canonicalCandidateProfile
-import com.hirehop.core.testing.data.sampleJobDescription
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -30,81 +27,46 @@ class YourDataScreenshotTest {
 
     @Test
     fun default_readsInLightAndDark() {
-        captureBothThemes(screenName = "YourDataDefault", uiState = baseState())
+        captureBothThemes(screenName = "YourDataDefault", uiState = content())
     }
 
     @Test
     fun preparing_readsInLightAndDark() {
         captureBothThemes(
             screenName = "YourDataPreparing",
-            uiState = baseState(
-                stage = YourDataStage.PREPARING,
-                steps = yourDataExportSteps(currentIndex = 1, applicationCount = APPLICATION_COUNT),
-            ),
+            uiState = content(export = YourDataExport.PREPARING),
         )
     }
 
     @Test
-    fun ready_readsInLightAndDark() {
+    fun deleteDialog_readsInLightAndDark() {
         captureBothThemes(
-            screenName = "YourDataReady",
-            uiState = baseState(
-                stage = YourDataStage.READY,
-                exportFileName = "HireHop-data_Priya-Deshmukh.zip",
-            ),
+            screenName = "YourDataDeleteDialog",
+            uiState = content(deleteTarget = APPLICATIONS.last()),
         )
     }
 
     @Test
     fun offline_readsInLightAndDark() {
+        captureBothThemes(screenName = "YourDataOffline", uiState = content(isOffline = true))
+    }
+
+    @Test
+    fun exportFailed_readsInLightAndDark() {
         captureBothThemes(
-            screenName = "YourDataOffline",
-            uiState = baseState(isOffline = true),
+            screenName = "YourDataExportFailed",
+            uiState = content(export = YourDataExport.FAILED),
         )
     }
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun default_atLargeTextStacksFullWidth() {
+    fun default_atLargeText() {
         captureBothThemes(
             screenName = "YourDataDefaultFont200",
-            uiState = baseState(),
+            uiState = content(),
             device = HhTestDevices.boardLargeFont,
         )
-    }
-
-    @Test
-    @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun preparing_atLargeTextStacksFullWidth() {
-        captureBothThemes(
-            screenName = "YourDataPreparingFont200",
-            uiState = baseState(
-                stage = YourDataStage.PREPARING,
-                steps = yourDataExportSteps(currentIndex = 1, applicationCount = APPLICATION_COUNT),
-            ),
-            device = HhTestDevices.boardLargeFont,
-        )
-    }
-
-    @Test
-    fun deleteDialog_isCoveredByTheViewModelTestBecauseADialogIsASeparateWindow() {
-        val target = YourDataDeleteTarget(
-            applicationId = "application-northwind-1",
-            title = "Associate Android Engineer",
-            company = "Northwind GCC",
-        )
-
-        composeRule.setContent {
-            HhTheme(darkTheme = false) {
-                YourDataDeleteDialog(
-                    target = target,
-                    profileFactCount = 18,
-                    onConfirm = {},
-                    onDismiss = {},
-                )
-            }
-        }
-        composeRule.waitForIdle()
     }
 
     private fun captureBothThemes(
@@ -112,7 +74,12 @@ class YourDataScreenshotTest {
         uiState: YourDataUiState,
         device: HhTestDevice = HhTestDevices.board,
     ) = runBlocking {
-        showScreen(uiState)
+        composeRule.setContent {
+            HhTheme(darkTheme = darkTheme.value) {
+                YourDataScreen(uiState = uiState, actions = noActions)
+            }
+        }
+        composeRule.waitForIdle()
         composeRule.captureMultiTheme(
             outputDirectory = OUTPUT,
             screenName = screenName,
@@ -121,64 +88,49 @@ class YourDataScreenshotTest {
         )
     }
 
-    private fun showScreen(uiState: YourDataUiState) {
-        composeRule.setContent {
-            HhTheme(darkTheme = darkTheme.value) {
-                YourDataScreen(
-                    uiState = uiState,
-                    actions = YourDataActions(),
-                )
-            }
-        }
-        composeRule.waitForIdle()
-    }
-
-    private fun baseState(
-        stage: YourDataStage = YourDataStage.IDLE,
-        steps: List<YourDataExportStep> = emptyList(),
-        exportFileName: String? = null,
+    private fun content(
+        export: YourDataExport = YourDataExport.IDLE,
         isOffline: Boolean = false,
-    ): YourDataUiState = YourDataUiState(
-        ledger = yourDataLedger(
-            profile = canonicalCandidateProfile,
-            applications = applications(),
-            entitlement = PurchaseEntitlement(
-                freeCredits = 0,
-                purchasedCredits = 5,
-                pendingPackIds = listOf("application_pack_5"),
+        deleteTarget: YourDataApplication? = null,
+    ) = YourDataUiState.Content(
+        profileFactCount = 18,
+        confirmedFactCount = 15,
+        userStatedFactCount = 3,
+        applications = APPLICATIONS,
+        purchases = listOf(
+            YourDataPurchase(
+                credits = 5,
+                priceInPaise = 14_900L,
+                currencyCode = "INR",
+                purchasedAt = PURCHASE_TIME,
+                isPending = false,
             ),
         ),
-        stage = stage,
-        steps = steps,
-        exportFileName = exportFileName,
         isOffline = isOffline,
-        profileFactCount = canonicalCandidateProfile.entries.size,
+        export = export,
+        deleteTarget = deleteTarget,
     )
 
-    private fun applications() = List(APPLICATION_COUNT) { index ->
-        canonicalApplication.copy(
-            id = "application-$index",
-            job = sampleJobDescription.copy(
-                title = APPLICATION_TITLES[index],
-                company = APPLICATION_COMPANIES[index],
-            ),
-        )
-    }
+    private val noActions = YourDataActions(
+        onBack = {},
+        onViewProfile = {},
+        onCorrectProfile = {},
+        onViewApplications = {},
+        onViewPurchases = {},
+        onDownload = {},
+        onDeleteRequest = {},
+        onDeleteConfirm = {},
+        onDeleteDismiss = {},
+    )
 
     private companion object {
         const val OUTPUT = "src/test/screenshots"
-        const val APPLICATION_COUNT = 4
-        val APPLICATION_TITLES = listOf(
-            "Associate Android Engineer",
-            "Data Analyst Intern",
-            "Graduate Engineer Trainee",
-            "Business Analyst",
-        )
-        val APPLICATION_COMPANIES = listOf(
-            "Northwind GCC",
-            "Paisa Ledger",
-            "Sahyadri Motors",
-            "Meridian GCC",
+        val PURCHASE_TIME = Instant.fromEpochSeconds(1_807_704_000)
+        val APPLICATIONS = listOf(
+            YourDataApplication("application-1", "Associate Analyst", "Northwind GCC"),
+            YourDataApplication("application-2", "Data Analyst", "Paisa Ledger (start-up)"),
+            YourDataApplication("application-3", "Operations Analyst", "Sahyadri Motors"),
+            YourDataApplication("application-4", "Business Analyst", "Meridian GCC"),
         )
     }
 }

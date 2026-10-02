@@ -1,10 +1,11 @@
 package com.hirehop.feature.profile.impl.facteditor
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.IdGenerator
+import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.core.domain.fact.FactDraft
 import com.hirehop.core.domain.fact.FactDraftError
 import com.hirehop.core.domain.fact.FactDraftErrorReason
@@ -16,29 +17,36 @@ import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.feature.profile.api.navigation.FactEditorNavKey
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
 
-@HiltViewModel
-class FactEditorViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = FactEditorViewModel.Factory::class)
+class FactEditorViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val factIdAllocator: FactIdAllocator,
     private val idGenerator: IdGenerator,
+    private val connectivityMonitor: ConnectivityMonitor,
+    @Assisted key: FactEditorNavKey,
 ) : ViewModel() {
 
     private val profileMutex = Mutex()
-    private val entryId: String? = savedStateHandle.get<String>(ENTRY_ID_KEY)
-    private val requestedCategory: EntryCategory = categoryOf(savedStateHandle.get<String>(ENTRY_TYPE_KEY))
-    private val scenario: DebugScenario = scenarioOf(savedStateHandle.get<String>(SCENARIO_KEY))
+    private val entryId: String? = key.entryId
+    private val requestedCategory: EntryCategory = categoryOf(key.entryType)
+    private val scenario: DebugScenario = key.scenario
+    private var existingEntries: List<ProfileEntry> = emptyList()
 
     private val mutableUiState = MutableStateFlow(
         FactEditorScenarioMapper.seed(
@@ -51,6 +59,9 @@ class FactEditorViewModel @Inject constructor(
     val uiState: StateFlow<FactEditorUiState> = mutableUiState.asStateFlow()
 
     init {
+        connectivityMonitor.isOnline
+            .onEach { online -> mutableUiState.update { it.copy(isOffline = !online || scenario == DebugScenario.OFFLINE) } }
+            .launchIn(viewModelScope)
         if (scenario != DebugScenario.LOADING) {
             viewModelScope.launch {
                 val profile = profileRepository.observeProfile().first()
@@ -59,7 +70,12 @@ class FactEditorViewModel @Inject constructor(
         }
     }
 
-    fun onTitleChange(value: String) = onFieldChange(FactField.TITLE) { it.copy(title = value) }
+    fun onTitleChange(value: String) {
+        onFieldChange(FactField.TITLE) { it.copy(title = value) }
+        mutableUiState.update { state ->
+            if (state.mode == FactEditorMode.New && !state.isLoading) state.withNewId(value) else state
+        }
+    }
 
     fun onDetailChange(value: String) = onFieldChange(FactField.DETAIL) { it.copy(detail = value) }
 
@@ -155,13 +171,23 @@ class FactEditorViewModel @Inject constructor(
     private fun FactEditorUiState.withLoadedProfile(profile: CandidateProfile?): FactEditorUiState {
         val loaded = if (scenario == DebugScenario.EMPTY) null else profile?.findEntry(factId)
         if (loaded == null) {
-            val existing = profile?.entries.orEmpty()
+            existingEntries = profile?.entries.orEmpty()
             return FactEditorScenarioMapper.withoutEntry(
                 state = copy(isLoading = false),
-                nextId = factIdAllocator.nextId(requestedCategory, existing),
+                nextId = factIdAllocator.nextId(requestedCategory, existingEntries, draft.title),
             )
         }
-        return FactEditorScenarioMapper.withEntry(state = this, entry = loaded, scenario = scenario)
+        return FactEditorScenarioMapper.withEntry(
+            state = this,
+            entry = loaded,
+            scenario = scenario,
+            displayId = FactDisplayIds.of(loaded, profile?.entries.orEmpty()),
+        )
+    }
+
+    private fun FactEditorUiState.withNewId(title: String): FactEditorUiState {
+        val nextId = factIdAllocator.nextId(requestedCategory, existingEntries, title)
+        return copy(factId = nextId, displayId = nextId)
     }
 
     private fun CandidateProfile?.findEntry(id: String): ProfileEntry? =
@@ -189,16 +215,11 @@ class FactEditorViewModel @Inject constructor(
         return copy(entries = updated)
     }
 
-    private companion object {
-        const val ENTRY_ID_KEY = "entryId"
-        const val ENTRY_TYPE_KEY = "entryType"
-        const val SCENARIO_KEY = "scenario"
+    @AssistedFactory
+    interface Factory {
+        fun create(key: FactEditorNavKey): FactEditorViewModel
     }
 }
-
-private fun scenarioOf(raw: String?): DebugScenario =
-    DebugScenario.entries.firstOrNull { it.name.equals(raw, ignoreCase = true) }
-        ?: DebugScenario.defaultValue
 
 private fun List<FactDraftError>.toFieldErrorMap(): Map<FactField, FactDraftErrorReason> =
     associate { it.field to it.reason }

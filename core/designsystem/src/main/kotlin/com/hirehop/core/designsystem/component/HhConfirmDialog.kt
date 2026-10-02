@@ -3,20 +3,18 @@ package com.hirehop.core.designsystem.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.designsystem.theme.hhShadow
 
 @Composable
 fun HhConfirmDialog(
@@ -29,44 +27,54 @@ fun HhConfirmDialog(
     message: String? = null,
     destructive: Boolean = false,
 ) {
-    val colors = HhTheme.colors
     Dialog(
         onDismissRequest = onCancel,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Surface(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(HhTheme.spacing.d24),
-            shape = RoundedCornerShape(HhTheme.shapes.lg),
-            color = colors.surface,
-            border = BorderStroke(width = HhWidthHairline, color = colors.hairline),
-            shadowElevation = HhTheme.elevation.level3.elevation,
+        HhConfirmPanel(
+            title = title,
+            message = message,
+            confirmLabel = confirmLabel,
+            cancelLabel = cancelLabel,
+            onConfirm = onConfirm,
+            onCancel = onCancel,
+            destructive = destructive,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+internal fun HhConfirmPanel(
+    title: String,
+    message: String?,
+    confirmLabel: String,
+    cancelLabel: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    destructive: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val colors = HhTheme.colors
+    val shape = RoundedCornerShape(HhRadiusSheet)
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(HhTheme.spacing.d24)
+            .hhShadow(HhTheme.elevation.modal, shape),
+        shape = shape,
+        color = colors.surface,
+        border = if (HhTheme.isDark) BorderStroke(HhWidthHairline, colors.outlineSoft) else null,
+    ) {
+        Column(
+            modifier = Modifier.padding(HhTheme.spacing.d24),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
-            Column(
-                modifier = Modifier.padding(HhTheme.spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
-                Text(
-                    text = title,
-                    style = HhTheme.typography.titleLarge,
-                    color = colors.onSurface,
-                )
-                if (message != null) {
-                    Text(
-                        text = message,
-                        style = HhTheme.typography.bodyMedium,
-                        color = colors.onSurfaceVariant,
-                    )
-                }
-                HhConfirmActions(
-                    confirmLabel = confirmLabel,
-                    cancelLabel = cancelLabel,
-                    onConfirm = onConfirm,
-                    onCancel = onCancel,
-                    confirmColor = if (destructive) colors.error else colors.primary,
-                )
+            Text(text = title, style = HhTheme.typography.titleL, color = colors.onSurface)
+            if (message != null) {
+                Text(text = message, style = HhTheme.typography.bodyM, color = colors.body)
             }
+            HhConfirmActions(confirmLabel, cancelLabel, onConfirm, onCancel, destructive)
         }
     }
 }
@@ -77,65 +85,47 @@ internal fun HhConfirmActions(
     cancelLabel: String,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    confirmColor: Color,
+    destructive: Boolean,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(
-            space = HhTheme.spacing.sm,
-            alignment = Alignment.End,
-        ),
+    Column(
+        modifier = Modifier.padding(top = HhTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
-        HhOutlinedButton(onClick = onCancel) {
-            Text(
-                text = cancelLabel,
-                style = HhTheme.typography.labelLarge,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
+        if (destructive) {
+            HhDestructiveButton(label = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+        } else {
+            HhPrimaryButton(label = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
         }
-        HhOutlinedButton(onClick = onConfirm) {
-            Text(
-                text = confirmLabel,
-                style = HhTheme.typography.labelLarge,
-                color = confirmColor,
-            )
-        }
+        HhOutlineButton(label = cancelLabel, onClick = onCancel, modifier = Modifier.fillMaxWidth())
     }
 }
 
-private const val HH_CONFIRM_DIALOG_SAMPLE_TITLE = "Delete this application?"
-private const val HH_CONFIRM_DIALOG_SAMPLE_MESSAGE = "The tailored resume goes with it."
-private const val HH_CONFIRM_DIALOG_SAMPLE_CANCEL = "Keep it"
-private const val HH_CONFIRM_DIALOG_SAMPLE_CONFIRM = "Delete"
+private const val HH_CONFIRM_DIALOG_SAMPLE_TITLE = "Delete your account?"
+private const val HH_CONFIRM_DIALOG_SAMPLE_MESSAGE = "This removes your 23 facts, 4 resumes and history. You cannot undo it."
+private const val HH_CONFIRM_DIALOG_SAMPLE_CANCEL = "Keep my account"
+private const val HH_CONFIRM_DIALOG_SAMPLE_CONFIRM = "Delete account"
 
 @Preview(showBackground = true)
 @Composable
 private fun HhConfirmDialogPreview() {
-    HhPreviewTheme(darkTheme = false) {
-        HhConfirmDialog(
-            title = HH_CONFIRM_DIALOG_SAMPLE_TITLE,
-            message = HH_CONFIRM_DIALOG_SAMPLE_MESSAGE,
-            confirmLabel = HH_CONFIRM_DIALOG_SAMPLE_CONFIRM,
-            cancelLabel = HH_CONFIRM_DIALOG_SAMPLE_CANCEL,
-            onConfirm = {},
-            onCancel = {},
-            destructive = true,
-        )
-    }
+    HhPreviewTheme(darkTheme = false) { HhConfirmDialogPanelSample() }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun HhConfirmDialogDarkPreview() {
-    HhPreviewTheme(darkTheme = true) {
-        HhConfirmDialog(
-            title = HH_CONFIRM_DIALOG_SAMPLE_TITLE,
-            message = HH_CONFIRM_DIALOG_SAMPLE_MESSAGE,
-            confirmLabel = HH_CONFIRM_DIALOG_SAMPLE_CONFIRM,
-            cancelLabel = HH_CONFIRM_DIALOG_SAMPLE_CANCEL,
-            onConfirm = {},
-            onCancel = {},
-            destructive = true,
-        )
-    }
+    HhPreviewTheme(darkTheme = true) { HhConfirmDialogPanelSample() }
+}
+
+@Composable
+private fun HhConfirmDialogPanelSample() {
+    HhConfirmPanel(
+        title = HH_CONFIRM_DIALOG_SAMPLE_TITLE,
+        message = HH_CONFIRM_DIALOG_SAMPLE_MESSAGE,
+        confirmLabel = HH_CONFIRM_DIALOG_SAMPLE_CONFIRM,
+        cancelLabel = HH_CONFIRM_DIALOG_SAMPLE_CANCEL,
+        onConfirm = {},
+        onCancel = {},
+        destructive = true,
+    )
 }

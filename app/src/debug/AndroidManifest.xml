@@ -5,8 +5,13 @@
 
         <activity
             android:name=".debug.DebugScenarioActivity"
-            android:exported="false"
-            android:label="@string/debug_scenario_activity_label" />
+            android:exported="true"
+            android:label="@string/debug_scenario_activity_label">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
     </application>
 

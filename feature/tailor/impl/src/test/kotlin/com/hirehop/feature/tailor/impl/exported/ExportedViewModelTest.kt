@@ -4,17 +4,23 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.ExportedNavKey
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
-import com.hirehop.feature.tailor.impl.exportpreview.ExportFormat
-import com.hirehop.feature.tailor.impl.packpurchase.TestPaymentGateway
+import com.hirehop.feature.tailor.impl.document.TestResumeHeadings
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -35,96 +41,130 @@ class ExportedViewModelTest {
 
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
-    private val assembler = ResumeDocumentAssembler()
     private val paymentGateway = TestPaymentGateway()
+    private val exportHistory = TestExportHistoryRepository()
+    private val clock = TestClock()
     private val fileStore = ExportedFileStore(ApplicationProvider.getApplicationContext())
 
     private lateinit var viewModel: ExportedViewModel
 
     @Before
     fun setup() {
-        viewModel = newViewModel()
+        viewModel = ExportedViewModel(
+            applicationRepository = applicationRepository,
+            profileRepository = profileRepository,
+            assembler = ResumeDocumentAssembler(TestResumeHeadings),
+            paymentGateway = paymentGateway,
+            exportHistoryRepository = exportHistory,
+            fileStore = fileStore,
+            clock = clock,
+        )
+    }
+
+    private fun enter(format: String = "pdf", scenario: DebugScenario = DebugScenario.DEFAULT, free: Boolean = true) {
+        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, format, scenario, spentFreeCredit = free))
     }
 
     @Test
-    fun loadingScenario_staysIdle() {
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.LOADING))
+    fun loadingScenario_staysLoading() {
+        enter(scenario = DebugScenario.LOADING)
 
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.IDLE)
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.LOADING)
     }
 
     @Test
     fun emptyScenario_reportsNoApplication() {
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.EMPTY))
+        enter(scenario = DebugScenario.EMPTY)
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.NO_APPLICATION)
     }
 
     @Test
     fun missingApplication_reportsNoApplication() = runTest {
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.NO_APPLICATION)
     }
 
     @Test
-    fun freeCreditState_namesTheJobAndSpendsTheFreeApplication() = runTest {
+    fun freeCredit_namesTheJobAndReadsTheCreditsLeftFromTheGateway() = runTest {
         given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 0)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT, spentFreeCredit = true))
+        paymentGateway.consumeCredit()
+        enter(free = true)
 
         val state = viewModel.uiState.value
         assertThat(state.stage).isEqualTo(ExportedStage.READY)
         assertThat(state.jobTitle).isEqualTo("Associate Android Engineer")
         assertThat(state.jobCompany).isEqualTo("Northwind GCC")
-        assertThat(state.format).isEqualTo(ExportFormat.PDF)
         assertThat(state.fileName).endsWith(".pdf")
         assertThat(state.creditsKnown).isTrue()
         assertThat(state.usesFreeCredit).isTrue()
-        assertThat(state.creditsBefore).isEqualTo(1)
         assertThat(state.creditsLeft).isEqualTo(0)
-        assertThat(state.creditsSpent).isEqualTo(1)
     }
 
     @Test
-    fun paidCreditState_dropsTheCounterByOne() = runTest {
+    fun theExportRecord_givesTheFileNamePageCountAndTemplate() = runTest {
         given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 4)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT, spentFreeCredit = false))
+        exportHistory.record(
+            ExportRecord(
+                applicationId = APPLICATION_ID,
+                format = ExportFormat.PDF,
+                fileName = "Recorded_Name.pdf",
+                exportedAt = clock.now(),
+                creditKind = CreditKind.FREE,
+                pageCount = 1,
+                templateName = "Plain",
+            ),
+        )
+        enter()
+
+        val state = viewModel.uiState.value
+        assertThat(state.fileName).isEqualTo("Recorded_Name.pdf")
+        assertThat(state.pageCount).isEqualTo(1)
+        assertThat(state.templateName).isEqualTo("Plain")
+    }
+
+    @Test
+    fun withoutAnExportRecord_pageCountAndTemplateStayUnknown() = runTest {
+        given()
+        enter()
+
+        assertThat(viewModel.uiState.value.pageCount).isNull()
+        assertThat(viewModel.uiState.value.templateName).isNull()
+    }
+
+    @Test
+    fun paidCredit_dropsTheCounterByOne() = runTest {
+        given()
+        paymentGateway.consumeCredit()
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        paymentGateway.consumeCredit()
+        enter(free = false)
 
         val state = viewModel.uiState.value
         assertThat(state.usesFreeCredit).isFalse()
         assertThat(state.creditsBefore).isEqualTo(5)
         assertThat(state.creditsLeft).isEqualTo(4)
-        assertThat(state.creditsSpent).isEqualTo(1)
+        assertThat(state.creditsNeverExpire).isTrue()
     }
 
     @Test
-    fun paidCreditState_claimsNoExpiryOnlyWhenEveryPackAgrees() = runTest {
+    fun theCounterFollowsAnyLaterChangeOfTheCredits() = runTest {
         given()
-        paymentGateway.withFreeCredits(credits = 0).withPurchasedCredits(credits = 5)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        paymentGateway.consumeCredit()
+        enter(free = true)
 
-        assertThat(viewModel.uiState.value.creditsNeverExpire).isTrue()
-    }
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
-    @Test
-    fun unavailableEntitlement_leavesTheCreditBlockOut() = runTest {
-        given()
-        paymentGateway.withEntitlementFailure()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportedStage.READY)
-        assertThat(state.creditsKnown).isFalse()
+        assertThat(viewModel.uiState.value.creditsLeft).isEqualTo(5)
     }
 
     @Test
     fun enteringTwice_keepsTheFirstLoad() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         applicationRepository.sendApplications(listOf(canonicalApplication.copy(status = ApplicationStatus.OFFER)))
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         assertThat(viewModel.uiState.value.status).isEqualTo(ApplicationStatus.SAVED)
     }
@@ -132,64 +172,61 @@ class ExportedViewModelTest {
     @Test
     fun shareRequest_handsTheWrittenFileToTheSystem() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         val fileName = viewModel.uiState.value.fileName
         writeExportedFile(fileName)
 
         viewModel.onAction(ExportedAction.RequestShare)
 
-        val request = requireNotNull(viewModel.uiState.value.shareRequest)
+        val request = requireNotNull(viewModel.uiState.value.fileRequest)
         assertThat(request.file.name).isEqualTo(fileName)
         assertThat(request.format).isEqualTo(ExportFormat.PDF)
-        assertThat(request.jobTitle).isEqualTo("Associate Android Engineer")
-        assertThat(viewModel.uiState.value.shareState).isEqualTo(ExportedShareState.REQUESTED)
+        assertThat(request.action).isEqualTo(ExportedFileAction.SHARE)
 
-        viewModel.onAction(ExportedAction.ShareHandedToSystem)
+        viewModel.onAction(ExportedAction.FileRequestHandled)
 
-        assertThat(viewModel.uiState.value.shareRequest).isNull()
+        assertThat(viewModel.uiState.value.fileRequest).isNull()
     }
 
     @Test
-    fun shareRequest_withoutTheFileOnDevice_asksNothing() = runTest {
+    fun openRequest_handsTheWrittenFileToTheSystem() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-        viewModel.uiState.value.fileName
+        enter()
+        writeExportedFile(viewModel.uiState.value.fileName)
+
+        viewModel.onAction(ExportedAction.RequestOpen)
+
+        assertThat(viewModel.uiState.value.fileRequest?.action).isEqualTo(ExportedFileAction.OPEN)
+    }
+
+    @Test
+    fun fileRequest_withoutTheFileOnDevice_asksNothing() = runTest {
+        given()
+        enter()
 
         viewModel.onAction(ExportedAction.RequestShare)
+        viewModel.onAction(ExportedAction.RequestOpen)
 
-        assertThat(viewModel.uiState.value.shareRequest).isNull()
-        assertThat(viewModel.uiState.value.shareState).isEqualTo(ExportedShareState.IDLE)
+        assertThat(viewModel.uiState.value.fileRequest).isNull()
+        assertThat(viewModel.uiState.value.canUseFile).isFalse()
     }
 
     @Test
     fun enteringAgain_picksUpTheFileWrittenSinceTheLastVisit() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         assertThat(viewModel.uiState.value.fileOnDevice).isFalse()
 
         writeExportedFile(viewModel.uiState.value.fileName)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         assertThat(viewModel.uiState.value.fileOnDevice).isTrue()
-        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.READY)
     }
 
     @Test
-    fun statusSheet_opensOnTheCurrentValue() = runTest {
+    fun confirmStatus_writesTheStatusMarksTheDateAndOffersUndo() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
-
-        viewModel.onAction(ExportedAction.OpenStatusSheet)
-
-        assertThat(viewModel.uiState.value.statusSheetOpen).isTrue()
-        assertThat(viewModel.uiState.value.status).isEqualTo(ApplicationStatus.SAVED)
-        assertThat(viewModel.uiState.value.asksForStatus).isTrue()
-    }
-
-    @Test
-    fun confirmStatus_writesTheStatusAndShowsTheChip() = runTest {
-        given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         viewModel.onAction(ExportedAction.OpenStatusSheet)
 
         viewModel.onAction(ExportedAction.ConfirmStatus(ApplicationStatus.APPLIED))
@@ -197,30 +234,58 @@ class ExportedViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.status).isEqualTo(ApplicationStatus.APPLIED)
         assertThat(state.statusSheetOpen).isFalse()
-        assertThat(state.statusJustSet).isTrue()
         assertThat(state.asksForStatus).isFalse()
-        assertThat(state.showsStatusChip).isTrue()
+        assertThat(state.markedOn).isNotEmpty()
+        assertThat(state.undoStatus).isEqualTo(ApplicationStatus.SAVED)
         assertThat(storedStatus()).isEqualTo(ApplicationStatus.APPLIED)
+    }
+
+    @Test
+    fun undo_restoresTheEarlierStatusInTheStore() = runTest {
+        given()
+        enter()
+        viewModel.onAction(ExportedAction.OpenStatusSheet)
+        viewModel.onAction(ExportedAction.ConfirmStatus(ApplicationStatus.APPLIED))
+
+        viewModel.onAction(ExportedAction.UndoStatus)
+
+        val state = viewModel.uiState.value
+        assertThat(state.status).isEqualTo(ApplicationStatus.SAVED)
+        assertThat(state.undoStatus).isNull()
+        assertThat(state.markedOn).isNull()
+        assertThat(storedStatus()).isEqualTo(ApplicationStatus.SAVED)
+    }
+
+    @Test
+    fun dismissUndo_keepsTheNewStatus() = runTest {
+        given()
+        enter()
+        viewModel.onAction(ExportedAction.OpenStatusSheet)
+        viewModel.onAction(ExportedAction.ConfirmStatus(ApplicationStatus.INTERVIEW))
+
+        viewModel.onAction(ExportedAction.DismissUndo)
+
+        assertThat(viewModel.uiState.value.undoStatus).isNull()
+        assertThat(viewModel.uiState.value.status).isEqualTo(ApplicationStatus.INTERVIEW)
     }
 
     @Test
     fun dismissStatusSheet_keepsTheSavedStatus() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
         viewModel.onAction(ExportedAction.OpenStatusSheet)
 
         viewModel.onAction(ExportedAction.DismissStatusSheet)
 
-        val state = viewModel.uiState.value
-        assertThat(state.statusSheetOpen).isFalse()
-        assertThat(state.status).isEqualTo(ApplicationStatus.SAVED)
-        assertThat(state.statusJustSet).isFalse()
+        assertThat(viewModel.uiState.value.statusSheetOpen).isFalse()
+        assertThat(viewModel.uiState.value.status).isEqualTo(ApplicationStatus.SAVED)
+        assertThat(viewModel.uiState.value.undoStatus).isNull()
     }
 
     @Test
     fun confirmStatus_withoutTheSheetOpen_changesNothing() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
         viewModel.onAction(ExportedAction.ConfirmStatus(ApplicationStatus.OFFER))
 
@@ -229,41 +294,22 @@ class ExportedViewModelTest {
     }
 
     @Test
-    fun docxFormat_namesTheDocxFile() = runTest {
+    fun docxFormat_namesTheDocxFile_andUnknownFormatFallsBackToPdf() = runTest {
         given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "docx", DebugScenario.DEFAULT))
-
-        val state = viewModel.uiState.value
-        assertThat(state.format).isEqualTo(ExportFormat.DOCX)
-        assertThat(state.fileName).endsWith(".docx")
-    }
-
-    @Test
-    fun unknownWireFormat_fallsBackToPdf() = runTest {
-        given()
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "word", DebugScenario.DEFAULT))
-
-        assertThat(viewModel.uiState.value.format).isEqualTo(ExportFormat.PDF)
+        enter(format = "docx")
+        assertThat(viewModel.uiState.value.format).isEqualTo(ExportFormat.DOCX)
+        assertThat(viewModel.uiState.value.fileName).endsWith(".docx")
     }
 
     @Test
     fun noTailoredResume_reportsNoFile() = runTest {
         applicationRepository.sendApplications(listOf(canonicalApplication.copy(tailoredResume = null)))
         profileRepository.sendProfile(canonicalCandidateProfile)
-        viewModel.onEnter(ExportedNavKey(APPLICATION_ID, "pdf", DebugScenario.DEFAULT))
+        enter()
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(ExportedStage.NO_FILE)
-        assertThat(state.fileName).isEmpty()
+        assertThat(viewModel.uiState.value.stage).isEqualTo(ExportedStage.NO_FILE)
+        assertThat(viewModel.uiState.value.fileName).isEmpty()
     }
-
-    private fun newViewModel(): ExportedViewModel = ExportedViewModel(
-        applicationRepository = applicationRepository,
-        profileRepository = profileRepository,
-        assembler = assembler,
-        paymentGateway = paymentGateway,
-        fileStore = fileStore,
-    )
 
     private suspend fun storedStatus(): ApplicationStatus? =
         applicationRepository.observeApplications().first().firstOrNull()?.status

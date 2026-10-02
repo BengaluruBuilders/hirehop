@@ -8,6 +8,8 @@ internal data class ResumeDocument(
     val headline: String,
     val skills: List<String>,
     val sections: List<ResumeSection>,
+    val skillsHeading: String,
+    val template: ExportTemplate = ExportTemplate.PLAIN,
 ) {
     val isEmpty: Boolean get() = sections.isEmpty()
 }
@@ -24,14 +26,3 @@ internal data class ResumeEntry(
     val dateRange: String,
     val bullets: List<String>,
 )
-
-internal const val SKILLS_HEADING = "Skills"
-
-internal val EntryCategory.resumeHeading: String
-    get() = when (this) {
-        EntryCategory.EDUCATION -> "Education"
-        EntryCategory.EXPERIENCE -> "Experience"
-        EntryCategory.PROJECT -> "Projects"
-        EntryCategory.CERTIFICATION -> "Certifications"
-        EntryCategory.ACHIEVEMENT -> "Achievements"
-    }

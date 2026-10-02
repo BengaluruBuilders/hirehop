@@ -13,6 +13,8 @@ import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
 internal fun WelcomeRoute(
     key: WelcomeNavKey,
     onNavigateToPasteJobDescription: () -> Unit,
+    onNavigateToSignIn: () -> Unit,
+    onNavigateToConsent: () -> Unit,
     onNavigateToImportResume: () -> Unit,
     onNavigateToBuildProfileStepByStep: () -> Unit,
     modifier: Modifier = Modifier,
@@ -26,6 +28,16 @@ internal fun WelcomeRoute(
             WelcomeDestination.PASTE_JOB_DESCRIPTION -> {
                 viewModel.onAction(WelcomeAction.DestinationConsumed)
                 onNavigateToPasteJobDescription()
+            }
+
+            WelcomeDestination.SIGN_IN -> {
+                viewModel.onAction(WelcomeAction.DestinationConsumed)
+                onNavigateToSignIn()
+            }
+
+            WelcomeDestination.CONSENT -> {
+                viewModel.onAction(WelcomeAction.DestinationConsumed)
+                onNavigateToConsent()
             }
 
             WelcomeDestination.IMPORT_RESUME -> {

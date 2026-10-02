@@ -44,6 +44,13 @@ class ApplicationMappersTest {
     }
 
     @Test
+    fun tailoredResumeWithoutEntryIdsRoundTripsAsAbsent() {
+        val legacy = testTailoredResume.copy(entryIds = null)
+
+        assertThat(legacy.asDto().asExternalModel().entryIds).isNull()
+    }
+
+    @Test
     fun everyGuardrailViolationRoundTrips() {
         everyViolation.forEach { violation ->
             assertThat(violation.asDto().asExternalModel()).isEqualTo(violation)

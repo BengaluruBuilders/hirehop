@@ -1,36 +1,67 @@
 package com.hirehop.core.designsystem.theme
 
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.IntOffset
 
 @Immutable
-data class HhMotion(
-    val proof: Int,
-    val hop: Int,
-    val fade: Int,
-    val emphasize: Int,
-    val standard: Easing,
-    val emphasized: Easing,
-    val emphasizedDecelerate: Easing,
-    val emphasizedAccelerate: Easing,
-    val linear: Easing,
+class HhProofSpecs(
+    val spatial: FiniteAnimationSpec<Float>,
+    val spatialFast: FiniteAnimationSpec<Float>,
+    val offset: FiniteAnimationSpec<IntOffset>,
+    val fade: FiniteAnimationSpec<Float>,
+    val staggerMs: Int,
+    val staggerMax: Int,
+)
+
+@Immutable
+class HhHopSpecs(
+    val spatial: FiniteAnimationSpec<Float>,
+    val scale: FiniteAnimationSpec<Float>,
+)
+
+@Immutable
+class HhMotion(
+    val proofSpecs: HhProofSpecs,
+    val hopSpecs: HhHopSpecs,
+    val reduced: Boolean,
 )
 
 val LocalHhMotion = staticCompositionLocalOf { HhMotionDefaults.Default }
 
 internal object HhMotionDefaults {
     val Default = HhMotion(
-        proof = 900,
-        hop = 180,
-        fade = 240,
-        emphasize = 160,
-        standard = CubicBezierEasing(0.2f, 0f, 0f, 1f),
-        emphasized = CubicBezierEasing(0.2f, 0f, 0f, 1f),
-        emphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f),
-        emphasizedAccelerate = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f),
-        linear = LinearEasing,
+        proofSpecs = HhProofSpecs(
+            spatial = spring(dampingRatio = 0.9f, stiffness = 600f),
+            spatialFast = spring(dampingRatio = 1f, stiffness = 1400f),
+            offset = spring(0.9f, 600f, IntOffset.VisibilityThreshold),
+            fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
+            staggerMs = 30,
+            staggerMax = 6,
+        ),
+        hopSpecs = HhHopSpecs(
+            spatial = spring(dampingRatio = 0.55f, stiffness = 380f),
+            scale = spring(dampingRatio = 0.5f, stiffness = 500f),
+        ),
+        reduced = false,
+    )
+
+    val Reduced = HhMotion(
+        proofSpecs = HhProofSpecs(
+            spatial = snap(),
+            spatialFast = snap(),
+            offset = snap(),
+            fade = tween(durationMillis = 150, easing = LinearOutSlowInEasing),
+            staggerMs = 0,
+            staggerMax = 0,
+        ),
+        hopSpecs = HhHopSpecs(spatial = snap(), scale = snap()),
+        reduced = true,
     )
 }

@@ -6,4 +6,6 @@ data class PrepQuestion(
     val prompt: String,
     val requirementText: String,
     val backingFactId: String?,
-)
+) {
+    val isTiedToFact: Boolean get() = kind != PrepQuestionKind.GAP
+}

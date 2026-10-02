@@ -6,12 +6,16 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.KeywordCoverage
-import com.hirehop.core.model.RequirementPriority
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 internal const val MINUTES_PER_HOUR = 60L
 internal const val HOURS_PER_DAY = 24L
-internal const val DAYS_PER_MONTH = 30L
+internal const val DAYS_PER_WEEK = 7L
+private const val DAY_MONTH_PATTERN = "d MMM"
 
 @StringRes
 internal fun ApplicationStatus.labelRes(): Int = when (this) {
@@ -27,14 +31,20 @@ internal fun ApplicationStatus.labelRes(): Int = when (this) {
 internal fun ApplicationStatus.label(): String = stringResource(labelRes())
 
 @Composable
-internal fun RequirementPriority.label(): String = when (this) {
-    RequirementPriority.MUST_HAVE -> stringResource(R.string.feature_applications_impl_priority_must_have)
-    RequirementPriority.NICE_TO_HAVE -> stringResource(R.string.feature_applications_impl_priority_nice_to_have)
-}
+internal fun roleOrFallback(role: String): String =
+    role.ifBlank { stringResource(R.string.feature_applications_impl_role_not_set) }
 
 @Composable
-internal fun coverageShort(coverage: KeywordCoverage): String = stringResource(
-    id = R.string.feature_applications_impl_coverage_short,
+internal fun companyOrFallback(company: String): String =
+    company.ifBlank { stringResource(R.string.feature_applications_impl_company_not_set) }
+
+@Composable
+internal fun monogramOf(company: String): String =
+    company.ifBlank { stringResource(R.string.feature_applications_impl_monogram_not_set) }
+
+@Composable
+internal fun coverageFraction(coverage: KeywordCoverage): String = stringResource(
+    id = R.string.feature_applications_impl_coverage_fraction,
     coverage.covered,
     coverage.total,
 )
@@ -48,35 +58,34 @@ internal fun coveragePhrase(coverage: KeywordCoverage): String = pluralStringRes
 )
 
 @Composable
+internal fun dayMonthLabel(instant: Instant): String {
+    val locale = Locale.getDefault()
+    return DateTimeFormatter.ofPattern(DAY_MONTH_PATTERN, locale)
+        .withZone(ZoneId.systemDefault())
+        .format(instant.toJavaInstant())
+}
+
+@Composable
 internal fun updatedLabel(updatedAt: Instant, now: Instant): String {
     val minutes = (now - updatedAt).inWholeMinutes
     val hours = minutes / MINUTES_PER_HOUR
     val days = hours / HOURS_PER_DAY
-    val months = days / DAYS_PER_MONTH
     return when {
         minutes < MINUTES_PER_HOUR -> {
-            val shown = minutes.coerceAtLeast(1L)
-            pluralStringResource(
-                id = R.plurals.feature_applications_impl_time_minutes,
-                shown.toInt(),
-                shown.toInt(),
-            )
+            val shown = minutes.coerceAtLeast(1L).toInt()
+            pluralStringResource(id = R.plurals.feature_applications_impl_time_minutes, shown, shown)
         }
         hours < HOURS_PER_DAY -> pluralStringResource(
             id = R.plurals.feature_applications_impl_time_hours,
             hours.toInt(),
             hours.toInt(),
         )
-        months < 1L -> pluralStringResource(
+        days < DAYS_PER_WEEK -> pluralStringResource(
             id = R.plurals.feature_applications_impl_time_days,
             days.toInt(),
             days.toInt(),
         )
-        else -> pluralStringResource(
-            id = R.plurals.feature_applications_impl_time_months,
-            months.toInt(),
-            months.toInt(),
-        )
+        else -> dayMonthLabel(updatedAt)
     }
 }
 

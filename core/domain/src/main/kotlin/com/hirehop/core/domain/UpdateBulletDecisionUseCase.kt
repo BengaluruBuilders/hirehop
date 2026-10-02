@@ -24,6 +24,6 @@ class UpdateBulletDecisionUseCase @Inject constructor(
         decision: BulletDecision,
     ): JobApplication {
         val bullets = resume.bullets.map { if (it.id == bulletId) it.copy(decision = decision) else it }
-        return copy(tailoredResume = TailoredResume(bullets), updatedAt = clock.now())
+        return copy(tailoredResume = resume.copy(bullets = bullets), updatedAt = clock.now())
     }
 }

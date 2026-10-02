@@ -1,6 +1,8 @@
 package com.hirehop.feature.onboarding.impl.confirmfacts
 
+import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.core.domain.fact.FactLineRenderer
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
@@ -24,6 +26,7 @@ data class ConfirmFactUi(
     val detail: String,
     val source: FactSource,
     val isConfirmed: Boolean,
+    val displayId: String = id,
 )
 
 data class ConfirmFactsSectionUi(
@@ -45,11 +48,11 @@ data class ConfirmFactsUiState(
     val isOffline: Boolean = false,
     val isSaving: Boolean = false,
     val hasSaveFailed: Boolean = false,
-    val showRemovedNotice: Boolean = true,
     val contact: ContactUi = ContactUi(),
     val sections: List<ConfirmFactsSectionUi> = emptyList(),
     val skippedSections: Set<ConfirmFactsSection> = emptySet(),
     val pendingEdit: PendingEdit? = null,
+    val nextStep: OnboardingStep? = null,
 ) {
     val facts: List<ConfirmFactUi> get() = sections.flatMap(ConfirmFactsSectionUi::facts)
     val skills: List<String>
@@ -79,7 +82,11 @@ object ConfirmFactsScenarioMapper {
         if (scenario == DebugScenario.EMPTY || profile == null) return state
         val total = profile.entries.size
         val entries = profile.entries.mapIndexed { index, entry ->
-            entry.toFactUi(isConfirmed = confirmedFor(entry, index, total, scenario), scenario = scenario)
+            entry.toFactUi(
+                isConfirmed = confirmedFor(entry, index, total, scenario),
+                scenario = scenario,
+                displayId = FactDisplayIds.of(entry, profile.entries),
+            )
         }
         return state.copy(
             isLoading = false,
@@ -114,6 +121,7 @@ object ConfirmFactsScenarioMapper {
     private fun ProfileEntry.toFactUi(
         isConfirmed: Boolean,
         scenario: DebugScenario,
+        displayId: String,
     ): ConfirmFactUi = ConfirmFactUi(
         id = id,
         section = category.sectionOf(),
@@ -121,6 +129,7 @@ object ConfirmFactsScenarioMapper {
         detail = detailOf(this),
         source = if (scenario == DebugScenario.USER_STATED) FactSource.USER_STATED else source,
         isConfirmed = isConfirmed,
+        displayId = displayId,
     )
 }
 

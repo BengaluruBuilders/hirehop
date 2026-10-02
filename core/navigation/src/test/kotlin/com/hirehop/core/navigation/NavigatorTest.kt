@@ -5,7 +5,6 @@ import androidx.navigation3.runtime.NavKey
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertFailsWith
 
 private object TestFirstTopLevelKey : NavKey
 private object TestSecondTopLevelKey : NavKey
@@ -225,9 +224,108 @@ class NavigatorTest {
     }
 
     @Test
-    fun throwOnEmptyBackStack() {
-        assertFailsWith<IllegalStateException> {
-            navigator.goBack()
-        }
+    fun goBackOnTheStartKeyReturnsFalseAndKeepsTheStack() {
+        val handled = navigator.goBack()
+
+        assertThat(handled).isFalse()
+        assertThat(navigationState.currentKey).isEqualTo(TestFirstTopLevelKey)
+        assertThat(navigationState.topLevelStack).containsExactly(TestFirstTopLevelKey)
+    }
+
+    @Test
+    fun goBackReturnsTrueWhenItPopsAScreen() {
+        navigator.navigate(TestKeyFirst)
+
+        assertThat(navigator.goBack()).isTrue()
+        assertThat(navigator.goBack()).isFalse()
+    }
+
+    @Test
+    fun canGoBackIsFalseOnlyOnTheStartKey() {
+        assertThat(navigationState.canGoBack).isFalse()
+
+        navigator.navigate(TestKeyFirst)
+        assertThat(navigationState.canGoBack).isTrue()
+
+        navigator.navigate(TestSecondTopLevelKey)
+        assertThat(navigationState.canGoBack).isTrue()
+
+        navigator.goBack()
+        navigator.goBack()
+        assertThat(navigationState.canGoBack).isFalse()
+    }
+
+    @Test
+    fun navigateAllPushesTheKeysInOrderOnTheCurrentTab() {
+        navigator.navigateAll(listOf(TestKeyFirst, TestKeySecond))
+
+        assertThat(navigationState.currentSubStack).containsExactly(
+            TestFirstTopLevelKey,
+            TestKeyFirst,
+            TestKeySecond,
+        ).inOrder()
+    }
+
+    @Test
+    fun navigateAllWithNoKeysChangesNothing() {
+        navigator.navigateAll(emptyList())
+
+        assertThat(navigationState.currentSubStack).containsExactly(TestFirstTopLevelKey)
+    }
+
+    @Test
+    fun aSingleStackRootGoesBackToItsStartAndStopsThere() {
+        val start = TestFirstTopLevelKey
+        val single = NavigationState(
+            startKey = start,
+            topLevelStack = NavBackStack(start),
+            subStacks = mapOf(start to NavBackStack(start)),
+        )
+        val singleNavigator = Navigator(single)
+
+        singleNavigator.navigate(TestKeyFirst)
+        singleNavigator.navigate(TestKeySecond)
+
+        assertThat(singleNavigator.goBack()).isTrue()
+        assertThat(singleNavigator.goBack()).isTrue()
+        assertThat(singleNavigator.goBack()).isFalse()
+        assertThat(single.currentKey).isEqualTo(start)
+    }
+
+    @Test
+    fun replaceSwapsTheTopKeyOfTheCurrentStack() {
+        navigator.navigate(TestKeyFirst)
+
+        navigator.replace(TestKeySecond)
+
+        assertThat(navigationState.currentSubStack.toList())
+            .containsExactly(TestFirstTopLevelKey, TestKeySecond).inOrder()
+    }
+
+    @Test
+    fun replaceOnARootKeyActsLikeNavigate() {
+        navigator.replace(TestKeyFirst)
+
+        assertThat(navigationState.currentSubStack.toList())
+            .containsExactly(TestFirstTopLevelKey, TestKeyFirst).inOrder()
+    }
+
+    @Test
+    fun goBackAfterReplaceSkipsTheReplacedKey() {
+        navigator.navigate(TestKeyFirst)
+        navigator.replace(TestKeySecond)
+
+        navigator.goBack()
+
+        assertThat(navigationState.currentKey).isEqualTo(TestFirstTopLevelKey)
+    }
+
+    @Test
+    fun replaceWithATopLevelKeySwitchesTheTab() {
+        navigator.navigate(TestKeyFirst)
+
+        navigator.replace(TestSecondTopLevelKey)
+
+        assertThat(navigationState.currentTopLevelKey).isEqualTo(TestSecondTopLevelKey)
     }
 }

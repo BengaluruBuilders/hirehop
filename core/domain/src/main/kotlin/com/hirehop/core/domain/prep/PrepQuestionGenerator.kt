@@ -91,7 +91,11 @@ object PrepQuestionGenerator {
             " Be ready to give one example from $entryTitle."
         }
 
-    private fun inSentence(text: String): String = text.first().lowercase() + text.drop(1)
+    private fun inSentence(text: String): String {
+        val phrase = RequirementPhrase.of(text)
+        val keepsCase = phrase.length > 1 && phrase[1].isUpperCase()
+        return if (keepsCase) phrase else phrase.take(1).lowercase() + phrase.drop(1)
+    }
 
     private fun idFor(kind: PrepQuestionKind, text: String, usedIds: MutableSet<String>, index: Int): String {
         val base = "prep-${kind.name.lowercase()}-${RequirementSlug.of(text)}"

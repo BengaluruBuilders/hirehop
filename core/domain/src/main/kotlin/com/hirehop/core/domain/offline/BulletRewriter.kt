@@ -21,7 +21,14 @@ internal class BulletRewriter(private val jobKeywords: Set<String>) {
         transform: (String) -> String,
     ): String {
         val result = transform(text)
-        if (result != text) editTypes += editType
+        if (result.withoutExtraSpace() == text.withoutExtraSpace()) return text
+        editTypes += editType
         return result
+    }
+
+    private fun String.withoutExtraSpace(): String = trim().replace(WHITESPACE, " ")
+
+    private companion object {
+        val WHITESPACE = Regex("\\s+")
     }
 }

@@ -1,523 +1,476 @@
 package com.hirehop.feature.tailor.impl.coverletter
 
-import android.content.ClipData
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhConfirmSheet
-import com.hirehop.core.designsystem.component.HhDivider
-import com.hirehop.core.designsystem.component.HhDividerStyle
-import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
+import com.hirehop.core.designsystem.component.HhBottomSheet
+import com.hirehop.core.designsystem.component.HhEvidenceText
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
-import com.hirehop.core.designsystem.component.HhProvenanceKind
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSectionCard
-import com.hirehop.core.designsystem.component.HhSpotIllustration
+import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhSpotKind
 import com.hirehop.core.designsystem.component.HhStepProgress
+import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhTextField
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhToastHost
+import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
+import com.hirehop.core.designsystem.component.rememberHhToastState
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.ui.FactIdTag
+import com.hirehop.feature.tailor.impl.BulletReviewState
+import com.hirehop.feature.tailor.impl.DecisionChip
+import com.hirehop.feature.tailor.impl.NoticeStrip
+import com.hirehop.feature.tailor.impl.ProgressCard
 import com.hirehop.feature.tailor.impl.R
-import kotlinx.coroutines.launch
+import com.hirehop.feature.tailor.impl.SourceBadge
+import com.hirehop.feature.tailor.impl.StatusCard
+import com.hirehop.feature.tailor.impl.jobLine
 
-private const val HH_STACK_FONT_SCALE = 1.5f
-
-private const val HH_CLIP_LABEL = "HireHop cover letter"
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CoverLetterScreen(
     uiState: CoverLetterUiState,
     actions: CoverLetterActions,
     modifier: Modifier = Modifier,
+    initialSourceOrdinal: Int? = null,
 ) {
-    HhScaffold(
+    var sourceOrdinal by remember { mutableStateOf(initialSourceOrdinal) }
+    val toastState = rememberHhToastState()
+    val message = uiState.message
+    val messageText = message?.let { stringResource(it.textRes()) }
+    LaunchedEffect(message) {
+        if (messageText == null) return@LaunchedEffect
+        toastState.show(messageText)
+        actions.onDismissMessage()
+    }
+    HhScreen(
         modifier = modifier,
-        topBar = {
-            HhTopAppBar(
+        sheet = false,
+        header = {
+            HhInnerHeader(
                 title = stringResource(R.string.feature_tailor_impl_cover_letter_title),
-                navigationIcon = Icons.AutoMirrored.Rounded.ArrowBack,
-                navigationIconContentDescription = stringResource(
-                    R.string.feature_tailor_impl_cover_letter_navigation_back_description,
-                ),
-                onNavigationClick = actions.onNavigateBack,
+                subtitle = uiState.subtitle(),
+                onBack = actions.onNavigateBack,
+                backContentDescription = stringResource(R.string.feature_tailor_impl_cover_letter_back),
             )
         },
-        bottomBar = {
-            if (uiState.paragraphs.isNotEmpty()) {
-                CoverLetterBottomBar(uiState = uiState, actions = actions)
-            }
-        },
+        bottomBar = { CoverLetterBottomBar(uiState, actions) },
+        snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = HhTheme.spacing.gutter,
+                end = HhTheme.spacing.gutter,
+                top = padding.calculateTopPadding() + HhTheme.spacing.sm,
+                bottom = padding.calculateBottomPadding(),
+            ),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
         ) {
-            when (uiState.stage) {
-                CoverLetterStage.GENERATING -> CoverLetterGenerating()
-                CoverLetterStage.ERROR -> CoverLetterError(actions = actions)
-                CoverLetterStage.EMPTY_PROFILE -> CoverLetterEmptyProfile()
-                CoverLetterStage.READY,
-                CoverLetterStage.NO_MATCHING_EVIDENCE,
-                CoverLetterStage.OFFLINE,
-                -> CoverLetterBody(uiState = uiState, actions = actions)
-            }
+            coverLetterItems(uiState, actions, sourceOrdinal) { sourceOrdinal = it }
         }
     }
-    if (uiState.isEditing) {
-        CoverLetterEditSheet(uiState = uiState, actions = actions)
+    val sourceParagraph = uiState.paragraphs.firstOrNull { it.ordinal == sourceOrdinal }
+    if (sourceParagraph != null) {
+        HhBottomSheet(onDismissRequest = { sourceOrdinal = null }) {
+            ParagraphSources(
+                position = uiState.positionOf(sourceParagraph),
+                paragraph = sourceParagraph,
+                onClose = { sourceOrdinal = null },
+            )
+        }
     }
 }
 
 @Composable
-private fun CoverLetterBottomBar(
+private fun CoverLetterUiState.subtitle(): String? = jobLine(jobTitle, jobCompany)
+
+private fun CoverLetterMessage.textRes(): Int = when (this) {
+    CoverLetterMessage.SAVED -> R.string.feature_tailor_impl_cover_letter_saved
+    CoverLetterMessage.REPORTED -> R.string.feature_tailor_impl_report_thanks
+}
+
+private fun CoverLetterUiState.positionOf(paragraph: CoverLetterParagraph): Int =
+    paragraphs.filter { !it.isGreeting }.indexOfFirst { it.ordinal == paragraph.ordinal } + 1
+
+private fun LazyListScope.coverLetterItems(
     uiState: CoverLetterUiState,
     actions: CoverLetterActions,
+    sourceOrdinal: Int?,
+    onSource: (Int) -> Unit,
 ) {
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    HhBottomActionBar(
-        actions = {
-            HhOutlinedButton(
-                onClick = actions.onSkipLetter,
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_cover_letter_skip_action),
-                        style = HhTheme.typography.labelLarge,
+    if (uiState.isOffline && uiState.stage != CoverLetterStage.GENERATING) {
+        item(key = "offline") {
+            NoticeStrip(text = stringResource(R.string.feature_tailor_impl_cover_letter_offline), icon = HhIcons.Offline)
+        }
+    }
+    when (uiState.stage) {
+        CoverLetterStage.OFFER -> {
+            item(key = "progress") { ReviewedStrip(uiState) }
+            item(key = "offer") { OfferCard() }
+        }
+        CoverLetterStage.GENERATING -> item(key = "generating") { GeneratingCard(uiState) }
+        CoverLetterStage.READY, CoverLetterStage.NO_MATCHING_EVIDENCE -> {
+            if (uiState.stage == CoverLetterStage.NO_MATCHING_EVIDENCE) {
+                item(key = "no-evidence") {
+                    NoticeStrip(
+                        text = stringResource(R.string.feature_tailor_impl_cover_letter_no_evidence_note),
+                        icon = HhIcons.Verified,
                     )
-                },
+                }
+            }
+            item(key = "letter") { LetterCard(uiState, actions, sourceOrdinal, onSource) }
+        }
+        CoverLetterStage.EMPTY_PROFILE -> item(key = "empty") {
+            StatusCard(
+                kind = HhSpotKind.Empty,
+                title = stringResource(R.string.feature_tailor_impl_cover_letter_empty_profile_heading),
+                body = stringResource(R.string.feature_tailor_impl_cover_letter_empty_profile_body),
             )
-            HhButton(
-                onClick = {
-                    scope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(HH_CLIP_LABEL, uiState.letterText)))
-                    }
-                    actions.onCopyLetter(uiState.letterText)
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_cover_letter_copy_action),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
+        }
+        CoverLetterStage.ERROR -> item(key = "error") {
+            StatusCard(
+                kind = HhSpotKind.Error,
+                title = stringResource(R.string.feature_tailor_impl_cover_letter_error_title),
+                body = stringResource(R.string.feature_tailor_impl_cover_letter_error_body),
             )
-        },
+        }
+    }
+}
+
+@Composable
+private fun ReviewedStrip(uiState: CoverLetterUiState) {
+    if (uiState.totalCount <= 0) return
+    ProgressCard(
+        reviewed = uiState.reviewedCount,
+        total = uiState.totalCount,
+        flagged = 0,
+        showAllReviewedNote = false,
     )
 }
 
 @Composable
-private fun CoverLetterGenerating() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        HhStepProgress(
-            stepNames = listOf(
-                stringResource(R.string.feature_tailor_impl_cover_letter_step_pick),
-                stringResource(R.string.feature_tailor_impl_cover_letter_step_write),
-                stringResource(R.string.feature_tailor_impl_cover_letter_step_check),
-            ),
-            currentStepIndex = 1,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_generating_note),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun CoverLetterError(actions: CoverLetterActions) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Error)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_error_heading),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_error_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        HhButton(
-            onClick = actions.onRetry,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HhTheme.spacing.d48),
-            text = {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_cover_letter_error_retry),
-                    style = HhTheme.typography.labelLarge,
-                )
-            },
-        )
-    }
-}
-
-@Composable
-private fun CoverLetterEmptyProfile() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_empty_profile_heading),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_empty_profile_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun CoverLetterBody(
-    uiState: CoverLetterUiState,
-    actions: CoverLetterActions,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d16, vertical = HhTheme.spacing.d16),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhOfflineBanner(
-            message = stringResource(R.string.feature_tailor_impl_cover_letter_offline_message),
-            supportingText = stringResource(R.string.feature_tailor_impl_cover_letter_offline_supporting),
-            visible = uiState.isOffline,
-        )
-        CoverLetterMessageNote(uiState = uiState, actions = actions)
-        if (uiState.paragraphs.isNotEmpty()) {
-            CoverLetterWordCount(uiState = uiState)
-        }
-        if (uiState.stage == CoverLetterStage.NO_MATCHING_EVIDENCE) {
-            NoMatchingEvidenceNote(
-                evidenceText = uiState.paragraphs
-                    .firstOrNull { paragraph -> paragraph.basis == CoverLetterBasis.NO_MATCHING_EVIDENCE }
-                    ?.text
-                    .orEmpty(),
-            )
-        }
-        uiState.paragraphs.forEach { paragraph ->
-            CoverLetterParagraphCard(
-                paragraph = paragraph,
-                total = uiState.paragraphs.size,
-                onEdit = actions.onBeginEdit,
-                onReport = actions.onReportInaccurate,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CoverLetterMessageNote(
-    uiState: CoverLetterUiState,
-    actions: CoverLetterActions,
-) {
-    val message = uiState.message ?: return
-    HhCard {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        ) {
+private fun OfferCard() {
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.d16 + HhTheme.spacing.xxs)) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
             Text(
-                text = stringResource(message.labelRes()),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            CoverLetterTextLink(
-                label = stringResource(R.string.feature_tailor_impl_cover_letter_dismiss),
-                onClick = actions.onDismissMessage,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CoverLetterWordCount(uiState: CoverLetterUiState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-    ) {
-        Text(
-            text = uiState.wordCount.toString(),
-            style = HhTheme.typography.heroNumeral,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_words_caption),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        if (!isWithinWordTarget(uiState.wordCount)) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_cover_letter_word_count_target),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun NoMatchingEvidenceNote(evidenceText: String) {
-    HhSectionCard {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_no_evidence_heading),
-            style = HhTheme.typography.titleLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        if (evidenceText.isNotEmpty()) {
-            Text(
-                text = evidenceText,
-                style = HhTheme.typography.bodyMedium,
+                text = stringResource(R.string.feature_tailor_impl_cover_letter_offer_title),
+                style = HhTheme.typography.titleL,
                 color = HhTheme.colors.onSurface,
             )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_cover_letter_offer_body),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
+            )
         }
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_cover_letter_no_evidence_note),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
     }
+}
+
+@Composable
+private fun GeneratingCard(uiState: CoverLetterUiState) {
+    val picked = if (uiState.paragraphCount > 0) {
+        stringResource(
+            R.string.feature_tailor_impl_cover_letter_step_pick_detail,
+            uiState.factCount,
+            uiState.paragraphCount,
+        )
+    } else {
+        null
+    }
+    HhStepProgress(
+        stepNames = listOf(
+            stringResource(R.string.feature_tailor_impl_cover_letter_step_pick),
+            stringResource(R.string.feature_tailor_impl_cover_letter_step_write),
+            stringResource(R.string.feature_tailor_impl_cover_letter_step_check),
+        ),
+        currentStepIndex = 1,
+        ordinalLabel = stringResource(R.string.feature_tailor_impl_loading_caption),
+        stepDetails = listOf(picked, null, null),
+        footnote = stringResource(R.string.feature_tailor_impl_cover_letter_footnote),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CoverLetterParagraphCard(
-    paragraph: CoverLetterParagraph,
-    total: Int,
-    onEdit: (Int) -> Unit,
-    onReport: (Int) -> Unit,
+private fun LetterCard(
+    uiState: CoverLetterUiState,
+    actions: CoverLetterActions,
+    sourceOrdinal: Int?,
+    onSource: (Int) -> Unit,
 ) {
-    HhCard {
-        Text(
-            text = stringResource(
-                R.string.feature_tailor_impl_cover_letter_paragraph_heading,
-                paragraph.ordinal,
-                total,
-            ),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        CoverLetterSentences(paragraph = paragraph)
-        if (paragraph.isUserEdited) {
-            HhProvenanceChip(kind = HhProvenanceKind.UserEdited)
-        }
-        CoverLetterBasisLine(paragraph = paragraph)
-        if (paragraph.isUserEdited) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_cover_letter_edit_note),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        CoverLetterFactRow(paragraph = paragraph)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            HhOutlinedButton(
-                onClick = { onEdit(paragraph.ordinal) },
-                modifier = Modifier.heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_cover_letter_edit_action),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
-            )
-            CoverLetterTextLink(
-                label = stringResource(R.string.feature_tailor_impl_cover_letter_report_action),
-                onClick = { onReport(paragraph.ordinal) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun CoverLetterBasisLine(paragraph: CoverLetterParagraph) {
-    val firstFact = paragraph.facts.firstOrNull()
-    val text = if (paragraph.isUserEdited && firstFact != null) {
-        stringResource(R.string.feature_tailor_impl_cover_letter_basis_edited_fact, firstFact.factId)
-    } else {
-        stringResource(paragraph.basis.labelRes())
-    }
-    Text(
-        text = text,
-        style = HhTheme.typography.bodySmall,
-        color = HhTheme.colors.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun CoverLetterSentences(paragraph: CoverLetterParagraph) {
-    val stacked = LocalDensity.current.fontScale > HH_STACK_FONT_SCALE
-    val sentences: @Composable () -> Unit = {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            paragraph.sentences.forEach { sentence ->
+    HhHeroCard {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.Bottom,
+            ) {
                 Text(
-                    text = sentence.text,
-                    style = HhTheme.typography.bodyLarge,
+                    text = stringResource(R.string.feature_tailor_impl_cover_letter_label),
+                    style = HhTheme.typography.labelM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_tailor_impl_cover_letter_words,
+                        uiState.wordCount,
+                        uiState.wordCount,
+                    ),
+                    style = HhTheme.typography.numeralM,
                     color = HhTheme.colors.onSurface,
                 )
             }
-        }
-    }
-    val citations: @Composable () -> Unit = {
-        Column {
-            paragraph.facts.forEach { fact ->
-                FactIdTag(factId = fact.factId)
+            uiState.paragraphs.forEach { paragraph ->
+                if (paragraph.isGreeting) {
+                    Text(text = paragraph.text, style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurface)
+                } else {
+                    ParagraphBlock(
+                        paragraph = paragraph,
+                        position = uiState.positionOf(paragraph),
+                        uiState = uiState,
+                        actions = actions,
+                        marked = sourceOrdinal == paragraph.ordinal,
+                        onSource = { onSource(paragraph.ordinal) },
+                    )
+                }
             }
-        }
-    }
-    if (stacked) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            sentences()
-            citations()
-        }
-    } else {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Box(modifier = Modifier.weight(1f)) { sentences() }
-            citations()
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CoverLetterFactRow(paragraph: CoverLetterParagraph) {
-    if (paragraph.facts.isEmpty()) return
-    FlowRow(
+private fun ParagraphBlock(
+    paragraph: CoverLetterParagraph,
+    position: Int,
+    uiState: CoverLetterUiState,
+    actions: CoverLetterActions,
+    marked: Boolean,
+    onSource: () -> Unit,
+) {
+    val editing = uiState.editingOrdinal == paragraph.ordinal
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+        verticalAlignment = Alignment.Top,
     ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
+            if (editing) {
+                EditingBlock(position, uiState, actions)
+            } else {
+                HhEvidenceText(
+                    text = paragraph.annotated(marked, evidenceMarkSpanStyle()),
+                    style = HhTheme.typography.bodyM,
+                )
+                ParagraphNotes(paragraph)
+                ParagraphActions(
+                    paragraph = paragraph,
+                    isReported = paragraph.ordinal.toString() in uiState.reportedIds,
+                    actions = actions,
+                )
+            }
+        }
+        SourceBadge(
+            factIds = paragraph.facts.map { it.displayId }.distinct(),
+            onClick = onSource,
+            selected = marked,
+        )
+    }
+}
+
+private fun CoverLetterParagraph.annotated(marked: Boolean, style: androidx.compose.ui.text.SpanStyle): AnnotatedString {
+    if (!marked || isUserEdited) return AnnotatedString(text)
+    return buildAnnotatedString {
+        sentences.forEachIndexed { index, sentence ->
+            if (index > 0) append(" ")
+            if (sentence.factId != null) withStyle(style) { append(sentence.text) } else append(sentence.text)
+        }
+    }
+}
+
+@Composable
+private fun ParagraphNotes(paragraph: CoverLetterParagraph) {
+    paragraph.flag?.let { flag ->
+        NoticeStrip(
+            text = stringResource(R.string.feature_tailor_impl_cover_letter_flag_note, flag.quote, flag.factId),
+            icon = HhIcons.Flag,
+        )
+    }
+    if (paragraph.isUserEdited) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DecisionChip(BulletReviewState.USER_EDITED)
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_cover_letter_user_edited_note),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ParagraphActions(paragraph: CoverLetterParagraph, isReported: Boolean, actions: CoverLetterActions) {
+    Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
+        HhTextButton(
+            label = stringResource(
+                if (isReported) R.string.feature_tailor_impl_menu_reported else R.string.feature_tailor_impl_cover_letter_report,
+            ),
+            onClick = { actions.onReportInaccurate(paragraph.ordinal) },
+            enabled = !isReported,
+            leadingIcon = HhIcons.Flag,
+        )
+        HhTextButton(
+            label = stringResource(R.string.feature_tailor_impl_cover_letter_edit),
+            onClick = { actions.onBeginEdit(paragraph.ordinal) },
+            leadingIcon = HhIcons.Edit,
+        )
+    }
+}
+
+@Composable
+private fun EditingBlock(position: Int, uiState: CoverLetterUiState, actions: CoverLetterActions) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        HhTextField(
+            value = uiState.editingText,
+            onValueChange = actions.onEditTextChanged,
+            label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_label, position),
+            singleLine = false,
+            minLines = 4,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        NoticeStrip(
+            text = stringResource(R.string.feature_tailor_impl_cover_letter_user_edited_note),
+            icon = HhIcons.Verified,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            HhOutlineButton(
+                label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_cancel),
+                onClick = actions.onCancelEdit,
+                modifier = Modifier.weight(1f),
+            )
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_save),
+                onClick = actions.onSaveEdit,
+                enabled = uiState.editingText.isNotBlank(),
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ParagraphSources(position: Int, paragraph: CoverLetterParagraph, onClose: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_cover_letter_sources_title, position),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
         paragraph.facts.forEach { fact ->
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
-                FactIdTag(factId = fact.factId)
-                Text(
-                    text = fact.entryTitle,
-                    style = HhTheme.typography.monoSmall,
-                    color = HhTheme.colors.onSurfaceVariant,
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(text = fact.displayId, style = HhTheme.typography.factId, color = HhTheme.colors.primary)
+                    HhProvenanceChip(
+                        kind = com.hirehop.core.designsystem.component.HhProvenanceKind.Confirmed,
+                        label = stringResource(R.string.feature_tailor_impl_provenance_confirmed),
+                    )
+                }
+                if (fact.entryTitle.isNotEmpty()) {
+                    Text(text = fact.entryTitle, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+                }
+                HhEvidenceText(
+                    text = buildAnnotatedString { withStyle(evidenceMarkSpanStyle()) { append(fact.text) } },
+                    style = HhTheme.typography.bodyL,
+                    color = HhTheme.colors.body,
+                )
+            }
+        }
+        HhOutlineButton(
+            label = stringResource(R.string.feature_tailor_impl_source_sheet_close),
+            onClick = onClose,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun CoverLetterBottomBar(uiState: CoverLetterUiState, actions: CoverLetterActions) {
+    HhBottomActionBar {
+        when (uiState.stage) {
+            CoverLetterStage.OFFER -> {
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_tailor_impl_cover_letter_no_thanks),
+                    onClick = actions.onSkipLetter,
+                    modifier = Modifier.weight(1f),
+                )
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_tailor_impl_cover_letter_write_one),
+                    onClick = actions.onWriteOne,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            CoverLetterStage.GENERATING -> HhOutlineButton(
+                label = stringResource(R.string.feature_tailor_impl_cover_letter_leave),
+                onClick = actions.onNavigateBack,
+                modifier = Modifier.weight(1f),
+            )
+            CoverLetterStage.READY, CoverLetterStage.NO_MATCHING_EVIDENCE -> HhPrimaryButton(
+                label = stringResource(R.string.feature_tailor_impl_cover_letter_preview_export),
+                onClick = actions.onPreviewExport,
+                trailingIcon = HhIcons.ArrowForward,
+                modifier = Modifier.weight(1f),
+            )
+            CoverLetterStage.EMPTY_PROFILE -> HhOutlineButton(
+                label = stringResource(R.string.feature_tailor_impl_cover_letter_skip),
+                onClick = actions.onSkipLetter,
+                modifier = Modifier.weight(1f),
+            )
+            CoverLetterStage.ERROR -> {
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_tailor_impl_cover_letter_skip),
+                    onClick = actions.onSkipLetter,
+                    modifier = Modifier.weight(1f),
+                )
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_tailor_impl_cover_letter_retry),
+                    onClick = actions.onRetry,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
     }
-}
-
-@Composable
-private fun CoverLetterTextLink(
-    label: String,
-    onClick: () -> Unit,
-) {
-    Text(
-        text = label,
-        style = HhTheme.typography.labelLarge,
-        color = HhTheme.colors.onSurfaceVariant,
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier
-            .defaultMinSize(minHeight = HhTheme.spacing.d48)
-            .clickable(onClick = onClick)
-            .padding(vertical = HhTheme.spacing.sm),
-    )
-}
-
-@Composable
-private fun CoverLetterEditSheet(
-    uiState: CoverLetterUiState,
-    actions: CoverLetterActions,
-) {
-    HhConfirmSheet(
-        title = stringResource(R.string.feature_tailor_impl_cover_letter_edit_sheet_title),
-        message = stringResource(R.string.feature_tailor_impl_cover_letter_edit_sheet_message),
-        confirmLabel = stringResource(R.string.feature_tailor_impl_cover_letter_edit_save),
-        cancelLabel = stringResource(R.string.feature_tailor_impl_cover_letter_edit_cancel),
-        onConfirm = actions.onSaveEdit,
-        onCancel = actions.onCancelEdit,
-        content = {
-            HhTextField(
-                value = uiState.editingText,
-                onValueChange = actions.onEditTextChanged,
-                label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_field_label),
-                singleLine = false,
-                minLines = 4,
-            )
-        },
-    )
-}
-
-private fun CoverLetterMessage.labelRes(): Int = when (this) {
-    CoverLetterMessage.COPIED -> R.string.feature_tailor_impl_cover_letter_copied
-    CoverLetterMessage.SAVED -> R.string.feature_tailor_impl_cover_letter_saved
-    CoverLetterMessage.REPORT_UNAVAILABLE -> R.string.feature_tailor_impl_cover_letter_report_unavailable
-}
-
-private fun CoverLetterBasis.labelRes(): Int = when (this) {
-    CoverLetterBasis.CONFIRMED_FACT -> R.string.feature_tailor_impl_cover_letter_basis_fact
-    CoverLetterBasis.JOB_DESCRIPTION -> R.string.feature_tailor_impl_cover_letter_basis_job
-    CoverLetterBasis.PROFILE_NAME -> R.string.feature_tailor_impl_cover_letter_basis_name
-    CoverLetterBasis.NO_MATCHING_EVIDENCE -> R.string.feature_tailor_impl_cover_letter_basis_no_evidence
-    CoverLetterBasis.PLAIN -> R.string.feature_tailor_impl_cover_letter_basis_plain
 }

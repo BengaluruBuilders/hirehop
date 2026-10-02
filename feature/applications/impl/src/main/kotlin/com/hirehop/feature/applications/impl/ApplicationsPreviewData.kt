@@ -6,13 +6,13 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
-internal val PREVIEW_INSTANT: Instant = Instant.fromEpochSeconds(1_773_158_400L)
+internal val PREVIEW_INSTANT: Instant = Instant.fromEpochSeconds(1_774_368_000L)
 
 internal const val NORTHWIND_ROLE = "Associate Analyst"
 internal const val NORTHWIND_COMPANY = "Northwind GCC"
-internal const val PAISA_ROLE = "Data Analyst Intern"
+internal const val PAISA_ROLE = "Data Analyst"
 internal const val PAISA_COMPANY = "Paisa Ledger (start-up)"
-internal const val SAHYADRI_ROLE = "Graduate Engineer Trainee"
+internal const val SAHYADRI_ROLE = "Operations Analyst"
 internal const val SAHYADRI_COMPANY = "Sahyadri Motors"
 internal const val MERIDIAN_ROLE = "Business Analyst"
 internal const val MERIDIAN_COMPANY = "Meridian GCC"
@@ -67,11 +67,14 @@ internal fun previewListRows() = listOf(
     previewMeridianRow(),
 )
 
+internal val PREVIEW_HEADER = ApplicationsHeader(firstName = "Priya", credits = 4)
+
 internal fun previewListState(
     isOffline: Boolean = false,
     statusSheet: ApplicationStatusSheetState? = null,
     message: ApplicationStatusMessage? = null,
 ) = ApplicationsUiState.Applications(
+    header = PREVIEW_HEADER,
     rows = previewListRows(),
     isOffline = isOffline,
     statusSheet = statusSheet,

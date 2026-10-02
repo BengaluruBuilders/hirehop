@@ -8,29 +8,38 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.feature.settings.api.navigation.YourDataNavKey
+import java.io.File
 
 @Composable
 internal fun YourDataRoute(
     key: YourDataNavKey,
     onNavigate: (YourDataDestination) -> Unit,
     onBack: () -> Unit,
-    onShareFile: (String) -> Unit,
+    onShareFile: (File) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: YourDataViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) { viewModel.toActions(onBack = onBack) }
+    val actions = remember(viewModel, onNavigate, onBack) {
+        YourDataActions(
+            onBack = onBack,
+            onViewProfile = { onNavigate(YourDataDestination.PROFILE) },
+            onCorrectProfile = { onNavigate(YourDataDestination.PROFILE) },
+            onViewApplications = { onNavigate(YourDataDestination.APPLICATIONS) },
+            onViewPurchases = { onNavigate(YourDataDestination.PURCHASES) },
+            onDownload = viewModel::onDownload,
+            onDeleteRequest = viewModel::onDeleteRequested,
+            onDeleteConfirm = viewModel::onDeleteConfirmed,
+            onDeleteDismiss = viewModel::onDeleteDismissed,
+        )
+    }
     LaunchedEffect(key) { viewModel.onEnter(key) }
-    LaunchedEffect(uiState.destination) {
-        val destination = uiState.destination
-        if (destination == null) return@LaunchedEffect
-        val fileName = uiState.exportFileName
-        if (destination == YourDataDestination.SHARE_SHEET && fileName != null) {
-            onShareFile(fileName)
-        } else {
-            onNavigate(destination)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is YourDataEvent.ShareArchive -> onShareFile(event.file)
+            }
         }
-        viewModel.onAction(YourDataAction.DestinationConsumed)
     }
     YourDataScreen(
         uiState = uiState,
@@ -38,17 +47,3 @@ internal fun YourDataRoute(
         modifier = modifier,
     )
 }
-
-private fun YourDataViewModel.toActions(onBack: () -> Unit): YourDataActions = YourDataActions(
-    onBack = onBack,
-    onDownload = { onAction(YourDataAction.DownloadTapped) },
-    onShare = { onAction(YourDataAction.ShareTapped) },
-    onLedgerAction = { kind, action ->
-        onAction(YourDataAction.LedgerActionTapped(kind = kind, action = action))
-    },
-    onDeleteRequested = { applicationId ->
-        onAction(YourDataAction.DeleteRequested(applicationId = applicationId))
-    },
-    onDeleteConfirmed = { onAction(YourDataAction.DeleteConfirmed) },
-    onDeleteDismissed = { onAction(YourDataAction.DeleteDismissed) },
-)

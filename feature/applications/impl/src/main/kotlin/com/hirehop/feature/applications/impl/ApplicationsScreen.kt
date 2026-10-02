@@ -1,39 +1,63 @@
 package com.hirehop.feature.applications.impl
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhIconButton
+import com.hirehop.core.designsystem.component.HhCollapsedHomeHeader
+import com.hirehop.core.designsystem.component.HhCreditsPill
+import com.hirehop.core.designsystem.component.HhHeaderButton
+import com.hirehop.core.designsystem.component.HhHomeHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSpotIllustration
-import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhToastHost
+import com.hirehop.core.designsystem.component.HhToastResult
+import com.hirehop.core.designsystem.component.HhToastState
+import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
+import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
@@ -45,16 +69,15 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import com.hirehop.feature.applications.api.R as apiR
 
-internal const val ROW_STAGGER_STEP_MS = 30
-internal const val ROW_ENTER_TRANSLATE_DP = 8f
+private val SPOT_DIAMETER = 132.dp
 
 @Composable
 fun ApplicationsRoute(
     onApplicationClick: (String) -> Unit,
-    onNewApplicationClick: () -> Unit,
+    onPasteJobClick: () -> Unit,
+    onCreditsClick: () -> Unit,
     modifier: Modifier = Modifier,
     scenario: DebugScenario = DebugScenario.defaultValue,
-    credits: ApplicationCreditLine? = null,
     clock: Clock = Clock.System,
 ) {
     val viewModel: ApplicationsViewModel = hiltViewModel()
@@ -65,11 +88,11 @@ fun ApplicationsRoute(
         onAction = { action ->
             when (action) {
                 is ApplicationsAction.ApplicationChosen -> onApplicationClick(action.id)
-                ApplicationsAction.NewApplicationChosen -> onNewApplicationClick()
+                ApplicationsAction.PasteJobChosen -> onPasteJobClick()
+                ApplicationsAction.CreditsChosen -> onCreditsClick()
                 else -> viewModel.onAction(action)
             }
         },
-        credits = credits,
         now = clock.now(),
         modifier = modifier,
     )
@@ -80,22 +103,35 @@ fun ApplicationsScreen(
     uiState: ApplicationsUiState,
     onAction: (ApplicationsAction) -> Unit,
     modifier: Modifier = Modifier,
-    credits: ApplicationCreditLine? = null,
+    listState: LazyListState = rememberLazyListState(),
     now: Instant = Clock.System.now(),
 ) {
-    HhScaffold(
+    var isScrolled by remember { mutableStateOf(false) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) -> isScrolled = nextHeaderCompact(isScrolled, index, offset) }
+    }
+    val message = (uiState as? ApplicationsUiState.Applications)?.message
+    val toast = rememberHhToastState()
+    ApplicationStatusToastEffect(message = message, toast = toast, onAction = onAction)
+    HhScreen(
         modifier = modifier,
-        topBar = { ApplicationsTopBar(credits = credits) },
-        floatingActionButton = {
-            ApplicationsFab(onClick = { onAction(ApplicationsAction.NewApplicationChosen) })
+        header = {
+            ApplicationsHeaderBar(
+                header = uiState.header,
+                isCompact = isScrolled && uiState is ApplicationsUiState.Applications,
+                onAction = onAction,
+            )
         },
+        snackbarHost = { HhToastHost(state = toast) },
     ) { padding ->
         when (uiState) {
-            ApplicationsUiState.Loading -> ApplicationsLoading(padding = padding)
-            ApplicationsUiState.Empty -> ApplicationsEmpty(padding = padding, onAction = onAction)
+            is ApplicationsUiState.Loading -> ApplicationsLoading(padding = padding)
+            is ApplicationsUiState.Empty -> ApplicationsEmpty(padding = padding, onAction = onAction)
             is ApplicationsUiState.Applications -> ApplicationsListContent(
                 state = uiState,
                 padding = padding,
+                listState = listState,
                 now = now,
                 onAction = onAction,
             )
@@ -104,6 +140,74 @@ fun ApplicationsScreen(
     val sheetState = (uiState as? ApplicationsUiState.Applications)?.statusSheet
     if (sheetState != null) {
         ApplicationStatusSheetHost(state = sheetState, onAction = onAction)
+    }
+}
+
+@Composable
+private fun ApplicationsHeaderBar(
+    header: ApplicationsHeader,
+    isCompact: Boolean,
+    onAction: (ApplicationsAction) -> Unit,
+) {
+    val creditsPill: @Composable () -> Unit = {
+        header.credits?.let { credits ->
+            CreditsAction(credits = credits, onClick = { onAction(ApplicationsAction.CreditsChosen) })
+        }
+    }
+    if (isCompact) {
+        HhCollapsedHomeHeader(
+            title = stringResource(apiR.string.feature_applications_api_title),
+            trailing = { creditsPill() },
+        )
+    } else {
+        val name = header.firstName
+        HhHomeHeader(
+            greeting = if (name == null) {
+                stringResource(R.string.feature_applications_impl_greeting_anonymous)
+            } else {
+                stringResource(R.string.feature_applications_impl_greeting, name)
+            },
+            headline = stringResource(R.string.feature_applications_impl_headline),
+            trailing = { creditsPill() },
+            action = {
+                HhHeaderButton(
+                    label = stringResource(R.string.feature_applications_impl_paste_job),
+                    onClick = { onAction(ApplicationsAction.PasteJobChosen) },
+                    trailingIcon = HhIcons.ArrowForward,
+                )
+            },
+            illustration = {
+                HhCharacterIllustration(
+                    illustration = HhIllustration.Hero,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun CreditsAction(
+    credits: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val description = pluralStringResource(
+        id = R.plurals.feature_applications_impl_credits_description,
+        count = credits,
+        credits,
+    )
+    Box(
+        modifier = modifier
+            .heightIn(min = HhTheme.spacing.touch)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        HhCreditsPill(
+            count = credits.toString(),
+            label = stringResource(R.string.feature_applications_impl_credits_label),
+            contentDescription = description,
+        )
     }
 }
 
@@ -129,38 +233,6 @@ private fun ApplicationStatusSheetHost(
 }
 
 @Composable
-private fun ApplicationsTopBar(
-    credits: ApplicationCreditLine?,
-    modifier: Modifier = Modifier,
-) {
-    HhTopAppBar(
-        title = stringResource(apiR.string.feature_applications_api_title),
-        modifier = modifier,
-        actions = {
-            if (credits != null) {
-                ApplicationCreditChip(
-                    credits = credits,
-                    modifier = Modifier.padding(end = HhTheme.spacing.d16),
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun ApplicationsFab(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HhIconButton(
-        icon = HhIcons.Add,
-        contentDescription = stringResource(R.string.feature_applications_impl_new),
-        onClick = onClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
 private fun ApplicationsLoading(
     padding: PaddingValues,
     modifier: Modifier = Modifier,
@@ -171,9 +243,45 @@ private fun ApplicationsLoading(
             .padding(padding),
         contentAlignment = Alignment.Center,
     ) {
-        HhLoadingWheel(
-            contentDesc = stringResource(R.string.feature_applications_impl_loading),
+        HhLoadingWheel(contentDesc = stringResource(R.string.feature_applications_impl_loading))
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ListHeading(
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        itemVerticalAlignment = Alignment.Bottom,
+    ) {
+        Text(
+            text = stringResource(R.string.feature_applications_impl_list_heading),
+            style = HhTheme.typography.titleL,
+            color = HhTheme.colors.onSurface,
         )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Text(
+                text = count.toString(),
+                style = HhTheme.typography.numeralM.copy(
+                    fontSize = HhTheme.typography.labelL.fontSize,
+                    lineHeight = HhTheme.typography.labelL.lineHeight,
+                ),
+                color = HhTheme.colors.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.feature_applications_impl_list_order),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -186,33 +294,38 @@ private fun ApplicationsEmpty(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(padding)
-            .padding(horizontal = HhTheme.spacing.d24),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = HhTheme.spacing.gutter),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md - HhTheme.spacing.xxs),
     ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        Text(
-            text = stringResource(R.string.feature_applications_impl_empty_title),
-            style = HhTheme.typography.headlineSmall,
-            color = HhTheme.colors.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.feature_applications_impl_empty_message),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        HhButton(
-            onClick = { onAction(ApplicationsAction.NewApplicationChosen) },
-            modifier = Modifier.padding(top = HhTheme.spacing.sm),
+        ListHeading(count = 0)
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(SPOT_DIAMETER)
+                .clip(HhTheme.shapes.pill)
+                .background(HhTheme.colors.primaryContainer),
+            contentAlignment = Alignment.BottomCenter,
         ) {
-            Text(
-                text = stringResource(R.string.feature_applications_impl_empty_action),
-                style = HhTheme.typography.labelLarge,
+            HhCharacterIllustration(
+                illustration = HhIllustration.Empty,
+                modifier = Modifier.fillMaxSize(),
             )
         }
+        Text(
+            text = stringResource(R.string.feature_applications_impl_empty_message),
+            style = HhTheme.typography.bodyL,
+            color = HhTheme.colors.body,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_applications_impl_paste_job),
+            onClick = { onAction(ApplicationsAction.PasteJobChosen) },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = HhIcons.ArrowForward,
+        )
     }
 }
 
@@ -220,75 +333,99 @@ private fun ApplicationsEmpty(
 private fun ApplicationsListContent(
     state: ApplicationsUiState.Applications,
     padding: PaddingValues,
+    listState: LazyListState,
     now: Instant,
     onAction: (ApplicationsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(padding),
+    val entered = remember { mutableSetOf<String>() }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(
+            start = HhTheme.spacing.gutter,
+            top = padding.calculateTopPadding(),
+            end = HhTheme.spacing.gutter,
+            bottom = padding.calculateBottomPadding(),
+        ),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md - HhTheme.spacing.xxs),
     ) {
         if (state.isOffline) {
-            HhOfflineBanner(
-                message = stringResource(R.string.feature_applications_impl_offline),
-                modifier = Modifier.padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.d8),
-            )
-        }
-        ApplicationsList(
-            state = state,
-            now = now,
-            onAction = onAction,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun ApplicationsList(
-    state: ApplicationsUiState.Applications,
-    now: Instant,
-    onAction: (ApplicationsAction) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val systemReduceMotion = hhSystemReduceMotion()
-    val enterMs = HhTheme.motion.fade
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(bottom = HhTheme.spacing.d64),
-    ) {
-        itemsIndexed(items = state.rows, key = { _, row -> row.id }) { index, row ->
-            val enter = remember(row.id) { Animatable(0f) }
-            LaunchedEffect(row.id) {
-                val scale = coroutineContext[MotionDurationScale.Key]?.scaleFactor ?: 1f
-                if (systemReduceMotion || scale == 0f) {
-                    enter.snapTo(1f)
-                } else {
-                    delay(index * ROW_STAGGER_STEP_MS.toLong())
-                    enter.animateTo(targetValue = 1f, animationSpec = tween(durationMillis = enterMs))
-                }
+            item(key = OFFLINE_ITEM_KEY) {
+                HhOfflineBanner(message = stringResource(R.string.feature_applications_impl_offline))
             }
+        }
+        item(key = HEADING_ITEM_KEY) { ListHeading(count = state.rows.size) }
+        itemsIndexed(items = state.rows, key = { _, row -> row.id }) { index, row ->
             ApplicationRow(
                 row = row,
                 now = now,
                 onClick = { onAction(ApplicationsAction.ApplicationChosen(row.id)) },
                 onStatusClick = { onAction(ApplicationsAction.StatusChipChosen(row.id)) },
-                modifier = Modifier.graphicsLayer {
-                    alpha = enter.value
-                    translationY = (1f - enter.value) * ROW_ENTER_TRANSLATE_DP * density
-                },
+                modifier = Modifier.staggeredEnter(index = index, id = row.id, entered = entered),
             )
         }
     }
 }
 
+@Composable
+private fun Modifier.staggeredEnter(
+    index: Int,
+    id: String,
+    entered: MutableSet<String>,
+): Modifier {
+    val proof = HhTheme.motion.proofSpecs
+    val shift = with(LocalDensity.current) { HhTheme.spacing.sm.toPx() }
+    val progress = remember(id) { Animatable(if (id in entered) 1f else 0f) }
+    LaunchedEffect(id) {
+        if (id in entered) return@LaunchedEffect
+        val scale = coroutineContext[MotionDurationScale.Key]?.scaleFactor ?: 1f
+        if (scale == 0f) {
+            progress.snapTo(1f)
+        } else {
+            delay(minOf(index, proof.staggerMax) * proof.staggerMs.toLong())
+            progress.animateTo(targetValue = 1f, animationSpec = proof.spatial)
+        }
+        entered += id
+    }
+    return graphicsLayer {
+        alpha = progress.value.coerceIn(0f, 1f)
+        translationY = (1f - progress.value) * shift
+    }
+}
+
+@Composable
+private fun ApplicationStatusToastEffect(
+    message: ApplicationStatusMessage?,
+    toast: HhToastState,
+    onAction: (ApplicationsAction) -> Unit,
+) {
+    val text = message?.let { stringResource(R.string.feature_applications_impl_status_saved_message, it.status.label()) }
+    val undoLabel = stringResource(R.string.feature_applications_impl_status_undo)
+    LaunchedEffect(message) {
+        if (message == null || text == null) return@LaunchedEffect
+        val result = toast.show(message = text, actionLabel = if (message.canUndo) undoLabel else null)
+        onAction(
+            if (result == HhToastResult.ActionPerformed) {
+                ApplicationsAction.StatusUndoChosen
+            } else {
+                ApplicationsAction.MessageDismissed
+            },
+        )
+    }
+}
+
+private const val OFFLINE_ITEM_KEY = "offline"
+private const val HEADING_ITEM_KEY = "heading"
+
 @Preview(showBackground = true)
 @Composable
 private fun ApplicationsScreenEmptyPreview() {
     HhTheme(darkTheme = false) {
-        ApplicationsScreen(uiState = ApplicationsUiState.Empty, onAction = {})
+        ApplicationsScreen(
+            uiState = ApplicationsUiState.Empty(ApplicationsHeader(firstName = "Priya", credits = 4)),
+            onAction = {},
+        )
     }
 }
 
@@ -296,10 +433,6 @@ private fun ApplicationsScreenEmptyPreview() {
 @Composable
 private fun ApplicationsScreenListPreview() {
     HhTheme(darkTheme = false) {
-        ApplicationsList(
-            state = previewListState(),
-            now = PREVIEW_INSTANT,
-            onAction = {},
-        )
+        ApplicationsScreen(uiState = previewListState(), onAction = {}, now = PREVIEW_INSTANT)
     }
 }

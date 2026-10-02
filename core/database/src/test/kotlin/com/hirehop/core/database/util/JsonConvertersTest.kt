@@ -93,6 +93,21 @@ class JsonConvertersTest {
     }
 
     @Test
+    fun tailoredResumeRoundTripsEntryIds() {
+        val withIds = tailoredResume.copy(entryIds = listOf("e-1", "edu-1"))
+
+        assertThat(converters.jsonToTailoredResume(converters.tailoredResumeToJson(withIds))).isEqualTo(withIds)
+    }
+
+    @Test
+    fun tailoredResumeStoredBeforeEntryIdsExistedReadsAsAbsent() {
+        val legacyJson = converters.tailoredResumeToJson(tailoredResume)?.replace(Regex(",?\\s*\"entryIds\"\\s*:\\s*null"), "")
+
+        assertThat(converters.jsonToTailoredResume(legacyJson)?.entryIds).isNull()
+        assertThat(legacyJson).doesNotContain("entryIds")
+    }
+
+    @Test
     fun nullableColumnsMapNullToNull() {
         assertThat(converters.gapAnalysisToJson(null)).isNull()
         assertThat(converters.jsonToGapAnalysis(null)).isNull()
