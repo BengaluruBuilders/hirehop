@@ -93,7 +93,8 @@ The primitives are in `component/HhMotion.kt`. A feature calls a primitive. A fe
 | Navigation forward: the new screen rises 48 dp over the old screen | `rememberHhNavTransitions().forward(scope, hierarchical = true)` | `fade`, `offset` |
 | Navigation back and predictive back: the screen sinks 48 dp | `rememberHhNavTransitions().back(hierarchical = true)` | `fade`, `offset` |
 | Dock tab switch: fade only | `forward(scope, hierarchical = false)` and `back(hierarchical = false)` | `fade` |
-| Selected colour of a chip, a checkbox, or a dock item | Built into `HhFilterChip`, `HhCheckbox`, `HhDockItem` | `color` |
+| Selected colour of a chip or a checkbox | Built into `HhFilterChip`, `HhCheckbox` | `color` |
+| Dock selection: one pill moves between the items, the label width opens | Built into `HhDock` and `HhDockItem` | `spatial`, `spatialFast` |
 | Progress moment | `Animatable` with a `hopSpecs` value | `hopSpecs.scale`, `hopSpecs.spatial` |
 
 Rules of the primitives:
