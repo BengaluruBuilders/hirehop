@@ -32,8 +32,9 @@ A feature must change these things when it adopts the integration changes.
    `KeywordCoverageMeter` already does this. `HhCoverageBlock(summary = ...)` adds one line between the
    fraction and the bar (Gap analysis: "You cover 9 of 14 key terms"). `HhFitShareCard` takes the same two nullable
    values.
-7. Home header. Settings uses `HhCompactHomeHeader`. A scrolled home screen swaps to
-   `HhCollapsedHomeHeader`. Remove the local compact header workarounds.
+7. Home header. Settings uses `HhCompactHomeHeader`. A home screen with a list uses
+   `HhCollapsingHomeHeader`. Do not swap two headers on a scroll position. The swap moves the list by
+   the height difference in one frame, and the list flickers.
 8. Dock constants. Use `HhDockDefaults.height`, `ballOverhang`, and `inset`. Do not repeat the arithmetic.
 9. Motion. `HhTheme.motion` has `proofSpecs`, `hopSpecs`, and `reduced`. The old Int durations and easings are gone.
 10. Fact ids. Show `FactDisplayIds` (module `core:domain`) values, not raw bullet ids. See
@@ -166,12 +167,26 @@ Jade home header with the hero illustration slot (174 x 200 dp, drawn above the 
 
 ```kotlin
 fun HhCompactHomeHeader(title: String, subtitle: String, modifier, trailing: @Composable RowScope.() -> Unit = {})
-fun HhCollapsedHomeHeader(title: String, modifier, trailing: @Composable RowScope.() -> Unit = {})
 ```
 Compact: a tab screen with no illustration. Title first (`headlineL`), then one subtitle line, 200 dp
-plus the status bar, sheet overlap 28 dp. Use it for Settings. Collapsed: a short jade bar (96 dp
-including the 28 dp overlap) with a title and a trailing slot. Swap to it when a home screen is scrolled.
-Both work as `HhScreen(header = ...)` with `sheet = true`.
+plus the status bar, sheet overlap 28 dp. Use it for Settings. It works as `HhScreen(header = ...)`
+with `sheet = true`.
+
+```kotlin
+fun HhCollapsingHomeHeader(collapse: HhHeaderCollapseState, title: String, greeting: String, headline: String,
+    modifier, trailing, action, illustration)
+fun rememberHhHeaderCollapseState(): HhHeaderCollapseState
+```
+The home header for a screen with a list. The scroll sets the height. Fully expanded, it is the same
+frame as `HhHomeHeader`. Fully collapsed, it is a short jade bar (96 dp including the 28 dp overlap)
+with the title and the trailing slot. Put `Modifier.nestedScroll(collapse.connection)` on the list.
+A scroll up collapses the header before the list moves. A scroll down expands the header after the
+list is at the top. Parallax: the headline, the action, and the hero move up at half the speed of
+the sheet, the sheet covers them, and they fade out in the first half of the collapse. The greeting
+fades out in the first half. The title fades in during the second half, so the two texts never show
+together. The trailing slot stays visible. If `HhTheme.motion.reduced` is true, there is no parallax:
+the headline, the action, and the hero stay in place while the sheet covers them.
+The scroll drives the collapse, so there is no motion token.
 
 ```kotlin
 fun HhInnerHeader(title: String, modifier, subtitle: String? = null, onBack: (() -> Unit)? = null,

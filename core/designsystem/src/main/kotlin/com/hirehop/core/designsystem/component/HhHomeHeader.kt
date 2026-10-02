@@ -10,19 +10,31 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 @Composable
 fun HhHomeHeader(
@@ -33,64 +45,30 @@ fun HhHomeHeader(
     action: (@Composable () -> Unit)? = null,
     illustration: (@Composable BoxScope.() -> Unit)? = null,
 ) {
-    val colors = HhTheme.colors
-    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .layoutId(HhHeaderData(drawsAboveContent = true, overlap = HhOverlap.Sheet))
-            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + HOME_SMALL_CIRCLE_TOP, HhOverlap.Sheet)
-            .heightIn(min = HhHeightHomeHeader + statusTop),
-    ) {
-        HhHomeHeaderText(statusTop, greeting, headline, trailing, action)
-        if (illustration != null) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(y = statusTop + ILLUSTRATION_TOP)
-                    .size(width = ILLUSTRATION_WIDTH, height = ILLUSTRATION_HEIGHT),
-                content = illustration,
-            )
-        }
-    }
+    HhCollapsingHomeHeader(
+        collapse = remember { HhHeaderCollapseState() },
+        title = "",
+        greeting = greeting,
+        headline = headline,
+        modifier = modifier,
+        trailing = trailing,
+        action = action,
+        illustration = illustration,
+    )
 }
 
 @Composable
-private fun HhHomeHeaderText(
-    statusTop: androidx.compose.ui.unit.Dp,
-    greeting: String,
-    headline: String,
-    trailing: @Composable RowScope.() -> Unit,
-    action: (@Composable () -> Unit)?,
-) {
+private fun HhHomeHeaderHeadline(headline: String, action: (@Composable () -> Unit)?) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = HhTheme.spacing.gutter, end = HhTheme.spacing.gutter, top = statusTop + 12.dp),
+            .padding(horizontal = HhTheme.spacing.gutter)
+            .fillMaxWidth(HEADLINE_FRACTION)
+            .padding(top = HhTheme.spacing.d24, bottom = HhOverlap.Sheet + HhTheme.spacing.d24),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d16),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = greeting,
-                modifier = Modifier.weight(1f),
-                style = HhTheme.typography.titleM,
-                color = HhTheme.colors.onHeader,
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-                content = trailing,
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(HEADLINE_FRACTION)
-                .padding(top = HhTheme.spacing.d24, bottom = HhOverlap.Sheet + HhTheme.spacing.d24),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d16),
-        ) {
-            Text(text = headline, style = HhTheme.typography.headlineL, color = HhTheme.colors.onHeader)
-            if (action != null) {
-                action()
-            }
+        Text(text = headline, style = HhTheme.typography.headlineL, color = HhTheme.colors.onHeader)
+        if (action != null) {
+            action()
         }
     }
 }
@@ -136,47 +114,101 @@ fun HhCompactHomeHeader(
 }
 
 @Composable
-fun HhCollapsedHomeHeader(
+fun HhCollapsingHomeHeader(
+    collapse: HhHeaderCollapseState,
     title: String,
+    greeting: String,
+    headline: String,
     modifier: Modifier = Modifier,
     trailing: @Composable RowScope.() -> Unit = {},
+    action: (@Composable () -> Unit)? = null,
+    illustration: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     val colors = HhTheme.colors
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Row(
+    val gutter = HhTheme.spacing.gutter
+    val titleGap = HhTheme.spacing.sm
+    val parallax = if (HhTheme.motion.reduced) 0f else COLLAPSE_PARALLAX
+    Layout(
+        content = {
+            Text(text = greeting, style = HhTheme.typography.titleM, color = colors.onHeader)
+            Text(text = title, style = HhTheme.typography.titleL, color = colors.onHeader)
+            HhHomeHeaderHeadline(headline, action)
+            Box(Modifier.size(ILLUSTRATION_WIDTH, ILLUSTRATION_HEIGHT)) { illustration?.invoke(this) }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(titleGap),
+                verticalAlignment = Alignment.CenterVertically,
+                content = trailing,
+            )
+        },
         modifier = modifier
             .fillMaxWidth()
-            .layoutId(HhHeaderData(drawsAboveContent = false, overlap = HhOverlap.Sheet))
-            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + HOME_SMALL_CIRCLE_TOP, HhOverlap.Sheet)
-            .heightIn(min = HhHeightCollapsedHomeHeader + statusTop)
-            .padding(
-                start = HhTheme.spacing.gutter,
-                end = HhTheme.spacing.gutter,
-                top = statusTop,
-                bottom = HhOverlap.Sheet,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            style = HhTheme.typography.titleL,
-            color = colors.onHeader,
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            content = trailing,
-        )
+            .layoutId(HhHeaderData(drawsAboveContent = true, overlap = HhOverlap.Sheet))
+            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + HOME_SMALL_CIRCLE_TOP, HhOverlap.Sheet),
+    ) { measurables, constraints ->
+        val width = constraints.maxWidth
+        val side = gutter.roundToPx()
+        val status = statusTop.roundToPx()
+        val overlap = HhOverlap.Sheet.roundToPx()
+        val loose = Constraints(maxWidth = width)
+        val pill = measurables[4].measure(Constraints(maxWidth = (width - 2 * side).coerceAtLeast(0)))
+        val textWidth = (width - 2 * side - pill.width).coerceAtLeast(0)
+        val hello = measurables[0].measure(Constraints.fixedWidth(textWidth))
+        val name = measurables[1].measure(Constraints.fixedWidth((textWidth - titleGap.roundToPx()).coerceAtLeast(0)))
+        val text = measurables[2].measure(loose)
+        val hero = measurables[3].measure(loose)
+        val rowTop = (statusTop + GREETING_TOP).roundToPx()
+        val rowHeight = max(hello.height, pill.height)
+        val textTop = rowTop + rowHeight
+        val expanded = max(textTop + text.height, (HhHeightHomeHeader + statusTop).roundToPx())
+        val barContent = status + max(name.height, pill.height) + overlap
+        val bar = max(barContent, (HhHeightCollapsedHomeHeader + statusTop).roundToPx()) - status - overlap
+        collapse.range = (expanded - status - bar - overlap).coerceAtLeast(0).toFloat()
+        layout(width, expanded + collapse.offset.roundToInt()) {
+            val fraction = collapse.fraction
+            if (fraction < COLLAPSE_FADE_SWITCH) {
+                hello.placeRelativeWithLayer(side, rowTop + centered(hello.height, rowHeight)) { alpha = collapse.heroAlpha }
+                text.placeRelativeWithLayer(0, textTop) { behindSheet(collapse, expanded - overlap - textTop, parallax) }
+                hero.placeRelativeWithLayer(width - hero.width, (statusTop + ILLUSTRATION_TOP).roundToPx()) {
+                    behindSheet(collapse, hero.height, parallax)
+                }
+            } else {
+                name.placeRelativeWithLayer(side, status + centered(name.height, bar)) {
+                    alpha = (collapse.fraction - COLLAPSE_FADE_SWITCH) / (1f - COLLAPSE_FADE_SWITCH)
+                }
+            }
+            val pillTop = lerp(rowTop + centered(pill.height, rowHeight), status + centered(pill.height, bar), fraction)
+            pill.placeRelative(width - side - pill.width, pillTop)
+        }
     }
 }
 
+private fun centered(size: Int, space: Int): Int = Alignment.CenterVertically.align(size, space)
+
+private val HhHeaderCollapseState.heroAlpha: Float
+    get() = (1f - fraction / COLLAPSE_FADE_SWITCH).coerceAtLeast(0f)
+
+private fun GraphicsLayerScope.behindSheet(collapse: HhHeaderCollapseState, restingBottom: Int, parallax: Float) {
+    val bottom = (restingBottom + collapse.offset * (1f - parallax)).coerceAtLeast(0f)
+    alpha = if (bottom > 0f) collapse.heroAlpha else 0f
+    translationY = collapse.offset * parallax
+    clip = collapse.fraction > 0f
+    shape = HhTopRect(bottom)
+}
+
+private class HhTopRect(private val bottom: Float) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
+        Outline.Rectangle(Rect(0f, 0f, size.width, bottom))
+}
+
 private val HOME_SMALL_CIRCLE_TOP = 170.dp
+private val GREETING_TOP = 12.dp
 private val ILLUSTRATION_TOP = 86.dp
 private val ILLUSTRATION_WIDTH = 174.dp
 private val ILLUSTRATION_HEIGHT = 200.dp
 private const val HEADLINE_FRACTION = 0.55f
+private const val COLLAPSE_FADE_SWITCH = 0.5f
+private const val COLLAPSE_PARALLAX = 0.5f
 
 @Preview(showBackground = true)
 @Composable
@@ -200,9 +232,15 @@ private fun HhCompactHomeHeaderPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun HhCollapsedHomeHeaderPreview() {
+private fun HhCollapsingHomeHeaderPreview() {
     HhPreviewTheme(darkTheme = true) {
-        HhCollapsedHomeHeader(title = "Applications", trailing = { HhCreditsPill(count = "4", label = "left") })
+        HhCollapsingHomeHeader(
+            collapse = HhHeaderCollapseState(initialFraction = 1f),
+            title = "Applications",
+            greeting = "Hi, Priya",
+            headline = "Your facts, every job",
+            trailing = { HhCreditsPill(count = "4", label = "left") },
+        )
     }
 }
 
