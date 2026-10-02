@@ -1,88 +1,55 @@
 package com.hirehop.feature.profile.impl.evidencepath
 
 import com.hirehop.core.model.DebugScenario
-import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.feature.profile.impl.ProfileExit
 
-enum class EvidenceFieldProblem { REQUIRED, END_BEFORE_START, TOO_LONG }
+enum class EvidenceFieldProblem { REQUIRED, TOO_LONG }
 
-enum class EvidenceMessage { LOAD_FAILED, SAVED, OFFLINE_QUEUED, SAVE_REJECTED }
+enum class EvidenceMessage { LOAD_FAILED, SAVE_FAILED }
 
 data class EvidenceFactCard(
     val category: EvidenceCategory,
-    val entryCategory: EntryCategory,
-    val line: String,
-    val answer: String,
-    val entry: ProfileEntry? = null,
+    val entry: ProfileEntry,
 )
 
-data class EvidenceQuestion(
+data class EvidenceSkipNote(
     val category: EvidenceCategory,
-    val promptIndex: Int,
-    val totalPrompts: Int,
-    val answers: Map<EvidencePrompt, String>,
-    val problems: Map<EvidencePrompt, EvidenceFieldProblem> = emptyMap(),
-) {
-    val prompt: EvidencePrompt get() = category.prompts()[promptIndex]
-    val title: String get() = answers[EvidencePrompt.TITLE].orEmpty()
-    val detail: String get() = answers[EvidencePrompt.DETAIL].orEmpty()
-    val organization: String get() = answers[EvidencePrompt.ORGANIZATION].orEmpty()
-    val isLastPrompt: Boolean get() = promptIndex == totalPrompts - 1
+    val questionNumber: Int,
+)
+
+sealed interface EvidenceNavigation {
+    data class Exit(val exit: ProfileExit) : EvidenceNavigation
 }
-
-data class EvidenceDone(
-    val addedCount: Int,
-    val skippedCount: Int,
-)
-
-data class EvidenceStage(
-    val done: EvidenceDone?,
-    val question: EvidenceQuestion?,
-)
 
 data class EvidencePathUiState(
     val isLoading: Boolean = false,
     val isOffline: Boolean = false,
     val isSaving: Boolean = false,
-    val startCategory: EvidenceCategory = EvidenceCategory.PROJECTS,
     val category: EvidenceCategory? = null,
-    val question: EvidenceQuestion? = null,
+    val questionIndex: Int = 0,
+    val answer: String = "",
+    val problem: EvidenceFieldProblem? = null,
     val cards: List<EvidenceFactCard> = emptyList(),
-    val isSaveRejected: Boolean = false,
-    val skipped: List<EvidenceCategory> = emptyList(),
-    val addedCount: Int = 0,
-    val done: EvidenceDone? = null,
+    val visited: Set<EvidenceCategory> = emptySet(),
+    val skipNote: EvidenceSkipNote? = null,
+    val isDone: Boolean = false,
     val message: EvidenceMessage? = null,
+    val navigation: EvidenceNavigation? = null,
 ) {
-    val isPicker: Boolean get() = category == null
+    val isPicker: Boolean get() = category == null && !isDone
+    val questionNumber: Int get() = questionIndex + 1
+    val questionTotal: Int get() = category?.questionCount ?: 0
+    val categoryCards: List<EvidenceFactCard> get() = cards.filter { it.category == category }
+    val canSave: Boolean get() = answer.isNotBlank() && !isSaving
 }
 
 fun evidencePathStateFor(
     scenario: DebugScenario,
     category: String,
-): EvidencePathUiState {
-    val start = evidenceCategoryOf(category)
-    return when (scenario) {
-        DebugScenario.LOADING, DebugScenario.DELETING -> EvidencePathUiState(isLoading = true, startCategory = start)
-
-        DebugScenario.OFFLINE -> EvidencePathUiState(isOffline = true, startCategory = start)
-
-        DebugScenario.ERROR -> EvidencePathUiState(
-            startCategory = start,
-            message = EvidenceMessage.LOAD_FAILED,
-        )
-
-        DebugScenario.EMPTY -> EvidencePathUiState(startCategory = start)
-
-        else -> EvidencePathUiState(
-            startCategory = start,
-            category = start,
-            question = EvidenceQuestion(
-                category = start,
-                promptIndex = 0,
-                totalPrompts = start.prompts().size,
-                answers = emptyMap(),
-            ),
-        )
-    }
-}
+): EvidencePathUiState = EvidencePathUiState(
+    isLoading = scenario == DebugScenario.LOADING || scenario == DebugScenario.DELETING,
+    isOffline = scenario == DebugScenario.OFFLINE,
+    category = evidenceCategoryOrNull(category),
+    message = if (scenario == DebugScenario.ERROR) EvidenceMessage.LOAD_FAILED else null,
+)

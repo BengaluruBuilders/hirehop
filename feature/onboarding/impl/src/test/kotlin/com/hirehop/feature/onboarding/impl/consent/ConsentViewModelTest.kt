@@ -1,9 +1,19 @@
 package com.hirehop.feature.onboarding.impl.consent
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.ConsentPurpose
+import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.onboarding.api.navigation.ConsentNavKey
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -13,11 +23,19 @@ class ConsentViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val session = TestSessionRepository()
+
+    private val clock = TestClock()
+
     private lateinit var viewModel: ConsentViewModel
 
     @Before
     fun setup() {
-        viewModel = ConsentViewModel()
+        viewModel = ConsentViewModel(
+            sessionRepository = session,
+            nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
+            clock = clock,
+        )
     }
 
     @Test
@@ -60,139 +78,101 @@ class ConsentViewModelTest {
     }
 
     @Test
-    fun togglingOnePurpose_leavesTheOthersUntouched() {
+    fun agreeStaysOffUntilEveryPurposeIsTicked() {
         viewModel.onEnter(ConsentNavKey())
-        val purpose = ConsentPurpose.READ_AND_BUILD
+        ConsentPurpose.entries.dropLast(1).forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
 
-        viewModel.onAction(ConsentAction.PurposeToggled(purpose))
+        assertThat(viewModel.uiState.value.canAgree).isFalse()
 
-        assertThat(viewModel.uiState.value.isAcknowledged(ConsentPurpose.ANALYSE_ON_DEVICE)).isFalse()
-        assertThat(viewModel.uiState.value.isAcknowledged(ConsentPurpose.KEEP_CONFIRMED_FACTS)).isFalse()
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(1)
-    }
+        viewModel.onAction(ConsentAction.PurposeToggled(ConsentPurpose.entries.last()))
 
-    @Test
-    fun allThreeTicked_makesTheProceedActionAvailable() {
-        viewModel.onEnter(ConsentNavKey())
-
-        ConsentPurpose.entries.forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
-
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(3)
-        assertThat(viewModel.uiState.value.isEveryPurposeAcknowledged).isTrue()
         assertThat(viewModel.uiState.value.canAgree).isTrue()
     }
 
     @Test
-    fun agree_withoutEveryPurpose_doesNothing() {
+    fun agree_withAPurposeUnticked_recordsNothing() = runTest {
         viewModel.onEnter(ConsentNavKey())
         viewModel.onAction(ConsentAction.PurposeToggled(ConsentPurpose.READ_AND_BUILD))
 
         viewModel.onAction(ConsentAction.Agree)
 
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(1)
+        assertThat(session.observeConsent().first()).isNull()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
     }
 
     @Test
-    fun agree_withEveryPurpose_keepsEveryPurposeTicked() {
+    fun agree_recordsTheConsentAndAsksForTheNextStep() = runTest {
+        session.sendAccount(SignInAccount.localAccount)
         viewModel.onEnter(ConsentNavKey())
         ConsentPurpose.entries.forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
 
         viewModel.onAction(ConsentAction.Agree)
 
-        assertThat(viewModel.uiState.value.isEveryPurposeAcknowledged).isTrue()
-        assertThat(viewModel.uiState.value.isDeclined).isFalse()
+        val record = session.observeConsent().first()
+        assertThat(record?.purposes).containsExactlyElementsIn(ConsentPurpose.entries)
+        assertThat(record?.acceptedAt).isEqualTo(clock.instant)
+        assertThat(record?.noticeVersion).isEqualTo(ConsentRecord.CURRENT_NOTICE_VERSION)
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.ImportResume)
+        assertThat(viewModel.uiState.value.isSaving).isFalse()
     }
 
     @Test
-    fun loadingScenario_showsTheSaveStep() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.LOADING))
+    fun nextStepConsumed_clearsTheStep() = runTest {
+        viewModel.onEnter(ConsentNavKey())
+        ConsentPurpose.entries.forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
+        viewModel.onAction(ConsentAction.Agree)
 
-        assertThat(viewModel.uiState.value.isSaving).isTrue()
-        assertThat(viewModel.uiState.value.canAgree).isFalse()
+        viewModel.onAction(ConsentAction.NextStepConsumed)
+
+        assertThat(viewModel.uiState.value.nextStep).isNull()
     }
 
     @Test
-    fun emptyScenario_isTheDeclinedPath() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.EMPTY))
+    fun notNow_showsTheDeclinedStateAndRecordsNothing() = runTest {
+        viewModel.onEnter(ConsentNavKey())
+
+        viewModel.onAction(ConsentAction.NotNow)
 
         assertThat(viewModel.uiState.value.isDeclined).isTrue()
         assertThat(viewModel.uiState.value.showAgreementActions).isFalse()
+        assertThat(session.observeConsent().first()).isNull()
     }
 
     @Test
-    fun offlineScenario_keepsEveryActionAvailable() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.OFFLINE))
-        ConsentPurpose.entries.forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
+    fun readAgain_leavesTheDeclinedState() {
+        viewModel.onEnter(ConsentNavKey())
+        viewModel.onAction(ConsentAction.NotNow)
 
-        assertThat(viewModel.uiState.value.isOffline).isTrue()
-        assertThat(viewModel.uiState.value.canAgree).isTrue()
-    }
-
-    @Test
-    fun errorScenario_showsThePlainLedger() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.ERROR))
+        viewModel.onAction(ConsentAction.ReadAgain)
 
         assertThat(viewModel.uiState.value.isDeclined).isFalse()
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(0)
     }
 
     @Test
-    fun partialScenario_showsThePlainLedger() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.PARTIAL))
-
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(0)
-    }
-
-    @Test
-    fun successScenario_hasEveryPurposeAcknowledged() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.SUCCESS))
-
-        assertThat(viewModel.uiState.value.isEveryPurposeAcknowledged).isTrue()
-        assertThat(viewModel.uiState.value.canAgree).isTrue()
-    }
-
-    @Test
-    fun userStatedScenario_showsThePlainLedger() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.USER_STATED))
-
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(0)
-    }
-
-    @Test
-    fun notNow_declinesWithoutBlocking() {
-        viewModel.onEnter(ConsentNavKey())
-
-        viewModel.onAction(ConsentAction.NotNow)
+    fun emptyScenario_startsDeclined() {
+        viewModel.onEnter(ConsentNavKey(DebugScenario.EMPTY))
 
         assertThat(viewModel.uiState.value.isDeclined).isTrue()
     }
 
     @Test
-    fun notNow_keepsTheTicksTheUserAlreadyMade() {
-        viewModel.onEnter(ConsentNavKey())
+    fun readOnly_showsTheStoredRecordAndIgnoresToggles() = runTest {
+        session.recordConsent(
+            ConsentRecord(
+                purposes = ConsentPurpose.entries.toSet(),
+                acceptedAt = clock.instant,
+                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+            ),
+        )
+        viewModel.onEnter(ConsentNavKey(readOnly = true))
+
         viewModel.onAction(ConsentAction.PurposeToggled(ConsentPurpose.READ_AND_BUILD))
 
-        viewModel.onAction(ConsentAction.NotNow)
-
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(1)
-    }
-
-    @Test
-    fun readAgain_returnsToTheLedger() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.EMPTY))
-
-        viewModel.onAction(ConsentAction.ReadAgain)
-
-        assertThat(viewModel.uiState.value.isDeclined).isFalse()
-        assertThat(viewModel.uiState.value.showAgreementActions).isTrue()
-    }
-
-    @Test
-    fun readAgain_doesNotPreTickAnything() {
-        viewModel.onEnter(ConsentNavKey(DebugScenario.EMPTY))
-
-        viewModel.onAction(ConsentAction.ReadAgain)
-
-        assertThat(viewModel.uiState.value.acknowledgedCount).isEqualTo(0)
+        val state = viewModel.uiState.value
+        assertThat(state.isReadOnly).isTrue()
+        assertThat(state.agreedAt).isEqualTo(clock.instant)
+        assertThat(state.isEveryPurposeAcknowledged).isTrue()
+        assertThat(state.canAgree).isFalse()
+        assertThat(state.showAgreementActions).isFalse()
     }
 }

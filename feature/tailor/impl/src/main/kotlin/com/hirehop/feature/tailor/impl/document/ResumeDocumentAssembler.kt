@@ -6,22 +6,27 @@ import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.model.TailoredResume
 import javax.inject.Inject
 
-internal class ResumeDocumentAssembler @Inject constructor() {
+internal class ResumeDocumentAssembler @Inject constructor(
+    private val headings: ResumeHeadings,
+) {
 
     fun assemble(profile: CandidateProfile, resume: TailoredResume): ResumeDocument {
-        val confirmedEntries = profile.entries.filter { it.isConfirmed }
+        val reviewed = reviewedEntries(profile, resume)
+        val recordedIds = resume.entryIds?.toSet()
         return ResumeDocument(
             name = profile.fullName.trim(),
             contactLine = listOf(profile.email, profile.phone).cleaned().joinToString(CONTACT_SEPARATOR),
             headline = profile.headline.trim(),
             skills = profile.skills.cleaned().distinctBy { it.lowercase() },
             sections = EntryCategory.entries.mapNotNull { category ->
-                confirmedEntries
+                reviewed
                     .filter { it.category == category }
+                    .filter { entry -> entry.bullets.isNotEmpty() || recordedIds == null || entry.id in recordedIds }
                     .map { it.toResumeEntry(resume) }
                     .takeIf { it.isNotEmpty() }
-                    ?.let { ResumeSection(category, category.resumeHeading, it) }
+                    ?.let { ResumeSection(category, headings.forCategory(category), it) }
             },
+            skillsHeading = headings.skills,
         )
     }
 

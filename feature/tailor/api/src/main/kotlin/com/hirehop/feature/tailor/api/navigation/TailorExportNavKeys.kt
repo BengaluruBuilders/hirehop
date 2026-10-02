@@ -17,6 +17,7 @@ data class PackPurchaseNavKey(
     val applicationId: String,
     val packId: String = "application_pack_5",
     val scenario: DebugScenario = DebugScenario.defaultValue,
+    val startExportOnReturn: Boolean = false,
 ) : NavKey
 
 @Serializable
@@ -25,6 +26,11 @@ data class ExportedNavKey(
     val format: String = "pdf",
     val scenario: DebugScenario = DebugScenario.defaultValue,
     val spentFreeCredit: Boolean = true,
+) : NavKey
+
+@Serializable
+data class ShareLastExportNavKey(
+    val applicationId: String,
 ) : NavKey
 
 @Serializable
@@ -42,6 +48,10 @@ fun Navigator.navigateToPackPurchase(applicationId: String, packId: String = "ap
 
 fun Navigator.navigateToExported(applicationId: String, format: String = "pdf") {
     navigate(ExportedNavKey(applicationId = applicationId, format = format))
+}
+
+fun Navigator.navigateToShareLastExport(applicationId: String) {
+    navigate(ShareLastExportNavKey(applicationId = applicationId))
 }
 
 fun Navigator.navigateToCredits() {

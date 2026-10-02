@@ -27,6 +27,7 @@ data class FactEditorUiState(
     val wasQueued: Boolean,
     val provenance: FactSource,
     val isConfirmed: Boolean,
+    val displayId: String = factId,
 ) {
     val liveLine: String
         get() = FactLineRenderer.render(draft)
@@ -40,10 +41,7 @@ data class FactEditorUiState(
             .filter { it.isNotEmpty() }
 
     val isSaveEnabled: Boolean
-        get() = !isLoading &&
-            !isSaving &&
-            draft.title.isNotBlank() &&
-            fieldErrors.isEmpty()
+        get() = !isLoading && !isSaving && fieldErrors.isEmpty()
 
     val canDelete: Boolean
         get() = mode == FactEditorMode.Editing && !isSaving

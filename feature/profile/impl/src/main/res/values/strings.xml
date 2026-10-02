@@ -1,97 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_profile_impl_loading">Loading profile</string>
-    <string name="feature_profile_impl_trust_copy">HireHop never adds facts you did not confirm.</string>
-
-    <string name="feature_profile_impl_empty_title">Build your profile once</string>
-    <string name="feature_profile_impl_empty_message">HireHop uses only the facts you confirm to tailor your resume for each job.</string>
-    <string name="feature_profile_impl_action_paste_resume">Paste resume text</string>
-    <string name="feature_profile_impl_action_add_manually">Add details manually</string>
-    <string name="feature_profile_impl_action_load_demo">Load demo profile</string>
-
-    <plurals name="feature_profile_impl_banner_unconfirmed">
-        <item quantity="one">%1$d item needs your confirmation. Only confirmed facts are used for tailoring.</item>
-        <item quantity="other">%1$d items need your confirmation. Only confirmed facts are used for tailoring.</item>
-    </plurals>
-    <string name="feature_profile_impl_confirm_all">Confirm all</string>
-    <plurals name="feature_profile_impl_confirm_all_title">
-        <item quantity="one">Confirm %1$d item?</item>
-        <item quantity="other">Confirm %1$d items?</item>
-    </plurals>
-    <string name="feature_profile_impl_confirm_all_message">Only confirm facts that are true.</string>
-    <string name="feature_profile_impl_delete_title">Delete this entry?</string>
-    <string name="feature_profile_impl_delete_message">HireHop removes the entry from your profile. You cannot undo this.</string>
-    <string name="feature_profile_impl_clear_profile">Clear profile</string>
-    <string name="feature_profile_impl_clear_title">Clear your profile?</string>
-    <string name="feature_profile_impl_clear_message">HireHop removes all entries, skills, and contact details. You cannot undo this.</string>
-    <string name="feature_profile_impl_clear_confirm">Clear</string>
-    <string name="feature_profile_impl_more_options">More options</string>
-    <string name="feature_profile_impl_demo_label">Demo data</string>
-    <string name="feature_profile_impl_replace_title">Replace your profile?</string>
-    <string name="feature_profile_impl_replace_message">Your current entries will be removed.</string>
-    <string name="feature_profile_impl_replace_confirm">Replace</string>
-    <string name="feature_profile_impl_paste_privacy">HireHop skips date of birth, religion, marital status, and photos.</string>
-    <string name="feature_profile_impl_confirm">Confirm</string>
-    <string name="feature_profile_impl_unconfirmed_badge">Unconfirmed</string>
-    <string name="feature_profile_impl_edit">Edit</string>
-    <string name="feature_profile_impl_delete">Delete</string>
-
-    <string name="feature_profile_impl_header_name_placeholder">Add your name</string>
-    <string name="feature_profile_impl_header_headline_placeholder">Add a headline</string>
-    <string name="feature_profile_impl_edit_contact">Edit contact details</string>
-    <string name="feature_profile_impl_skills_title">Skills</string>
-    <string name="feature_profile_impl_skills_empty">No skills yet.</string>
-    <string name="feature_profile_impl_add_skill">Add skill</string>
-    <string name="feature_profile_impl_remove_skill">Remove %1$s</string>
-    <string name="feature_profile_impl_skill_label">Skill</string>
-
-    <string name="feature_profile_impl_add_entry">Add entry</string>
-    <string name="feature_profile_impl_add_project">Project</string>
-    <string name="feature_profile_impl_add_internship">Internship</string>
-    <string name="feature_profile_impl_add_course">Course</string>
-    <string name="feature_profile_impl_add_competition">Competition</string>
-    <string name="feature_profile_impl_add_position">Position of responsibility</string>
-    <string name="feature_profile_impl_paste_new_resume">Paste resume text</string>
-
-    <string name="feature_profile_impl_category_education">Education</string>
-    <string name="feature_profile_impl_category_experience">Experience</string>
-    <string name="feature_profile_impl_category_project">Projects</string>
-    <string name="feature_profile_impl_category_certification">Courses and certifications</string>
-    <string name="feature_profile_impl_category_achievement">Achievements</string>
-
-    <string name="feature_profile_impl_entry_dates">%1$s to %2$s</string>
-
-    <string name="feature_profile_impl_contact_title">Contact details</string>
-    <string name="feature_profile_impl_field_full_name">Full name</string>
-    <string name="feature_profile_impl_field_email">Email</string>
-    <string name="feature_profile_impl_field_phone">Phone</string>
-    <string name="feature_profile_impl_field_headline">Headline</string>
-
-    <string name="feature_profile_impl_editor_add_title">Add entry</string>
-    <string name="feature_profile_impl_editor_edit_title">Edit entry</string>
-    <string name="feature_profile_impl_editor_edit_hint">Saving your changes confirms this entry.</string>
-    <string name="feature_profile_impl_field_title">Title</string>
-    <string name="feature_profile_impl_field_organization">Organization</string>
-    <string name="feature_profile_impl_field_start">Start</string>
-    <string name="feature_profile_impl_field_end">End</string>
-    <string name="feature_profile_impl_field_bullet">Bullet %1$d</string>
-    <string name="feature_profile_impl_add_bullet">Add bullet</string>
-    <string name="feature_profile_impl_remove_bullet">Remove bullet %1$d</string>
+    <string name="feature_profile_impl_back">Back</string>
     <string name="feature_profile_impl_save">Save</string>
     <string name="feature_profile_impl_cancel">Cancel</string>
     <string name="feature_profile_impl_add">Add</string>
 
-    <string name="feature_profile_impl_paste_title">Paste resume text</string>
-    <string name="feature_profile_impl_paste_field">Resume text</string>
-    <string name="feature_profile_impl_paste_parse">Parse</string>
-    <string name="feature_profile_impl_paste_parsing">Parsing resume text</string>
-    <string name="feature_profile_impl_paste_preview_title">Preview</string>
-    <string name="feature_profile_impl_paste_nothing_found">HireHop found no details in this text. Check the text and parse again.</string>
-    <string name="feature_profile_impl_paste_unconfirmed_note">Saving replaces your profile. Every imported item stays unconfirmed until you confirm it.</string>
-    <string name="feature_profile_impl_paste_save">Save profile</string>
-    <plurals name="feature_profile_impl_paste_entry_bullets">
-        <item quantity="one">%1$d bullet</item>
-        <item quantity="other">%1$d bullets</item>
-    </plurals>
-    <string name="feature_profile_impl_paste_skills">Skills: %1$s</string>
+    <string name="feature_profile_impl_status_confirmed">Confirmed</string>
+    <string name="feature_profile_impl_status_user_stated">User-stated</string>
+    <string name="feature_profile_impl_status_user_edited">Edited by you</string>
+    <string name="feature_profile_impl_status_scanned">Scanned</string>
+    <string name="feature_profile_impl_status_to_confirm">To confirm</string>
+    <string name="feature_profile_impl_fact_chip_description">Fact %1$s. %2$s.</string>
+    <string name="feature_profile_impl_fact_card_description">%1$s. %2$s. %3$s. Fact %4$s.</string>
+    <string name="feature_profile_impl_fact_edit">Edit</string>
+    <string name="feature_profile_impl_fact_confirm">Confirm</string>
+    <string name="feature_profile_impl_remove_chip">Remove %1$s</string>
+
+    <string name="feature_profile_impl_kind_education">Education</string>
+    <string name="feature_profile_impl_kind_experience">Experience</string>
+    <string name="feature_profile_impl_kind_project">Project</string>
+    <string name="feature_profile_impl_kind_certification">Certification</string>
+    <string name="feature_profile_impl_kind_achievement">Extra</string>
+    <string name="feature_profile_impl_kind_skill">Skill</string>
 </resources>

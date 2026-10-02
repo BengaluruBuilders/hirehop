@@ -19,13 +19,17 @@ import org.junit.Test
 
 class ResumeDocumentAssemblerTest {
 
-    private val assembler = ResumeDocumentAssembler()
+    private val assembler = ResumeDocumentAssembler(TestResumeHeadings)
 
     private fun bulletsOf(document: ResumeDocument): List<String> =
         document.sections.flatMap { it.entries }.flatMap { it.bullets }
 
-    private fun assembleBullets(bullets: List<TailoredBullet>, entry: ProfileEntry): List<String> =
-        bulletsOf(assembler.assemble(testProfile(listOf(entry)), TailoredResume(bullets)))
+    private fun assembleBullets(
+        bullets: List<TailoredBullet>,
+        entry: ProfileEntry,
+        entryIds: List<String>? = null,
+    ): List<String> =
+        bulletsOf(assembler.assemble(testProfile(listOf(entry)), TailoredResume(bullets, entryIds)))
 
     @Test
     fun acceptedBullet_usesProposedText() {
@@ -86,19 +90,19 @@ class ResumeDocumentAssemblerTest {
     }
 
     @Test
-    fun addedBullet_isKeptWithItsCurrentText() {
+    fun addedBullet_isLeftOutBecauseTheReviewNeverShowedIt() {
         val tailored = testBullet("b1", original = "Built a tool", proposed = "Developed a tool", decision = BulletDecision.ACCEPTED)
         val entry = testEntry("exp-1", bullets = listOf(evidenceOf(tailored), EvidenceBullet("new", "Added later")))
 
-        assertThat(assembleBullets(listOf(tailored), entry)).containsExactly("Developed a tool", "Added later").inOrder()
+        assertThat(assembleBullets(listOf(tailored), entry)).containsExactly("Developed a tool")
     }
 
     @Test
-    fun tailoredBulletFromAnotherEntry_isIgnored() {
+    fun entryWithoutTailoredBullets_isLeftOut() {
         val other = testBullet("b1", entryId = "exp-2", original = "Built a tool", proposed = "Developed a tool", decision = BulletDecision.ACCEPTED)
         val entry = testEntry("exp-1", bullets = listOf(evidenceOf(other)))
 
-        assertThat(assembleBullets(listOf(other), entry)).containsExactly("Built a tool")
+        assertThat(assembleBullets(listOf(other), entry, entryIds = emptyList())).isEmpty()
     }
 
     @Test
@@ -184,46 +188,62 @@ class ResumeDocumentAssemblerTest {
         assertThat(bulletsOf(document)).containsExactly("Kept")
     }
 
+    private fun reviewedEntry(id: String, category: EntryCategory, startDate: String = "Jan 2024", endDate: String = "Present") =
+        testBullet("b-$id", entryId = id, original = "Text $id", proposed = "Text $id").let { bullet ->
+            testEntry(id, category, bullets = listOf(evidenceOf(bullet)), startDate = startDate, endDate = endDate) to bullet
+        }
+
     @Test
     fun sections_followStandardOrderAndSkipEmptyOnes() {
-        val profile = testProfile(
-            listOf(
-                testEntry("ach", EntryCategory.ACHIEVEMENT),
-                testEntry("edu", EntryCategory.EDUCATION),
-                testEntry("proj", EntryCategory.PROJECT),
-                testEntry("exp", EntryCategory.EXPERIENCE),
-                testEntry("cert", EntryCategory.CERTIFICATION),
-            ),
+        val pairs = listOf(
+            reviewedEntry("ach", EntryCategory.ACHIEVEMENT),
+            reviewedEntry("edu", EntryCategory.EDUCATION),
+            reviewedEntry("proj", EntryCategory.PROJECT),
+            reviewedEntry("exp", EntryCategory.EXPERIENCE),
+            reviewedEntry("cert", EntryCategory.CERTIFICATION),
         )
 
-        val document = assembler.assemble(profile, TailoredResume(emptyList()))
+        val document = assembler.assemble(testProfile(pairs.map { it.first }), TailoredResume(pairs.map { it.second }))
 
         assertThat(document.sections.map { it.heading })
-            .containsExactly("Education", "Experience", "Projects", "Certifications", "Achievements")
+            .containsExactly(
+                "Heading education",
+                "Heading experience",
+                "Heading project",
+                "Heading certification",
+                "Heading achievement",
+            )
             .inOrder()
     }
 
     @Test
-    fun categoryWithoutEntries_hasNoSection() {
-        val profile = testProfile(listOf(testEntry("edu", EntryCategory.EDUCATION)))
+    fun skillsHeading_comesFromTheHeadings() {
+        val document = assembler.assemble(testProfile(emptyList()), TailoredResume(emptyList()))
 
-        val document = assembler.assemble(profile, TailoredResume(emptyList()))
+        assertThat(document.skillsHeading).isEqualTo("Heading skills")
+    }
+
+    @Test
+    fun categoryWithoutReviewedEntries_hasNoSection() {
+        val (edu, eduBullet) = reviewedEntry("edu", EntryCategory.EDUCATION)
+
+        val document = assembler.assemble(testProfile(listOf(edu, testEntry("exp"))), TailoredResume(listOf(eduBullet), entryIds = listOf("edu")))
 
         assertThat(document.sections.map { it.category }).containsExactly(EntryCategory.EDUCATION)
     }
 
     @Test
-    fun entryWithoutTailoredBullets_usesProfileBullets() {
+    fun entryWithoutTailoredBullets_isLeftOutEvenWhenTheProfileHasBullets() {
         val profile = testProfile(listOf(testEntry("edu", EntryCategory.EDUCATION, bullets = sourceBullets("a", "b"))))
 
-        val document = assembler.assemble(profile, TailoredResume(emptyList()))
+        val document = assembler.assemble(profile, TailoredResume(emptyList(), entryIds = emptyList()))
 
-        assertThat(bulletsOf(document)).containsExactly("Source text of a", "Source text of b").inOrder()
+        assertThat(document.sections).isEmpty()
     }
 
     @Test
     fun header_carriesNameContactHeadlineAndSkills() {
-        val profile = testProfile(listOf(testEntry("exp-1")), skills = listOf("Kotlin", " kotlin ", "", "SQL", "SQL"))
+        val profile = testProfile(emptyList(), skills = listOf("Kotlin", " kotlin ", "", "SQL", "SQL"))
 
         val document = assembler.assemble(profile, TailoredResume(emptyList()))
 
@@ -235,15 +255,13 @@ class ResumeDocumentAssemblerTest {
 
     @Test
     fun dateRange_skipsBlankParts() {
-        val profile = testProfile(
-            listOf(
-                testEntry("edu", EntryCategory.EDUCATION, startDate = "2021", endDate = "2025"),
-                testEntry("proj", EntryCategory.PROJECT, startDate = "", endDate = "Apr 2025"),
-                testEntry("cert", EntryCategory.CERTIFICATION, startDate = "", endDate = ""),
-            ),
+        val pairs = listOf(
+            reviewedEntry("edu", EntryCategory.EDUCATION, startDate = "2021", endDate = "2025"),
+            reviewedEntry("proj", EntryCategory.PROJECT, startDate = "", endDate = "Apr 2025"),
+            reviewedEntry("cert", EntryCategory.CERTIFICATION, startDate = "", endDate = ""),
         )
 
-        val document = assembler.assemble(profile, TailoredResume(emptyList()))
+        val document = assembler.assemble(testProfile(pairs.map { it.first }), TailoredResume(pairs.map { it.second }))
 
         assertThat(document.sections.map { it.entries.single().dateRange })
             .containsExactly("2021 - 2025", "Apr 2025", "")

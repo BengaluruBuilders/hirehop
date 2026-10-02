@@ -1,19 +1,19 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.feature.tailor.impl.export.ExportFileName
 
-internal enum class ExportFormat(val wireValue: String, val extension: String) {
-    PDF("pdf", ".pdf"),
-    DOCX("docx", ".docx"),
-    ;
+internal val ExportFormat.wireValue: String get() = name.lowercase()
 
-    val isLaterRelease: Boolean get() = this == DOCX
-
-    companion object {
-        fun fromWire(wireValue: String): ExportFormat =
-            entries.firstOrNull { format -> format.wireValue.equals(wireValue, ignoreCase = true) } ?: PDF
+internal val ExportFormat.extension: String
+    get() = when (this) {
+        ExportFormat.PDF -> ".pdf"
+        ExportFormat.DOCX -> ".docx"
     }
-}
+
+internal fun exportFormatFromWire(wireValue: String): ExportFormat =
+    ExportFormat.entries.firstOrNull { format -> format.wireValue.equals(wireValue, ignoreCase = true) }
+        ?: ExportFormat.PDF
 
 internal object ExportFileNames {
 

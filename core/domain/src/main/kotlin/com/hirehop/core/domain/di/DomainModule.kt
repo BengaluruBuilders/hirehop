@@ -8,8 +8,10 @@ import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.SignInGateway
+import com.hirehop.core.domain.account.AccountDataExporter
 import com.hirehop.core.domain.coverletter.CoverLetterSource
 import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
+import com.hirehop.core.domain.offline.OfflineAccountDataExporter
 import com.hirehop.core.domain.offline.OfflineFabricationGuard
 import com.hirehop.core.domain.offline.OfflineGapMatcher
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
@@ -20,6 +22,8 @@ import com.hirehop.core.domain.offline.OfflineSignInGateway
 import com.hirehop.core.domain.offline.UuidIdGenerator
 import com.hirehop.core.domain.prep.GeneratePrepQuestionsUseCase
 import com.hirehop.core.domain.prep.PrepQuestionSource
+import com.hirehop.core.domain.sample.OfflineSampleDataController
+import com.hirehop.core.domain.sample.SampleDataController
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -57,4 +61,10 @@ internal abstract class DomainModule {
 
     @Binds
     abstract fun bindPrepQuestionSource(impl: GeneratePrepQuestionsUseCase): PrepQuestionSource
+
+    @Binds
+    abstract fun bindAccountDataExporter(impl: OfflineAccountDataExporter): AccountDataExporter
+
+    @Binds
+    abstract fun bindSampleDataController(impl: OfflineSampleDataController): SampleDataController
 }

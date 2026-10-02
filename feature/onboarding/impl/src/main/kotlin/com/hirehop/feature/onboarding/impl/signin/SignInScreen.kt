@@ -1,179 +1,166 @@
 package com.hirehop.feature.onboarding.impl.signin
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhConsentRow
-import com.hirehop.core.designsystem.component.HhErrorCallout
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.AnnotatedString
+import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhCheckbox
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSpotIllustration
-import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhStatusChip
-import com.hirehop.core.designsystem.component.HhStatusKind
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhTextField
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.feature.onboarding.impl.R
-
-private val HH_TOUCH_TARGET: Dp = 48.dp
+import com.hirehop.feature.onboarding.impl.common.DisclosureCard
+import com.hirehop.feature.onboarding.impl.common.MessageCard
+import com.hirehop.feature.onboarding.impl.common.NoticeTone
+import com.hirehop.feature.onboarding.impl.common.OnboardingNotice
+import com.hirehop.feature.onboarding.impl.common.ReasonText
 
 @Composable
 internal fun SignInScreen(
     uiState: SignInUiState,
     actions: SignInActions,
-    onSkipToJobDescription: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
+    HhScreen(
         modifier = modifier,
-        topBar = {
-            HhTopAppBar(
-                title = "",
-                navigationIcon = Icons.AutoMirrored.Rounded.ArrowBack,
-                navigationIconContentDescription = stringResource(
+        sheet = false,
+        header = {
+            HhInnerHeader(
+                title = stringResource(R.string.feature_onboarding_impl_sign_in_title),
+                subtitle = stringResource(R.string.feature_onboarding_impl_sign_in_subtitle),
+                onBack = actions.onBack,
+                backContentDescription = stringResource(
                     R.string.feature_onboarding_impl_sign_in_navigation_back_content_description,
                 ),
-                onNavigationClick = actions.onBackFromUnderEighteen,
             )
         },
+        bottomBar = {
+            if (uiState.stage == SignInStage.UNDER_18) {
+                UnderEighteenBar(actions = actions)
+            } else {
+                SignInBottomBar(uiState = uiState, actions = actions)
+            }
+        },
+        bottomBarNotice = if (uiState.stage == SignInStage.UNDER_18) null else ({ SignInBarNotice(uiState = uiState) }),
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(horizontal = HhTheme.spacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
-            when (uiState.stage) {
-                SignInStage.UNDER_18 -> UnderEighteenContent(actions = actions)
-                SignInStage.SKIPPED -> SkippedContent(
-                    actions = actions,
-                    onSkipToJobDescription = onSkipToJobDescription,
+            if (uiState.stage == SignInStage.UNDER_18) {
+                MessageCard(
+                    title = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_title),
+                    body = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_body),
                 )
-
-                else -> SignInMainContent(uiState = uiState, actions = actions)
+            } else {
+                SignInNotices(uiState = uiState)
+                SignInFormCard(uiState = uiState, actions = actions)
             }
         }
     }
 }
 
 @Composable
-private fun SignInMainContent(
+private fun SignInNotices(uiState: SignInUiState) {
+    HhOfflineBanner(
+        message = stringResource(R.string.feature_onboarding_impl_sign_in_offline_message),
+        visible = uiState.isOffline,
+    )
+    when (uiState.stage) {
+        SignInStage.FAILED -> OnboardingNotice(
+            text = stringResource(R.string.feature_onboarding_impl_sign_in_failure_message),
+            icon = HhIcons.Error,
+            tone = NoticeTone.Error,
+        )
+
+        SignInStage.CANCELLED -> OnboardingNotice(
+            text = stringResource(R.string.feature_onboarding_impl_sign_in_cancelled_message),
+            icon = HhIcons.Block,
+        )
+
+        else -> Unit
+    }
+}
+
+@Composable
+private fun SignInFormCard(
     uiState: SignInUiState,
     actions: SignInActions,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_title),
-            style = HhTheme.typography.headlineSmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_subtitle),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhOfflineBanner(
-            message = stringResource(R.string.feature_onboarding_impl_sign_in_offline_message),
-            supportingText = stringResource(R.string.feature_onboarding_impl_sign_in_offline_supporting),
-            visible = uiState.isOffline,
-        )
-        AdultConfirmationRow(uiState = uiState, actions = actions)
-        Spacer(Modifier.height(HhTheme.spacing.md))
-        WhatLeavesThisPhone()
-        OutcomeBlock(uiState = uiState, actions = actions)
-        HhButton(
-            onClick = actions.onContinue,
-            enabled = uiState.canContinue,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = stringResource(R.string.feature_onboarding_impl_sign_in_action_continue))
-        }
-        SignInContinueReason(uiState = uiState)
-        HhOutlinedButton(
-            onClick = actions.onNotNow,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = stringResource(R.string.feature_onboarding_impl_sign_in_action_not_now))
-        }
-        HhOutlinedButton(
-            onClick = actions.onUnderEighteen,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             Text(
-                text = stringResource(R.string.feature_onboarding_impl_sign_in_action_under_18),
-                color = HhTheme.colors.onSurfaceVariant,
+                text = stringResource(R.string.feature_onboarding_impl_sign_in_intro),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
+            )
+            AdultRow(uiState = uiState, onChange = actions.onAdultConfirmationChange)
+            HhTextField(
+                value = uiState.referralCode,
+                onValueChange = actions.onReferralCodeChange,
+                label = stringResource(R.string.feature_onboarding_impl_sign_in_code_label),
+                placeholder = stringResource(R.string.feature_onboarding_impl_sign_in_code_placeholder),
             )
         }
     }
 }
 
 @Composable
-private fun AdultConfirmationRow(
+private fun AdultRow(
     uiState: SignInUiState,
-    actions: SignInActions,
+    onChange: (Boolean) -> Unit,
 ) {
-    val shape = RoundedCornerShape(HhTheme.shapes.md)
-    val nudgeFrame = if (uiState.isAdultNudged) {
-        Modifier
-            .border(width = 1.5.dp, color = HhTheme.colors.onSurface, shape = shape)
-            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm)
-    } else {
-        Modifier
-    }
-    val talkBack = if (uiState.isAdultConfirmed) {
-        stringResource(R.string.feature_onboarding_impl_sign_in_age_talkback_on)
-    } else {
-        stringResource(R.string.feature_onboarding_impl_sign_in_age_talkback_off)
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-        HhConsentRow(
-            label = stringResource(R.string.feature_onboarding_impl_sign_in_age_label),
-            supportingText = stringResource(R.string.feature_onboarding_impl_sign_in_age_supporting),
-            checked = uiState.isAdultConfirmed,
-            onCheckedChange = actions.onAdultConfirmationChange,
-            modifier = nudgeFrame.semantics(mergeDescendants = true) {
-                contentDescription = talkBack
-            },
-        )
-        if (uiState.isAdultNudged) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = HhTheme.spacing.touch)
+                .toggleable(value = uiState.isAdultConfirmed, role = Role.Checkbox, onValueChange = onChange),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhCheckbox(
+                checked = uiState.isAdultConfirmed,
+                onCheckedChange = onChange,
+                modifier = Modifier.clearAndSetSemantics {},
+            )
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_sign_in_age_label),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurface,
+            )
+        }
+        if (uiState.isAdultNudged && !uiState.isAdultConfirmed) {
             Text(
                 text = stringResource(R.string.feature_onboarding_impl_sign_in_age_nudge),
-                style = HhTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = HhTheme.spacing.touch + HhTheme.spacing.sm),
+                style = HhTheme.typography.labelM,
                 color = HhTheme.colors.onSurface,
             )
         }
@@ -181,167 +168,51 @@ private fun AdultConfirmationRow(
 }
 
 @Composable
-private fun WhatLeavesThisPhone() {
-    HhCard {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_what_leaves_label),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
+private fun SignInBarNotice(uiState: SignInUiState) {
+    val reason = when {
+        uiState.isBusy -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_in_progress)
+        uiState.isOffline -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_offline)
+        !uiState.isAdultConfirmed -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_needs_tick)
+        else -> null
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        DisclosureCard(
+            text = AnnotatedString(stringResource(R.string.feature_onboarding_impl_sign_in_disclosure)),
+            icon = HhIcons.Lock,
         )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_what_leaves_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_what_leaves_meta),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
+        if (reason != null) {
+            ReasonText(text = reason)
+        }
     }
 }
 
 @Composable
-private fun OutcomeBlock(
+private fun SignInBottomBar(
     uiState: SignInUiState,
     actions: SignInActions,
 ) {
-    when {
-        uiState.failure == SignInFailureReason.ProviderUnavailable -> HhErrorCallout(
-            title = stringResource(R.string.feature_onboarding_impl_sign_in_failure_provider_title),
-            supportingText = stringResource(R.string.feature_onboarding_impl_sign_in_failure_provider_body),
-            actionLabel = stringResource(R.string.feature_onboarding_impl_sign_in_failure_action_retry),
-            onAction = actions.onContinue,
+    HhBottomActionBar {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_onboarding_impl_sign_in_action_under_18),
+            onClick = actions.onUnderEighteen,
+            modifier = Modifier.weight(1f),
         )
-
-        uiState.failure == SignInFailureReason.NetworkUnavailable -> HhOfflineBanner(
-            message = stringResource(R.string.feature_onboarding_impl_sign_in_failure_network_title),
-            supportingText = stringResource(R.string.feature_onboarding_impl_sign_in_failure_network_body),
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_onboarding_impl_sign_in_action_continue),
+            onClick = actions.onContinue,
+            enabled = uiState.canContinue,
+            modifier = Modifier.weight(1f),
         )
-
-        uiState.stage == SignInStage.SIGNED_IN -> HhCard {
-            HhStatusChip(
-                kind = HhStatusKind.Met,
-                label = stringResource(R.string.feature_onboarding_impl_sign_in_success_status),
-            )
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_sign_in_success_title),
-                style = HhTheme.typography.titleMedium,
-                color = HhTheme.colors.onSurface,
-            )
-            if (uiState.displayName != null) {
-                Text(
-                    text = uiState.displayName.orEmpty(),
-                    style = HhTheme.typography.bodyLarge,
-                    color = HhTheme.colors.onSurface,
-                )
-            }
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_sign_in_success_body),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-
-        uiState.stage == SignInStage.CANCELLED -> HhCard {
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_sign_in_cancelled_title),
-                style = HhTheme.typography.titleMedium,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_sign_in_cancelled_body),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
     }
 }
 
 @Composable
-private fun SignInContinueReason(uiState: SignInUiState) {
-    val reason = when {
-        uiState.isBusy -> R.string.feature_onboarding_impl_sign_in_reason_in_progress
-        uiState.needsAdultConfirmation -> R.string.feature_onboarding_impl_sign_in_reason_needs_tick
-        else -> null
-    }
-    if (reason == null) return
-    Text(
-        text = stringResource(reason),
-        style = HhTheme.typography.bodyMedium,
-        color = HhTheme.colors.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun UnderEighteenContent(actions: SignInActions) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d24),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Review)
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_title),
-            style = HhTheme.typography.headlineSmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Spacer(Modifier.weight(1f))
-        HhOutlinedButton(
+private fun UnderEighteenBar(actions: SignInActions) {
+    HhBottomActionBar {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_action_back),
             onClick = actions.onBackFromUnderEighteen,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = stringResource(R.string.feature_onboarding_impl_sign_in_under_18_action_back))
-        }
-    }
-}
-
-@Composable
-private fun SkippedContent(
-    actions: SignInActions,
-    onSkipToJobDescription: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d24),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_skipped_title),
-            style = HhTheme.typography.headlineSmall,
-            color = HhTheme.colors.onSurface,
+            modifier = Modifier.weight(1f),
         )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_sign_in_skipped_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Spacer(Modifier.weight(1f))
-        HhButton(
-            onClick = onSkipToJobDescription,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = stringResource(R.string.feature_onboarding_impl_sign_in_skipped_action_back))
-        }
-        HhOutlinedButton(
-            onClick = actions.onRevisit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = stringResource(R.string.feature_onboarding_impl_sign_in_skipped_action_revisit))
-        }
     }
 }

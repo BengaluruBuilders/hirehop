@@ -12,35 +12,7 @@ class ConsentCopyTest {
     private val signInStrings: String = readStrings("strings_sign_in.xml")
 
     @Test
-    fun theLedgerClaimsNoOutsiderHoldsTheText() {
-        val analyseLine = stringValue(consentStrings, "feature_onboarding_impl_consent_purpose_analyse_supporting")
-
-        assertThat(analyseLine).contains("goes to no outside service")
-        assertThat(analyseLine).contains("no provider holds a copy")
-    }
-
-    @Test
-    fun theLedgerNeverInventsAZeroRetentionGuarantee() {
-        val analyseLine = stringValue(
-            consentStrings,
-            "feature_onboarding_impl_consent_purpose_analyse_supporting",
-        ).lowercase(Locale.ROOT)
-
-        assertThat(analyseLine).doesNotContain("never share")
-        assertThat(analyseLine).doesNotContain("we never")
-        assertThat(analyseLine).doesNotContain("openai")
-    }
-
-    @Test
-    fun theLedgerDoesNotNameAPrivacyPolicyUrl() {
-        val policyLine = stringValue(consentStrings, "feature_onboarding_impl_consent_policy_value")
-
-        assertThat(policyLine).contains("Not published yet")
-        assertThat(policyLine).doesNotContain("http")
-    }
-
-    @Test
-    fun theLedgerKeepsTheNoSensitiveFieldsCommitment() {
+    fun theNoticeKeepsTheNoSensitiveFieldsCommitment() {
         val commitment = stringValue(consentStrings, "feature_onboarding_impl_consent_commitment_never_asks")
 
         assertThat(commitment).contains("date of birth")
@@ -51,10 +23,26 @@ class ConsentCopyTest {
     }
 
     @Test
-    fun theLedgerKeepsBothWaysOut() {
+    fun theNoticeDoesNotNameAPrivacyPolicyUrl() {
+        val policyLine = stringValue(consentStrings, "feature_onboarding_impl_consent_policy_value")
+
+        assertThat(policyLine).contains("Not published yet")
+        assertThat(policyLine).doesNotContain("http")
+    }
+
+    @Test
+    fun theNoticeKeepsBothWaysOut() {
         assertThat(consentStrings).contains("feature_onboarding_impl_consent_action_agree")
         assertThat(consentStrings).contains("feature_onboarding_impl_consent_action_not_now")
-        assertThat(consentStrings).contains("feature_onboarding_impl_consent_declined_action_back")
+        assertThat(consentStrings).contains("feature_onboarding_impl_consent_declined_action_read_again")
+    }
+
+    @Test
+    fun theNoticeNamesNoRetentionPeriodItCannotBackUp() {
+        val retention = stringValue(consentStrings, "feature_onboarding_impl_consent_purpose_analyse_keep_pending")
+
+        assertThat(retention).contains("to be confirmed")
+        assertThat(retention).doesNotContain("never")
     }
 
     @Test
@@ -64,23 +52,10 @@ class ConsentCopyTest {
     }
 
     @Test
-    fun theSignInDisclosureSaysNothingLeavesThePhone() {
-        val body = stringValue(signInStrings, "feature_onboarding_impl_sign_in_what_leaves_body")
-
-        assertThat(body).contains("Nothing")
-        assertThat(body).contains("stay on this phone")
-    }
-
-    @Test
-    fun theSignInButtonDoesNotPromiseAGoogleRoundTrip() {
-        assertThat(signInStrings).contains("feature_onboarding_impl_sign_in_action_continue")
-        assertThat(signInStrings).doesNotContain("Continue with Google")
-    }
-
-    @Test
-    fun theSignInScreenKeepsTheSkipPathAndTheUnderEighteenPath() {
-        assertThat(signInStrings).contains("feature_onboarding_impl_sign_in_action_not_now")
+    fun theSignInScreenKeepsTheUnderEighteenPathAndTheReferralLabel() {
         assertThat(signInStrings).contains("feature_onboarding_impl_sign_in_action_under_18")
+        assertThat(stringValue(signInStrings, "feature_onboarding_impl_sign_in_code_label"))
+            .isEqualTo("Group or referral code (optional)")
     }
 
     @Test
@@ -90,14 +65,6 @@ class ConsentCopyTest {
         forbidden.forEach { field ->
             assertThat(signInStrings.lowercase(Locale.ROOT)).doesNotContain(field)
         }
-    }
-
-    @Test
-    fun theSignInScreenNamesTheLocalAccountButNoEmail() {
-        val successStatus = stringValue(signInStrings, "feature_onboarding_impl_sign_in_success_status")
-
-        assertThat(successStatus).contains("on this phone")
-        assertThat(signInStrings).doesNotContain("priya.d@example.com")
     }
 
     private fun stringValue(xml: String, name: String): String {

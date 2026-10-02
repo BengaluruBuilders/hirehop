@@ -5,12 +5,10 @@ import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.KeywordCoverage
 import kotlin.time.Instant
 
-enum class ApplicationCreditUnit { Free, Left }
-
 @Immutable
-data class ApplicationCreditLine(
-    val amount: Int,
-    val unit: ApplicationCreditUnit,
+data class ApplicationsHeader(
+    val firstName: String? = null,
+    val credits: Int? = null,
 )
 
 @Immutable
@@ -37,11 +35,14 @@ data class ApplicationStatusMessage(
 )
 
 sealed interface ApplicationsUiState {
-    data object Loading : ApplicationsUiState
+    val header: ApplicationsHeader
 
-    data object Empty : ApplicationsUiState
+    data class Loading(override val header: ApplicationsHeader = ApplicationsHeader()) : ApplicationsUiState
+
+    data class Empty(override val header: ApplicationsHeader) : ApplicationsUiState
 
     data class Applications(
+        override val header: ApplicationsHeader,
         val rows: List<ApplicationListRow>,
         val isOffline: Boolean,
         val statusSheet: ApplicationStatusSheetState?,

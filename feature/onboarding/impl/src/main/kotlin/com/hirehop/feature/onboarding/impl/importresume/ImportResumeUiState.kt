@@ -42,6 +42,7 @@ data class ImportResumeUiState(
     val isStop: Boolean get() = stage in STOP_STAGES
     val isSuccess: Boolean get() = stage == ImportStage.Success
     val canPick: Boolean get() = !isBusy
+    val showsPickNotice: Boolean get() = !isQueued && (stage == ImportStage.Idle || stage == ImportStage.Picking)
     val factCount: Int get() = facts.size + skillCount
 }
 
@@ -94,7 +95,7 @@ object ImportResumeScenarioMapper {
 
 const val READ_STEP_COUNT: Int = 3
 
-private const val SAMPLE_FILE_NAME = "Resume_2026.pdf"
+private const val SAMPLE_FILE_NAME = "Priya_Deshmukh_Resume.pdf"
 private const val SAMPLE_FILE_SIZE = 212L * 1024L
 
 private val SAMPLE_FACTS: List<ImportedFactUi> = listOf(

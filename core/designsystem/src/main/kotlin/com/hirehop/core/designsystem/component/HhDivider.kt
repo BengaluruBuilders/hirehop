@@ -24,7 +24,7 @@ fun HhDivider(
     thickness: Dp = HhWidthHairline,
     color: Color? = null,
 ) {
-    val lineColor = color ?: HhTheme.colors.hairline
+    val lineColor = color ?: HhTheme.colors.outlineVariant
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -69,9 +69,9 @@ private fun HhDividerDarkPreview() {
 @Composable
 private fun HhDividerPreviewColumn() {
     Column(modifier = Modifier.padding(HhTheme.spacing.lg)) {
-        Text(text = HH_DIVIDER_SAMPLE_TITLE, style = HhTheme.typography.labelMedium)
+        Text(text = HH_DIVIDER_SAMPLE_TITLE, style = HhTheme.typography.labelM)
         HhDivider()
-        Text(text = HH_DIVIDER_SAMPLE_BODY, style = HhTheme.typography.bodyLarge)
+        Text(text = HH_DIVIDER_SAMPLE_BODY, style = HhTheme.typography.bodyL)
         HhDivider(style = HhDividerStyle.Dashed)
     }
 }

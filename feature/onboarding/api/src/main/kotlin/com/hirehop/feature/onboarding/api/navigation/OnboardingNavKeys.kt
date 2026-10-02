@@ -23,6 +23,7 @@ data class SignInNavKey(
 @Serializable
 data class ConsentNavKey(
     val scenario: DebugScenario = DebugScenario.defaultValue,
+    val readOnly: Boolean = false,
 ) : NavKey
 
 @Serializable
@@ -49,8 +50,8 @@ fun Navigator.navigateToSignIn() {
     navigate(SignInNavKey())
 }
 
-fun Navigator.navigateToConsent() {
-    navigate(ConsentNavKey())
+fun Navigator.navigateToConsent(readOnly: Boolean = false) {
+    navigate(ConsentNavKey(readOnly = readOnly))
 }
 
 fun Navigator.navigateToImportResume() {

@@ -1,8 +1,11 @@
 package com.hirehop.feature.profile.impl
 
+import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EntryCategory
-import com.hirehop.core.model.FactSource
+import com.hirehop.core.model.factCounts
+import com.hirehop.feature.profile.impl.common.FactStatus
+import com.hirehop.feature.profile.impl.common.status
 
 enum class ProfileSectionKind {
     Education,
@@ -15,18 +18,21 @@ enum class ProfileSectionKind {
 
 data class ProfileFactRef(
     val id: String,
-    val source: FactSource,
-    val isConfirmed: Boolean,
+    val status: FactStatus,
+    val displayId: String = id,
 )
 
 data class ProfileSection(
     val kind: ProfileSectionKind,
-    val count: Int,
     val facts: List<ProfileFactRef>,
 ) {
-    val confirmedCount: Int get() = facts.count { it.isConfirmed }
+    val count: Int get() = facts.size
 
-    val userStatedCount: Int get() = count - confirmedCount
+    val confirmedCount: Int get() = facts.count { it.status != FactStatus.ToConfirm && it.status != FactStatus.UserStated }
+
+    val userStatedCount: Int get() = facts.count { it.status == FactStatus.UserStated }
+
+    val toConfirmCount: Int get() = facts.count { it.status == FactStatus.ToConfirm }
 }
 
 data class ProfileOverviewState(
@@ -38,83 +44,69 @@ data class ProfileOverviewState(
     val firstUnconfirmedId: String?,
     val sections: List<ProfileSection>,
 ) {
-    val isFullyConfirmed: Boolean get() = unconfirmedCount == 0
-
     companion object {
-        fun of(
-            profile: CandidateProfile,
-            unconfirmedCount: Int = profile.unconfirmedCount(),
-        ): ProfileOverviewState = ProfileOverviewState(
-            headlineLine = listOf(profile.fullName, profile.headline)
-                .filter { it.isNotBlank() }
-                .joinToString(separator = " · "),
-            factCount = profile.skills.size + profile.entries.size,
-            confirmedCount = profile.skills.size + profile.entries.count {
-                it.isConfirmed && it.source != FactSource.USER_STATED
-            },
-            userStatedCount = profile.entries.count {
-                it.isConfirmed && it.source == FactSource.USER_STATED
-            },
-            unconfirmedCount = unconfirmedCount,
-            firstUnconfirmedId = profile.entries.firstOrNull { !it.isConfirmed }?.id,
-            sections = profile.sections(),
-        )
-
-        private fun CandidateProfile.sections(): List<ProfileSection> = listOf(
-            ProfileSectionKind.Education to section(EntryCategory.EDUCATION),
-            ProfileSectionKind.Experience to section(EntryCategory.EXPERIENCE),
-            ProfileSectionKind.Projects to section(EntryCategory.PROJECT),
-            ProfileSectionKind.Skills to ProfileSection(
-                kind = ProfileSectionKind.Skills,
-                count = skills.size,
-                facts = skills.mapIndexed { index, skill ->
-                    ProfileFactRef(
-                        id = skill,
-                        source = FactSource.USER_STATED,
-                        isConfirmed = true,
-                    )
-                },
-            ),
-            ProfileSectionKind.Certifications to section(EntryCategory.CERTIFICATION),
-            ProfileSectionKind.Extras to section(EntryCategory.ACHIEVEMENT),
-        ).mapNotNull { (kind, section) -> section.takeIf { it.count > 0 } }
-
-        private fun CandidateProfile.section(category: EntryCategory): ProfileSection {
-            val matching = entries.filter { it.category == category }
-            return ProfileSection(
-                kind = category.sectionKind(),
-                count = matching.size,
-                facts = matching.map { entry ->
-                    ProfileFactRef(
-                        id = entry.id,
-                        source = entry.source,
-                        isConfirmed = entry.isConfirmed,
-                    )
-                },
+        fun of(profile: CandidateProfile): ProfileOverviewState {
+            val counts = profile.factCounts()
+            return ProfileOverviewState(
+                headlineLine = listOf(profile.fullName, profile.headline)
+                    .filter { it.isNotBlank() }
+                    .joinToString(separator = HEADLINE_SEPARATOR),
+                factCount = counts.total,
+                confirmedCount = counts.confirmed,
+                userStatedCount = counts.userStated,
+                unconfirmedCount = profile.unconfirmedCount(),
+                firstUnconfirmedId = profile.entries.firstOrNull { !it.isConfirmed }?.id,
+                sections = profile.sections(),
             )
         }
 
-        private fun EntryCategory.sectionKind(): ProfileSectionKind = when (this) {
-            EntryCategory.EDUCATION -> ProfileSectionKind.Education
-            EntryCategory.EXPERIENCE -> ProfileSectionKind.Experience
-            EntryCategory.PROJECT -> ProfileSectionKind.Projects
-            EntryCategory.CERTIFICATION -> ProfileSectionKind.Certifications
-            EntryCategory.ACHIEVEMENT -> ProfileSectionKind.Extras
-        }
+        private fun CandidateProfile.sections(): List<ProfileSection> = listOf(
+            entrySection(ProfileSectionKind.Education, EntryCategory.EDUCATION),
+            entrySection(ProfileSectionKind.Experience, EntryCategory.EXPERIENCE),
+            entrySection(ProfileSectionKind.Projects, EntryCategory.PROJECT),
+            ProfileSection(
+                kind = ProfileSectionKind.Skills,
+                facts = skills.indices.map { ProfileFactRef(id = skillId(it), status = FactStatus.Confirmed) },
+            ),
+            entrySection(ProfileSectionKind.Certifications, EntryCategory.CERTIFICATION),
+            entrySection(ProfileSectionKind.Extras, EntryCategory.ACHIEVEMENT),
+        ).filter { it.count > 0 }
+
+        private fun CandidateProfile.entrySection(
+            kind: ProfileSectionKind,
+            category: EntryCategory,
+        ): ProfileSection = ProfileSection(
+            kind = kind,
+            facts = entries.filter { it.category == category }.map {
+                ProfileFactRef(it.id, it.status(), FactDisplayIds.of(it, entries))
+            },
+        )
+
+        private const val HEADLINE_SEPARATOR = " · "
     }
+}
+
+fun skillId(index: Int): String = "S-" + (index + 1).toString().padStart(2, '0')
+
+fun ProfileSectionKind.entryCategory(): EntryCategory? = when (this) {
+    ProfileSectionKind.Education -> EntryCategory.EDUCATION
+    ProfileSectionKind.Experience -> EntryCategory.EXPERIENCE
+    ProfileSectionKind.Projects -> EntryCategory.PROJECT
+    ProfileSectionKind.Skills -> null
+    ProfileSectionKind.Certifications -> EntryCategory.CERTIFICATION
+    ProfileSectionKind.Extras -> EntryCategory.ACHIEVEMENT
 }
 
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
 
-    data object Empty : ProfileUiState
+    data class Empty(val headerLine: String = "") : ProfileUiState
 
     data object Failure : ProfileUiState
 
     data class Success(
         val profile: CandidateProfile,
-        val unconfirmedCount: Int,
         val isOffline: Boolean = false,
-        val overview: ProfileOverviewState = ProfileOverviewState.of(profile, unconfirmedCount),
+        val overview: ProfileOverviewState = ProfileOverviewState.of(profile),
     ) : ProfileUiState
 }

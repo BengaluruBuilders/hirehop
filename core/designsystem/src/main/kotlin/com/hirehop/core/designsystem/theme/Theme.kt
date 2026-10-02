@@ -1,13 +1,18 @@
 package com.hirehop.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.hhReducedMotion
+
+internal val LocalHhDark = staticCompositionLocalOf { false }
 
 object HhTheme {
     val colors: HhColors
@@ -39,98 +44,107 @@ object HhTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalHhMotion.current
+
+    val isDark: Boolean
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalHhDark.current
 }
 
-val LightColorScheme = lightColorScheme(
-    primary = HhLightPrimary,
-    onPrimary = HhLightColors.onPrimary,
-    primaryContainer = HhLightPrimaryContainer,
-    onPrimaryContainer = HhLightColors.onPrimaryContainer,
-    secondary = HhLightTeal,
-    onSecondary = HhLightColors.onSecondary,
-    secondaryContainer = HhLightSpot,
-    onSecondaryContainer = HhLightSpotInk,
-    tertiary = HhLightAccent,
-    onTertiary = HhLightColors.onTertiary,
-    tertiaryContainer = HhLightAccentContainer,
-    onTertiaryContainer = HhLightAccent,
-    error = HhLightError,
-    onError = HhLightColors.onError,
-    errorContainer = HhLightErrorContainer,
-    onErrorContainer = HhLightOnErrorContainer,
-    background = HhLightBackground,
-    onBackground = HhLightInk,
-    surface = HhLightSurface,
-    onSurface = HhLightInk,
-    surfaceVariant = HhLightSurface2,
-    onSurfaceVariant = HhLightInk2,
-    surfaceContainerLowest = HhLightSurface,
-    surfaceContainerLow = HhLightBackground,
-    surfaceContainer = HhLightSurface2,
-    surfaceContainerHigh = HhLightSurface3,
-    surfaceContainerHighest = HhLightSurface4,
-    inverseSurface = HhExtendedDarkSurface1,
-    inverseOnSurface = HhDarkInk,
-    inversePrimary = HhDarkPrimary,
-    outline = HhLightHairlineStrong,
-    outlineVariant = HhLightHairline,
-    scrim = HhScrim,
+internal fun HhColors.toLightScheme(): ColorScheme = lightColorScheme(
+    primary = primary,
+    onPrimary = onPrimary,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = onPrimaryContainer,
+    secondary = primary,
+    onSecondary = onPrimary,
+    secondaryContainer = primaryContainer,
+    onSecondaryContainer = onPrimaryContainer,
+    tertiary = special,
+    onTertiary = onSpecial,
+    error = error,
+    onError = onError,
+    errorContainer = errorContainer,
+    onErrorContainer = onErrorContainer,
+    background = background,
+    onBackground = onSurface,
+    surface = surface,
+    onSurface = onSurface,
+    surfaceVariant = card,
+    onSurfaceVariant = onSurfaceVariant,
+    surfaceContainerLowest = document,
+    surfaceContainerLow = card,
+    surfaceContainer = ground,
+    surfaceContainerHigh = card,
+    surfaceContainerHighest = card,
+    inverseSurface = inverseSurface,
+    inverseOnSurface = inverseOnSurface,
+    inversePrimary = inversePrimary,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    scrim = scrim,
 )
 
-val DarkColorScheme = darkColorScheme(
-    primary = HhDarkPrimary,
-    onPrimary = HhDarkBackground,
-    primaryContainer = HhDarkPrimaryContainer,
-    onPrimaryContainer = HhDarkInk,
-    secondary = HhDarkTeal,
-    onSecondary = HhDarkBackground,
-    secondaryContainer = HhDarkSpot,
-    onSecondaryContainer = HhDarkSpotInk,
-    tertiary = HhDarkAccent,
-    onTertiary = HhDarkBackground,
-    tertiaryContainer = HhDarkAccentContainer,
-    onTertiaryContainer = HhDarkAccent,
-    error = HhDarkError,
-    onError = HhDarkBackground,
-    errorContainer = HhDarkErrorContainer,
-    onErrorContainer = HhDarkError,
-    background = HhDarkBackground,
-    onBackground = HhDarkInk,
-    surface = HhDarkSurface,
-    onSurface = HhDarkInk,
-    surfaceVariant = HhDarkSurface2,
-    onSurfaceVariant = HhDarkInk2,
-    surfaceContainerLowest = HhDarkBackground,
-    surfaceContainerLow = HhDarkSurface,
-    surfaceContainer = HhDarkSurface2,
-    surfaceContainerHigh = HhDarkSurface3,
-    surfaceContainerHighest = HhDarkSurface4,
-    inverseSurface = HhLightInk,
-    inverseOnSurface = HhLightBackground,
-    inversePrimary = HhLightPrimary,
-    outline = HhDarkBorder,
-    outlineVariant = HhDarkDivider,
-    scrim = HhScrim,
+internal fun HhColors.toDarkScheme(): ColorScheme = darkColorScheme(
+    primary = primary,
+    onPrimary = onPrimary,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = onPrimaryContainer,
+    secondary = primary,
+    onSecondary = onPrimary,
+    secondaryContainer = primaryContainer,
+    onSecondaryContainer = onPrimaryContainer,
+    tertiary = special,
+    onTertiary = onSpecial,
+    error = error,
+    onError = onError,
+    errorContainer = errorContainer,
+    onErrorContainer = onErrorContainer,
+    background = background,
+    onBackground = onSurface,
+    surface = surface,
+    onSurface = onSurface,
+    surfaceVariant = card,
+    onSurfaceVariant = onSurfaceVariant,
+    surfaceBright = document,
+    surfaceContainerLowest = ground,
+    surfaceContainerLow = card,
+    surfaceContainer = card,
+    surfaceContainerHigh = tool,
+    surfaceContainerHighest = tool,
+    inverseSurface = inverseSurface,
+    inverseOnSurface = inverseOnSurface,
+    inversePrimary = inversePrimary,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    scrim = scrim,
 )
+
+val LightColorScheme: ColorScheme = HhLightColors.toLightScheme()
+
+val DarkColorScheme: ColorScheme = HhDarkColors.toDarkScheme()
 
 @Composable
 fun HhTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val hhColors = if (darkTheme) HhDarkColors else HhLightColors
-    val backgroundTheme = BackgroundTheme(
-        color = hhColors.background,
-        tonalElevation = 0.dp,
-    )
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val motion = if (hhReducedMotion()) HhMotionDefaults.Reduced else HhMotionDefaults.Default
     CompositionLocalProvider(
+        LocalHhDark provides darkTheme,
         LocalHhColors provides hhColors,
-        LocalBackgroundTheme provides backgroundTheme,
+        LocalHhTypography provides HhTypographyTokens.Default,
+        LocalHhSpacing provides HhSpacingDefaults.Default,
+        LocalHhShapes provides HhShapesDefaults.Default,
+        LocalHhElevation provides if (darkTheme) HhElevationDefaults.Dark else HhElevationDefaults.Light,
+        LocalHhMotion provides motion,
+        LocalBackgroundTheme provides BackgroundTheme(color = hhColors.background, tonalElevation = 0.dp),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = HhMaterialTypography,
+            typography = HhTypographyTokens.Default.toMaterial(),
             shapes = HhMaterialShapes,
             content = content,
         )

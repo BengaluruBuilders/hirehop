@@ -2,7 +2,10 @@ package com.hirehop.feature.applications.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.SessionRepository
+import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.JobApplication
@@ -20,6 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ApplicationsViewModel @Inject constructor(
     private val applicationRepository: ApplicationRepository,
+    sessionRepository: SessionRepository,
+    paymentGateway: PaymentGateway,
+    connectivityMonitor: ConnectivityMonitor,
 ) : ViewModel() {
 
     private val scenario = MutableStateFlow(DebugScenario.defaultValue)
@@ -28,16 +34,38 @@ class ApplicationsViewModel @Inject constructor(
 
     private val applications = MutableStateFlow<List<JobApplication>>(emptyList())
 
+    private val header = combine(
+        sessionRepository.observeAccount(),
+        paymentGateway.observeEntitlement(),
+    ) { account, entitlement ->
+        ApplicationsHeader(
+            firstName = account?.displayName?.trim()?.substringBefore(' ')?.takeIf { name -> name.isNotEmpty() },
+            credits = entitlement.totalCredits,
+        )
+    }
+
+    private val isOffline = combine(scenario, connectivityMonitor.isOnline) { activeScenario, isOnline ->
+        activeScenario == DebugScenario.OFFLINE || !isOnline
+    }
+
     val uiState: StateFlow<ApplicationsUiState> = combine(
         applicationRepository.observeApplications().onEach { latest -> applications.value = latest },
+        header,
+        isOffline,
         scenario,
         presentation,
-    ) { latest, activeScenario, presentationState ->
-        toUiState(applications = latest, scenario = activeScenario, presentation = presentationState)
+    ) { latest, headerState, offline, activeScenario, presentationState ->
+        toUiState(
+            applications = latest,
+            header = headerState,
+            isOffline = offline,
+            scenario = activeScenario,
+            presentation = presentationState,
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ApplicationsUiState.Loading,
+        initialValue = ApplicationsUiState.Loading(),
     )
 
     fun onEnter(key: DebugScenario) {
@@ -47,7 +75,8 @@ class ApplicationsViewModel @Inject constructor(
     fun onAction(action: ApplicationsAction) {
         when (action) {
             is ApplicationsAction.ApplicationChosen -> Unit
-            ApplicationsAction.NewApplicationChosen -> Unit
+            ApplicationsAction.PasteJobChosen -> Unit
+            ApplicationsAction.CreditsChosen -> Unit
             is ApplicationsAction.StatusChipChosen -> openStatusSheet(action.id)
             ApplicationsAction.StatusSheetDismissed -> closeStatusSheet()
             is ApplicationsAction.StatusChosen -> confirmStatus(action.status)
@@ -90,10 +119,12 @@ class ApplicationsViewModel @Inject constructor(
 
     private fun toUiState(
         applications: List<JobApplication>,
+        header: ApplicationsHeader,
+        isOffline: Boolean,
         scenario: DebugScenario,
         presentation: ApplicationsPresentation,
     ): ApplicationsUiState {
-        if (applications.isEmpty()) return ApplicationsUiState.Empty
+        if (applications.isEmpty()) return ApplicationsUiState.Empty(header)
         val pendingId = applications
             .filter { application -> scenario == DebugScenario.PENDING }
             .maxByOrNull { application -> application.updatedAt }
@@ -107,8 +138,9 @@ class ApplicationsViewModel @Inject constructor(
                     .thenByDescending { row -> row.updatedAt },
             )
         return ApplicationsUiState.Applications(
+            header = header,
             rows = rows,
-            isOffline = scenario == DebugScenario.OFFLINE,
+            isOffline = isOffline,
             statusSheet = presentation.statusSheet,
             message = presentation.message,
         )

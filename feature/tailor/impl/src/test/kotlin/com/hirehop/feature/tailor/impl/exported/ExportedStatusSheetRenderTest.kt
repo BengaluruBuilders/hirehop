@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -15,11 +17,14 @@ import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.ExportedNavKey
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
-import com.hirehop.feature.tailor.impl.packpurchase.TestPaymentGateway
+import com.hirehop.feature.tailor.impl.document.TestResumeHeadings
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,7 +43,7 @@ class ExportedStatusSheetRenderTest {
     private var dismissals: Int = 0
 
     @Test
-    fun theSheetOffersEveryStatusAndSavesTheCurrentValue() {
+    fun theSheetOffersEveryStatusAndPreselectsApplied() {
         host(status = ApplicationStatus.SAVED)
         composeRule.onNodeWithText("Saved").assertIsDisplayed()
         composeRule.onNodeWithText("Applied").assertIsDisplayed()
@@ -47,9 +52,9 @@ class ExportedStatusSheetRenderTest {
         composeRule.onNodeWithText("Rejected").assertIsDisplayed()
         composeRule.onNodeWithText("No response").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Save").performClick()
+        composeRule.onAllNodesWithText(SAVE_LABEL).onLast().performClick()
 
-        assert(confirmed.value == ApplicationStatus.SAVED) { "expected Saved, got ${confirmed.value}" }
+        assert(confirmed.value == ApplicationStatus.APPLIED) { "expected Applied, got ${confirmed.value}" }
         assert(dismissals == 0) { "Save must not dismiss" }
     }
 
@@ -58,7 +63,7 @@ class ExportedStatusSheetRenderTest {
         host(status = ApplicationStatus.SAVED)
         composeRule.onNodeWithText("Offer").performClick()
 
-        composeRule.onNodeWithText("Save").performClick()
+        composeRule.onAllNodesWithText(SAVE_LABEL).onLast().performClick()
 
         assert(confirmed.value == ApplicationStatus.OFFER) { "expected Offer, got ${confirmed.value}" }
     }
@@ -66,7 +71,7 @@ class ExportedStatusSheetRenderTest {
     @Test
     fun theSheetStartsOnTheCurrentValueOfAnApplicationAlreadyMarked() {
         host(status = ApplicationStatus.INTERVIEW)
-        composeRule.onNodeWithText("Save").performClick()
+        composeRule.onAllNodesWithText(SAVE_LABEL).onLast().performClick()
 
         assert(confirmed.value == ApplicationStatus.INTERVIEW) { "got ${confirmed.value}" }
     }
@@ -76,7 +81,7 @@ class ExportedStatusSheetRenderTest {
         host(status = ApplicationStatus.SAVED)
         composeRule.onNodeWithText("Applied").performClick()
 
-        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithText(CANCEL_LABEL).performClick()
 
         assert(confirmed.value == null) { "Cancel must not confirm" }
         assert(dismissals == 1) { "Cancel must dismiss once, got $dismissals" }
@@ -100,9 +105,11 @@ class ExportedStatusSheetRenderTest {
         return ExportedViewModel(
             applicationRepository = applicationRepository,
             profileRepository = profileRepository,
-            assembler = ResumeDocumentAssembler(),
-            paymentGateway = TestPaymentGateway().withFreeCredits(credits = 1),
+            assembler = ResumeDocumentAssembler(TestResumeHeadings),
+            paymentGateway = TestPaymentGateway(),
+            exportHistoryRepository = TestExportHistoryRepository(),
             fileStore = ExportedFileStore(ApplicationProvider.getApplicationContext()),
+            clock = TestClock(),
         )
     }
 
@@ -119,7 +126,13 @@ class ExportedStatusSheetRenderTest {
                         viewModel.onAction(ExportedAction.DismissStatusSheet)
                     },
                     onConfirmStatus = { status -> confirmed.value = status },
+                    onUndoStatus = {},
+                    onDismissUndo = {},
                     onShare = {},
+                    onOpen = {},
+                    onGetPrepQuestions = {},
+                    onWriteCoverLetter = {},
+                    onDone = {},
                     onNavigateBack = {},
                 ),
             )
@@ -128,3 +141,7 @@ class ExportedStatusSheetRenderTest {
 }
 
 private const val APPLICATION_ID = "application-northwind-1"
+
+private const val SAVE_LABEL = "Mark as Applied"
+
+private const val CANCEL_LABEL = "Not yet"

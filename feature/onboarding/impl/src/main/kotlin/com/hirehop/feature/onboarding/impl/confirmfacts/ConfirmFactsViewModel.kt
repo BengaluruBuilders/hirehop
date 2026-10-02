@@ -2,12 +2,16 @@ package com.hirehop.feature.onboarding.impl.confirmfacts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.feature.onboarding.api.navigation.ConfirmFactsNavKey
+import com.hirehop.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,24 +25,26 @@ import javax.inject.Inject
 sealed interface ConfirmFactsAction {
     data class Confirm(val factId: String) : ConfirmFactsAction
     data class Edit(val factId: String?, val category: EntryCategory) : ConfirmFactsAction
-    data class Delete(val factId: String) : ConfirmFactsAction
     data class AddOne(val section: ConfirmFactsSection) : ConfirmFactsAction
     data class Skip(val section: ConfirmFactsSection) : ConfirmFactsAction
     data object Continue : ConfirmFactsAction
+    data object NextStepConsumed : ConfirmFactsAction
     data object EditConsumed : ConfirmFactsAction
-    data object DismissRemovedNotice : ConfirmFactsAction
     data object Retry : ConfirmFactsAction
 }
 
 @HiltViewModel
 class ConfirmFactsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
+    private val nextOnboardingStep: NextOnboardingStepUseCase,
+    private val connectivityMonitor: ConnectivityMonitor,
 ) : ViewModel() {
 
     private val profileMutex = Mutex()
     private val mutableUiState = MutableStateFlow(ConfirmFactsUiState())
     private var scenario = DebugScenario.defaultValue
     private var hasEntered = false
+    private var loadJob: Job? = null
 
     val uiState: StateFlow<ConfirmFactsUiState> = mutableUiState.asStateFlow()
 
@@ -47,15 +53,20 @@ class ConfirmFactsViewModel @Inject constructor(
         hasEntered = true
         scenario = key.scenario
         mutableUiState.value = ConfirmFactsScenarioMapper.seed(key.scenario)
+        val forcedOffline = key.scenario == DebugScenario.OFFLINE
+        viewModelScope.launch {
+            connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
+                mutableUiState.update { it.copy(isOffline = offline) }
+            }
+        }
         if (key.scenario != DebugScenario.LOADING) {
-            viewModelScope.launch { load() }
+            startLoading()
         }
     }
 
     fun onAction(action: ConfirmFactsAction) {
         when (action) {
             is ConfirmFactsAction.Confirm -> confirm(action.factId)
-            is ConfirmFactsAction.Delete -> delete(action.factId)
             is ConfirmFactsAction.Edit -> {
                 mutableUiState.update {
                     it.copy(pendingEdit = PendingEdit(factId = action.factId, category = action.category))
@@ -76,21 +87,35 @@ class ConfirmFactsViewModel @Inject constructor(
                 mutableUiState.update { it.copy(pendingEdit = null) }
             }
 
-            ConfirmFactsAction.DismissRemovedNotice -> {
-                mutableUiState.update { it.copy(showRemovedNotice = false) }
+            ConfirmFactsAction.Continue -> {
+                viewModelScope.launch {
+                    val step = nextOnboardingStep()
+                    mutableUiState.update { it.copy(nextStep = step) }
+                }
             }
 
-            ConfirmFactsAction.Continue -> Unit
+            ConfirmFactsAction.NextStepConsumed -> mutableUiState.update { it.copy(nextStep = null) }
             ConfirmFactsAction.Retry -> {
                 mutableUiState.update { it.copy(hasSaveFailed = false, isLoading = true) }
-                viewModelScope.launch { load() }
+                startLoading()
             }
         }
     }
 
     private suspend fun load() {
-        val profile = profileRepository.observeProfile().first()
-        mutableUiState.update { ConfirmFactsScenarioMapper.withProfile(it, profile, scenario) }
+        if (scenario == DebugScenario.DEFAULT) {
+            profileRepository.observeProfile().collect { profile ->
+                mutableUiState.update { ConfirmFactsScenarioMapper.withProfile(it, profile, scenario) }
+            }
+        } else {
+            val profile = profileRepository.observeProfile().first()
+            mutableUiState.update { ConfirmFactsScenarioMapper.withProfile(it, profile, scenario) }
+        }
+    }
+
+    private fun startLoading() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch { load() }
     }
 
     private fun confirm(factId: String) {
@@ -117,30 +142,6 @@ class ConfirmFactsViewModel @Inject constructor(
         }
     }
 
-    private fun delete(factId: String) {
-        if (mutableUiState.value.isSaving) return
-        mutableUiState.update { it.copy(isSaving = true, hasSaveFailed = false) }
-        viewModelScope.launch {
-            val failed = runCatching {
-                profileMutex.withLock {
-                    val profile = profileRepository.observeProfile().first() ?: return@withLock
-                    profileRepository.saveProfile(profile.without(factId))
-                }
-            }.isFailure
-            mutableUiState.update { current ->
-                if (failed) {
-                    current.copy(isSaving = false, hasSaveFailed = true)
-                } else {
-                    current.copy(
-                        isSaving = false,
-                        hasSaveFailed = false,
-                        sections = current.sections.without(factId),
-                    )
-                }
-            }
-        }
-    }
-
     private fun List<ConfirmFactsSectionUi>.withConfirmation(factId: String): List<ConfirmFactsSectionUi> =
         map { section ->
             section.copy(
@@ -150,14 +151,8 @@ class ConfirmFactsViewModel @Inject constructor(
             )
         }
 
-    private fun List<ConfirmFactsSectionUi>.without(factId: String): List<ConfirmFactsSectionUi> =
-        map { section -> section.copy(facts = section.facts.filterNot { it.id == factId }) }
-
     private fun CandidateProfile.confirming(factId: String): CandidateProfile =
         copy(entries = entries.map { entry -> if (entry.id == factId) entry.copy(isConfirmed = true) else entry })
-
-    private fun CandidateProfile.without(factId: String): CandidateProfile =
-        copy(entries = entries.filterNot { it.id == factId })
 }
 
 fun ConfirmFactsSection.categoryOf(): EntryCategory = when (this) {

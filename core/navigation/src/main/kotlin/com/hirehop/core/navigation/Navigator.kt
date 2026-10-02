@@ -12,14 +12,27 @@ class Navigator(val state: NavigationState) {
         }
     }
 
-    fun goBack() {
+    fun replace(key: NavKey) {
+        val stack = state.currentSubStack
+        if (key in state.topLevelKeys || stack.size <= 1) {
+            navigate(key)
+            return
+        }
+        stack.removeLastOrNull()
+        goToKey(key)
+    }
+
+    fun navigateAll(keys: List<NavKey>) {
+        keys.forEach(::navigate)
+    }
+
+    fun goBack(): Boolean {
+        if (!state.canGoBack) return false
         when (state.currentKey) {
-            state.startKey -> error("You cannot go back from the start route")
-            state.currentTopLevelKey -> {
-                state.topLevelStack.removeLastOrNull()
-            }
+            state.currentTopLevelKey -> state.topLevelStack.removeLastOrNull()
             else -> state.currentSubStack.removeLastOrNull()
         }
+        return true
     }
 
     private fun goToKey(key: NavKey) {

@@ -1,44 +1,39 @@
 package com.hirehop.feature.applications.impl
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhApplicationStatusChip
-import com.hirehop.core.designsystem.component.HhDivider
+import com.hirehop.core.designsystem.component.HhCard
+import com.hirehop.core.designsystem.component.HhMonogram
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.ui.ApplicationStatusKindMapper
 import kotlin.time.Instant
-
-private val ROW_TABULAR_FIGURES = "tnum"
-private val ROW_MIN_HEIGHT: Dp = 56.dp
-private val SYNC_RING_DIAMETER: Dp = 8.dp
-private val SYNC_RING_STROKE: Dp = 1.5.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -50,131 +45,133 @@ internal fun ApplicationRow(
     modifier: Modifier = Modifier,
 ) {
     val statusLabel = row.status.label()
-    val syncLabel = stringResource(R.string.feature_applications_impl_sync_pending)
-    val updatedSentence = updatedSentence(updatedAt = row.updatedAt, now = now)
-    val chipDescription = stringResource(
-        id = R.string.feature_applications_impl_status_chip_description,
-        statusLabel,
-    )
+    val updatedLabel = updatedSentence(updatedAt = row.updatedAt, now = now)
+    val changeStatus = stringResource(R.string.feature_applications_impl_row_change_status)
+    val role = roleOrFallback(row.role)
+    val company = companyOrFallback(row.company)
     val rowDescription = stringResource(
         id = R.string.feature_applications_impl_row_description,
-        row.role,
-        row.company,
+        role,
+        company,
         statusLabel,
-        if (row.isSyncPending) syncLabel else coveragePhrase(row.coverage),
-        updatedSentence,
+        coveragePhrase(row.coverage),
+        updatedLabel,
     )
-    Column(
+    HhCard(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = ROW_MIN_HEIGHT),
+            .semantics(mergeDescendants = true) {
+                contentDescription = rowDescription
+                customActions = listOf(
+                    CustomAccessibilityAction(label = changeStatus) {
+                        onStatusClick()
+                        true
+                    },
+                )
+            },
+        onClick = onClick,
     ) {
-        HhDivider()
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = ROW_MIN_HEIGHT)
-                .padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.d12),
-            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+            verticalAlignment = Alignment.Top,
         ) {
+            HhMonogram(text = monogramOf(row.company))
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(onClick = onClick)
-                    .semantics(mergeDescendants = true) { contentDescription = rowDescription },
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
             ) {
-                Text(
-                    text = row.role,
-                    style = HhTheme.typography.titleMedium,
-                    color = HhTheme.colors.onSurface,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = row.company,
-                    style = HhTheme.typography.bodyMedium,
-                    color = HhTheme.colors.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
                     Text(
-                        text = coverageShort(row.coverage),
-                        style = HhTheme.typography.labelLarge.copy(
-                            fontFeatureSettings = ROW_TABULAR_FIGURES,
+                        text = role,
+                        style = HhTheme.typography.titleM,
+                        color = HhTheme.colors.onSurface,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = stringResource(
+                            id = R.string.feature_applications_impl_row_company_updated,
+                            company,
+                            updatedLabel,
                         ),
+                        style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Normal),
                         color = HhTheme.colors.onSurfaceVariant,
                     )
-                    if (row.isSyncPending) {
-                        SyncPendingRing(label = syncLabel)
-                    } else {
-                        Text(
-                            text = updatedSentence,
-                            style = HhTheme.typography.bodySmall,
-                            color = HhTheme.colors.onSurfaceVariant,
+                }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        HhApplicationStatusChip(
+                            kind = ApplicationStatusKindMapper().kindOf(row.status),
+                            label = statusLabel,
+                            modifier = Modifier
+                                .clip(HhTheme.shapes.pill)
+                                .clickable(onClick = onStatusClick),
                         )
+                        if (row.isSyncPending) SyncPendingChip()
                     }
+                    CoverageFigure(coverage = row.coverage)
                 }
             }
-            HhApplicationStatusChip(
-                kind = ApplicationStatusKindMapper().kindOf(row.status),
-                label = statusLabel,
-                modifier = Modifier
-                    .heightIn(min = HhTheme.spacing.d48)
-                    .clickable(onClick = onStatusClick)
-                    .semantics { contentDescription = chipDescription },
-            )
         }
     }
 }
 
 @Composable
-private fun SyncPendingRing(
-    label: String,
+private fun CoverageFigure(
+    coverage: KeywordCoverage,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.heightIn(min = HhTheme.spacing.d48),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(
-            modifier = Modifier
-                .size(SYNC_RING_DIAMETER)
-                .dashedRing(),
+        Text(
+            text = coverageFraction(coverage),
+            style = HhTheme.typography.numeralM.copy(
+                fontSize = HhTheme.typography.labelL.fontSize,
+                lineHeight = HhTheme.typography.labelL.lineHeight,
+            ),
+            color = HhTheme.colors.onSurface,
         )
         Text(
-            text = label,
-            style = HhTheme.typography.labelMedium,
+            text = stringResource(R.string.feature_applications_impl_key_terms),
+            style = HhTheme.typography.labelM,
             color = HhTheme.colors.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun Modifier.dashedRing(): Modifier {
-    val ringColor = HhTheme.colors.onSurfaceVariant
-    return drawBehind {
-        val stroke = SYNC_RING_STROKE.toPx()
-        val diameter = size.minDimension - stroke
-        drawCircle(
-            color = ringColor,
-            radius = diameter / 2f,
-            center = Offset(
-                x = size.width / 2f,
-                y = size.height / 2f,
-            ),
-            style = Stroke(
-                width = stroke,
-                cap = StrokeCap.Round,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(stroke * 2f, stroke * 2f)),
-            ),
+private fun SyncPendingChip(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .heightIn(min = HhTheme.spacing.d24)
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.neutralContainer)
+            .padding(horizontal = HhTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = HhIcons.OfflineCloud,
+            contentDescription = null,
+            tint = HhTheme.colors.onNeutralContainer,
+            modifier = Modifier.size(HhTheme.spacing.lg),
+        )
+        Text(
+            text = stringResource(R.string.feature_applications_impl_sync_pending),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurface,
         )
     }
 }
@@ -183,7 +180,10 @@ private fun Modifier.dashedRing(): Modifier {
 @Composable
 private fun ApplicationRowPreview() {
     HhTheme(darkTheme = false) {
-        Column {
+        Column(
+            modifier = Modifier.padding(HhTheme.spacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        ) {
             ApplicationRow(
                 row = previewRow(id = "row-preview-1", isSyncPending = false),
                 now = PREVIEW_INSTANT,

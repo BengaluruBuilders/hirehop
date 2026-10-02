@@ -2,54 +2,62 @@ package com.hirehop.feature.tailor.impl.packpurchase
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextDecoration
-import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhButton
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhDivider
-import com.hirehop.core.designsystem.component.HhDividerStyle
-import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhHeroNumeral
+import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSectionCard
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSheet
+import com.hirehop.core.designsystem.component.HhSpecialButton
+import com.hirehop.core.designsystem.component.HhSpecialDeclineButton
 import com.hirehop.core.designsystem.component.HhSpotIllustration
 import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhTextButton
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.feature.tailor.impl.R
+import com.hirehop.feature.tailor.impl.credits.CreditCounter
+import com.hirehop.feature.tailor.impl.credits.formattedPrice
+import com.hirehop.feature.tailor.impl.jobLine
 
-private const val HH_STACK_FONT_SCALE = 1.5f
+private const val LARGE_TEXT_SCALE = 1.5f
 
 @Composable
 internal fun PackPurchaseScreen(
@@ -57,457 +65,230 @@ internal fun PackPurchaseScreen(
     actions: PackPurchaseActions,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
-        modifier = modifier,
-        topBar = {
-            HhTopAppBar(
-                title = stringResource(R.string.feature_tailor_impl_pack_purchase_title),
-                navigationIcon = Icons.AutoMirrored.Rounded.ArrowBack,
-                navigationIconContentDescription = stringResource(
-                    R.string.feature_tailor_impl_pack_purchase_navigation_back_description,
-                ),
-                onNavigationClick = actions.onNavigateBack,
-            )
-        },
-        bottomBar = {
-            if (uiState.stage.showsBottomBar) {
-                PackPurchaseBottomBar(uiState = uiState, actions = actions)
-            }
-        },
-    ) { padding ->
+    Box(modifier = modifier.fillMaxSize()) {
+        HhScreen(
+            sheet = false,
+            header = {
+                HhInnerHeader(
+                    title = stringResource(
+                        if (uiState.hasApplication) {
+                            R.string.feature_tailor_impl_export_preview_title
+                        } else {
+                            R.string.feature_tailor_impl_credits_title
+                        },
+                    ),
+                    subtitle = if (uiState.hasApplication) {
+                        jobLine(uiState.jobTitle, uiState.jobCompany)
+                    } else {
+                        stringResource(R.string.feature_tailor_impl_credits_subtitle)
+                    },
+                    onBack = actions.onNavigateBack,
+                    backContentDescription = stringResource(
+                        R.string.feature_tailor_impl_pack_purchase_navigation_back_description,
+                    ),
+                )
+            },
+        ) { Box(Modifier.fillMaxSize()) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-        ) {
-            PackPurchaseBody(uiState = uiState, actions = actions)
+                .background(HhTheme.colors.scrim)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = actions.onNotNow,
+                )
+                .clearAndSetSemantics {},
+        )
+        BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            HhSheet(
+                modifier = Modifier.heightIn(max = maxHeight - (HhTheme.spacing.d64 + HhTheme.spacing.d32)),
+                contentPadding = PaddingValues(
+                    start = HhTheme.spacing.gutter,
+                    top = HhTheme.spacing.sm + HhTheme.spacing.xxs,
+                    end = HhTheme.spacing.gutter,
+                    bottom = HhTheme.spacing.xxl,
+                ),
+            ) {
+                PackSheetHandle()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(top = HhTheme.spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+                ) {
+                    PackSheetContent(uiState = uiState, actions = actions)
+                }
+            }
         }
     }
 }
 
-private val PackPurchaseStage.showsBottomBar: Boolean
-    get() = this in setOf(
-        PackPurchaseStage.READY,
-        PackPurchaseStage.OFFLINE,
-        PackPurchaseStage.CANCELLED,
-        PackPurchaseStage.FAILED,
-        PackPurchaseStage.RESTORING,
-        PackPurchaseStage.RESTORED,
-    )
+@Composable
+private fun PackSheetHandle() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = HhTheme.spacing.d32 + HhTheme.spacing.xs, height = HhTheme.spacing.xs)
+                .clip(HhTheme.shapes.pill)
+                .background(HhTheme.colors.outline),
+        )
+    }
+}
 
 @Composable
-private fun PackPurchaseBody(
+private fun PackSheetContent(
     uiState: PackPurchaseUiState,
     actions: PackPurchaseActions,
 ) {
     when {
-        uiState.stage == PackPurchaseStage.LOADING_PACKS || uiState.stage == PackPurchaseStage.IDLE -> {
-            PackPurchaseLoading()
+        uiState.stage == PackPurchaseStage.LOADING -> PackLoading()
+        uiState.isCatalogueFailure -> PackCatalogueFailure(actions = actions)
+        !uiState.hasCatalogue -> PackNoPacks(actions = actions)
+        else -> when (uiState.stage) {
+            PackPurchaseStage.READY,
+            PackPurchaseStage.PURCHASING,
+            -> PackOffer(uiState = uiState, actions = actions)
+
+            PackPurchaseStage.PENDING -> PackPending(uiState = uiState, actions = actions)
+            PackPurchaseStage.SUCCESS -> PackSuccess(uiState = uiState, actions = actions)
+            PackPurchaseStage.CANCELLED -> PackCancelled(uiState = uiState, actions = actions)
+            PackPurchaseStage.FAILED -> PackFailed(uiState = uiState, actions = actions)
+            PackPurchaseStage.LOADING -> PackLoading()
         }
-        uiState.isCatalogueFailure -> PackPurchaseCatalogueError(actions = actions)
-        else -> PackPurchaseOutcomeBody(uiState = uiState, actions = actions)
     }
 }
 
 @Composable
-private fun PackPurchaseLoading() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
+private fun PackLoading() {
+    val loading = stringResource(R.string.feature_tailor_impl_pack_purchase_loading)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_pack_purchase_loading))
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_loading),
-            style = HhTheme.typography.titleLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_loading_note),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
+        HhLoadingWheel(contentDesc = loading)
+        Text(text = loading, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
     }
 }
 
 @Composable
-private fun PackPurchaseCatalogueError(actions: PackPurchaseActions) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(HhTheme.spacing.d20),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhSpotIllustration(kind = HhSpotKind.Error)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_heading),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_body),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        HhButton(
-            onClick = actions.onRestore,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HhTheme.spacing.d48),
-            text = {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_retry),
-                    style = HhTheme.typography.labelLarge,
-                )
-            },
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseOutcomeBody(
-    uiState: PackPurchaseUiState,
-    actions: PackPurchaseActions,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d16, vertical = HhTheme.spacing.d16),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhOfflineBanner(
-            message = stringResource(R.string.feature_tailor_impl_pack_purchase_offline_message),
-            supportingText = stringResource(R.string.feature_tailor_impl_pack_purchase_offline_supporting),
-            visible = uiState.isOffline,
-        )
-        PackPurchaseStageNote(uiState = uiState, actions = actions)
-        if (uiState.hasCatalogue) {
-            PackPurchaseHeadline(uiState = uiState)
-            PackPurchaseBalance(uiState = uiState)
-            uiState.selectedPack?.let { pack -> PackPurchaseIncludes(pack = pack) }
-            PackPurchaseAlternatives(uiState = uiState, actions = actions)
-        } else if (uiState.stage != PackPurchaseStage.FAILED) {
-            PackPurchaseNoPacks()
-        }
-        PackPurchaseRestoreNote(actions = actions)
-    }
-}
-
-@Composable
-private fun PackPurchaseStageNote(
-    uiState: PackPurchaseUiState,
-    actions: PackPurchaseActions,
-) {
-    when (uiState.stage) {
-        PackPurchaseStage.PURCHASING -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_purchasing_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_pack_purchase_purchasing_heading))
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_purchasing_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        PackPurchaseStage.PENDING -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            HhDivider()
-            HhHeroNumeral(
-                value = uiState.purchasedCredits.toString(),
-                caption = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_caption),
-                contentDescription = pluralStringResource(
-                    R.plurals.feature_tailor_impl_pack_purchase_purchased_credits_value_description,
-                    uiState.purchasedCredits,
-                    uiState.purchasedCredits,
-                ),
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_note),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            PackPurchaseBackToPreview(actions = actions)
-        }
-        PackPurchaseStage.SUCCESS -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_success_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_success_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            HhDivider()
-            HhHeroNumeral(
-                value = uiState.purchasedCredits.toString(),
-                caption = stringResource(R.string.feature_tailor_impl_pack_purchase_success_caption),
-                contentDescription = pluralStringResource(
-                    R.plurals.feature_tailor_impl_pack_purchase_purchased_credits_value_description,
-                    uiState.purchasedCredits,
-                    uiState.purchasedCredits,
-                ),
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_success_uses_line),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            PackPurchaseBackToPreview(actions = actions)
-        }
-        PackPurchaseStage.CANCELLED -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_cancelled_note),
-                style = HhTheme.typography.bodyLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            HhOutlinedButton(
-                onClick = actions.onDismiss,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now_action),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
-            )
-        }
-        PackPurchaseStage.RESTORING -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_restoring),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            HhLoadingWheel(contentDesc = stringResource(R.string.feature_tailor_impl_pack_purchase_restoring))
-        }
-        PackPurchaseStage.RESTORED -> PackPurchaseNoteCard {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_restored_heading),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_restored_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        PackPurchaseStage.FAILED -> PackPurchaseFailureNote(
-            reason = uiState.failureReason,
-            actions = actions,
-        )
-        else -> Unit
-    }
-}
-
-@Composable
-private fun PackPurchaseNoteCard(content: @Composable ColumnScope.() -> Unit) {
-    HhCard { content() }
-}
-
-@Composable
-private fun PackPurchaseFailureNote(
-    reason: PurchaseFailureReason?,
-    actions: PackPurchaseActions,
-) {
-    PackPurchaseNoteCard {
-        HhErrorCallout(
-            title = stringResource(reason.titleRes()),
-            supportingText = stringResource(reason.bodyRes()),
-        )
-        PackPurchaseTextLink(
-            label = stringResource(R.string.feature_tailor_impl_pack_purchase_dismiss),
-            onClick = actions.onDismiss,
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseBackToPreview(actions: PackPurchaseActions) {
-    HhButton(
+private fun PackCatalogueFailure(actions: PackPurchaseActions) {
+    PackTitle(text = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_title))
+    PackBody(text = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_body))
+    HhPrimaryButton(
+        label = stringResource(R.string.feature_tailor_impl_pack_purchase_try_again),
+        onClick = actions.onReloadPacks,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    HhOutlineButton(
+        label = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now),
         onClick = actions.onNotNow,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = HhTheme.spacing.d48),
-        text = {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_back_to_preview),
-                style = HhTheme.typography.labelLarge,
-            )
-        },
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
 @Composable
-private fun PackPurchaseHeadline(uiState: PackPurchaseUiState) {
-    val pack = uiState.selectedPack ?: return
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_eyebrow),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_headline),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        HhHeroNumeral(
-            value = pack.formattedPrice(),
-            caption = pluralStringResource(
-                R.plurals.feature_tailor_impl_pack_purchase_applications_count,
-                pack.credits,
-                pack.credits,
-            ),
-            contentDescription = pluralStringResource(
-                R.plurals.feature_tailor_impl_pack_purchase_price_content_description,
-                pack.credits,
-                pack.credits,
-                pack.formattedPrice(),
-            ),
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_price_note),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseBalance(uiState: PackPurchaseUiState) {
-    PackPurchaseSectionCard(
-        eyebrow = stringResource(R.string.feature_tailor_impl_pack_purchase_balance_label),
-        contentDescription = pluralStringResource(
-            R.plurals.feature_tailor_impl_pack_purchase_balance_content_description,
-            uiState.purchasedCredits,
-            uiState.purchasedCredits,
-            uiState.freeCredits,
-        ),
-    ) {
-        val stacked = LocalDensity.current.fontScale > HH_STACK_FONT_SCALE
-        if (stacked) {
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-                PackPurchaseBalanceNumeral(uiState = uiState)
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xl),
-            ) {
-                PackPurchaseBalanceNumeral(uiState = uiState)
-            }
-        }
-    }
-}
-
-@Composable
-private fun PackPurchaseBalanceNumeral(uiState: PackPurchaseUiState) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        HhHeroNumeral(
-            value = uiState.freeCredits.toString(),
-            caption = stringResource(R.string.feature_tailor_impl_pack_purchase_free_caption),
-            contentDescription = pluralStringResource(
-                R.plurals.feature_tailor_impl_pack_purchase_free_credits_value_description,
-                uiState.freeCredits,
-                uiState.freeCredits,
-            ),
-        )
-        HhDivider(style = HhDividerStyle.Dashed)
-        HhHeroNumeral(
-            value = uiState.purchasedCredits.toString(),
-            caption = stringResource(R.string.feature_tailor_impl_pack_purchase_purchased_caption),
-            contentDescription = pluralStringResource(
-                R.plurals.feature_tailor_impl_pack_purchase_purchased_credits_value_description,
-                uiState.purchasedCredits,
-                uiState.purchasedCredits,
-            ),
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseSectionCard(
-    eyebrow: String,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val spoken = contentDescription
-    HhSectionCard(modifier = modifier) {
-        val scope = this
-        Text(
-            text = eyebrow,
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        if (spoken != null) {
-            Box(modifier = Modifier.semantics { this.contentDescription = spoken }) { scope.content() }
-        } else {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun PackPurchaseIncludes(pack: ApplicationPack) {
-    PackPurchaseSectionCard(eyebrow = pack.name) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_includes),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurface,
-        )
-        PackPurchaseBullet(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_not_subscription),
-        )
-        PackPurchaseBullet(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_recorded_on_device),
-        )
-        PackPurchaseBullet(text = expiryNoteFor(pack = pack))
-    }
-}
-
-@Composable
-private fun expiryNoteFor(pack: ApplicationPack): String = if (pack.creditsExpire) {
-    stringResource(R.string.feature_tailor_impl_pack_purchase_pack_credits_expire)
-} else {
-    stringResource(R.string.feature_tailor_impl_pack_purchase_pack_credits_do_not_expire)
-}
-
-@Composable
-private fun PackPurchaseBullet(text: String) {
-    Row(
+private fun PackNoPacks(actions: PackPurchaseActions) {
+    PackTitle(text = stringResource(R.string.feature_tailor_impl_pack_purchase_no_packs_title))
+    PackBody(text = stringResource(R.string.feature_tailor_impl_pack_purchase_no_packs_body))
+    HhOutlineButton(
+        label = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now),
+        onClick = actions.onNotNow,
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(top = HhTheme.spacing.sm)
-                .size(HhTheme.spacing.d4)
-                .background(color = HhTheme.colors.onSurface, shape = RoundedCornerShape(HhTheme.shapes.xs)),
+    )
+}
+
+@Composable
+private fun PackOffer(
+    uiState: PackPurchaseUiState,
+    actions: PackPurchaseActions,
+) {
+    val pack = uiState.selectedPack ?: return
+    val compact = LocalDensity.current.fontScale >= LARGE_TEXT_SCALE
+    HhOfflineBanner(
+        message = stringResource(R.string.feature_tailor_impl_pack_purchase_offline_banner),
+        visible = uiState.isOffline,
+    )
+    Text(
+        text = packHeadline(uiState = uiState, compact = compact),
+        style = if (compact) HhTheme.typography.titleM else HhTheme.typography.titleL,
+        color = HhTheme.colors.onSurface,
+    )
+    PackPrice(pack = pack, compact = compact)
+    if (!compact) {
+        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_one_time))
+        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_no_subscription))
+        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_each_application))
+    }
+    if (uiState.stage == PackPurchaseStage.PURCHASING) {
+        PackWaiting()
+    }
+    val buyLabel = packButtonLabel(pack)
+    val caption = packButtonCaption(uiState)
+    val description = packButtonDescription(pack = pack, creditsNeverExpire = uiState.creditsNeverExpire)
+    val buyModifier = Modifier
+        .alpha(if (uiState.canBuy) 1f else DISABLED_ALPHA)
+        .semantics {
+            contentDescription = description
+            if (!uiState.canBuy) disabled()
+        }
+    HhSpecialButton(
+        label = buyLabel,
+        onClick = { actions.onBuy(pack.id) },
+        modifier = buyModifier,
+        caption = caption,
+    )
+    uiState.otherPacks.forEach { other ->
+        HhOutlineButton(
+            label = packButtonLabel(other),
+            onClick = { actions.onBuy(other.id) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = uiState.canBuy,
         )
+    }
+    HhSpecialDeclineButton(
+        label = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now),
+        onClick = actions.onNotNow,
+    )
+    if (!compact) {
+        RefundsLink(onClick = actions.onOpenCredits)
+    }
+}
+
+@Composable
+private fun PackWaiting() {
+    val waiting = stringResource(R.string.feature_tailor_impl_pack_purchase_waiting)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HhLoadingWheel(contentDesc = waiting)
+        Text(text = waiting, style = HhTheme.typography.labelL, color = HhTheme.colors.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun PackPrice(pack: ApplicationPack, compact: Boolean) {
+    val price = pack.formattedPrice()
+    if (compact) {
+        Text(text = price, style = HhTheme.typography.numeralHero, color = HhTheme.colors.onSurface)
+        return
+    }
+    PackBaselineRow {
+        Text(text = price, style = HhTheme.typography.numeralHero, color = HhTheme.colors.onSurface)
         Text(
-            text = text,
-            style = HhTheme.typography.bodySmall,
+            text = pluralStringResource(
+                R.plurals.feature_tailor_impl_pack_purchase_price_caption,
+                pack.credits,
+                pack.credits,
+            ),
+            style = HhTheme.typography.bodyM,
             color = HhTheme.colors.onSurfaceVariant,
         )
     }
@@ -515,181 +296,289 @@ private fun PackPurchaseBullet(text: String) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PackPurchaseAlternatives(
-    uiState: PackPurchaseUiState,
-    actions: PackPurchaseActions,
-) {
-    if (uiState.otherPacks.isEmpty()) return
+private fun PackBaselineRow(content: @Composable () -> Unit) {
     FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
+        itemVerticalAlignment = Alignment.Bottom,
     ) {
-        uiState.otherPacks.forEach { pack ->
-            PackPurchaseAlternativeLink(
-                pack = pack,
-                isSelected = pack.id == uiState.selectedPackId,
-                onSelect = { actions.onSelectPack(pack.id) },
-            )
-        }
+        content()
     }
 }
 
 @Composable
-private fun PackPurchaseAlternativeLink(
-    pack: ApplicationPack,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-) {
-    val label = pluralStringResource(
-        R.plurals.feature_tailor_impl_pack_purchase_other_pack_action,
-        pack.credits,
-        pack.credits,
-        pack.formattedPrice(),
+private fun PackLine(text: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Check,
+            contentDescription = null,
+            tint = HhTheme.colors.primary,
+            modifier = Modifier.size(HhTheme.spacing.xl),
+        )
+        Text(text = text, style = HhTheme.typography.bodyM, color = HhTheme.colors.body)
+    }
+}
+
+@Composable
+private fun RefundsLink(onClick: () -> Unit) {
+    HhTextButton(
+        label = stringResource(R.string.feature_tailor_impl_pack_purchase_refunds_link),
+        onClick = onClick,
+        leadingIcon = HhIcons.Info,
     )
-    val spoken = pluralStringResource(
-        R.plurals.feature_tailor_impl_pack_purchase_other_pack_description,
-        pack.credits,
-        pack.credits,
-        pack.formattedPrice(),
+}
+
+@Composable
+private fun PackPending(uiState: PackPurchaseUiState, actions: PackPurchaseActions) {
+    PackTitleRow(
+        icon = HhIcons.Clock,
+        tint = HhTheme.colors.primary,
+        text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_title),
     )
+    PackBody(text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_body))
     Text(
-        text = label,
-        style = HhTheme.typography.labelLarge,
-        color = if (isSelected) HhTheme.colors.onSurfaceVariant else HhTheme.colors.primary,
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier
-            .defaultMinSize(minHeight = HhTheme.spacing.d48)
-            .clickable(onClickLabel = spoken, onClick = onSelect)
-            .padding(vertical = HhTheme.spacing.sm),
+        text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_note),
+        style = HhTheme.typography.bodyM,
+        color = HhTheme.colors.onSurfaceVariant,
     )
+    HhOutlineButton(
+        label = backLabel(uiState),
+        onClick = actions.onBackToPreview,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    RefundsLink(onClick = actions.onOpenCredits)
 }
 
 @Composable
-private fun PackPurchaseNoPacks() {
-    HhCard {
-        HhSpotIllustration(kind = HhSpotKind.Empty)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_no_packs_heading),
-            style = HhTheme.typography.titleLarge,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_no_packs_body),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseRestoreNote(actions: PackPurchaseActions) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        HhDivider(style = HhDividerStyle.Dashed)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_pack_purchase_refunds_help_note),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        PackPurchaseTextLink(
-            label = stringResource(R.string.feature_tailor_impl_pack_purchase_restore_action),
-            onClick = actions.onRestore,
-        )
-    }
-}
-
-@Composable
-private fun PackPurchaseBottomBar(
+private fun PackSuccess(
     uiState: PackPurchaseUiState,
     actions: PackPurchaseActions,
 ) {
-    val pack = uiState.selectedPack
-    HhBottomActionBar {
-        Column(
+    PackTitleRow(
+        icon = HhIcons.CheckCircle,
+        tint = HhTheme.colors.primary,
+        text = stringResource(R.string.feature_tailor_impl_pack_purchase_success_title),
+    )
+    val left = uiState.totalCredits
+    PackBaselineRow {
+        CreditCounter(
+            credits = left,
+            previousCredits = uiState.creditsBefore,
+            suffix = stringResource(R.string.feature_tailor_impl_pack_purchase_success_left),
+            contentDescription = pluralStringResource(
+                R.plurals.feature_tailor_impl_pack_purchase_success_left_description,
+                left,
+                left,
+            ),
+        )
+        Text(
+            text = stringResource(
+                if (uiState.creditsNeverExpire) {
+                    R.string.feature_tailor_impl_pack_purchase_success_was_never_expire
+                } else {
+                    R.string.feature_tailor_impl_pack_purchase_success_was
+                },
+                uiState.creditsBefore,
+            ),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+    }
+    val receipt = uiState.receipt
+    if (receipt != null) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.feature_tailor_impl_pack_purchase_success_receipt,
+                receipt.credits,
+                receipt.credits,
+                receipt.formattedPrice,
+                receipt.formattedDate,
+            ),
+            style = HhTheme.typography.bodyM,
+            color = HhTheme.colors.body,
+        )
+    }
+    if (uiState.hasApplication) {
+        HhCard(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            contentPadding = PaddingValues(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
         ) {
-            if (pack != null) {
-                HhButton(
-                    onClick = { actions.onBuy(pack.id) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = HhTheme.spacing.d48),
-                    text = {
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.feature_tailor_impl_pack_purchase_buy_action,
-                                pack.credits,
-                                pack.credits,
-                                pack.formattedPrice(),
-                                expiryLabelFor(pack = pack),
-                            ),
-                            style = HhTheme.typography.labelLarge,
-                        )
-                    },
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = HhIcons.Download,
+                    contentDescription = null,
+                    tint = HhTheme.colors.primary,
+                    modifier = Modifier.size(HhTheme.spacing.xl),
+                )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_tailor_impl_pack_purchase_success_uses_line,
+                        left,
+                        left,
+                    ),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.onSurface,
                 )
             }
-            HhOutlinedButton(
-                onClick = actions.onNotNow,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HhTheme.spacing.d48),
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now_action),
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now_note),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
         }
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_tailor_impl_export_preview_download_pdf),
+            onClick = actions.onDownloadAfterPurchase,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = HhIcons.Download,
+        )
+    } else {
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_tailor_impl_pack_purchase_done),
+            onClick = actions.onBackToPreview,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
 @Composable
-private fun expiryLabelFor(pack: ApplicationPack): String = if (pack.creditsExpire) {
-    stringResource(R.string.feature_tailor_impl_pack_purchase_credits_expire)
-} else {
-    stringResource(R.string.feature_tailor_impl_pack_purchase_credits_never_expire)
-}
-
-@Composable
-private fun PackPurchaseTextLink(
-    label: String,
-    onClick: () -> Unit,
+private fun PackCancelled(
+    uiState: PackPurchaseUiState,
+    actions: PackPurchaseActions,
 ) {
-    Text(
-        text = label,
-        style = HhTheme.typography.labelLarge,
-        color = HhTheme.colors.primary,
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier
-            .defaultMinSize(minHeight = HhTheme.spacing.d48)
-            .clickable(onClick = onClick)
-            .padding(vertical = HhTheme.spacing.sm),
+    PackTitle(text = stringResource(R.string.feature_tailor_impl_pack_purchase_cancelled_title))
+    PackBody(
+        text = if (!uiState.hasApplication) {
+            stringResource(R.string.feature_tailor_impl_pack_purchase_cancelled_body_credits)
+        } else if (uiState.jobCompany.isBlank()) {
+            stringResource(R.string.feature_tailor_impl_pack_purchase_cancelled_body_generic)
+        } else {
+            stringResource(R.string.feature_tailor_impl_pack_purchase_cancelled_body, uiState.jobCompany)
+        },
+    )
+    HhOutlineButton(
+        label = backLabel(uiState),
+        onClick = actions.onBackToPreview,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
-private fun PurchaseFailureReason?.titleRes(): Int = when (this) {
-    PurchaseFailureReason.PaymentDeclined ->
-        R.string.feature_tailor_impl_pack_purchase_failed_payment_declined_title
-    PurchaseFailureReason.PurchaseUnavailable ->
-        R.string.feature_tailor_impl_pack_purchase_failed_purchase_unavailable_title
-    PurchaseFailureReason.PaymentUnavailable,
-    null,
-    -> R.string.feature_tailor_impl_pack_purchase_failed_payment_unavailable_title
+@Composable
+private fun backLabel(uiState: PackPurchaseUiState): String = stringResource(
+    if (uiState.hasApplication) {
+        R.string.feature_tailor_impl_pack_purchase_back_to_preview
+    } else {
+        R.string.feature_tailor_impl_pack_purchase_back_to_credits
+    },
+)
+
+@Composable
+private fun PackFailed(
+    uiState: PackPurchaseUiState,
+    actions: PackPurchaseActions,
+) {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        HhSpotIllustration(kind = HhSpotKind.Error)
+    }
+    PackTitleRow(
+        icon = HhIcons.Error,
+        tint = HhTheme.colors.error,
+        text = stringResource(R.string.feature_tailor_impl_pack_purchase_failed_title),
+    )
+    PackBody(
+        text = stringResource(
+            when (uiState.failureReason) {
+                PurchaseFailureReason.PaymentUnavailable ->
+                    R.string.feature_tailor_impl_pack_purchase_failed_body_unavailable
+
+                PurchaseFailureReason.PurchaseUnavailable ->
+                    R.string.feature_tailor_impl_pack_purchase_failed_body_pack_unavailable
+
+                else -> R.string.feature_tailor_impl_pack_purchase_failed_body
+            },
+        ),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now),
+            onClick = actions.onNotNow,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_tailor_impl_pack_purchase_try_again),
+            onClick = actions.onRetryBuy,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isOffline,
+        )
+    }
+    RefundsLink(onClick = actions.onOpenCredits)
 }
 
-private fun PurchaseFailureReason?.bodyRes(): Int = when (this) {
-    PurchaseFailureReason.PaymentDeclined ->
-        R.string.feature_tailor_impl_pack_purchase_failed_payment_declined_body
-    PurchaseFailureReason.PurchaseUnavailable ->
-        R.string.feature_tailor_impl_pack_purchase_failed_purchase_unavailable_body
-    PurchaseFailureReason.PaymentUnavailable,
-    null,
-    -> R.string.feature_tailor_impl_pack_purchase_failed_payment_unavailable_body
+@Composable
+private fun PackTitle(text: String) {
+    Text(text = text, style = HhTheme.typography.titleL, color = HhTheme.colors.onSurface)
 }
+
+@Composable
+private fun PackTitleRow(icon: ImageVector, tint: Color, text: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(HhTheme.spacing.xxl),
+        )
+        PackTitle(text = text)
+    }
+}
+
+@Composable
+private fun PackBody(text: String) {
+    Text(text = text, style = HhTheme.typography.bodyL, color = HhTheme.colors.body)
+}
+
+@Composable
+private fun packHeadline(uiState: PackPurchaseUiState, compact: Boolean): String =
+    stringResource(packHeadlineRes(uiState, compact), uiState.jobCompany)
+
+internal fun packHeadlineRes(uiState: PackPurchaseUiState, compact: Boolean): Int = when {
+    !uiState.hasApplication -> R.string.feature_tailor_impl_pack_purchase_headline_credits
+    compact -> R.string.feature_tailor_impl_pack_purchase_headline_compact
+    uiState.jobCompany.isBlank() -> R.string.feature_tailor_impl_pack_purchase_headline_generic
+    else -> R.string.feature_tailor_impl_pack_purchase_headline
+}
+
+@Composable
+private fun packButtonLabel(pack: ApplicationPack): String = pluralStringResource(
+    R.plurals.feature_tailor_impl_pack_purchase_button_label,
+    pack.credits,
+    pack.credits,
+    pack.formattedPrice(),
+)
+
+@Composable
+private fun packButtonCaption(uiState: PackPurchaseUiState): String = stringResource(
+    if (uiState.creditsNeverExpire) {
+        R.string.feature_tailor_impl_pack_purchase_credits_never_expire
+    } else {
+        R.string.feature_tailor_impl_pack_purchase_credits_may_expire
+    },
+)
+
+@Composable
+private fun packButtonDescription(pack: ApplicationPack, creditsNeverExpire: Boolean): String =
+    pluralStringResource(
+        if (creditsNeverExpire) {
+            R.plurals.feature_tailor_impl_pack_purchase_button_description_never_expire
+        } else {
+            R.plurals.feature_tailor_impl_pack_purchase_button_description
+        },
+        pack.credits,
+        pack.credits,
+        pack.formattedPrice(),
+    )
+
+private const val DISABLED_ALPHA = 0.38f

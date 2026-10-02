@@ -9,6 +9,7 @@ import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.onboarding.api.navigation.ImportResumeNavKey
@@ -24,6 +25,7 @@ class ImportResumeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
     private val parser = RecordingResumeTextParser()
     private val source = RecordingResumeTextSource()
     private val file = ResumeFile(
@@ -43,6 +45,7 @@ class ImportResumeViewModelTest {
         resumeTextParser = parser,
         factIdAllocator = FactIdAllocator(),
         profileRepository = repository,
+        connectivityMonitor = connectivity,
     ).apply { onEnter(ImportResumeNavKey(scenario = scenario)) }
 
     @Test
@@ -121,7 +124,23 @@ class ImportResumeViewModelTest {
         assertThat(stored?.entries).isNotEmpty()
         assertThat(stored?.entries?.all { !it.isConfirmed }).isTrue()
         assertThat(stored?.entries?.all { it.source == FactSource.IMPORTED }).isTrue()
-        assertThat(stored?.entries?.map { it.id }).containsExactly("U-01", "C-01")
+        assertThat(stored?.entries?.map { it.id }).containsExactly("E-01", "P-01")
+    }
+
+    @Test
+    fun internshipEntry_getsAnInternshipFactId() = runTest {
+        val viewModel = createViewModel()
+        parser.profile = parser.profile.copy(
+            entries = listOf(
+                parsedEntry("entry-1", EntryCategory.EXPERIENCE, "Data Intern"),
+                parsedEntry("entry-2", EntryCategory.EXPERIENCE, "Operations Associate"),
+            ),
+        )
+
+        viewModel.onFileChosen(file)
+
+        val stored = repository.observeProfile().first()
+        assertThat(stored?.entries?.map { it.id }).containsExactly("I-01", "W-01")
     }
 
     @Test
@@ -221,6 +240,31 @@ class ImportResumeViewModelTest {
         assertThat(state.fileName).isEqualTo(file.displayName)
         assertThat(source.requestedUris).isEmpty()
         assertThat(parser.parsedText).isEmpty()
+    }
+
+    @Test
+    fun offline_readsTheQueuedFileWhenTheConnectionReturns() = runTest {
+        connectivity.setOnline(false)
+        val viewModel = createViewModel()
+        viewModel.onFileChosen(file)
+        assertThat(viewModel.uiState.value.isQueued).isTrue()
+
+        connectivity.setOnline(true)
+
+        val state = viewModel.uiState.value
+        assertThat(state.isQueued).isFalse()
+        assertThat(state.stage).isEqualTo(ImportStage.Success)
+        assertThat(source.requestedUris).containsExactly(file.uri)
+    }
+
+    @Test
+    fun chooseAnotherFile_whileQueued_dropsTheQueuedFile() = runTest {
+        val viewModel = createViewModel(DebugScenario.OFFLINE)
+        viewModel.onFileChosen(file)
+
+        viewModel.onChooseAnotherFile()
+
+        assertThat(viewModel.uiState.value.isQueued).isFalse()
     }
 
     @Test

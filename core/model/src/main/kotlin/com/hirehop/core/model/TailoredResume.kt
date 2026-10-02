@@ -24,4 +24,4 @@ data class TailoredBullet(
     val decision: BulletDecision,
 )
 
-data class TailoredResume(val bullets: List<TailoredBullet>)
+data class TailoredResume(val bullets: List<TailoredBullet>, val entryIds: List<String>? = null)

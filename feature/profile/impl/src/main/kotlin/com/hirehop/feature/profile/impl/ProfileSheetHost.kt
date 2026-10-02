@@ -1,69 +1,51 @@
 package com.hirehop.feature.profile.impl
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import com.hirehop.core.designsystem.component.HhBottomSheet
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhSheetActionRow
+import com.hirehop.core.designsystem.component.HhTextField
+import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EntryCategory
 
-internal sealed interface ProfileSheet {
-    data object PasteResume : ProfileSheet
-
-    data object EditContact : ProfileSheet
-
-    data object AddSkill : ProfileSheet
-
-    data object ConfirmAll : ProfileSheet
-
-    data object ClearProfile : ProfileSheet
-
-    data class DeleteEntry(val entryId: String) : ProfileSheet
-
-    data class EditEntry(
-        val entryId: String?,
-        val category: EntryCategory,
-    ) : ProfileSheet
-}
+internal enum class ProfileSheet { Contact, AddSkill, AddFact }
 
 @Composable
 internal fun ProfileSheetHost(
     sheet: ProfileSheet?,
-    uiState: ProfileUiState,
-    importState: ResumeImportState,
+    profile: CandidateProfile,
     actions: ProfileActions,
+    navigation: ProfileNavigation,
     onDismiss: () -> Unit,
 ) {
-    val success = uiState as? ProfileUiState.Success
     when (sheet) {
         null -> Unit
 
-        ProfileSheet.PasteResume -> PasteResumeSheet(
-            state = importState,
-            hasExistingProfile = success != null,
-            onTextChange = actions.onResumeTextChange,
-            onParse = actions.onParseResume,
+        ProfileSheet.Contact -> ContactSheet(
+            initial = profile.toContactDraft(),
             onSave = {
-                actions.onSavePreview()
+                actions.onUpdateContact(it)
                 onDismiss()
             },
-            onDismiss = {
-                actions.onResetImport()
-                onDismiss()
-            },
+            onDismiss = onDismiss,
         )
 
-        ProfileSheet.EditContact -> if (success != null) {
-            ContactEditorDialog(
-                initial = success.profile.toContactDraft(),
-                onSave = {
-                    actions.onUpdateContact(it)
-                    onDismiss()
-                },
-                onDismiss = onDismiss,
-            )
-        }
-
-        ProfileSheet.AddSkill -> SkillInputDialog(
+        ProfileSheet.AddSkill -> AddSkillSheet(
             onAdd = {
                 actions.onAddSkill(it)
                 onDismiss()
@@ -71,87 +53,137 @@ internal fun ProfileSheetHost(
             onDismiss = onDismiss,
         )
 
-        is ProfileSheet.EditEntry -> if (success != null) {
-            EntryEditorHost(sheet, success.profile, actions, onDismiss)
-        }
-
-        else -> ConfirmationSheetHost(sheet, success, actions, onDismiss)
+        ProfileSheet.AddFact -> AddFactSheet(
+            onPick = {
+                onDismiss()
+                navigation.onAddFact(it.name)
+            },
+            onDismiss = onDismiss,
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EntryEditorHost(
-    sheet: ProfileSheet.EditEntry,
-    profile: CandidateProfile,
-    actions: ProfileActions,
+internal fun ContactSheet(
+    initial: ContactDraft,
+    onSave: (ContactDraft) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val entry = profile.entries.firstOrNull { it.id == sheet.entryId }
-    EntryEditorSheet(
-        initial = entry?.toDraft() ?: EntryDraft.blank(sheet.category),
-        isNew = entry == null,
-        onSave = {
-            actions.onSaveEntry(sheet.entryId, it)
-            onDismiss()
-        },
-        onDismiss = onDismiss,
-    )
+    var fullName by rememberSaveable { mutableStateOf(initial.fullName) }
+    var email by rememberSaveable { mutableStateOf(initial.email) }
+    var phone by rememberSaveable { mutableStateOf(initial.phone) }
+    var headline by rememberSaveable { mutableStateOf(initial.headline) }
+    HhBottomSheet(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.feature_profile_impl_contact_title),
+        subtitle = stringResource(R.string.feature_profile_impl_contact_subtitle),
+    ) {
+        HhTextField(
+            value = fullName,
+            onValueChange = { fullName = it },
+            label = stringResource(R.string.feature_profile_impl_field_full_name),
+        )
+        HhTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = stringResource(R.string.feature_profile_impl_field_email),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        )
+        HhTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = stringResource(R.string.feature_profile_impl_field_phone),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+        )
+        HhTextField(
+            value = headline,
+            onValueChange = { headline = it },
+            label = stringResource(R.string.feature_profile_impl_field_headline),
+        )
+        SheetActions(
+            confirmLabel = stringResource(R.string.feature_profile_impl_save),
+            onConfirm = { onSave(ContactDraft(fullName, email, phone, headline)) },
+            onCancel = onDismiss,
+        )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ConfirmationSheetHost(
-    sheet: ProfileSheet,
-    success: ProfileUiState.Success?,
-    actions: ProfileActions,
+internal fun AddSkillSheet(
+    onAdd: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    when (sheet) {
-        ProfileSheet.ConfirmAll -> if (success != null) {
-            ConfirmationDialog(
-                title = pluralStringResource(
-                    R.plurals.feature_profile_impl_confirm_all_title,
-                    success.unconfirmedCount,
-                    success.unconfirmedCount,
-                ),
-                message = stringResource(R.string.feature_profile_impl_confirm_all_message),
-                confirmLabel = stringResource(R.string.feature_profile_impl_confirm),
-                onConfirm = {
-                    actions.onConfirmAll()
-                    onDismiss()
-                },
-                onDismiss = onDismiss,
+    var skill by rememberSaveable { mutableStateOf("") }
+    HhBottomSheet(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.feature_profile_impl_add_skill),
+    ) {
+        HhTextField(
+            value = skill,
+            onValueChange = { skill = it },
+            label = stringResource(R.string.feature_profile_impl_skill_label),
+            placeholder = stringResource(R.string.feature_profile_impl_skill_placeholder),
+        )
+        SheetActions(
+            confirmLabel = stringResource(R.string.feature_profile_impl_add),
+            onConfirm = { onAdd(skill) },
+            onCancel = onDismiss,
+            confirmEnabled = skill.isNotBlank(),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddFactSheet(
+    onPick: (EntryCategory) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    HhBottomSheet(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.feature_profile_impl_add_fact_title),
+    ) {
+        EntryCategory.entries.forEach { category ->
+            HhSheetActionRow(
+                icon = HhIcons.Add,
+                title = stringResource(category.addTitleRes()),
+                onClick = { onPick(category) },
             )
         }
-
-        is ProfileSheet.DeleteEntry -> ConfirmationDialog(
-            title = stringResource(R.string.feature_profile_impl_delete_title),
-            message = stringResource(R.string.feature_profile_impl_delete_message),
-            confirmLabel = stringResource(R.string.feature_profile_impl_delete),
-            onConfirm = {
-                actions.onDeleteEntry(sheet.entryId)
-                onDismiss()
-            },
-            onDismiss = onDismiss,
-        )
-
-        ProfileSheet.ClearProfile -> ConfirmationDialog(
-            title = stringResource(R.string.feature_profile_impl_clear_title),
-            message = stringResource(R.string.feature_profile_impl_clear_message),
-            confirmLabel = stringResource(R.string.feature_profile_impl_clear_confirm),
-            onConfirm = {
-                actions.onClearProfile()
-                onDismiss()
-            },
-            onDismiss = onDismiss,
-        )
-
-        else -> Unit
     }
 }
 
-private fun CandidateProfile.toContactDraft() = ContactDraft(
-    fullName = fullName,
-    email = email,
-    phone = phone,
-    headline = headline,
-)
+@Composable
+private fun SheetActions(
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    confirmEnabled: Boolean = true,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    ) {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_profile_impl_cancel),
+            onClick = onCancel,
+            modifier = Modifier.weight(1f),
+        )
+        HhPrimaryButton(
+            label = confirmLabel,
+            onClick = onConfirm,
+            enabled = confirmEnabled,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+private fun EntryCategory.addTitleRes(): Int = when (this) {
+    EntryCategory.EDUCATION -> R.string.feature_profile_impl_add_education
+    EntryCategory.EXPERIENCE -> R.string.feature_profile_impl_add_experience
+    EntryCategory.PROJECT -> R.string.feature_profile_impl_add_project
+    EntryCategory.CERTIFICATION -> R.string.feature_profile_impl_add_certification
+    EntryCategory.ACHIEVEMENT -> R.string.feature_profile_impl_add_achievement
+}

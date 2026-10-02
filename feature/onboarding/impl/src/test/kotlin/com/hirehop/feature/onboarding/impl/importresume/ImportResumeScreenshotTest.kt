@@ -39,15 +39,29 @@ class ImportResumeScreenshotTest {
     }
 
     @Test
-    fun readingNamesItsRealSteps() {
+    fun readingStepTwoShowsTheFirstLiftedFacts() {
         captureBothThemes(
-            screenName = "ImportResumeReading",
+            screenName = "ImportResumeReadingStep2",
             uiState = ImportResumeUiState(
                 stage = ImportStage.Parsing,
-                fileName = "Resume_2026.pdf",
+                fileName = "Priya_Deshmukh_Resume.pdf",
                 byteSize = SAMPLE_SIZE,
                 readStepIndex = 1,
                 facts = ImportResumeScenarioMapper.seed(DebugScenario.SUCCESS).facts.take(2),
+            ),
+        )
+    }
+
+    @Test
+    fun readingStepThreeShowsMoreLiftedFacts() {
+        captureBothThemes(
+            screenName = "ImportResumeReadingStep3",
+            uiState = ImportResumeUiState(
+                stage = ImportStage.Parsing,
+                fileName = "Priya_Deshmukh_Resume.pdf",
+                byteSize = SAMPLE_SIZE,
+                readStepIndex = 2,
+                facts = ImportResumeScenarioMapper.seed(DebugScenario.SUCCESS).facts,
             ),
         )
     }

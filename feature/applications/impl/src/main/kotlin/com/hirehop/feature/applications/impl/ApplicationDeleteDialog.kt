@@ -48,16 +48,6 @@ private fun deleteDialogMessage(scope: WorkspaceDeleteScope): String {
                 ),
             )
         }
-        if (scope.prepQuestionCount > 0) {
-            add(
-                pluralStringResource(
-                    id = R.plurals.feature_applications_impl_delete_scope_questions,
-                    scope.prepQuestionCount,
-                    scope.prepQuestionCount,
-                ),
-            )
-        }
-        if (scope.hasCoverLetter) add(stringResource(R.string.feature_applications_impl_delete_scope_letter))
         if (scope.hasNotes) add(stringResource(R.string.feature_applications_impl_delete_scope_notes))
     }
     val separator = stringResource(R.string.feature_applications_impl_delete_scope_separator_and)
@@ -66,12 +56,20 @@ private fun deleteDialogMessage(scope: WorkspaceDeleteScope): String {
         items.size == 1 -> items.first()
         else -> items.dropLast(1).joinToString(separator = ", ") + separator + items.last()
     }
-    val note = pluralStringResource(
-        id = R.plurals.feature_applications_impl_delete_note,
-        scope.profileFactCount,
-        scope.profileFactCount,
+    val note = stringResource(
+        id = R.string.feature_applications_impl_delete_note,
+        pluralStringResource(
+            id = R.plurals.feature_applications_impl_delete_note_facts,
+            scope.profileFactCount,
+            scope.profileFactCount,
+        ),
+        pluralStringResource(
+            id = R.plurals.feature_applications_impl_delete_note_credits,
+            scope.creditCount,
+            scope.creditCount,
+        ),
     )
-    return "$scopeSentence\n\n$note"
+    return stringResource(R.string.feature_applications_impl_delete_message, scopeSentence, note)
 }
 
 @Preview(showBackground = true)
@@ -85,11 +83,10 @@ private fun ApplicationDeleteDialogPreview() {
                 hasJobDescription = true,
                 hasGapAnalysis = true,
                 hasTailoredResume = true,
-                hasCoverLetter = true,
                 hasNotes = true,
-                prepTaskCount = 4,
-                prepQuestionCount = 10,
+                prepTaskCount = 3,
                 profileFactCount = 18,
+                creditCount = 4,
             ),
             onConfirm = {},
             onCancel = {},

@@ -1,85 +1,66 @@
 package com.hirehop.feature.profile.impl.guidedform
 
 import com.hirehop.core.model.DebugScenario
-import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.feature.profile.impl.ProfileExit
 
 enum class GuidedArrival { NORMAL, FROM_SCANNED_PDF }
 
 enum class GuidedFieldProblem { REQUIRED, END_BEFORE_START, TOO_LONG }
 
-enum class GuidedMessage { LOAD_FAILED, SAVED, OFFLINE_QUEUED, SAVE_REJECTED }
-
-data class GuidedFactPreview(
-    val category: EntryCategory,
-    val line: String,
-    val entry: ProfileEntry? = null,
-)
+enum class GuidedMessage { LOAD_FAILED, SAVE_FAILED }
 
 data class GuidedSaved(
     val completedSteps: Int,
     val totalSteps: Int,
+    val entryIds: List<String>,
 )
 
-data class GuidedHandoff(
-    val category: String,
-)
+sealed interface GuidedNavigation {
+    data class Evidence(val category: String) : GuidedNavigation
+
+    data class Exit(val exit: ProfileExit) : GuidedNavigation
+}
 
 data class GuidedFormUiState(
     val isLoading: Boolean = false,
     val isOffline: Boolean = false,
     val isSaving: Boolean = false,
     val arrival: GuidedArrival = GuidedArrival.NORMAL,
+    val showIntro: Boolean = false,
     val stepIndex: Int = 0,
     val values: Map<GuidedField, String> = emptyMap(),
+    val skills: List<String> = emptyList(),
     val fieldProblems: Map<GuidedField, GuidedFieldProblem> = emptyMap(),
-    val previews: List<GuidedFactPreview> = emptyList(),
-    val isSaveRejected: Boolean = false,
-    val completedSteps: List<GuidedStep> = emptyList(),
+    val filedEntries: List<ProfileEntry> = emptyList(),
+    val completedSteps: Set<GuidedStep> = emptySet(),
+    val stepEntryIds: Map<GuidedStep, List<String>> = emptyMap(),
     val saved: GuidedSaved? = null,
-    val handoff: GuidedHandoff? = null,
     val message: GuidedMessage? = null,
+    val navigation: GuidedNavigation? = null,
 ) {
     val step: GuidedStep get() = guidedStepAt(stepIndex)
-    val skills: List<String> get() = skillsOf(values)
     val isLastStep: Boolean get() = stepIndex == GUIDED_STEPS.lastIndex
     val isFirstStep: Boolean get() = stepIndex == 0
+    val createdEntryIds: List<String> get() = GUIDED_STEPS.flatMap { stepEntryIds[it].orEmpty() }
 }
 
 fun guidedFormStateFor(
     scenario: DebugScenario,
     startStep: String,
     resumedFromScan: Boolean,
-): GuidedFormUiState = when (scenario) {
-    DebugScenario.LOADING, DebugScenario.DELETING -> GuidedFormUiState(
-        isLoading = true,
+): GuidedFormUiState {
+    val arrival = if (scenario == DebugScenario.SCANNED || resumedFromScan) {
+        GuidedArrival.FROM_SCANNED_PDF
+    } else {
+        GuidedArrival.NORMAL
+    }
+    return GuidedFormUiState(
+        isLoading = scenario == DebugScenario.LOADING || scenario == DebugScenario.DELETING,
+        isOffline = scenario == DebugScenario.OFFLINE,
+        arrival = arrival,
+        showIntro = arrival == GuidedArrival.FROM_SCANNED_PDF,
         stepIndex = guidedStepIndexOf(startStep),
-        arrival = arrivalFor(scenario, resumedFromScan),
+        message = if (scenario == DebugScenario.ERROR) GuidedMessage.LOAD_FAILED else null,
     )
-
-    DebugScenario.OFFLINE -> GuidedFormUiState(
-        isOffline = true,
-        stepIndex = guidedStepIndexOf(startStep),
-        arrival = arrivalFor(scenario, resumedFromScan),
-    )
-
-    DebugScenario.ERROR -> GuidedFormUiState(
-        stepIndex = guidedStepIndexOf(startStep),
-        arrival = arrivalFor(scenario, resumedFromScan),
-        message = GuidedMessage.LOAD_FAILED,
-    )
-
-    else -> GuidedFormUiState(
-        stepIndex = guidedStepIndexOf(startStep),
-        arrival = arrivalFor(scenario, resumedFromScan),
-    )
-}
-
-private fun arrivalFor(
-    scenario: DebugScenario,
-    resumedFromScan: Boolean,
-): GuidedArrival = if (scenario == DebugScenario.SCANNED || resumedFromScan) {
-    GuidedArrival.FROM_SCANNED_PDF
-} else {
-    GuidedArrival.NORMAL
 }

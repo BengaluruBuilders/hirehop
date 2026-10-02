@@ -13,6 +13,8 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(projects.core.navigation)
+    implementation(projects.feature.applications.api)
+    implementation(projects.feature.profile.api)
     implementation(projects.feature.tailor.api)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core)

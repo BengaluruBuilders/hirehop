@@ -10,6 +10,8 @@ internal class PdfPageWriter(private val pdf: PdfDocument) {
     private var cursorY = MARGIN
     private var page: PdfDocument.Page = startPage()
 
+    val pageCount: Int get() = pageNumber
+
     val contentWidth: Int get() = (PAGE_WIDTH - 2 * MARGIN).toInt()
 
     fun drawBlock(layout: StaticLayout, keepWithNext: Float = 0f) {

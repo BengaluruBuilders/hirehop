@@ -2,8 +2,9 @@ package com.hirehop.feature.applications.impl
 
 import androidx.compose.runtime.Immutable
 import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.model.KeywordCoverage
-import com.hirehop.core.model.RequirementPriority
+import com.hirehop.core.model.MatchStatus
 import kotlin.time.Instant
 
 @Immutable
@@ -14,12 +15,24 @@ data class WorkspaceGapCounts(
 )
 
 @Immutable
+data class WorkspaceMatch(
+    val id: String,
+    val requirementText: String,
+    val status: MatchStatus,
+)
+
+@Immutable
+data class WorkspaceCoverLetter(
+    val wordCount: Int,
+    val writtenAt: Instant,
+)
+
+@Immutable
 data class WorkspacePrepTask(
     val id: String,
     val requirementText: String,
-    val priority: RequirementPriority,
     val isDone: Boolean,
-    val isOverflowOpen: Boolean,
+    val isReported: Boolean,
 )
 
 sealed interface WorkspaceResume {
@@ -27,7 +40,13 @@ sealed interface WorkspaceResume {
 
     data object NotExported : WorkspaceResume
 
-    data class Exported(val fileName: String) : WorkspaceResume
+    data class Exported(
+        val fileName: String,
+        val format: ExportFormat,
+        val exportedAt: Instant,
+        val pageCount: Int? = null,
+        val templateName: String? = null,
+    ) : WorkspaceResume
 }
 
 enum class WorkspaceNotesState { Idle, Saving, SavedJustNow }
@@ -37,19 +56,11 @@ data class WorkspaceDeleteScope(
     val hasJobDescription: Boolean,
     val hasGapAnalysis: Boolean,
     val hasTailoredResume: Boolean,
-    val hasCoverLetter: Boolean,
     val hasNotes: Boolean,
     val prepTaskCount: Int,
-    val prepQuestionCount: Int,
     val profileFactCount: Int,
+    val creditCount: Int,
 )
-
-@Immutable
-data class WorkspaceMessage(
-    val text: WorkspaceMessageText,
-)
-
-enum class WorkspaceMessageText { ReportedInaccurate }
 
 sealed interface ApplicationDetailUiState {
     data object Loading : ApplicationDetailUiState
@@ -65,14 +76,18 @@ sealed interface ApplicationDetailUiState {
         val updatedAt: Instant,
         val isOffline: Boolean,
         val jobDescriptionText: String,
+        val jobDescriptionWordCount: Int,
         val isJobDescriptionExpanded: Boolean,
         val coverage: KeywordCoverage?,
         val gapCounts: WorkspaceGapCounts?,
+        val matches: List<WorkspaceMatch>,
+        val isGapExpanded: Boolean,
         val resume: WorkspaceResume,
         val reviewProgress: ReviewProgress?,
         val prepTasks: List<WorkspacePrepTask>,
         val prepQuestionCount: Int,
         val hasCoverLetter: Boolean,
+        val coverLetter: WorkspaceCoverLetter? = null,
         val notes: String,
         val notesState: WorkspaceNotesState,
         val isNotesFocused: Boolean,
@@ -80,6 +95,9 @@ sealed interface ApplicationDetailUiState {
         val statusSheet: ApplicationStatusSheetState?,
         val isDeleteDialogVisible: Boolean,
         val deleteScope: WorkspaceDeleteScope?,
-        val message: WorkspaceMessage?,
     ) : ApplicationDetailUiState
+}
+
+sealed interface ApplicationDetailEvent {
+    data object ReportRecorded : ApplicationDetailEvent
 }

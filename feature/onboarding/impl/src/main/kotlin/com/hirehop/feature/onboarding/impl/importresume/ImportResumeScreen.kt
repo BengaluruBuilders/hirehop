@@ -3,54 +3,56 @@ package com.hirehop.feature.onboarding.impl.importresume
 import android.text.format.Formatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhButton
-import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSpotIllustration
-import com.hirehop.core.designsystem.component.HhSpotKind
+import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPaperColors
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStepProgress
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.component.HhTextButton
+import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.model.EntryCategory
-import com.hirehop.core.ui.FactIdTag
 import com.hirehop.feature.onboarding.impl.R
+import com.hirehop.feature.onboarding.impl.common.DisclosureCard
+import com.hirehop.feature.onboarding.impl.common.StateCard
 
-private val HH_TOUCH_TARGET: Dp = 48.dp
-private val HH_ICON_SIZE: Dp = 18.dp
+private val CHOOSE_ICON_SIZE = 32.dp
+private val THUMBNAIL_WIDTH = 112.dp
+private val THUMBNAIL_HEIGHT = 150.dp
+private val LIFTED_FACTS_SHOWN = 3
 
 data class ImportResumeActions(
     val onBack: () -> Unit,
@@ -67,23 +69,27 @@ fun ImportResumeScreen(
     actions: ImportResumeActions,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
+    HhScreen(
         modifier = modifier,
-        topBar = {
-            HhTopAppBar(
+        sheet = false,
+        header = {
+            HhInnerHeader(
                 title = stringResource(R.string.feature_onboarding_impl_import_resume_title),
-                navigationIcon = Icons.AutoMirrored.Rounded.ArrowBack,
-                navigationIconContentDescription = stringResource(
-                    R.string.feature_onboarding_impl_import_resume_back_description,
-                ),
-                onNavigationClick = actions.onBack,
+                subtitle = stringResource(R.string.feature_onboarding_impl_import_resume_subtitle),
+                onBack = actions.onBack,
+                backContentDescription = stringResource(R.string.feature_onboarding_impl_import_resume_back_description),
             )
         },
+        bottomBar = { ImportResumeBottomBar(uiState = uiState, actions = actions) },
+        bottomBarNotice = if (uiState.showsPickNotice) ({ ImportResumeBarNotice() }) else null,
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(horizontal = HhTheme.spacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
             ImportResumeBody(uiState = uiState, actions = actions)
         }
@@ -95,483 +101,315 @@ private fun ImportResumeBody(
     uiState: ImportResumeUiState,
     actions: ImportResumeActions,
 ) {
-    when (uiState.stage) {
-        ImportStage.Parsing -> ImportReadingBody(uiState = uiState)
-        ImportStage.Success, ImportStage.NoFactsFound -> ImportSuccessBody(uiState = uiState, actions = actions)
-        ImportStage.ScannedNoText,
-        ImportStage.Empty,
-        ImportStage.TooLarge,
-        ImportStage.Failed,
-        -> ImportStopBody(uiState = uiState, actions = actions)
-        ImportStage.Idle,
-        ImportStage.Picking,
-        ImportStage.Unsupported,
-        -> ImportIdleBody(uiState = uiState, actions = actions)
+    when {
+        uiState.isQueued -> StateCard(
+            illustration = HhIllustration.Offline,
+            illustrationDescription = stringResource(R.string.feature_onboarding_impl_import_resume_spot_offline_description),
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_queued_title),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_queued_body),
+            extra = { WaitingFileChip(fileName = uiState.fileName) },
+        )
+
+        uiState.stage == ImportStage.Parsing || uiState.isSuccess -> ReadingContent(uiState)
+        uiState.isStop || uiState.stage == ImportStage.Unsupported -> StopContent(uiState)
+        else -> ChooseContent(uiState = uiState, actions = actions)
     }
 }
 
 @Composable
-private fun ImportIdleBody(
+private fun ChooseContent(
     uiState: ImportResumeUiState,
     actions: ImportResumeActions,
 ) {
+    HhOfflineBanner(
+        message = stringResource(R.string.feature_onboarding_impl_import_resume_offline_banner),
+        visible = uiState.isOffline,
+    )
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.d16 + HhTheme.spacing.xxs)) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 + HhTheme.spacing.xxs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = HhIcons.Facts,
+                    contentDescription = null,
+                    tint = HhTheme.colors.primary,
+                    modifier = Modifier.size(CHOOSE_ICON_SIZE),
+                )
+                Text(
+                    text = stringResource(R.string.feature_onboarding_impl_import_resume_choose_title),
+                    style = HhTheme.typography.titleM,
+                    color = HhTheme.colors.onSurface,
+                )
+            }
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_import_resume_choose_body),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
+            )
+        }
+    }
+    HhTextButton(
+        label = stringResource(R.string.feature_onboarding_impl_import_resume_guided_form_link),
+        onClick = actions.onStartGuidedForm,
+    )
+}
+
+@Composable
+private fun ReadingContent(uiState: ImportResumeUiState) {
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
+        Column(
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = uiState.fileName
+                liveRegion = LiveRegionMode.Polite
+            },
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12),
+        ) {
+            Text(text = uiState.fileName, style = HhTheme.typography.titleS, color = HhTheme.colors.onSurface)
+            Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs)) {
+                ResumeThumbnail(readStepIndex = uiState.readStepIndex)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d4 + HhTheme.spacing.xxs),
+                ) {
+                    uiState.facts.take(LIFTED_FACTS_SHOWN).forEach { fact -> LiftedFactChip(fact) }
+                }
+            }
+            if (uiState.isSuccess) {
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_onboarding_impl_import_resume_success_heading,
+                        uiState.factCount,
+                        uiState.factCount,
+                    ),
+                    style = HhTheme.typography.titleS,
+                    color = HhTheme.colors.onSurface,
+                )
+                Text(
+                    text = stringResource(R.string.feature_onboarding_impl_import_resume_success_body),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.body,
+                )
+            }
+        }
+    }
+    if (!uiState.isSuccess) {
+        HhStepProgress(
+            stepNames = listOf(
+                stringResource(R.string.feature_onboarding_impl_import_resume_step_read),
+                stringResource(R.string.feature_onboarding_impl_import_resume_step_sections),
+                stringResource(R.string.feature_onboarding_impl_import_resume_step_strip),
+            ),
+            currentStepIndex = uiState.readStepIndex,
+            ordinalLabel = stringResource(R.string.feature_onboarding_impl_import_resume_reading_ordinal),
+            footnote = stringResource(R.string.feature_onboarding_impl_import_resume_reading_footnote),
+        )
+    }
+}
+
+@Composable
+private fun ResumeThumbnail(readStepIndex: Int) {
+    val lineColor = HhPaperColors.Rule
+    val lineWidths = listOf(0.86f, 0.7f, 0.78f, 0.62f, 0.8f, 0.54f)
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
+            .size(width = THUMBNAIL_WIDTH, height = THUMBNAIL_HEIGHT)
+            .clip(HhTheme.shapes.tag)
+            .background(HhPaperColors.Page)
+            .border(HhTheme.spacing.d2 / 2, HhTheme.colors.outlineVariant, HhTheme.shapes.tag)
+            .padding(horizontal = HhTheme.spacing.d12, vertical = HhTheme.spacing.d12 + HhTheme.spacing.xxs),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.d2 / 2),
     ) {
-        ImportHero()
-        if (uiState.isQueued) {
-            ImportQueuedCard(uiState = uiState)
-        }
-        if (uiState.stage == ImportStage.Unsupported) {
-            ImportUnsupportedNote(fileName = uiState.fileName)
-        }
-        if (uiState.isPicking) {
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_import_resume_waiting_picker),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
-        HhButton(
-            onClick = actions.onPickFile,
-            enabled = uiState.canPick,
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(
-                text = stringResource(
-                    if (uiState.stage == ImportStage.Unsupported) {
-                        R.string.feature_onboarding_impl_import_resume_choose_another
-                    } else {
-                        R.string.feature_onboarding_impl_import_resume_choose
-                    },
-                ),
+                .fillMaxWidth(0.6f)
+                .height(HhTheme.spacing.sm)
+                .background(HhPaperColors.Ink, HhTheme.shapes.tag),
+        )
+        lineWidths.forEachIndexed { index, fraction ->
+            val read = index < readStepIndex * 2 + 1
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction)
+                    .height(HhTheme.spacing.d4 + HhTheme.spacing.xxs)
+                    .background(if (read) lineColor else lineColor.copy(alpha = 0.25f), HhTheme.shapes.tag),
             )
         }
-        ImportDisclosures()
-        ImportGuidedFormLink(onClick = actions.onStartGuidedForm)
     }
 }
 
 @Composable
-private fun ImportHero() {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_heading),
-            style = HhTheme.typography.displaySmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_promise),
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun ImportDisclosures() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_no_storage_permission),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_picker_note),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun ImportGuidedFormLink(onClick: () -> Unit) {
-    val label = stringResource(R.string.feature_onboarding_impl_import_resume_guided_form_link)
+private fun LiftedFactChip(fact: ImportedFactUi) {
+    val shape = HhTheme.shapes.field
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = HH_TOUCH_TARGET)
-            .clickable(onClick = onClick)
-            .clearAndSetSemantics { contentDescription = label },
-        horizontalArrangement = Arrangement.Center,
+            .clip(shape)
+            .background(HhTheme.colors.card, shape)
+            .border(HhTheme.spacing.d2 / 2, HhTheme.colors.outlineVariant, shape)
+            .padding(horizontal = HhTheme.spacing.sm, vertical = HhTheme.spacing.d4 + HhTheme.spacing.xxs),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.d4 + HhTheme.spacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        HhFactId(id = fact.id)
         Text(
-            text = label,
-            style = HhTheme.typography.labelLarge,
-            color = HhTheme.colors.primary,
-            textAlign = TextAlign.Center,
-        )
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            contentDescription = null,
-            tint = HhTheme.colors.primary,
-            modifier = Modifier.sizeIn(maxWidth = HH_ICON_SIZE, maxHeight = HH_ICON_SIZE),
+            text = fact.line,
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
 @Composable
-private fun ImportQueuedCard(uiState: ImportResumeUiState) {
-    HhCard(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = uiState.fileName,
-            style = HhTheme.typography.mono,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(
-                R.string.feature_onboarding_impl_import_resume_queued_waiting,
-                fileSizeLabel(uiState.byteSize),
-                fileTypeLabel(uiState.fileName),
-            ),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_queued_offline),
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun ImportUnsupportedNote(fileName: String) {
-    Text(
-        text = stringResource(R.string.feature_onboarding_impl_import_resume_unsupported_note, fileName),
-        style = HhTheme.typography.bodyMedium,
-        color = HhTheme.colors.onSpotContainer,
+private fun WaitingFileChip(fileName: String) {
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = HhTheme.colors.spotContainer,
-                shape = RoundedCornerShape(HhTheme.shapes.sm),
-            )
-            .padding(HhTheme.spacing.md),
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.neutralContainer)
+            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = HhIcons.Clock,
+            contentDescription = null,
+            tint = HhTheme.colors.onNeutralContainer,
+            modifier = Modifier.size(HhTheme.spacing.lg),
+        )
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_import_resume_queued_waiting, fileName),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun StopContent(uiState: ImportResumeUiState) {
+    val context = LocalContext.current
+    val copy = when (uiState.stage) {
+        ImportStage.ScannedNoText -> StopCopy(
+            illustration = HhIllustration.Scanned,
+            description = R.string.feature_onboarding_impl_import_resume_spot_scanned_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_scanned_heading),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_scanned_body),
+        )
+
+        ImportStage.Unsupported -> StopCopy(
+            illustration = HhIllustration.Error,
+            description = R.string.feature_onboarding_impl_import_resume_spot_error_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_unsupported_heading),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_unsupported_body, uiState.fileName),
+        )
+
+        ImportStage.NoFactsFound -> StopCopy(
+            illustration = HhIllustration.Empty,
+            description = R.string.feature_onboarding_impl_import_resume_spot_empty_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_no_facts_heading),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_no_facts_body),
+        )
+
+        ImportStage.Empty -> StopCopy(
+            illustration = HhIllustration.Empty,
+            description = R.string.feature_onboarding_impl_import_resume_spot_empty_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_empty_heading),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_empty_body),
+        )
+
+        ImportStage.TooLarge -> StopCopy(
+            illustration = HhIllustration.Error,
+            description = R.string.feature_onboarding_impl_import_resume_spot_error_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_too_large_heading),
+            body = stringResource(
+                R.string.feature_onboarding_impl_import_resume_too_large_body,
+                Formatter.formatShortFileSize(context, RESUME_READ_LIMIT_BYTES),
+            ),
+        )
+
+        else -> StopCopy(
+            illustration = HhIllustration.Error,
+            description = R.string.feature_onboarding_impl_import_resume_spot_error_description,
+            title = stringResource(R.string.feature_onboarding_impl_import_resume_failed_heading),
+            body = stringResource(R.string.feature_onboarding_impl_import_resume_failed_body),
+        )
+    }
+    StateCard(
+        illustration = copy.illustration,
+        illustrationDescription = stringResource(copy.description),
+        title = copy.title,
+        body = copy.body,
     )
 }
 
-@Composable
-private fun ImportReadingBody(uiState: ImportResumeUiState) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        HhStepProgress(
-            stepNames = readStepNames(),
-            currentStepIndex = uiState.readStepIndex,
-            ordinalLabel = stringResource(R.string.feature_onboarding_impl_import_resume_reading_ordinal),
-        )
-        if (uiState.facts.isNotEmpty()) {
-            ImportLiftedFacts(facts = uiState.facts)
-        }
-    }
-}
-
-@Composable
-private fun readStepNames(): List<String> = listOf(
-    stringResource(R.string.feature_onboarding_impl_import_resume_step_read),
-    stringResource(R.string.feature_onboarding_impl_import_resume_step_sections),
-    stringResource(R.string.feature_onboarding_impl_import_resume_step_strip),
+private class StopCopy(
+    val illustration: HhIllustration,
+    val description: Int,
+    val title: String,
+    val body: String,
 )
 
 @Composable
-private fun ImportLiftedFacts(facts: List<ImportedFactUi>) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_lifted_heading),
-            style = HhTheme.typography.labelMedium,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        facts.forEach { fact -> ImportLiftedFactCard(fact = fact) }
-    }
-}
-
-@Composable
-private fun ImportLiftedFactCard(fact: ImportedFactUi) {
-    val section = stringResource(fact.category.sectionRes())
-    val description = stringResource(
-        R.string.feature_onboarding_impl_import_resume_lifted_card_description,
-        section,
-        fact.line,
-    )
-    val shape = RoundedCornerShape(HhTheme.shapes.md)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = HhTheme.colors.surfaceContainer, shape = shape)
-            .border(width = HhTheme.spacing.d2, color = HhTheme.colors.hairline, shape = shape)
-            .padding(HhTheme.spacing.md)
-            .clearAndSetSemantics { contentDescription = description },
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            FactIdTag(factId = fact.id)
-            Text(
-                text = section,
-                style = HhTheme.typography.monoSmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        Text(
-            text = fact.line,
-            style = HhTheme.typography.bodyMedium,
-            color = HhTheme.colors.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun ImportSuccessBody(
+private fun ImportResumeBottomBar(
     uiState: ImportResumeUiState,
     actions: ImportResumeActions,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        ImportHero()
-        if (uiState.isSuccess) {
-            Text(
-                text = pluralStringResource(
-                    R.plurals.feature_onboarding_impl_import_resume_success_heading,
-                    uiState.factCount,
-                    uiState.factCount,
-                ),
-                style = HhTheme.typography.titleLarge,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_import_resume_success_body),
-                style = HhTheme.typography.bodyMedium,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            if (uiState.facts.isNotEmpty()) {
-                ImportLiftedFacts(facts = uiState.facts)
-            }
-            HhButton(
+    val chooseAnother = stringResource(R.string.feature_onboarding_impl_import_resume_choose_another)
+    val guidedForm = stringResource(R.string.feature_onboarding_impl_import_resume_start_guided_form)
+    when {
+        uiState.isQueued -> HhBottomActionBar {
+            HhOutlineButton(label = chooseAnother, onClick = actions.onChooseAnotherFile, modifier = Modifier.weight(1f))
+        }
+
+        uiState.isSuccess -> HhBottomActionBar {
+            HhOutlineButton(label = chooseAnother, onClick = actions.onChooseAnotherFile, modifier = Modifier.weight(1f))
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_import_resume_review_facts),
                 onClick = actions.onReviewFacts,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = HH_TOUCH_TARGET),
-            ) {
-                Text(text = stringResource(R.string.feature_onboarding_impl_import_resume_review_facts))
-            }
-        } else {
-            ImportNoFactsBody(actions = actions)
+                trailingIcon = HhIcons.ArrowForward,
+                modifier = Modifier.weight(1f),
+            )
         }
-        ImportDisclosures()
-    }
-}
 
-@Composable
-private fun ImportNoFactsBody(actions: ImportResumeActions) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg)) {
-        HhSpotIllustration(
-            kind = HhSpotKind.Empty,
-            contentDescription = stringResource(
-                R.string.feature_onboarding_impl_import_resume_spot_empty_description,
-            ),
-        )
-        ImportStopCopy(
-            heading = stringResource(R.string.feature_onboarding_impl_import_resume_no_facts_heading),
-            body = stringResource(R.string.feature_onboarding_impl_import_resume_no_facts_body),
-        )
-        ImportStopActions(
-            primaryLabel = stringResource(R.string.feature_onboarding_impl_import_resume_start_guided_form),
-            onPrimary = actions.onStartGuidedForm,
-            secondaryLabel = stringResource(R.string.feature_onboarding_impl_import_resume_choose_another),
-            onSecondary = actions.onChooseAnotherFile,
-        )
-    }
-}
+        uiState.stage == ImportStage.Parsing -> Unit
 
-@Composable
-private fun ImportStopBody(
-    uiState: ImportResumeUiState,
-    actions: ImportResumeActions,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d20, vertical = HhTheme.spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
-    ) {
-        when (uiState.stage) {
-            ImportStage.ScannedNoText -> {
-                HhSpotIllustration(
-                    kind = HhSpotKind.Scanned,
-                    contentDescription = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_spot_scanned_description,
-                    ),
-                )
-                ImportStopCopy(
-                    heading = stringResource(R.string.feature_onboarding_impl_import_resume_scanned_heading),
-                    body = stringResource(R.string.feature_onboarding_impl_import_resume_scanned_body),
-                )
-                ImportStopActions(
-                    primaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_start_guided_form,
-                    ),
-                    onPrimary = actions.onStartGuidedForm,
-                    secondaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_choose_another,
-                    ),
-                    onSecondary = actions.onChooseAnotherFile,
-                )
-            }
+        uiState.stage == ImportStage.Failed -> HhBottomActionBar {
+            HhOutlineButton(label = chooseAnother, onClick = actions.onChooseAnotherFile, modifier = Modifier.weight(1f))
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_import_resume_try_again),
+                onClick = actions.onRetry,
+                modifier = Modifier.weight(1f),
+            )
+        }
 
-            ImportStage.Empty -> {
-                HhErrorCallout(
-                    title = stringResource(R.string.feature_onboarding_impl_import_resume_empty_heading),
-                    supportingText = stringResource(R.string.feature_onboarding_impl_import_resume_empty_body),
-                )
-                ImportStopActions(
-                    primaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_choose_another,
-                    ),
-                    onPrimary = actions.onChooseAnotherFile,
-                    secondaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_start_guided_form,
-                    ),
-                    onSecondary = actions.onStartGuidedForm,
-                )
-            }
+        uiState.stage == ImportStage.Unsupported -> HhBottomActionBar {
+            HhOutlineButton(label = guidedForm, onClick = actions.onStartGuidedForm, modifier = Modifier.weight(1f))
+            HhPrimaryButton(label = chooseAnother, onClick = actions.onChooseAnotherFile, modifier = Modifier.weight(1f))
+        }
 
-            ImportStage.TooLarge -> {
-                HhErrorCallout(
-                    title = stringResource(R.string.feature_onboarding_impl_import_resume_too_large_heading),
-                    supportingText = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_too_large_body,
-                        fileSizeLabel(RESUME_READ_LIMIT_BYTES),
-                    ),
-                )
-                ImportStopActions(
-                    primaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_choose_another,
-                    ),
-                    onPrimary = actions.onChooseAnotherFile,
-                    secondaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_start_guided_form,
-                    ),
-                    onSecondary = actions.onStartGuidedForm,
-                )
-            }
+        uiState.isStop -> HhBottomActionBar {
+            HhOutlineButton(label = chooseAnother, onClick = actions.onChooseAnotherFile, modifier = Modifier.weight(1f))
+            HhPrimaryButton(label = guidedForm, onClick = actions.onStartGuidedForm, modifier = Modifier.weight(1f))
+        }
 
-            else -> {
-                HhSpotIllustration(
-                    kind = HhSpotKind.Error,
-                    tint = HhTheme.colors.error,
-                    contentDescription = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_spot_error_description,
-                    ),
-                )
-                ImportStopCopy(
-                    heading = stringResource(R.string.feature_onboarding_impl_import_resume_failed_heading),
-                    body = stringResource(R.string.feature_onboarding_impl_import_resume_failed_body),
-                )
-                ImportStopActions(
-                    primaryLabel = stringResource(R.string.feature_onboarding_impl_import_resume_try_again),
-                    onPrimary = actions.onRetry,
-                    secondaryLabel = stringResource(
-                        R.string.feature_onboarding_impl_import_resume_choose_another,
-                    ),
-                    onSecondary = actions.onChooseAnotherFile,
-                )
-            }
+        else -> HhBottomActionBar {
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_import_resume_choose),
+                onClick = actions.onPickFile,
+                enabled = uiState.canPick,
+                trailingIcon = HhIcons.ArrowForward,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
 
 @Composable
-private fun ImportStopCopy(heading: String, body: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = heading,
-            style = HhTheme.typography.headlineSmall,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = body,
-            style = HhTheme.typography.bodyLarge,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun ImportStopActions(
-    primaryLabel: String,
-    onPrimary: () -> Unit,
-    secondaryLabel: String,
-    onSecondary: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-        HhButton(
-            onClick = onPrimary,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = primaryLabel)
-        }
-        HhOutlinedButton(
-            onClick = onSecondary,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HH_TOUCH_TARGET),
-        ) {
-            Text(text = secondaryLabel, color = HhTheme.colors.onSurface)
-        }
-    }
-}
-
-@Composable
-private fun fileSizeLabel(byteSize: Long): String =
-    Formatter.formatFileSize(LocalContext.current, byteSize)
-
-@Composable
-private fun fileTypeLabel(fileName: String): String {
-    val lower = fileName.lowercase()
-    val res = when {
-        lower.endsWith(".pdf") -> R.string.feature_onboarding_impl_import_resume_file_type_pdf
-        lower.endsWith(".docx") -> R.string.feature_onboarding_impl_import_resume_file_type_docx
-        else -> R.string.feature_onboarding_impl_import_resume_file_type_other
-    }
-    return stringResource(res)
-}
-
-internal fun EntryCategory.sectionRes(): Int = when (this) {
-    EntryCategory.EDUCATION -> R.string.feature_onboarding_impl_import_resume_section_education
-    EntryCategory.EXPERIENCE -> R.string.feature_onboarding_impl_import_resume_section_experience
-    EntryCategory.PROJECT -> R.string.feature_onboarding_impl_import_resume_section_project
-    EntryCategory.CERTIFICATION -> R.string.feature_onboarding_impl_import_resume_section_certification
-    EntryCategory.ACHIEVEMENT -> R.string.feature_onboarding_impl_import_resume_section_achievement
+private fun ImportResumeBarNotice() {
+    DisclosureCard(
+        text = AnnotatedString(stringResource(R.string.feature_onboarding_impl_import_resume_no_storage_permission)),
+        icon = HhIcons.Lock,
+    )
 }

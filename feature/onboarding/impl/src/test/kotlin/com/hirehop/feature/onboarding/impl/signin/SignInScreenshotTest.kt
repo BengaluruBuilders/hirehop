@@ -116,14 +116,6 @@ class SignInScreenshotTest {
     }
 
     @Test
-    fun skipped_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "SignInSkipped",
-            uiState = baseState(stage = SignInStage.SKIPPED, isAdultConfirmed = true),
-        )
-    }
-
-    @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
     fun default_atLargeTextStacksFullWidth() {
         captureBothThemes(
@@ -150,11 +142,7 @@ class SignInScreenshotTest {
     private fun showScreen(uiState: SignInUiState) {
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
-                SignInScreen(
-                    uiState = uiState,
-                    actions = noOpActions,
-                    onSkipToJobDescription = {},
-                )
+                SignInScreen(uiState = uiState, actions = noOpActions)
             }
         }
         composeRule.waitForIdle()
@@ -162,11 +150,11 @@ class SignInScreenshotTest {
 
     private val noOpActions = SignInActions(
         onAdultConfirmationChange = { },
+        onReferralCodeChange = {},
         onContinue = {},
-        onNotNow = {},
-        onRevisit = {},
         onUnderEighteen = {},
         onBackFromUnderEighteen = {},
+        onBack = {},
     )
 
     private fun baseState(

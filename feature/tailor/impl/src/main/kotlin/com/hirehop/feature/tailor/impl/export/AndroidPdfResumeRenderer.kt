@@ -16,12 +16,18 @@ internal class AndroidPdfResumeRenderer @Inject constructor(
     @param:Dispatcher(HhDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ResumePdfRenderer {
 
-    override suspend fun render(document: ResumeDocument, fileName: String): File =
+    override suspend fun render(document: ResumeDocument, fileName: String): RenderedResume =
         withContext(ioDispatcher) {
             val pdf = PdfDocument()
             try {
-                ResumePdfComposer(PdfPageWriter(pdf), PdfResumeStyle()).compose(document)
-                ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY)).write(fileName) { pdf.writeTo(it) }
+                val writer = PdfPageWriter(pdf)
+                ResumePdfComposer(
+                    writer = writer,
+                    style = PdfResumeStyle(document.template.textScale),
+                    spaceScale = document.template.spaceScale,
+                ).compose(document)
+                val file = ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY)).write(fileName) { pdf.writeTo(it) }
+                RenderedResume(file = file, pageCount = writer.pageCount)
             } finally {
                 pdf.close()
             }

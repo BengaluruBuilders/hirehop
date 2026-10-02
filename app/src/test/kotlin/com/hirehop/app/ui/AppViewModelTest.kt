@@ -1,0 +1,67 @@
+package com.hirehop.app.ui
+
+import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.onboarding.ObserveStartDestinationUseCase
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.repository.TestSessionRepository
+import com.hirehop.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
+import org.junit.Rule
+import org.junit.Test
+
+class AppViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(StandardTestDispatcher())
+
+    private val sessionRepository = TestSessionRepository()
+
+    private fun viewModel() = AppViewModel(ObserveStartDestinationUseCase(sessionRepository))
+
+    @Test
+    fun rootState_beforeAnyValueIsCollected_isLoading() {
+        assertThat(viewModel().rootState.value).isEqualTo(AppRootState.Loading)
+    }
+
+    @Test
+    fun rootState_whenOnboardingIsNotComplete_isFirstRun() = runTest {
+        viewModel().rootState.test {
+            assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
+            assertThat(awaitItem()).isEqualTo(AppRootState.FirstRun)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun rootState_whenOnboardingIsComplete_isMainWithoutShowingFirstRun() = runTest {
+        sessionRepository.sendAccount(SignInAccount.localAccount)
+        sessionRepository.sendOnboardingComplete(true)
+
+        viewModel().rootState.test {
+            assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
+            assertThat(awaitItem()).isEqualTo(AppRootState.Main)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun rootState_followsTheOnboardingFlagInBothDirections() = runTest {
+        viewModel().rootState.test {
+            assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
+            assertThat(awaitItem()).isEqualTo(AppRootState.FirstRun)
+
+            sessionRepository.saveAccount(SignInAccount.localAccount)
+            sessionRepository.markOnboardingComplete()
+            assertThat(awaitItem()).isEqualTo(AppRootState.Main)
+
+            sessionRepository.signOut()
+            assertThat(awaitItem()).isEqualTo(AppRootState.FirstRun)
+
+            sessionRepository.saveAccount(SignInAccount.localAccount)
+            assertThat(awaitItem()).isEqualTo(AppRootState.Main)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+}

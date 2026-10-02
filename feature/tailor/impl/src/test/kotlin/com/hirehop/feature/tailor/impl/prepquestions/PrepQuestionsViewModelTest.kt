@@ -9,16 +9,21 @@ import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
+import com.hirehop.core.model.ReportedItemKind
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.data.canonicalProfileWithoutEntries
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestContentReportRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.PrepQuestionsNavKey
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -31,6 +36,9 @@ class PrepQuestionsViewModelTest {
 
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val reports = TestContentReportRepository()
+    private val clock = TestClock()
 
     private lateinit var viewModel: PrepQuestionsViewModel
 
@@ -105,7 +113,7 @@ class PrepQuestionsViewModelTest {
         val strengths = viewModel.uiState.value.groups
             .single { group -> group.kind == PrepQuestionKind.STRENGTH }
             .cards
-        assertThat(strengths.map { card -> card.backingFactId }).containsExactly("P-03-b1", "P-03-b1")
+        assertThat(strengths.map { card -> card.fact?.factId }).containsExactly("P-03-b1", "P-03-b1")
     }
 
     @Test
@@ -114,7 +122,7 @@ class PrepQuestionsViewModelTest {
         viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
 
         val gaps = viewModel.uiState.value.groups.single { group -> group.kind == PrepQuestionKind.GAP }
-        assertThat(gaps.cards.map { card -> card.backingFactId }).containsExactly(null, null)
+        assertThat(gaps.cards.map { card -> card.fact }).containsExactly(null, null)
         assertThat(gaps.cards.first().requirementText).isEqualTo("Agile delivery with JIRA")
     }
 
@@ -177,31 +185,6 @@ class PrepQuestionsViewModelTest {
     }
 
     @Test
-    fun partialScenario_showsTheGapsGroupFirstWithoutHidingTheRest() = runTest {
-        given()
-        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.PARTIAL))
-
-        val state = viewModel.uiState.value
-        assertThat(state.filter).isEqualTo(PrepQuestionFilter.GAP)
-        assertThat(state.visibleGroups.map { group -> group.kind }).containsExactly(PrepQuestionKind.GAP)
-        assertThat(state.totalCount).isEqualTo(6)
-        assertThat(state.countOf(PrepQuestionFilter.STRENGTH)).isEqualTo(2)
-    }
-
-    @Test
-    fun filterChosen_switchesTheGroupWithoutLosingAnyQuestion() = runTest {
-        given()
-        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-
-        viewModel.onAction(PrepQuestionsAction.FilterChosen(PrepQuestionFilter.STRENGTH))
-        assertThat(viewModel.uiState.value.visibleGroups).hasSize(1)
-
-        viewModel.onAction(PrepQuestionsAction.FilterChosen(PrepQuestionFilter.ALL))
-        assertThat(viewModel.uiState.value.visibleGroups).hasSize(3)
-        assertThat(viewModel.uiState.value.totalCount).isEqualTo(6)
-    }
-
-    @Test
     fun emptyAnalysis_saysSoInsteadOfInventingAQuestion() = runTest {
         applicationRepository.sendApplications(listOf(canonicalApplication.copy(gapAnalysis = noMatches())))
         profileRepository.sendProfile(canonicalCandidateProfile)
@@ -261,9 +244,32 @@ class PrepQuestionsViewModelTest {
         viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.OFFLINE))
 
         val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(PrepQuestionsStage.OFFLINE)
+        assertThat(state.stage).isEqualTo(PrepQuestionsStage.READY)
         assertThat(state.isOffline).isTrue()
         assertThat(state.totalCount).isEqualTo(6)
+    }
+
+    @Test
+    fun connectivityLoss_marksTheSavedListOffline() = runTest {
+        given()
+        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        assertThat(viewModel.uiState.value.isOffline).isFalse()
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+        assertThat(viewModel.uiState.value.totalCount).isEqualTo(6)
+    }
+
+    @Test
+    fun readyList_numbersTheFactQuestionsAndKeepsGapsApart() = runTest {
+        given()
+        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        val state = viewModel.uiState.value
+        assertThat(state.factCards.map { it.ordinal }).containsExactly(1, 2, 3, 4).inOrder()
+        assertThat(state.questionCount).isEqualTo(4)
+        assertThat(state.gapCards).hasSize(2)
     }
 
     @Test
@@ -282,7 +288,6 @@ class PrepQuestionsViewModelTest {
             PrepQuestionsStage.READY,
             PrepQuestionsStage.EMPTY_ANALYSIS,
             PrepQuestionsStage.EMPTY_PROFILE,
-            PrepQuestionsStage.OFFLINE,
             PrepQuestionsStage.ERROR,
         )
         for (scenario in DebugScenario.entries) {
@@ -306,60 +311,31 @@ class PrepQuestionsViewModelTest {
     }
 
     @Test
-    fun practiseToggled_marksAndUnmarksTheQuestion() = runTest {
-        given()
-        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        val id = viewModel.uiState.value.groups.first().cards.first().id
-
-        viewModel.onAction(PrepQuestionsAction.PractiseToggled(id))
-
-        assertThat(viewModel.uiState.value.cardOf(id)?.isPractised).isTrue()
-        assertThat(viewModel.uiState.value.practisedCount).isEqualTo(1)
-        assertThat(viewModel.uiState.value.message).isEqualTo(PrepQuestionsMessage.PRACTISED)
-
-        viewModel.onAction(PrepQuestionsAction.PractiseToggled(id))
-
-        assertThat(viewModel.uiState.value.cardOf(id)?.isPractised).isFalse()
-        assertThat(viewModel.uiState.value.practisedCount).isEqualTo(0)
-        assertThat(viewModel.uiState.value.message).isEqualTo(PrepQuestionsMessage.UNPRACTISED)
-    }
-
-    @Test
-    fun practiseToggled_leavesTheOtherQuestionsAlone() = runTest {
-        given()
-        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        val before = viewModel.uiState.value.practiseFlags()
-        val target = viewModel.uiState.value.groups.first().cards.first().id
-
-        viewModel.onAction(PrepQuestionsAction.PractiseToggled(target))
-
-        val after = viewModel.uiState.value.practiseFlags()
-        assertThat(after.size).isEqualTo(before.size)
-        assertThat(after.filter { pair -> pair.second }.map { pair -> pair.first })
-            .containsExactly(target)
-        assertThat(before.all { pair -> !pair.second }).isTrue()
-    }
-
-    @Test
-    fun practiseToggled_onAnUnknownQuestion_doesNothing() = runTest {
-        given()
-        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-
-        viewModel.onAction(PrepQuestionsAction.PractiseToggled("not-a-real-id"))
-
-        assertThat(viewModel.uiState.value.practisedCount).isEqualTo(0)
-        assertThat(viewModel.uiState.value.message).isNull()
-    }
-
-    @Test
-    fun reportInaccurate_doesNotClaimTheReportWasSent() = runTest {
+    fun reportInaccurate_savesTheReportAndThanksThePerson() = runTest {
         given()
         viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
         val id = viewModel.uiState.value.groups.first().cards.first().id
 
         viewModel.onAction(PrepQuestionsAction.ReportInaccurate(id))
 
-        assertThat(viewModel.uiState.value.message).isEqualTo(PrepQuestionsMessage.REPORT_UNAVAILABLE)
+        assertThat(viewModel.uiState.value.message).isEqualTo(PrepQuestionsMessage.REPORTED)
+        val saved = reports.observeReports(APPLICATION_ID).first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.PREP_QUESTION)
+        assertThat(saved.itemId).isEqualTo(id)
+        assertThat(viewModel.uiState.value.reportedIds).containsExactly(id)
+    }
+
+    @Test
+    fun reportedQuestion_staysReportedWhenTheScreenOpensAgain() = runTest {
+        given()
+        viewModel.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        val id = viewModel.uiState.value.groups.first().cards.first().id
+        viewModel.onAction(PrepQuestionsAction.ReportInaccurate(id))
+
+        val reopened = newViewModel()
+        reopened.onEnter(PrepQuestionsNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(reopened.uiState.value.reportedIds).containsExactly(id)
     }
 
     @Test
@@ -370,6 +346,7 @@ class PrepQuestionsViewModelTest {
         viewModel.onAction(PrepQuestionsAction.ReportInaccurate("not-a-real-id"))
 
         assertThat(viewModel.uiState.value.message).isNull()
+        assertThat(reports.observeReports(APPLICATION_ID).first()).isEmpty()
     }
 
     @Test
@@ -416,6 +393,9 @@ class PrepQuestionsViewModelTest {
         applicationRepository = applicationRepository,
         profileRepository = profileRepository,
         generatePrepQuestions = GeneratePrepQuestionsUseCase(),
+        connectivityMonitor = connectivity,
+        contentReportRepository = reports,
+        clock = clock,
     )
 
     private fun given(gap: GapAnalysis = requireNotNull(canonicalApplication.gapAnalysis)) {
@@ -463,10 +443,6 @@ class PrepQuestionsViewModelTest {
             keywordCoverage = KeywordCoverage(covered = 0, total = matches.size),
         )
     }
-
-    private fun PrepQuestionsUiState.practiseFlags(): List<Pair<String, Boolean>> = groups
-        .flatMap { group -> group.cards }
-        .map { card -> card.id to card.isPractised }
 }
 
 private const val APPLICATION_ID = "application-northwind-1"

@@ -1,27 +1,11 @@
 package com.hirehop.core.ui.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.designsystem.component.HhConfirmDialog
+import com.hirehop.core.designsystem.component.HhDestructiveButton
 
 enum class DeleteItemKind {
     PROFILE_FACT,
@@ -116,65 +100,16 @@ fun DeleteItemDialog(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = HhTheme.colors
-    val shape = RoundedCornerShape(HhTheme.shapes.lg)
-    Dialog(
-        onDismissRequest = onKeep,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(HhTheme.spacing.d24)
-                .background(color = colors.surface, shape = shape)
-                .border(width = 1.dp, color = colors.hairline, shape = shape)
-                .padding(HhTheme.spacing.d24),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        ) {
-            Text(
-                text = content.title,
-                style = HhTheme.typography.displaySmall,
-                color = colors.onSurface,
-            )
-            Text(
-                text = content.body,
-                style = HhTheme.typography.bodyLarge,
-                color = colors.onSurfaceVariant,
-            )
-            Text(
-                text = content.note,
-                style = HhTheme.typography.titleSmall,
-                color = colors.onSurface,
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d8),
-            ) {
-                content.actions.forEach { action ->
-                    if (action.isDestructive) {
-                        DestructiveActionButton(
-                            label = action.label,
-                            onClick = onDelete,
-                        )
-                    } else {
-                        HhOutlinedButton(
-                            onClick = onKeep,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = HhTheme.spacing.d48),
-                        ) {
-                            Text(
-                                text = action.label,
-                                style = HhTheme.typography.titleMedium,
-                                color = colors.onSurface,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+    HhConfirmDialog(
+        title = content.title,
+        message = "${content.body}\n\n${content.note}",
+        confirmLabel = content.deleteAction.label,
+        cancelLabel = content.keepAction.label,
+        onConfirm = onDelete,
+        onCancel = onKeep,
+        modifier = modifier,
+        destructive = true,
+    )
 }
 
 @Composable
@@ -184,24 +119,10 @@ fun DestructiveActionButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    val colors = HhTheme.colors
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = HhTheme.spacing.d48)
-            .background(
-                color = if (enabled) colors.error else colors.surface3,
-                shape = RoundedCornerShape(HhTheme.shapes.full),
-            )
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = HhTheme.spacing.d12, vertical = HhTheme.spacing.md),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = HhTheme.typography.titleMedium,
-            color = if (enabled) colors.onError else colors.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
+    HhDestructiveButton(
+        label = label,
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+    )
 }

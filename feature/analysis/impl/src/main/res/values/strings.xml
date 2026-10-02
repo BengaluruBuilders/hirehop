@@ -1,96 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_analysis_impl_title">Analyze a job</string>
+    <string name="feature_analysis_impl_title_fallback">Job analysis</string>
+    <string name="feature_analysis_impl_role_not_set">Role not set</string>
+    <string name="feature_analysis_impl_company_not_set">Company not set</string>
     <string name="feature_analysis_impl_back">Go back</string>
-    <string name="feature_analysis_impl_loading">Loading</string>
-    <string name="feature_analysis_impl_analyzing">Analyzing the job description</string>
-    <string name="feature_analysis_impl_saving">Saving your application</string>
 
-    <string name="feature_analysis_impl_no_profile_title">Build your profile first</string>
-    <string name="feature_analysis_impl_no_profile_message">HireHop compares a job with facts you confirmed in your profile. Add and confirm at least one profile entry, then come back.</string>
-    <string name="feature_analysis_impl_open_profile">Open profile</string>
-    <string name="feature_analysis_impl_no_profile_illustration">An empty profile sheet</string>
-    <string name="feature_analysis_impl_trust_no_invent">Never invents anything about you</string>
+    <string name="feature_analysis_impl_waiting_limit">Up to 20 seconds</string>
+    <string name="feature_analysis_impl_step_read">Reading the JD</string>
+    <string name="feature_analysis_impl_step_match">Matching your facts</string>
+    <string name="feature_analysis_impl_step_sort">Sorting must-haves first</string>
+    <plurals name="feature_analysis_impl_step_read_detail_terms">
+        <item quantity="one">%d key term</item>
+        <item quantity="other">%d key terms</item>
+    </plurals>
+    <plurals name="feature_analysis_impl_step_read_detail_requirements">
+        <item quantity="one">%d requirement</item>
+        <item quantity="other">%d requirements</item>
+    </plurals>
+    <plurals name="feature_analysis_impl_step_match_detail">
+        <item quantity="one">Checking %d confirmed fact</item>
+        <item quantity="other">Checking %d confirmed facts</item>
+    </plurals>
+    <string name="feature_analysis_impl_waiting_footnote">You can leave this screen. Your analysis will be here.</string>
 
-    <string name="feature_analysis_impl_input_label">Job description</string>
-    <string name="feature_analysis_impl_input_placeholder">Paste the full job description here</string>
-    <string name="feature_analysis_impl_input_hint">Paste the whole text, including the requirements and the nice-to-have list.</string>
-    <string name="feature_analysis_impl_character_count">%1$d / %2$d characters</string>
-    <string name="feature_analysis_impl_paste">Paste</string>
-    <string name="feature_analysis_impl_analyze">Analyze</string>
+    <string name="feature_analysis_impl_error_title">We couldn’t finish this analysis</string>
+    <string name="feature_analysis_impl_error_body">Your JD and your facts are safe. This one did not count towards today’s free analyses.</string>
+    <string name="feature_analysis_impl_retry">Try again</string>
+    <string name="feature_analysis_impl_daily_limit_title">Today’s free analyses are used</string>
+    <string name="feature_analysis_impl_daily_limit_body">You\'ve used today\'s 3 free analyses. You get 3 more tomorrow.</string>
+    <string name="feature_analysis_impl_daily_limit_note">This JD is saved. Open it tomorrow and tap Analyse.</string>
+    <string name="feature_analysis_impl_edit_job">Edit the job description</string>
+    <string name="feature_analysis_impl_back_to_job">Back to my JD</string>
 
-    <string name="feature_analysis_impl_coverage_explanation">Key terms from this job description that appear in your confirmed facts. It is not a score.</string>
+    <string name="feature_analysis_impl_offline_banner">You\'re offline. This is your last result. Tailoring needs a connection.</string>
+    <string name="feature_analysis_impl_offline_caption">Tailor needs a connection.</string>
+
     <string name="feature_analysis_impl_coverage_fraction">%1$d / %2$d</string>
     <string name="feature_analysis_impl_coverage_caption">key terms</string>
-    <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms. Go back and paste more of the job description.</string>
-    <string name="feature_analysis_impl_edit_job_text">Edit job text</string>
-    <string name="feature_analysis_impl_job_details_header">JOB DETAILS</string>
-    <string name="feature_analysis_impl_field_title_required">Add the role name to save this application</string>
-    <string name="feature_analysis_impl_field_title">Job title</string>
-    <string name="feature_analysis_impl_field_company">Company</string>
-
-    <string name="feature_analysis_impl_group_must_have_gaps">MUST-HAVE GAPS</string>
-    <string name="feature_analysis_impl_group_partial">PARTLY MET</string>
-    <string name="feature_analysis_impl_group_met">MET</string>
-    <string name="feature_analysis_impl_group_nice_to_have_gaps">NICE-TO-HAVE GAPS</string>
-    <string name="feature_analysis_impl_group_header">%1$s · %2$d</string>
-
-    <string name="feature_analysis_impl_status_met">Met</string>
-    <string name="feature_analysis_impl_status_partial">Partly met</string>
-    <string name="feature_analysis_impl_status_gap">Gap</string>
-    <string name="feature_analysis_impl_priority_must_have">Must-have</string>
-    <string name="feature_analysis_impl_priority_nice_to_have">Nice-to-have</string>
-    <string name="feature_analysis_impl_type_skill">Skill</string>
-    <string name="feature_analysis_impl_type_tool">Tool</string>
-    <string name="feature_analysis_impl_type_experience">Experience</string>
-    <string name="feature_analysis_impl_type_education">Education</string>
-    <string name="feature_analysis_impl_type_soft_skill">Soft skill</string>
-    <string name="feature_analysis_impl_evidence_header">Your evidence</string>
-    <string name="feature_analysis_impl_fact_backed">Backed by your fact %1$s</string>
-    <string name="feature_analysis_impl_requirement_row_description">%1$s. %2$s. %3$s.</string>
-    <plurals name="feature_analysis_impl_tally_met">
-        <item quantity="one">%d met</item>
-        <item quantity="other">%d met</item>
-    </plurals>
-    <plurals name="feature_analysis_impl_tally_partial">
-        <item quantity="one">%d partly met</item>
-        <item quantity="other">%d partly met</item>
-    </plurals>
-    <plurals name="feature_analysis_impl_tally_gap">
-        <item quantity="one">%d gap</item>
-        <item quantity="other">%d gap</item>
-    </plurals>
-    <plurals name="feature_analysis_impl_gaps_are_tasks">
+    <string name="feature_analysis_impl_coverage_title">You cover %1$s of %2$s key terms</string>
+    <string name="feature_analysis_impl_coverage_met">%1$s Met</string>
+    <string name="feature_analysis_impl_coverage_gap">%1$s To prepare</string>
+    <string name="feature_analysis_impl_coverage_note">Key terms from this JD that appear in your confirmed facts. It is not a score.</string>
+    <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms in this JD. Go back and paste more of it.</string>
+    <plurals name="feature_analysis_impl_gap_note">
         <item quantity="one">%d gap. Each one can become a prep task.</item>
         <item quantity="other">%d gaps. Each one can become a prep task.</item>
     </plurals>
-    <string name="feature_analysis_impl_all_met_banner">Every requirement here has a fact behind it.</string>
-    <string name="feature_analysis_impl_coverage_hero_description">Key term coverage %1$d of %2$d. It is not a score.</string>
 
+    <string name="feature_analysis_impl_group_must_have_gaps">Must-have gaps</string>
+    <string name="feature_analysis_impl_group_partial">Partly met</string>
+    <string name="feature_analysis_impl_group_met">Met</string>
+    <string name="feature_analysis_impl_group_nice_to_have_gaps">Nice-to-have gaps</string>
+
+    <string name="feature_analysis_impl_status_met">Met</string>
+    <string name="feature_analysis_impl_status_partial">Partly met</string>
+    <string name="feature_analysis_impl_status_gap">To prepare</string>
+    <string name="feature_analysis_impl_priority_must_have">Must-have</string>
+    <string name="feature_analysis_impl_priority_nice_to_have">Nice to have</string>
+    <string name="feature_analysis_impl_row_description">%1$s. %2$s. %3$s.</string>
+    <string name="feature_analysis_impl_row_actions">Actions: I have this, Add to my prep plan.</string>
+    <string name="feature_analysis_impl_row_sources">Sources: %1$s.</string>
+    <string name="feature_analysis_impl_more_actions">More actions</string>
+    <string name="feature_analysis_impl_source_fact">Source fact %1$s</string>
     <string name="feature_analysis_impl_i_have_this">I have this</string>
-    <string name="feature_analysis_impl_add_to_prep_plan">Add to prep plan</string>
-    <string name="feature_analysis_impl_in_prep_plan">In prep plan</string>
+    <string name="feature_analysis_impl_add_to_prep_plan">Add to my prep plan</string>
+    <string name="feature_analysis_impl_prep_description">Add to my prep plan: %1$s</string>
+    <string name="feature_analysis_impl_prep_added">Added</string>
+    <string name="feature_analysis_impl_prep_not_added">Not added</string>
 
-    <string name="feature_analysis_impl_evidence_dialog_title">Add your evidence</string>
-    <string name="feature_analysis_impl_evidence_dialog_message">Write one true sentence that shows this. HireHop saves it in your profile as a fact you stated.</string>
-    <string name="feature_analysis_impl_evidence_dialog_label">Your evidence</string>
-    <string name="feature_analysis_impl_evidence_dialog_confirm">Add evidence</string>
+    <string name="feature_analysis_impl_menu_report">Report inaccurate content</string>
+    <string name="feature_analysis_impl_menu_source">See where this comes from</string>
+    <string name="feature_analysis_impl_source_title">Source for “%1$s”</string>
+    <string name="feature_analysis_impl_source_skills">From your skills: %1$s</string>
+    <string name="feature_analysis_impl_edit_fact">Edit fact</string>
+    <string name="feature_analysis_impl_fact_dates">%1$s · %2$s to %3$s</string>
+    <string name="feature_analysis_impl_fact_until_now">%1$s · %2$s to now</string>
+    <string name="feature_analysis_impl_provenance_confirmed">Confirmed</string>
+    <string name="feature_analysis_impl_provenance_user_stated">User-stated</string>
+    <string name="feature_analysis_impl_provenance_user_edited">User-edited</string>
+    <string name="feature_analysis_impl_provenance_scanned">Scanned</string>
+
+    <string name="feature_analysis_impl_question_eyebrow">I have this · %1$s</string>
+    <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
+    <string name="feature_analysis_impl_question_body">Tell us in your own words. We save it as a user-stated fact, marked so, and use only what you write.</string>
+    <string name="feature_analysis_impl_question_label">Where and how</string>
+    <string name="feature_analysis_impl_save_fact">Save as my fact</string>
     <string name="feature_analysis_impl_cancel">Cancel</string>
 
-    <string name="feature_analysis_impl_prep_plan_count">%1$d in your prep plan. HireHop saves them in the notes of the application.</string>
-    <string name="feature_analysis_impl_error_analyze">This analysis did not finish</string>
-    <string name="feature_analysis_impl_error_analyze_supporting">Your job description and your profile are safe. Try again.</string>
-    <string name="feature_analysis_impl_error_add_evidence">Your fact was not saved</string>
-    <string name="feature_analysis_impl_error_add_evidence_supporting">Nothing was written to your profile. Your words are still on screen, so try again.</string>
-    <string name="feature_analysis_impl_error_save">This application was not saved</string>
-    <string name="feature_analysis_impl_error_save_supporting">Your profile and your prep plan are safe. Try again.</string>
-    <string name="feature_analysis_impl_error_dismiss">Dismiss</string>
-    <string name="feature_analysis_impl_dialog_adds_skills">Adds to your skills: %1$s</string>
-    <string name="feature_analysis_impl_dialog_adds_no_skills">Nothing to add to skills</string>
-    <string name="feature_analysis_impl_dialog_adds_line">Adds this line to your profile: %1$s</string>
-    <string name="feature_analysis_impl_i_have_this_description">I have this: %1$s</string>
-    <string name="feature_analysis_impl_add_to_prep_plan_description">Add to prep plan: %1$s</string>
-    <string name="feature_analysis_impl_prep_state_added">Added</string>
-    <string name="feature_analysis_impl_prep_state_not_added">Not added</string>
-    <string name="feature_analysis_impl_save_and_tailor">Save and tailor resume</string>
+    <string name="feature_analysis_impl_toast_prep_added">%1$s added to your prep plan</string>
+    <string name="feature_analysis_impl_toast_gap_closed">Saved as your own words. Gap closed.</string>
+    <string name="feature_analysis_impl_toast_fact_saved">Saved as your own words.</string>
+    <string name="feature_analysis_impl_toast_reported">Thanks. We will check this.</string>
+    <string name="feature_analysis_impl_toast_evidence_failed">We couldn’t save that. Nothing changed in your profile.</string>
+    <string name="feature_analysis_impl_toast_tailor_failed">We couldn’t create your application. Try again.</string>
+    <string name="feature_analysis_impl_undo">Undo</string>
+
+    <string name="feature_analysis_impl_credit_note">Free to tailor and preview. Downloading uses 1 credit. You have %1$s free.</string>
+    <string name="feature_analysis_impl_tailor_limit">You\'ve used today\'s free tailoring. Your analysis is saved. You can tailor again tomorrow.</string>
+    <string name="feature_analysis_impl_tailor_limit_cap">Free tailors today: %1$d</string>
+    <string name="feature_analysis_impl_share_card">Share JD fit card</string>
+    <string name="feature_analysis_impl_tailor">Tailor my resume</string>
+
+    <string name="feature_analysis_impl_share_eyebrow">JD fit</string>
+    <string name="feature_analysis_impl_share_headline">My fit, from confirmed facts</string>
+    <string name="feature_analysis_impl_share_caption">key terms covered</string>
+    <string name="feature_analysis_impl_share_footer">HireHop · We never invent anything about you.</string>
+    <string name="feature_analysis_impl_share_action">Share</string>
+    <string name="feature_analysis_impl_share_chooser">Share JD fit</string>
+    <string name="feature_analysis_impl_share_text">My fit for %1$s at %2$s: my confirmed facts cover %3$s of %4$s key terms. Made with HireHop.</string>
 </resources>

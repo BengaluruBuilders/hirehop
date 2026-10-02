@@ -2,15 +2,24 @@ package com.hirehop.feature.tailor.impl.coverletter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.ContentReportRepository
+import com.hirehop.core.data.repository.CoverLetterRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.coverletter.CoverLetterSource
+import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.ContentReport
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobApplication
 import com.hirehop.core.model.KeywordCoverage
+import com.hirehop.core.model.ReportedItemKind
 import com.hirehop.feature.tailor.api.navigation.CoverLetterNavKey
+import com.hirehop.feature.tailor.impl.TailorInputs
+import com.hirehop.feature.tailor.impl.TailorUiState
+import com.hirehop.feature.tailor.impl.buildTailorUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,12 +28,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Clock
 
 @HiltViewModel
 class CoverLetterViewModel @Inject constructor(
     private val applicationRepository: ApplicationRepository,
     private val profileRepository: ProfileRepository,
     private val generateCoverLetter: CoverLetterSource,
+    private val connectivityMonitor: ConnectivityMonitor,
+    private val contentReportRepository: ContentReportRepository,
+    private val coverLetterRepository: CoverLetterRepository,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(CoverLetterUiState())
@@ -42,60 +56,110 @@ class CoverLetterViewModel @Inject constructor(
         hasEntered = true
         applicationId = key.applicationId
         scenario = key.scenario
-        mutableState.value = CoverLetterUiState(stage = coverLetterStageFor(key.scenario))
-        if (coverLetterIsStatic(key.scenario)) return
-        viewModelScope.launch { load() }
+        mutableState.value = CoverLetterUiState(
+            stage = coverLetterStageFor(key.scenario),
+            isOffline = key.scenario == DebugScenario.OFFLINE,
+        )
+        viewModelScope.launch { observeConnectivity() }
+        viewModelScope.launch { observeReports() }
+        viewModelScope.launch { loadOffer() }
     }
 
     fun onAction(action: CoverLetterAction) {
         when (action) {
+            CoverLetterAction.WriteOne -> onWriteOne()
             is CoverLetterAction.BeginEdit -> onBeginEdit(action.ordinal)
             is CoverLetterAction.EditTextChanged -> onEditTextChanged(action.value)
             CoverLetterAction.SaveEdit -> onSaveEdit()
             CoverLetterAction.CancelEdit -> onCancelEdit()
-            is CoverLetterAction.CopyLetter -> onCopyLetter(action.letterText)
             is CoverLetterAction.ReportInaccurate -> onReportInaccurate(action.ordinal)
             CoverLetterAction.DismissMessage -> onDismissMessage()
-            CoverLetterAction.Retry -> onRetry()
+            CoverLetterAction.Retry -> onWriteOne()
         }
+    }
+
+    private suspend fun observeConnectivity() {
+        connectivityMonitor.isOnline.collect { online ->
+            mutableState.update { state ->
+                state.copy(isOffline = !online || scenario == DebugScenario.OFFLINE)
+            }
+        }
+    }
+
+    private suspend fun observeReports() {
+        contentReportRepository.observeReportedIds(applicationId, ReportedItemKind.COVER_LETTER).collect { ids ->
+            mutableState.update { state -> state.copy(reportedIds = ids) }
+        }
+    }
+
+    private suspend fun loadOffer() {
+        val application = applicationRepository.observeApplication(applicationId).first() ?: return
+        val profile = profileRepository.observeProfile().first()
+        val (reviewed, total) = application.reviewSummary(profile)
+        mutableState.update { state ->
+            state.copy(
+                jobTitle = application.job.title,
+                jobCompany = application.job.company,
+                reviewedCount = reviewed,
+                totalCount = total,
+            )
+        }
+        restoreWrittenLetter(application, profile)
+    }
+
+    private suspend fun restoreWrittenLetter(application: JobApplication, profile: CandidateProfile?) {
+        if (scenario != DebugScenario.DEFAULT) return
+        val written = coverLetterRepository.observeLetter(applicationId).first() ?: return
+        val restored = restoredCoverLetterState(profile, application.analysisOrEmpty(), written) ?: return
+        mutableState.update { state ->
+            if (state.stage != CoverLetterStage.OFFER) {
+                state
+            } else {
+                restored.copy(
+                    isOffline = state.isOffline,
+                    reviewedCount = state.reviewedCount,
+                    totalCount = state.totalCount,
+                    reportedIds = state.reportedIds,
+                )
+            }
+        }
+    }
+
+    private fun onWriteOne() {
+        mutableState.update { state -> state.copy(stage = CoverLetterStage.GENERATING) }
+        viewModelScope.launch { load() }
     }
 
     private suspend fun load() {
         val application = applicationRepository.observeApplication(applicationId).first()
         if (application == null) {
-            mutableState.value = CoverLetterUiState(stage = CoverLetterStage.ERROR)
+            mutableState.update { state -> state.copy(stage = CoverLetterStage.ERROR) }
             return
         }
         val profile = profileRepository.observeProfile().first()
         val analysis = application.analysisOrEmpty()
         if (profile == null) {
-            mutableState.value = CoverLetterUiState(
-                stage = CoverLetterStage.EMPTY_PROFILE,
-                jobTitle = analysis.job.title,
-                jobCompany = analysis.job.company,
-                isOffline = coverLetterIsOffline(scenario),
-            )
+            mutableState.update { state -> state.copy(stage = CoverLetterStage.EMPTY_PROFILE) }
             return
         }
         val draft = runCatching { generateCoverLetter(candidate = profile, job = application.job, analysis = analysis) }
             .getOrNull()
         if (draft == null) {
-            mutableState.value = CoverLetterUiState(
-                stage = CoverLetterStage.ERROR,
-                jobTitle = analysis.job.title,
-                jobCompany = analysis.job.company,
-                isOffline = coverLetterIsOffline(scenario),
-            )
+            mutableState.update { state -> state.copy(stage = CoverLetterStage.ERROR) }
             return
         }
-        mutableState.value = coverLetterStateFor(
-            CoverLetterInputs(
-                profile = profile,
-                analysis = analysis,
-                draft = draft,
-                isOffline = coverLetterIsOffline(scenario),
-            ),
-        )
+        val generated = coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))
+        if (generated.paragraphs.isNotEmpty()) {
+            coverLetterRepository.save(applicationId, generated.toWrittenLetter(clock.now()))
+        }
+        mutableState.update { state ->
+            generated.copy(
+                isOffline = state.isOffline,
+                reviewedCount = state.reviewedCount,
+                totalCount = state.totalCount,
+                reportedIds = state.reportedIds,
+            )
+        }
     }
 
     private fun onBeginEdit(ordinal: Int) {
@@ -114,49 +178,38 @@ class CoverLetterViewModel @Inject constructor(
     }
 
     private fun onSaveEdit() {
-        mutableState.update { state ->
-            val ordinal = state.editingOrdinal ?: return@update state
-            val replacement = state.editingText.trim()
-            if (replacement.isEmpty()) {
-                return@update state
-            }
-            state.copy(
-                paragraphs = state.paragraphs.map { paragraph ->
-                    if (paragraph.ordinal == ordinal) {
-                        paragraph.copy(
-                            text = replacement,
-                            isUserEdited = true,
-                            sentences = replacement.sentences().map { sentence ->
-                                CoverLetterSentence(text = sentence, factId = null)
-                            },
-                        )
-                    } else {
-                        paragraph
-                    }
-                },
-                editingOrdinal = null,
-                editingText = "",
-                message = CoverLetterMessage.SAVED,
-            )
-        }
+        val current = mutableState.value
+        val ordinal = current.editingOrdinal ?: return
+        val replacement = current.editingText.trim()
+        if (replacement.isEmpty()) return
+        val saved = current.copy(
+            paragraphs = current.paragraphs.map { paragraph ->
+                if (paragraph.ordinal == ordinal) paragraph.withEditedText(replacement) else paragraph
+            },
+            editingOrdinal = null,
+            editingText = "",
+            message = CoverLetterMessage.SAVED,
+        )
+        mutableState.value = saved
+        viewModelScope.launch { coverLetterRepository.save(applicationId, saved.toWrittenLetter(clock.now())) }
     }
 
     private fun onCancelEdit() {
         mutableState.update { state -> state.copy(editingOrdinal = null, editingText = "") }
     }
 
-    private fun onCopyLetter(letterText: String) {
-        mutableState.update { state -> state.copy(message = CoverLetterMessage.COPIED, copiedText = letterText) }
-    }
-
     private fun onReportInaccurate(ordinal: Int) {
-        mutableState.update { state ->
-            val known = state.paragraphs.any { paragraph -> paragraph.ordinal == ordinal }
-            if (known) {
-                state.copy(message = CoverLetterMessage.REPORT_UNAVAILABLE)
-            } else {
-                state
-            }
+        if (mutableState.value.paragraphs.none { paragraph -> paragraph.ordinal == ordinal }) return
+        mutableState.update { state -> state.copy(message = CoverLetterMessage.REPORTED) }
+        viewModelScope.launch {
+            contentReportRepository.report(
+                ContentReport(
+                    applicationId = applicationId,
+                    itemKind = ReportedItemKind.COVER_LETTER,
+                    itemId = ordinal.toString(),
+                    reportedAt = clock.now(),
+                ),
+            )
         }
     }
 
@@ -164,12 +217,17 @@ class CoverLetterViewModel @Inject constructor(
         mutableState.update { state -> state.copy(message = null) }
     }
 
-    private fun onRetry() {
-        mutableState.value = CoverLetterUiState(
-            stage = CoverLetterStage.GENERATING,
-            isOffline = coverLetterIsOffline(scenario),
-        )
-        viewModelScope.launch { load() }
+    private fun JobApplication.reviewSummary(profile: CandidateProfile?): Pair<Int, Int> {
+        val summary = buildTailorUiState(
+            TailorInputs(
+                application = this,
+                profile = profile,
+                isOffline = false,
+                regenerationsUsed = 0,
+                editedBulletIds = emptySet(),
+            ),
+        ) as? TailorUiState.Success
+        return (summary?.reviewedCount ?: 0) to (summary?.totalCount ?: 0)
     }
 
     private fun JobApplication.analysisOrEmpty(): JobAnalysisResult = JobAnalysisResult(

@@ -32,6 +32,7 @@ class OfflineFirstApplicationRepositoryContractTest : ApplicationRepositoryContr
         OfflineFirstApplicationRepository(
             jobApplicationDao = database.jobApplicationDao(),
             clock = Clock.System,
+            cleanup = ApplicationCleanup {},
             ioDispatcher = UnconfinedTestDispatcher(),
         )
 }

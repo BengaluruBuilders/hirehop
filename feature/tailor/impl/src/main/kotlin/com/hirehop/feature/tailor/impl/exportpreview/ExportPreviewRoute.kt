@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
 
 @Composable
@@ -19,27 +20,29 @@ internal fun ExportPreviewRoute(
     viewModel: ExportPreviewViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onNavigateBack, onExported, onBuyCredits) {
-        viewModel.toActions(
-            onNavigateBack = onNavigateBack,
-            onExported = onExported,
-            onBuyCredits = onBuyCredits,
-        )
+    val actions = remember(viewModel, onNavigateBack, onBuyCredits) {
+        viewModel.toActions(onNavigateBack = onNavigateBack, onBuyCredits = onBuyCredits)
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
+    LaunchedEffect(uiState.navigation) {
+        when (val navigation = uiState.navigation) {
+            null -> return@LaunchedEffect
+            is ExportPreviewNavigation.Exported -> onExported(navigation.format, navigation.spentFreeCredit)
+            ExportPreviewNavigation.BuyCredits -> onBuyCredits()
+        }
+        viewModel.onAction(ExportPreviewAction.NavigationHandled)
+    }
     ExportPreviewScreen(uiState = uiState, actions = actions, modifier = modifier)
 }
 
 private fun ExportPreviewViewModel.toActions(
     onNavigateBack: () -> Unit,
-    onExported: (ExportFormat, Boolean) -> Unit,
     onBuyCredits: () -> Unit,
 ): ExportPreviewActions = ExportPreviewActions(
     onSelectFormat = { format -> onAction(ExportPreviewAction.SelectFormat(format)) },
+    onSelectTemplate = { template -> onAction(ExportPreviewAction.SelectTemplate(template)) },
     onExport = { onAction(ExportPreviewAction.Export) },
-    onRetryPreview = { onAction(ExportPreviewAction.RetryPreview) },
-    onDismissResult = { onAction(ExportPreviewAction.DismissResult) },
+    onRetry = { onAction(ExportPreviewAction.RetryPreview) },
     onNavigateBack = onNavigateBack,
-    onExported = { format -> onExported(format, uiState.value.isFreeCredit) },
     onBuyCredits = onBuyCredits,
 )

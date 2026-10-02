@@ -4,6 +4,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.hirehop.core.navigation.Navigator
+import com.hirehop.feature.profile.api.navigation.FactEditorNavKey
 import com.hirehop.feature.tailor.api.navigation.BulletReviewNavKey
 import com.hirehop.feature.tailor.api.navigation.CoverLetterNavKey
 import com.hirehop.feature.tailor.api.navigation.CreditsNavKey
@@ -11,37 +12,45 @@ import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
 import com.hirehop.feature.tailor.api.navigation.ExportedNavKey
 import com.hirehop.feature.tailor.api.navigation.PackPurchaseNavKey
 import com.hirehop.feature.tailor.api.navigation.PrepQuestionsNavKey
+import com.hirehop.feature.tailor.api.navigation.ShareLastExportNavKey
 import com.hirehop.feature.tailor.api.navigation.TailorNavKey
 import com.hirehop.feature.tailor.impl.TailorRoute
 import com.hirehop.feature.tailor.impl.TailorViewModel
 import com.hirehop.feature.tailor.impl.coverletter.CoverLetterRoute
 import com.hirehop.feature.tailor.impl.credits.CreditsRoute
 import com.hirehop.feature.tailor.impl.exported.ExportedRoute
+import com.hirehop.feature.tailor.impl.exported.ShareLastExportRoute
+import com.hirehop.feature.tailor.impl.exported.finishExport
+import com.hirehop.feature.tailor.impl.exported.openApplicationWorkspace
 import com.hirehop.feature.tailor.impl.exportpreview.ExportPreviewRoute
 import com.hirehop.feature.tailor.impl.packpurchase.PackPurchaseRoute
 import com.hirehop.feature.tailor.impl.prepquestions.PrepQuestionsRoute
 
 fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
     entry<TailorNavKey> { key ->
-        val applicationId = key.applicationId
         TailorRoute(
             onBackClick = { navigator.goBack() },
+            onPreviewExport = { navigator.navigate(ExportPreviewNavKey(applicationId = key.applicationId)) },
+            onEditFact = { entryId, entryType -> navigator.navigate(FactEditorNavKey(entryId, entryType)) },
             viewModel = hiltViewModel<TailorViewModel, TailorViewModel.Factory>(
-                key = applicationId,
+                key = key.applicationId,
             ) { factory ->
-                factory.create(applicationId)
+                factory.create(key.applicationId, key.scenario)
             },
         )
     }
     entry<BulletReviewNavKey> { key ->
-        val applicationId = key.applicationId
         TailorRoute(
             onBackClick = { navigator.goBack() },
+            onPreviewExport = { navigator.navigate(ExportPreviewNavKey(applicationId = key.applicationId)) },
+            onEditFact = { entryId, entryType -> navigator.navigate(FactEditorNavKey(entryId, entryType)) },
             viewModel = hiltViewModel<TailorViewModel, TailorViewModel.Factory>(
-                key = applicationId,
+                key = key.applicationId,
             ) { factory ->
-                factory.create(applicationId)
+                factory.create(key.applicationId, key.scenario)
             },
+            initialBulletId = key.bulletId,
+            onBulletSheetClosed = { navigator.goBack() },
         )
     }
     entry<CoverLetterNavKey> { key ->
@@ -49,12 +58,15 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
             key = key,
             onNavigateBack = { navigator.goBack() },
             onSkipLetter = { navigator.goBack() },
+            onPreviewExport = { navigator.navigate(ExportPreviewNavKey(applicationId = key.applicationId)) },
         )
     }
     entry<PrepQuestionsNavKey> { key ->
         PrepQuestionsRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
+            onOpenPrepPlan = { navigator.openApplicationWorkspace(key.applicationId) },
+            onEditFact = { entryId, entryType -> navigator.navigate(FactEditorNavKey(entryId, entryType)) },
         )
     }
     entry<ExportPreviewNavKey> { key ->
@@ -71,7 +83,7 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
                 )
             },
             onBuyCredits = {
-                navigator.navigate(PackPurchaseNavKey(applicationId = key.applicationId))
+                navigator.navigate(PackPurchaseNavKey(applicationId = key.applicationId, startExportOnReturn = true))
             },
         )
     }
@@ -79,18 +91,30 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
         ExportedRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
+            onDone = { navigator.finishExport(key.applicationId) },
+            onGetPrepQuestions = { navigator.navigate(PrepQuestionsNavKey(applicationId = key.applicationId)) },
+            onWriteCoverLetter = { navigator.navigate(CoverLetterNavKey(applicationId = key.applicationId)) },
+        )
+    }
+    entry<ShareLastExportNavKey> { key ->
+        ShareLastExportRoute(
+            key = key,
+            onDone = { navigator.goBack() },
+            onFileMissing = { navigator.replace(ExportPreviewNavKey(applicationId = key.applicationId)) },
         )
     }
     entry<PackPurchaseNavKey> { key ->
         PackPurchaseRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
+            onOpenCredits = { navigator.navigate(CreditsNavKey()) },
         )
     }
     entry<CreditsNavKey> { key ->
         CreditsRoute(
             key = key,
             onNavigateBack = { navigator.goBack() },
+            onGetPack = { navigator.navigate(PackPurchaseNavKey(applicationId = "")) },
         )
     }
 }

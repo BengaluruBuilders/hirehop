@@ -47,8 +47,9 @@ fun TailoredBulletDto.asExternalModel() = TailoredBullet(
     decision = decision,
 )
 
-fun TailoredResume.asDto() = TailoredResumeDto(bullets = bullets.map(TailoredBullet::asDto))
+fun TailoredResume.asDto() = TailoredResumeDto(bullets = bullets.map(TailoredBullet::asDto), entryIds = entryIds)
 
 fun TailoredResumeDto.asExternalModel() = TailoredResume(
     bullets = bullets.map(TailoredBulletDto::asExternalModel),
+    entryIds = entryIds,
 )

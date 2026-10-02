@@ -17,9 +17,9 @@ sealed interface ApplicationWorkspaceAction {
 
     data object JobDescriptionToggled : ApplicationWorkspaceAction
 
-    data class PrepTaskToggled(val id: String) : ApplicationWorkspaceAction
+    data object GapAnalysisToggled : ApplicationWorkspaceAction
 
-    data class PrepTaskOverflowToggled(val id: String) : ApplicationWorkspaceAction
+    data class PrepTaskToggled(val id: String) : ApplicationWorkspaceAction
 
     data class PrepTaskInaccuracyReported(val id: String) : ApplicationWorkspaceAction
 
@@ -29,7 +29,7 @@ sealed interface ApplicationWorkspaceAction {
 
     data object ResumePreviewChosen : ApplicationWorkspaceAction
 
-    data class ResumeShareChosen(val fileName: String?) : ApplicationWorkspaceAction
+    data object ResumeShareChosen : ApplicationWorkspaceAction
 
     data object ResumeReviewChosen : ApplicationWorkspaceAction
 
@@ -42,6 +42,4 @@ sealed interface ApplicationWorkspaceAction {
     data object DeleteDismissed : ApplicationWorkspaceAction
 
     data object DeleteConfirmed : ApplicationWorkspaceAction
-
-    data object MessageDismissed : ApplicationWorkspaceAction
 }

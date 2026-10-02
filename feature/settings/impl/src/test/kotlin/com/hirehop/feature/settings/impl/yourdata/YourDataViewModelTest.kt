@@ -1,462 +1,288 @@
 package com.hirehop.feature.settings.impl.yourdata
 
 import com.google.common.truth.Truth.assertThat
-import com.hirehop.core.domain.PurchaseEntitlement
-import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.domain.ApplicationPack
+import com.hirehop.core.domain.account.AccountData
+import com.hirehop.core.domain.account.AccountDataArchive
+import com.hirehop.core.domain.account.AccountDataExporter
+import com.hirehop.core.domain.account.CollectAccountDataUseCase
+import com.hirehop.core.domain.account.ExportAccountDataUseCase
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
+import com.hirehop.core.testing.account.TestAccountDataExporter
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.data.canonicalCandidateProfile
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.settings.api.navigation.YourDataNavKey
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class YourDataViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private lateinit var applicationRepository: TestApplicationRepository
-    private lateinit var profileRepository: TestProfileRepository
-    private lateinit var paymentGateway: TestSettingsPaymentGateway
-    private lateinit var viewModel: YourDataViewModel
+    private val applicationRepository = TestApplicationRepository().apply {
+        sendApplications(listOf(canonicalApplication, canonicalApplication.copy(id = SECOND_ID)))
+    }
+    private val profileRepository = TestProfileRepository().apply { sendProfile(canonicalCandidateProfile) }
+    private val exportHistory = TestExportHistoryRepository()
+    private val paymentGateway = TestPaymentGateway()
+    private val connectivity = TestConnectivityMonitor()
+    private val exporter = TestAccountDataExporter()
 
-    @Before
-    fun setup() {
-        applicationRepository = TestApplicationRepository()
-        profileRepository = TestProfileRepository()
-        paymentGateway = TestSettingsPaymentGateway(
-            entitlement = PurchaseEntitlement(
-                freeCredits = 1,
-                purchasedCredits = 0,
-                pendingPackIds = emptyList(),
+    @Test
+    fun content_countsTheRealProfileFacts() = runTest {
+        profileRepository.sendProfile(
+            canonicalCandidateProfile.copy(
+                entries = canonicalCandidateProfile.entries.map { entry -> entry.copy(isConfirmed = true) },
             ),
         )
-        viewModel = YourDataViewModel(
-            applicationRepository = applicationRepository,
-            profileRepository = profileRepository,
-            paymentGateway = paymentGateway,
-        )
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+
+        val content = viewModel.content()
+        assertThat(content.profileFactCount).isEqualTo(27)
+        assertThat(content.confirmedFactCount).isEqualTo(24)
+        assertThat(content.userStatedFactCount).isEqualTo(3)
     }
 
     @Test
-    fun onEnter_beforeAnyEntry_isIdleAndNotOffline() {
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(YourDataStage.IDLE)
-        assertThat(state.isOffline).isFalse()
-        assertThat(state.isExporting).isFalse()
+    fun content_listsEveryApplication() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+
+        assertThat(viewModel.content().applications.map { item -> item.id })
+            .containsExactly(canonicalApplication.id, SECOND_ID)
     }
 
     @Test
-    fun onEnter_default_countsTheRealProfileFacts() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun content_withoutAPurchase_listsNone() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        val row = viewModel.uiState.value.rowOf(YourDataLedgerKind.PROFILE)
-        assertThat(row.count).isEqualTo(18)
-        assertThat(row.confirmedFactCount).isEqualTo(15)
-        assertThat(row.userStatedFactCount).isEqualTo(3)
-        assertThat(row.unit).isEqualTo(YourDataLedgerUnit.FACTS)
-        assertThat(viewModel.uiState.value.profileFactCount).isEqualTo(18)
+        assertThat(viewModel.content().purchases).isEmpty()
     }
 
     @Test
-    fun onEnter_default_ledgerCarriesTheFourDataKinds() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun content_afterAPurchase_listsItWithThePackDetails() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        assertThat(viewModel.uiState.value.ledger.map { row -> row.kind }).containsExactly(
-            YourDataLedgerKind.PROFILE,
-            YourDataLedgerKind.APPLICATIONS,
-            YourDataLedgerKind.PURCHASES,
-            YourDataLedgerKind.UPLOADED_RESUME,
-        ).inOrder()
+        paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+
+        val purchase = viewModel.content().purchases.single()
+        assertThat(purchase.credits).isEqualTo(5)
+        assertThat(purchase.priceInPaise).isEqualTo(14_900L)
+        assertThat(purchase.isPending).isFalse()
     }
 
     @Test
-    fun onEnter_default_applicationsRowListsEveryApplication() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun content_whenTheDeviceGoesOffline_isOffline() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        val row = viewModel.uiState.value.rowOf(YourDataLedgerKind.APPLICATIONS)
-        assertThat(row.count).isEqualTo(1)
-        assertThat(row.items).hasSize(1)
-        assertThat(row.items.single().title).isEqualTo(canonicalApplication.job.title)
-        assertThat(row.items.single().company).isEqualTo(canonicalApplication.job.company)
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.content().isOffline).isTrue()
     }
 
     @Test
-    fun onEnter_default_purchasesRowCountsTheRecordedPacksOnThisDevice() = runTest {
-        paymentGateway = TestSettingsPaymentGateway(
-            entitlement = PurchaseEntitlement(
-                freeCredits = 0,
-                purchasedCredits = 5,
-                pendingPackIds = listOf("application_pack_5"),
-            ),
-        )
-        viewModel = YourDataViewModel(
-            applicationRepository = applicationRepository,
-            profileRepository = profileRepository,
-            paymentGateway = paymentGateway,
-        )
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun download_collectsTheDataAndSharesTheArchive() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        val row = viewModel.uiState.value.rowOf(YourDataLedgerKind.PURCHASES)
-        assertThat(row.count).isEqualTo(1)
-        assertThat(row.purchaseCount).isEqualTo(1)
-        assertThat(row.purchasedCreditCount).isEqualTo(5)
+        viewModel.onDownload()
+
+        val event = viewModel.events.first() as YourDataEvent.ShareArchive
+        assertThat(exporter.exported).hasSize(1)
+        assertThat(exporter.exported.single().applications).hasSize(2)
+        assertThat(event.file.name).startsWith("test-account-data")
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.IDLE)
     }
 
     @Test
-    fun onEnter_default_purchasesRowIsZeroWhenNoPackIsRecorded() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun download_whileTheExportRuns_isPreparingAndIgnoresASecondTap() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val slowExporter = object : AccountDataExporter {
+            var calls = 0
 
-        assertThat(viewModel.uiState.value.rowOf(YourDataLedgerKind.PURCHASES).count).isEqualTo(0)
+            override suspend fun export(data: AccountData): AccountDataArchive {
+                calls += 1
+                gate.await()
+                return AccountDataArchive(fileName = "x.zip", file = File("x.zip"))
+            }
+        }
+        val viewModel = viewModel(slowExporter)
+        collectState(viewModel)
+
+        viewModel.onDownload()
+        viewModel.onDownload()
+
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.PREPARING)
+        assertThat(slowExporter.calls).isEqualTo(1)
+        gate.complete(Unit)
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.IDLE)
     }
 
     @Test
-    fun onEnter_default_uploadedResumeRowHoldsNoFileBecauseItIsDeletedAfterReading() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun download_whenTheExportFails_showsTheFailure() = runTest {
+        val failingExporter = object : AccountDataExporter {
+            override suspend fun export(data: AccountData): AccountDataArchive =
+                throw IllegalStateException("disk full")
+        }
+        val viewModel = viewModel(failingExporter)
+        collectState(viewModel)
 
-        val row = viewModel.uiState.value.rowOf(YourDataLedgerKind.UPLOADED_RESUME)
-        assertThat(row.count).isEqualTo(0)
-        assertThat(row.unit).isEqualTo(YourDataLedgerUnit.FILES)
+        viewModel.onDownload()
+
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.FAILED)
     }
 
     @Test
-    fun onAction_downloadTapped_namesTheStepsAndStartsAtTheFirstOne() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun download_whenOffline_doesNothing() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+        connectivity.setOnline(false)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
+        viewModel.onDownload()
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(YourDataStage.PREPARING)
-        assertThat(state.isExporting).isTrue()
-        assertThat(state.steps.map { step -> step.kind }).containsExactly(
-            YourDataExportStepKind.PROFILE_FACTS,
-            YourDataExportStepKind.APPLICATIONS,
-            YourDataExportStepKind.PACKING,
-        ).inOrder()
-        assertThat(state.steps.single { step -> step.isCurrent }.kind)
-            .isEqualTo(YourDataExportStepKind.PROFILE_FACTS)
-        assertThat(state.steps.none { step -> step.isDone }).isTrue()
+        assertThat(exporter.exported).isEmpty()
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.IDLE)
     }
 
     @Test
-    fun onAction_downloadTapped_carriesTheRealApplicationCountIntoTheStep() = runTest {
-        applicationRepository.sendApplications(List(4) { canonicalApplication.copy(id = "app-$it") })
-        profileRepository.sendProfile(canonicalCandidateProfile)
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun onEnter_withTheExportingScenario_showsPreparing() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
+        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.EXPORTING))
 
-        val applicationsStep = viewModel.uiState.value.steps
-            .single { step -> step.kind == YourDataExportStepKind.APPLICATIONS }
-        assertThat(applicationsStep.applicationCount).isEqualTo(4)
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.PREPARING)
+        assertThat(exporter.exported).isEmpty()
     }
 
     @Test
-    fun onAction_downloadTapped_neverShowsAPercentage() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun deleteRequested_namesTheApplication() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
-        advanceTimeBy(EXPORT_STEP_DELAY_MS + 1)
+        viewModel.onDeleteRequested(SECOND_ID)
 
-        val state = viewModel.uiState.value
-        assertThat(state.isExporting).isTrue()
-        assertThat(state.steps.single { step -> step.isCurrent }.kind)
-            .isEqualTo(YourDataExportStepKind.APPLICATIONS)
-        assertThat(state.steps.single { step -> step.isDone }.kind)
-            .isEqualTo(YourDataExportStepKind.PROFILE_FACTS)
+        assertThat(viewModel.content().deleteTarget?.id).isEqualTo(SECOND_ID)
     }
 
     @Test
-    fun onAction_downloadTapped_whenFinished_reportsTheReadyFileName() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun deleteRequested_forAnUnknownApplication_opensNoDialog() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
-        advanceUntilIdle()
+        viewModel.onDeleteRequested("not-an-application")
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(YourDataStage.READY)
-        assertThat(state.isExporting).isFalse()
-        assertThat(state.exportFileName).isEqualTo("HireHop-data_Priya-Deshmukh.zip")
+        assertThat(viewModel.content().deleteTarget).isNull()
     }
 
     @Test
-    fun onAction_downloadTapped_twice_doesNotStartASecondExport() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    fun deleteRequested_whenOffline_opensNoDialog() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+        connectivity.setOnline(false)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
-        val firstSteps = viewModel.uiState.value.steps
-        viewModel.onAction(YourDataAction.DownloadTapped)
+        viewModel.onDeleteRequested(SECOND_ID)
 
-        assertThat(viewModel.uiState.value.steps).isEqualTo(firstSteps)
+        assertThat(viewModel.content().deleteTarget).isNull()
     }
 
     @Test
-    fun onAction_offline_ignoresTheDownload() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.OFFLINE))
-        advanceUntilIdle()
+    fun deleteDismissed_keepsTheApplication() = runTest {
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+        viewModel.onDeleteRequested(SECOND_ID)
 
-        viewModel.onAction(YourDataAction.DownloadTapped)
-        advanceUntilIdle()
+        viewModel.onDeleteDismissed()
 
-        val state = viewModel.uiState.value
-        assertThat(state.isOffline).isTrue()
-        assertThat(state.stage).isEqualTo(YourDataStage.IDLE)
-        assertThat(state.exportFileName).isNull()
+        assertThat(viewModel.content().deleteTarget).isNull()
+        assertThat(viewModel.content().applications).hasSize(2)
     }
 
     @Test
-    fun onAction_offline_keepsTheLedgerReadable() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.OFFLINE))
-        advanceUntilIdle()
-
-        assertThat(viewModel.uiState.value.rowOf(YourDataLedgerKind.PROFILE).count).isEqualTo(18)
-        assertThat(viewModel.uiState.value.rowOf(YourDataLedgerKind.APPLICATIONS).count).isEqualTo(1)
-    }
-
-    @Test
-    fun onAction_deleteRequested_onAnApplicationRow_namesItExactly() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(YourDataAction.DeleteRequested(applicationId = canonicalApplication.id))
-
-        val target = viewModel.uiState.value.deleteTarget
-        assertThat(target).isNotNull()
-        assertThat(target?.title).isEqualTo(canonicalApplication.job.title)
-        assertThat(target?.company).isEqualTo(canonicalApplication.job.company)
-        assertThat(viewModel.uiState.value.canDeleteApplications).isTrue()
-    }
-
-    @Test
-    fun onAction_deleteRequested_forAnUnknownApplication_keepsTheDialogClosed() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(YourDataAction.DeleteRequested(applicationId = "not-a-real-id"))
-
-        assertThat(viewModel.uiState.value.deleteTarget).isNull()
-    }
-
-    @Test
-    fun onAction_deleteConfirmed_removesOnlyThatApplication() = runTest {
-        applicationRepository.sendApplications(
+    fun deleteConfirmed_removesOnlyThatApplicationAndItsExportHistory() = runTest {
+        exportHistory.sendExports(
             listOf(
-                canonicalApplication.copy(id = "keep-me"),
-                canonicalApplication.copy(id = "delete-me"),
+                exportRecord(applicationId = SECOND_ID),
+                exportRecord(applicationId = canonicalApplication.id),
             ),
         )
-        profileRepository.sendProfile(canonicalCandidateProfile)
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+        val viewModel = viewModel(exporter)
+        collectState(viewModel)
+        viewModel.onDeleteRequested(SECOND_ID)
 
-        viewModel.onAction(YourDataAction.DeleteRequested(applicationId = "delete-me"))
-        viewModel.onAction(YourDataAction.DeleteConfirmed)
-        advanceUntilIdle()
+        viewModel.onDeleteConfirmed()
 
-        val row = viewModel.uiState.value.rowOf(YourDataLedgerKind.APPLICATIONS)
-        assertThat(row.count).isEqualTo(1)
-        assertThat(row.items.single().applicationId).isEqualTo("keep-me")
-        assertThat(viewModel.uiState.value.deleteTarget).isNull()
+        assertThat(viewModel.content().applications.map { item -> item.id })
+            .containsExactly(canonicalApplication.id)
+        assertThat(viewModel.content().deleteTarget).isNull()
+        assertThat(exportHistory.observeExports().first().map { record -> record.applicationId })
+            .containsExactly(canonicalApplication.id)
+        assertThat(viewModel.content().profileFactCount).isEqualTo(27)
     }
 
-    @Test
-    fun onAction_deleteConfirmed_keepsTheProfileFacts() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    private fun exportRecord(applicationId: String) = ExportRecord(
+        applicationId = applicationId,
+        format = ExportFormat.PDF,
+        fileName = "resume.pdf",
+        exportedAt = TestClock().now(),
+        creditKind = CreditKind.FREE,
+    )
 
-        viewModel.onAction(YourDataAction.DeleteRequested(applicationId = canonicalApplication.id))
-        viewModel.onAction(YourDataAction.DeleteConfirmed)
-        advanceUntilIdle()
-
-        assertThat(viewModel.uiState.value.rowOf(YourDataLedgerKind.PROFILE).count).isEqualTo(18)
-        assertThat(viewModel.uiState.value.profileFactCount).isEqualTo(18)
-    }
-
-    @Test
-    fun onAction_deleteDismissed_keepsTheApplication() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(YourDataAction.DeleteRequested(applicationId = canonicalApplication.id))
-        viewModel.onAction(YourDataAction.DeleteDismissed)
-        advanceUntilIdle()
-
-        assertThat(viewModel.uiState.value.deleteTarget).isNull()
-        assertThat(viewModel.uiState.value.rowOf(YourDataLedgerKind.APPLICATIONS).count).isEqualTo(1)
-    }
-
-    @Test
-    fun onAction_correctOnTheProfileRow_asksForTheCorrectionScreen() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(
-            YourDataAction.LedgerActionTapped(
-                kind = YourDataLedgerKind.PROFILE,
-                action = YourDataLedgerAction.CORRECT,
+    private fun viewModel(accountDataExporter: AccountDataExporter): YourDataViewModel {
+        val sessionRepository = TestSessionRepository()
+        return YourDataViewModel(
+            profileRepository = profileRepository,
+            paymentGateway = paymentGateway,
+            connectivityMonitor = connectivity,
+            applicationRepository = applicationRepository,
+            exportHistoryRepository = exportHistory,
+            exportAccountData = ExportAccountDataUseCase(
+                collectAccountData = CollectAccountDataUseCase(
+                    sessionRepository = sessionRepository,
+                    profileRepository = profileRepository,
+                    applicationRepository = applicationRepository,
+                    exportHistoryRepository = exportHistory,
+                    paymentGateway = paymentGateway,
+                    clock = TestClock(),
+                ),
+                exporter = accountDataExporter,
             ),
         )
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(YourDataDestination.PROFILE_CORRECT)
     }
 
-    @Test
-    fun onAction_viewOnTheProfileRow_asksForTheProfileScreen() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(
-            YourDataAction.LedgerActionTapped(
-                kind = YourDataLedgerKind.PROFILE,
-                action = YourDataLedgerAction.VIEW,
-            ),
-        )
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(YourDataDestination.PROFILE_VIEW)
+    private fun TestScope.collectState(viewModel: YourDataViewModel) {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
     }
 
-    @Test
-    fun onAction_onTheUploadedResumeRow_hasNowhereToGoAndStaysPut() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
+    private fun YourDataViewModel.content(): YourDataUiState.Content =
+        uiState.value as YourDataUiState.Content
 
-        viewModel.onAction(
-            YourDataAction.LedgerActionTapped(
-                kind = YourDataLedgerKind.UPLOADED_RESUME,
-                action = YourDataLedgerAction.VIEW,
-            ),
-        )
-
-        assertThat(viewModel.uiState.value.destination).isNull()
+    private companion object {
+        const val SECOND_ID = "application-second"
     }
-
-    @Test
-    fun onAction_share_whenNotReady_asksForNothing() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-
-        viewModel.onAction(YourDataAction.ShareTapped)
-
-        assertThat(viewModel.uiState.value.destination).isNull()
-    }
-
-    @Test
-    fun onAction_share_whenReady_asksForTheShareSheet() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-        viewModel.onAction(YourDataAction.DownloadTapped)
-        advanceUntilIdle()
-
-        viewModel.onAction(YourDataAction.ShareTapped)
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(YourDataDestination.SHARE_SHEET)
-    }
-
-    @Test
-    fun onAction_destinationConsumed_clearsTheDestination() = runTest {
-        seedCanonicalData()
-        viewModel.onEnter(YourDataNavKey(scenario = DebugScenario.DEFAULT))
-        advanceUntilIdle()
-        viewModel.onAction(YourDataAction.ShareTapped)
-        viewModel.onAction(YourDataAction.DestinationSelected(YourDataDestination.PROFILE_VIEW))
-
-        viewModel.onAction(YourDataAction.DestinationConsumed)
-
-        assertThat(viewModel.uiState.value.destination).isNull()
-    }
-
-    @Test
-    fun exportFileName_forAnEmptyProfile_doesNotInventAName() {
-        assertThat(yourDataExportFileName(fullName = null)).isEqualTo("HireHop-data.zip")
-        assertThat(yourDataExportFileName(fullName = "   ")).isEqualTo("HireHop-data.zip")
-    }
-
-    @Test
-    fun exportFileName_joinsTheRealNameParts() {
-        assertThat(yourDataExportFileName(fullName = "Priya Deshmukh"))
-            .isEqualTo("HireHop-data_Priya-Deshmukh.zip")
-    }
-
-    @Test
-    fun exportSteps_neverCarryAPercentage() {
-        val steps = yourDataExportSteps(currentIndex = 1, applicationCount = 4)
-
-        assertThat(steps).hasSize(3)
-        assertThat(steps.count { step -> step.isDone }).isEqualTo(1)
-        assertThat(steps.count { step -> step.isCurrent }).isEqualTo(1)
-        assertThat(steps.last().isDone).isFalse()
-    }
-
-    @Test
-    fun ledger_whenTheProfileIsAbsent_doesNotInventFacts() {
-        val ledger = yourDataLedger(
-            profile = null,
-            applications = emptyList(),
-            entitlement = null,
-        )
-
-        assertThat(ledger.first { row -> row.kind == YourDataLedgerKind.PROFILE }.count).isEqualTo(0)
-        assertThat(ledger.first { row -> row.kind == YourDataLedgerKind.PURCHASES }.count).isEqualTo(0)
-    }
-
-    @Test
-    fun ledger_keepsTheStatusOfEveryApplicationOutOfTheCount() {
-        val ledger = yourDataLedger(
-            profile = canonicalCandidateProfile,
-            applications = listOf(
-                canonicalApplication.copy(status = ApplicationStatus.SAVED),
-                canonicalApplication.copy(id = "second", status = ApplicationStatus.INTERVIEW),
-            ),
-            entitlement = null,
-        )
-
-        assertThat(ledger.first { row -> row.kind == YourDataLedgerKind.APPLICATIONS }.count).isEqualTo(2)
-    }
-
-    private fun seedCanonicalData() {
-        applicationRepository.sendApplications(listOf(canonicalApplication))
-        profileRepository.sendProfile(canonicalCandidateProfile)
-    }
-
-    private fun YourDataUiState.rowOf(kind: YourDataLedgerKind): YourDataLedgerRow =
-        ledger.first { row -> row.kind == kind }
 }

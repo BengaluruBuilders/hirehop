@@ -1,6 +1,9 @@
 package com.hirehop.core.domain.account
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.data.mock.MockLatency
+import com.hirehop.core.data.mock.MockOperation
+import com.hirehop.core.data.mock.NoMockLatency
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.ApplicationPack
@@ -11,12 +14,24 @@ import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseResult
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.ConsentPurpose
+import com.hirehop.core.model.ConsentRecord
+import com.hirehop.core.model.CreditKind
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
 import com.hirehop.core.model.JobApplication
+import com.hirehop.core.model.SignInAccount
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.data.sampleApplication
+import com.hirehop.core.testing.gateway.TestPaymentGateway
+import com.hirehop.core.testing.gateway.TestSignInGateway
+import com.hirehop.core.testing.mock.TestMockStateStore
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -28,6 +43,8 @@ class DeleteAccountUseCaseTest {
     private val calls = mutableListOf<String>()
     private var failingApplicationIds: Set<String> = emptySet()
     private var failingProfileClear = false
+    private val session = TestSessionRepository()
+    private val exportHistory = TestExportHistoryRepository()
 
     @Test
     fun previewCountsTheRealProfileApplicationsAndCredits() = runTest {
@@ -37,7 +54,7 @@ class DeleteAccountUseCaseTest {
 
         val counts = useCase.preview()
 
-        assertThat(counts.profileFacts).isEqualTo(18)
+        assertThat(counts.profileFacts).isEqualTo(27)
         assertThat(counts.applications).isEqualTo(4)
         assertThat(counts.unusedCredits).isEqualTo(4)
     }
@@ -65,7 +82,7 @@ class DeleteAccountUseCaseTest {
         assertThat(result).isEqualTo(
             AccountDeletionResult.Deleted(
                 AccountDeletionCounts(
-                    profileFacts = 18,
+                    profileFacts = 27,
                     applications = 4,
                     unusedCredits = 4,
                 ),
@@ -74,6 +91,29 @@ class DeleteAccountUseCaseTest {
         assertThat(applications.value).isEmpty()
         assertThat(profile.value).isNull()
         assertThat(gateway.entitlement().totalCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun theNextSignInAfterDeletionStartsWithTheFreeCredit() = runTest {
+        val store = TestMockStateStore()
+        val payment = TestPaymentGateway(store = store)
+        val signIn = TestSignInGateway(session, store)
+        payment.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        val useCase = DeleteAccountUseCase(
+            exportHistoryRepository = exportHistory,
+            sessionRepository = session,
+            signInGateway = signIn,
+            applicationRepository = RecordingApplicationRepository(applications, calls, { failingApplicationIds }),
+            profileRepository = RecordingProfileRepository(profile, calls, { failingProfileClear }),
+            creditBalance = AccountCreditBalance(paymentGateway = payment),
+            latency = NoMockLatency,
+        )
+
+        useCase()
+        signIn.signIn()
+
+        assertThat(payment.entitlement().freeCredits).isEqualTo(1)
+        assertThat(payment.entitlement().purchasedCredits).isEqualTo(0)
     }
 
     @Test
@@ -90,6 +130,29 @@ class DeleteAccountUseCaseTest {
             AccountDeletionStep.DELETING_PROFILE_FACTS,
             AccountDeletionStep.CLOSING_ACCOUNT,
         ).inOrder()
+    }
+
+    @Test
+    fun eachStepWaitsForTheLatencyPolicyBeforeItsWork() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        val awaited = mutableListOf<MockOperation>()
+        val latency = object : MockLatency {
+            override suspend fun await(operation: MockOperation) {
+                awaited += operation
+                assertThat(session.observeAccount().first()).isEqualTo(SignInAccount.localAccount)
+            }
+        }
+        session.saveAccount(SignInAccount.localAccount)
+
+        useCase(gateway = gatewayWith(credits = 1), latency = latency)()
+
+        assertThat(awaited).containsExactly(
+            MockOperation.DELETE_ACCOUNT_STEP,
+            MockOperation.DELETE_ACCOUNT_STEP,
+            MockOperation.DELETE_ACCOUNT_STEP,
+        )
+        assertThat(session.observeAccount().first()).isNull()
     }
 
     @Test
@@ -173,7 +236,58 @@ class DeleteAccountUseCaseTest {
         assertThat(thrown).isInstanceOf(CancellationException::class.java)
     }
 
-    private fun useCase(gateway: PaymentGateway): DeleteAccountUseCase = DeleteAccountUseCase(
+    @Test
+    fun deletingSignsOutAndClearsSessionConsentAndExportHistory() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        session.saveAccount(SignInAccount.localAccount)
+        session.recordConsent(consentRecord())
+        session.markOnboardingComplete()
+        exportHistory.record(exportRecord())
+        val useCase = useCase(gateway = gatewayWith(credits = 2))
+
+        useCase()
+
+        assertThat(session.observeAccount().first()).isNull()
+        assertThat(session.observeConsent().first()).isNull()
+        assertThat(session.observeOnboardingComplete().first()).isFalse()
+        assertThat(exportHistory.observeExports().first()).isEmpty()
+    }
+
+    @Test
+    fun aFailureBeforeTheAccountClosesKeepsTheSessionAndRestoresTheExportHistory() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        failingProfileClear = true
+        session.saveAccount(SignInAccount.localAccount)
+        exportHistory.record(exportRecord())
+        val useCase = useCase(gateway = gatewayWith(credits = 2))
+
+        val result = useCase()
+
+        assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
+        assertThat(session.observeAccount().first()).isEqualTo(SignInAccount.localAccount)
+        assertThat(exportHistory.observeExports().first()).containsExactly(exportRecord())
+    }
+
+    private fun consentRecord() = ConsentRecord(
+        purposes = setOf(ConsentPurpose.READ_AND_BUILD),
+        acceptedAt = kotlin.time.Instant.fromEpochSeconds(1_700_000_000),
+        noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+    )
+
+    private fun exportRecord() = ExportRecord(
+        applicationId = "application-1",
+        format = ExportFormat.PDF,
+        fileName = "resume.pdf",
+        exportedAt = kotlin.time.Instant.fromEpochSeconds(1_700_000_100),
+        creditKind = CreditKind.FREE,
+    )
+
+    private fun useCase(gateway: PaymentGateway, latency: MockLatency = NoMockLatency): DeleteAccountUseCase = DeleteAccountUseCase(
+        exportHistoryRepository = exportHistory,
+        sessionRepository = session,
+        signInGateway = TestSignInGateway(session),
         applicationRepository = RecordingApplicationRepository(
             applications = applications,
             calls = calls,
@@ -185,6 +299,7 @@ class DeleteAccountUseCaseTest {
             shouldFailOnClear = { failingProfileClear },
         ),
         creditBalance = AccountCreditBalance(paymentGateway = gateway),
+        latency = latency,
     )
 
     private fun fourApplications(): List<JobApplication> = listOf("1", "2", "3", "4").map { index ->

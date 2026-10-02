@@ -5,27 +5,19 @@ import com.hirehop.core.domain.prep.PrepQuestionGenerator
 import com.hirehop.core.domain.prep.PrepQuestionKind
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.feature.tailor.impl.coverletter.CoverLetterFactRef
+import com.hirehop.feature.tailor.impl.coverletter.confirmedFactsOf
 
 enum class PrepQuestionsStage {
     GENERATING,
     READY,
     EMPTY_ANALYSIS,
     EMPTY_PROFILE,
-    OFFLINE,
     ERROR,
 }
 
-enum class PrepQuestionFilter(val kind: PrepQuestionKind?) {
-    ALL(null),
-    STRENGTH(PrepQuestionKind.STRENGTH),
-    CLARIFY(PrepQuestionKind.CLARIFY),
-    GAP(PrepQuestionKind.GAP),
-}
-
 enum class PrepQuestionsMessage {
-    PRACTISED,
-    UNPRACTISED,
-    REPORT_UNAVAILABLE,
+    REPORTED,
 }
 
 data class PrepQuestionCard(
@@ -34,8 +26,7 @@ data class PrepQuestionCard(
     val ordinal: Int,
     val prompt: String,
     val requirementText: String,
-    val backingFactId: String?,
-    val isPractised: Boolean = false,
+    val fact: CoverLetterFactRef?,
 )
 
 data class PrepQuestionGroup(
@@ -48,25 +39,19 @@ data class PrepQuestionsUiState(
     val jobTitle: String = "",
     val jobCompany: String = "",
     val groups: List<PrepQuestionGroup> = emptyList(),
-    val filter: PrepQuestionFilter = PrepQuestionFilter.ALL,
     val isOffline: Boolean = false,
     val message: PrepQuestionsMessage? = null,
+    val reportedIds: Set<String> = emptySet(),
 ) {
-    val totalCount: Int get() = groups.sumOf { group -> group.cards.size }
+    val factCards: List<PrepQuestionCard>
+        get() = groups.filter { it.kind != PrepQuestionKind.GAP }.flatMap { it.cards }
 
-    val practisedCount: Int get() = groups.sumOf { group -> group.cards.count { card -> card.isPractised } }
+    val gapCards: List<PrepQuestionCard>
+        get() = groups.filter { it.kind == PrepQuestionKind.GAP }.flatMap { it.cards }
 
-    val visibleGroups: List<PrepQuestionGroup>
-        get() = if (filter.kind == null) {
-            groups
-        } else {
-            groups.filter { group -> group.kind == filter.kind }
-        }
+    val questionCount: Int get() = factCards.size
 
-    fun countOf(filter: PrepQuestionFilter): Int {
-        if (filter.kind == null) return totalCount
-        return groups.firstOrNull { group -> group.kind == filter.kind }?.cards?.size ?: 0
-    }
+    val totalCount: Int get() = groups.sumOf { it.cards.size }
 
     fun cardOf(id: String): PrepQuestionCard? = groups
         .flatMap { group -> group.cards }
@@ -78,11 +63,9 @@ data class PrepQuestionsInputs(
     val questions: List<PrepQuestion>,
     val jobTitle: String,
     val jobCompany: String,
-    val isOffline: Boolean,
 )
 
 fun prepQuestionsStageFor(scenario: DebugScenario): PrepQuestionsStage = when (scenario) {
-    DebugScenario.LOADING -> PrepQuestionsStage.GENERATING
     DebugScenario.ERROR -> PrepQuestionsStage.ERROR
     else -> PrepQuestionsStage.GENERATING
 }
@@ -90,18 +73,10 @@ fun prepQuestionsStageFor(scenario: DebugScenario): PrepQuestionsStage = when (s
 fun prepQuestionsIsStatic(scenario: DebugScenario): Boolean =
     scenario == DebugScenario.LOADING || scenario == DebugScenario.ERROR
 
-fun prepQuestionsIsOffline(scenario: DebugScenario): Boolean = scenario == DebugScenario.OFFLINE
-
-fun prepQuestionsFilterFor(scenario: DebugScenario): PrepQuestionFilter = when (scenario) {
-    DebugScenario.PARTIAL -> PrepQuestionFilter.GAP
-    else -> PrepQuestionFilter.ALL
-}
-
 fun prepQuestionsStateFor(inputs: PrepQuestionsInputs): PrepQuestionsUiState {
     val header = PrepQuestionsUiState(
         jobTitle = inputs.jobTitle,
         jobCompany = inputs.jobCompany,
-        isOffline = inputs.isOffline,
     )
     if (inputs.profile == null || !inputs.profile.hasConfirmedFact()) {
         return header.copy(stage = PrepQuestionsStage.EMPTY_PROFILE)
@@ -110,12 +85,18 @@ fun prepQuestionsStateFor(inputs: PrepQuestionsInputs): PrepQuestionsUiState {
     if (questions.isEmpty()) {
         return header.copy(stage = PrepQuestionsStage.EMPTY_ANALYSIS)
     }
-    val groups = GROUP_ORDER.map { kind -> questions.toGroup(kind = kind) }
-        .filter { group -> group.cards.isNotEmpty() }
-    return header.copy(
-        stage = if (inputs.isOffline) PrepQuestionsStage.OFFLINE else PrepQuestionsStage.READY,
-        groups = groups,
-    )
+    val facts = confirmedFactsOf(inputs.profile).associateBy { it.factId }
+    var ordinal = 0
+    val groups = GROUP_ORDER.map { kind ->
+        PrepQuestionGroup(
+            kind = kind,
+            cards = questions.filter { it.kind == kind }.map { question ->
+                ordinal += 1
+                question.toCard(ordinal = ordinal, fact = question.backingFactId?.let { facts[it] })
+            },
+        )
+    }.filter { group -> group.cards.isNotEmpty() }
+    return header.copy(stage = PrepQuestionsStage.READY, groups = groups)
 }
 
 val GROUP_ORDER: List<PrepQuestionKind> = listOf(
@@ -127,19 +108,11 @@ val GROUP_ORDER: List<PrepQuestionKind> = listOf(
 private fun CandidateProfile.hasConfirmedFact(): Boolean = entries
     .any { entry -> entry.isConfirmed && entry.bullets.any { bullet -> bullet.text.isNotBlank() } }
 
-private fun List<PrepQuestion>.toGroup(kind: PrepQuestionKind): PrepQuestionGroup {
-    val ofKind = filter { question -> question.kind == kind }
-    return PrepQuestionGroup(
-        kind = kind,
-        cards = ofKind.mapIndexed { index, question -> question.toCard(ordinal = index + 1) },
-    )
-}
-
-private fun PrepQuestion.toCard(ordinal: Int): PrepQuestionCard = PrepQuestionCard(
+private fun PrepQuestion.toCard(ordinal: Int, fact: CoverLetterFactRef?): PrepQuestionCard = PrepQuestionCard(
     id = id,
     kind = kind,
     ordinal = ordinal,
     prompt = prompt,
     requirementText = requirementText,
-    backingFactId = backingFactId,
+    fact = fact,
 )

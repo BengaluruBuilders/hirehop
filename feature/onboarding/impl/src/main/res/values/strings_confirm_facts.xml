@@ -1,65 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_onboarding_impl_confirm_facts_title">Confirm your facts</string>
-    <string name="feature_onboarding_impl_confirm_facts_app_bar">Confirm your facts\n%1$s</string>
     <string name="feature_onboarding_impl_confirm_facts_back_description">Back</string>
-
     <plurals name="feature_onboarding_impl_confirm_facts_counter">
         <item quantity="one">%1$d of %2$d confirmed</item>
         <item quantity="other">%1$d of %2$d confirmed</item>
     </plurals>
+    <string name="feature_onboarding_impl_confirm_facts_open_count">%1$d %2$s</string>
+    <plurals name="feature_onboarding_impl_confirm_facts_open_count_unit">
+        <item quantity="one">item</item>
+        <item quantity="other">items</item>
+    </plurals>
     <plurals name="feature_onboarding_impl_confirm_facts_open_line">
-        <item quantity="one">%1$d item is not confirmed. HireHop won\'t use it until you confirm it.</item>
-        <item quantity="other">%1$d items are not confirmed. HireHop won\'t use them until you confirm them.</item>
+        <item quantity="one">%1$s not confirmed. HireHop won\'t use it until you confirm it.</item>
+        <item quantity="other">%1$s not confirmed. HireHop won\'t use them until you confirm them.</item>
+    </plurals>
+    <plurals name="feature_onboarding_impl_confirm_facts_all_confirmed">
+        <item quantity="one">The fact is confirmed. HireHop uses only this one.</item>
+        <item quantity="other">All %1$d facts are confirmed. HireHop uses only these.</item>
     </plurals>
     <string name="feature_onboarding_impl_confirm_facts_continue">Continue to my analysis</string>
 
     <string name="feature_onboarding_impl_confirm_facts_removed_banner">We removed your date of birth and your photo from this import. HireHop never keeps these.</string>
-    <string name="feature_onboarding_impl_confirm_facts_removed_banner_ok">OK</string>
-    <string name="feature_onboarding_impl_confirm_facts_offline_message">You\'re offline. Your changes are saved on this phone and sync when you\'re back.</string>
+    <string name="feature_onboarding_impl_confirm_facts_offline_message">You\'re offline. Your edits are saved on this phone and sync when you\'re back.</string>
 
     <string name="feature_onboarding_impl_confirm_facts_confirm">Confirm</string>
     <string name="feature_onboarding_impl_confirm_facts_edit">Edit</string>
-    <string name="feature_onboarding_impl_confirm_facts_delete">Delete</string>
-    <string name="feature_onboarding_impl_confirm_facts_delete_dialog_title">Delete fact %1$s?</string>
-    <string name="feature_onboarding_impl_confirm_facts_delete_dialog_message">HireHop removes it from your profile. You cannot undo this.</string>
-    <string name="feature_onboarding_impl_confirm_facts_confirmed_chip">confirmed</string>
-    <string name="feature_onboarding_impl_confirm_facts_open_chip">not confirmed</string>
     <string name="feature_onboarding_impl_confirm_facts_status_confirmed">Confirmed</string>
-    <string name="feature_onboarding_impl_confirm_facts_status_open">Not confirmed</string>
-    <string name="feature_onboarding_impl_confirm_facts_card_description">%1$s. %2$s. %3$s. Fact %4$s. Actions: %5$s.</string>
-    <string name="feature_onboarding_impl_confirm_facts_actions_confirm">Confirm, Edit</string>
-    <string name="feature_onboarding_impl_confirm_facts_actions_edit">Edit</string>
-    <string name="feature_onboarding_impl_confirm_facts_actions_confirm_delete">Confirm, Edit, Delete</string>
-    <string name="feature_onboarding_impl_confirm_facts_actions_edit_delete">Edit, Delete</string>
+    <string name="feature_onboarding_impl_confirm_facts_card_description">%1$s. %2$s. Fact %3$s. %4$s.</string>
+    <string name="feature_onboarding_impl_confirm_facts_state_confirmed">Confirmed</string>
+    <string name="feature_onboarding_impl_confirm_facts_state_open">Not confirmed</string>
 
-    <string name="feature_onboarding_impl_confirm_facts_section_contact">Contact</string>
     <string name="feature_onboarding_impl_confirm_facts_section_education">Education</string>
     <string name="feature_onboarding_impl_confirm_facts_section_experience">Experience</string>
     <string name="feature_onboarding_impl_confirm_facts_section_projects">Projects</string>
     <string name="feature_onboarding_impl_confirm_facts_section_skills">Skills</string>
     <string name="feature_onboarding_impl_confirm_facts_section_certifications">Certifications</string>
     <string name="feature_onboarding_impl_confirm_facts_section_extras">Extras</string>
-    <string name="feature_onboarding_impl_confirm_facts_section_header">%1$s · %2$d</string>
-    <string name="feature_onboarding_impl_confirm_facts_strip_description">%1$s, %2$d</string>
-    <string name="feature_onboarding_impl_confirm_facts_contact_name">Name</string>
-    <string name="feature_onboarding_impl_confirm_facts_contact_email">Email</string>
-    <string name="feature_onboarding_impl_confirm_facts_contact_phone">Phone</string>
-    <string name="feature_onboarding_impl_confirm_facts_contact_none">No contact details came through in this import.</string>
 
-    <string name="feature_onboarding_impl_confirm_facts_empty_education">No education found in this import.</string>
-    <string name="feature_onboarding_impl_confirm_facts_contact_summary">Contact details from this import</string>
-    <string name="feature_onboarding_impl_confirm_facts_empty_experience">No experience found in this import.</string>
-    <string name="feature_onboarding_impl_confirm_facts_empty_projects">No projects found in this import.</string>
-    <string name="feature_onboarding_impl_confirm_facts_empty_skills">No skills found in this import.</string>
-    <string name="feature_onboarding_impl_confirm_facts_empty_certifications">No certifications found in this import.</string>
-    <string name="feature_onboarding_impl_confirm_facts_empty_extras">No extras found in this import.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_education">No education found. Add one, or skip.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_experience">No experience found. Add one, or skip.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_projects">No projects found. Add one, or skip.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_skills">No skills found. Add one, or skip.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_certifications">No certifications found. Add one, or skip.</string>
+    <string name="feature_onboarding_impl_confirm_facts_empty_extras">No extras found. Add one, or skip.</string>
     <string name="feature_onboarding_impl_confirm_facts_add_one">Add one</string>
     <string name="feature_onboarding_impl_confirm_facts_skip">Skip</string>
 
     <string name="feature_onboarding_impl_confirm_facts_empty_title">Nothing to confirm yet</string>
     <string name="feature_onboarding_impl_confirm_facts_empty_body">A parse can come back with no facts. That is a normal outcome. Import a resume, or add your facts step by step.</string>
     <string name="feature_onboarding_impl_confirm_facts_empty_import">Import a resume</string>
-    <string name="feature_onboarding_impl_confirm_facts_spot_empty_description">No facts to confirm</string>
+    <string name="feature_onboarding_impl_confirm_facts_spot_empty_description">A woman with an empty page</string>
     <string name="feature_onboarding_impl_confirm_facts_error_title">This fact could not be saved.</string>
+    <string name="feature_onboarding_impl_confirm_facts_loading">Reading your facts</string>
 </resources>

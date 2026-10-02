@@ -1,10 +1,29 @@
 package com.hirehop.feature.onboarding.impl.pastejd
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.data.repository.UsageAllowance
+import com.hirehop.core.domain.DiscardJobDraftsUseCase
+import com.hirehop.core.domain.JobDescriptionAnalyzer
+import com.hirehop.core.domain.ProposeJobLabelUseCase
+import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.JobDescription
+import com.hirehop.core.model.KeptJobDescription
+import com.hirehop.core.model.PrepPlanItem
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.repository.TestContentReportRepository
+import com.hirehop.core.testing.repository.TestPrepPlanRepository
+import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
+import com.hirehop.core.testing.repository.TestUsageAllowance
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.onboarding.api.navigation.PasteJobDescriptionNavKey
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -15,11 +34,24 @@ class PasteJobDescriptionViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val session = TestSessionRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val usage = TestUsageAllowance(TestClock())
+    private val prepPlan = TestPrepPlanRepository()
+    private val reports = TestContentReportRepository()
     private lateinit var viewModel: PasteJobDescriptionViewModel
 
     @Before
     fun setup() {
-        viewModel = PasteJobDescriptionViewModel()
+        viewModel = PasteJobDescriptionViewModel(
+            sessionRepository = session,
+            nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
+            connectivityMonitor = connectivity,
+            usageAllowance = usage,
+            proposeJobLabel = ProposeJobLabelUseCase(LabelAnalyzer),
+            discardJobDrafts = DiscardJobDraftsUseCase(prepPlan, reports),
+            computeDispatcher = UnconfinedTestDispatcher(),
+        )
     }
 
     @Test
@@ -213,7 +245,7 @@ class PasteJobDescriptionViewModelTest {
     }
 
     @Test
-    fun onAction_analyse_handsOverTheTrimmedDraft() = runTest {
+    fun onAction_analyse_keepsTheTrimmedDraftInTheSession() = runTest {
         viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
         viewModel.onAction(PasteJobDescriptionAction.TextChanged("\n$SAMPLE_JD\n"))
         viewModel.onAction(PasteJobDescriptionAction.CompanyChanged(" Northwind GCC "))
@@ -221,13 +253,30 @@ class PasteJobDescriptionViewModelTest {
 
         viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
 
-        assertThat(viewModel.uiState.value.analysisRequest).isEqualTo(
-            PasteJobDescriptionHandoff(
-                text = SAMPLE_JD,
-                company = "Northwind GCC",
-                role = "Associate Analyst",
-            ),
+        assertThat(session.observeKeptJobDescription().first()).isEqualTo(
+            KeptJobDescription(text = SAMPLE_JD, company = "Northwind GCC", role = "Associate Analyst"),
         )
+    }
+
+    @Test
+    fun onAction_analyse_whenSignedOut_asksForSignIn() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.SignIn)
+    }
+
+    @Test
+    fun onAction_analyse_whenSignedInWithoutConsent_asksForConsent() = runTest {
+        session.sendAccount(SignInAccount.localAccount)
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.Consent)
     }
 
     @Test
@@ -237,7 +286,8 @@ class PasteJobDescriptionViewModelTest {
 
         viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
 
-        assertThat(viewModel.uiState.value.analysisRequest).isNull()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+        assertThat(session.observeKeptJobDescription().first()).isNull()
     }
 
     @Test
@@ -247,18 +297,177 @@ class PasteJobDescriptionViewModelTest {
 
         viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
 
-        assertThat(viewModel.uiState.value.analysisRequest).isNull()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
     }
 
     @Test
-    fun onAction_analysisRequestConsumed_clearsTheRequest() = runTest {
+    fun onAction_analyse_doesNothingWhenTheDailyLimitIsReached() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.PENDING))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(viewModel.uiState.value.isDailyLimitReached).isTrue()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+    }
+
+    @Test
+    fun onAction_textChanged_waitsForTheDebounceBeforeItPrefills() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS - 1)
+
+        assertThat(viewModel.uiState.value.company).isEmpty()
+        advanceTimeBy(2)
+        assertThat(viewModel.uiState.value.company).isEqualTo(PROPOSED_COMPANY)
+    }
+
+    @Test
+    fun onAction_textChanged_prefillsCompanyAndRoleFromTheText() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+
+        assertThat(viewModel.uiState.value.company).isEqualTo(PROPOSED_COMPANY)
+        assertThat(viewModel.uiState.value.role).isEqualTo(PROPOSED_ROLE)
+    }
+
+    @Test
+    fun onAction_textChanged_keepsWhatThePersonTyped() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+        viewModel.onAction(PasteJobDescriptionAction.CompanyChanged("My own company"))
+
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged("$SAMPLE_JD More words."))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+
+        assertThat(viewModel.uiState.value.company).isEqualTo("My own company")
+        assertThat(viewModel.uiState.value.role).isEqualTo(PROPOSED_ROLE)
+    }
+
+    @Test
+    fun onEnter_withSharedText_prefillsCompanyAndRole() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT), sharedText = SAMPLE_JD)
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+
+        assertThat(viewModel.uiState.value.company).isEqualTo(PROPOSED_COMPANY)
+        assertThat(viewModel.uiState.value.role).isEqualTo(PROPOSED_ROLE)
+    }
+
+    @Test
+    fun onAction_analyse_withBlankCompanyAndRole_stillKeepsTheJob() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+        viewModel.onAction(PasteJobDescriptionAction.CompanyChanged(""))
+        viewModel.onAction(PasteJobDescriptionAction.RoleChanged(""))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(session.observeKeptJobDescription().first())
+            .isEqualTo(KeptJobDescription(text = SAMPLE_JD, company = "", role = ""))
+    }
+
+    @Test
+    fun onAction_analyse_doesNotCountADailyAnalysis() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(usage.observeAnalysesLeft().first()).isEqualTo(UsageAllowance.DAILY_ANALYSES)
+        assertThat(viewModel.uiState.value.freeAnalysesLeft).isEqualTo(UsageAllowance.DAILY_ANALYSES)
+    }
+
+    @Test
+    fun onAction_analyse_withOneAnalysisLeft_keepsTheJob() = runTest {
+        repeat(UsageAllowance.DAILY_ANALYSES - 1) { usage.consumeAnalysis() }
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(session.observeKeptJobDescription().first()).isNotNull()
+    }
+
+    @Test
+    fun onAction_analyse_withADifferentJob_discardsTheDraftsOfTheOldJob() = runTest {
+        val old = KeptJobDescription(text = "Old job text", company = "", role = "")
+        session.keepJobDescription(old)
+        prepPlan.add(old.draftKey, PrepPlanItem("req-1", "Docker"))
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(prepPlan.observeItems(old.draftKey).first()).isEmpty()
+    }
+
+    @Test
+    fun onAction_analyse_withTheSameJob_keepsItsDrafts() = runTest {
+        val same = KeptJobDescription(text = SAMPLE_JD, company = "", role = "")
+        session.keepJobDescription(same)
+        prepPlan.add(same.draftKey, PrepPlanItem("req-1", "Docker"))
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(prepPlan.observeItems(same.draftKey).first()).hasSize(1)
+    }
+
+    @Test
+    fun onAction_analyse_whenNoAnalysisIsLeft_showsTheLimitAndKeepsNothing() = runTest {
+        repeat(UsageAllowance.DAILY_ANALYSES) { usage.consumeAnalysis() }
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        assertThat(viewModel.uiState.value.isDailyLimitReached).isTrue()
+        assertThat(viewModel.uiState.value.canAnalyse).isFalse()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+        assertThat(session.observeKeptJobDescription().first()).isNull()
+    }
+
+    @Test
+    fun onAction_nextStepConsumed_clearsTheStep() = runTest {
         viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
         viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
         viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
 
-        viewModel.onAction(PasteJobDescriptionAction.AnalysisRequestConsumed)
+        viewModel.onAction(PasteJobDescriptionAction.NextStepConsumed)
 
-        assertThat(viewModel.uiState.value.analysisRequest).isNull()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
+    }
+
+    @Test
+    fun onAction_pasted_withNoText_saysThereWasNothingToPaste() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(PasteJobDescriptionAction.Pasted("  "))
+
+        assertThat(viewModel.uiState.value.message).isEqualTo(PasteJobDescriptionMessage.NOTHING_TO_READ)
+    }
+
+    @Test
+    fun onAction_pasted_withText_fillsTheDraft() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(PasteJobDescriptionAction.Pasted(SAMPLE_JD))
+
+        assertThat(viewModel.uiState.value.text).isEqualTo(SAMPLE_JD)
+    }
+
+    @Test
+    fun onEnter_whenTheDeviceGoesOffline_flagsOffline() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
     }
 
     @Test
@@ -290,7 +499,20 @@ class PasteJobDescriptionViewModelTest {
         assertThat(pasteJdProblem(longSentence)).isNull()
     }
 
+    private object LabelAnalyzer : JobDescriptionAnalyzer {
+        override fun analyze(rawText: String) = JobDescription(
+            title = PROPOSED_ROLE,
+            company = PROPOSED_COMPANY,
+            rawText = rawText,
+            requirements = emptyList(),
+        )
+    }
+
     private companion object {
+        const val PREFILL_DEBOUNCE_MS = 300L
+        const val PROPOSED_ROLE = "Associate Analyst"
+        const val PROPOSED_COMPANY = "Northwind GCC"
+
         val SAMPLE_JD: String = "Associate Analyst, Business Intelligence at Northwind Global " +
             "Capability Centre, Bengaluru. You will build weekly reports in SQL and Advanced " +
             "Excel, and model dashboards in Power BI or Tableau. The team works in Agile with " +

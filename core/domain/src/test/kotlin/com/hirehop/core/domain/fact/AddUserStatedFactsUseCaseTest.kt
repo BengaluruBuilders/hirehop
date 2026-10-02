@@ -18,7 +18,7 @@ class AddUserStatedFactsUseCaseTest {
     private val useCase = AddUserStatedFactsUseCase(repository, SequentialIdGenerator("bullet"))
 
     @Test
-    fun aValidFactIsAddedAsAnUnconfirmedUserStatedEntry() = runTest {
+    fun aValidFactIsAddedAsAConfirmedUserStatedEntry() = runTest {
         val outcome = useCase(listOf(draft(title = "Placement Stats Dashboard", category = EntryCategory.PROJECT)))
 
         val added = addedEntries(outcome)
@@ -26,7 +26,7 @@ class AddUserStatedFactsUseCaseTest {
         assertThat(added.single().title).isEqualTo("Placement Stats Dashboard")
         assertThat(added.single().category).isEqualTo(EntryCategory.PROJECT)
         assertThat(added.single().source).isEqualTo(FactSource.USER_STATED)
-        assertThat(added.single().isConfirmed).isFalse()
+        assertThat(added.single().isConfirmed).isTrue()
     }
 
     @Test
@@ -55,7 +55,7 @@ class AddUserStatedFactsUseCaseTest {
             ),
         )
 
-        assertThat(addedEntries(outcome).map { it.id }).containsExactly("C-01", "I-01").inOrder()
+        assertThat(addedEntries(outcome).map { it.id }).containsExactly("P-01", "W-01").inOrder()
     }
 
     @Test
@@ -67,7 +67,7 @@ class AddUserStatedFactsUseCaseTest {
             ),
         )
 
-        assertThat(addedEntries(outcome).map { it.id }).containsExactly("C-01", "C-02").inOrder()
+        assertThat(addedEntries(outcome).map { it.id }).containsExactly("P-01", "P-02").inOrder()
     }
 
     @Test
@@ -84,7 +84,7 @@ class AddUserStatedFactsUseCaseTest {
 
     @Test
     fun existingEntriesAreKeptAndTheProfileIsSavedOnce() = runTest {
-        val taken = listOf(entry("U-01", EntryCategory.EDUCATION, "B.Tech in Information Technology"))
+        val taken = listOf(entry("E-01", EntryCategory.EDUCATION, "B.Tech in Information Technology"))
         val withExisting = FakeProfileRepository(baseProfile.copy(entries = taken))
 
         val outcome = AddUserStatedFactsUseCase(withExisting, SequentialIdGenerator("bullet"))(
@@ -94,9 +94,9 @@ class AddUserStatedFactsUseCaseTest {
             ),
         )
 
-        assertThat(addedEntries(outcome).map { it.id }).containsExactly("X-01", "P-01").inOrder()
+        assertThat(addedEntries(outcome).map { it.id }).containsExactly("CT-01", "X-01").inOrder()
         assertThat(checkNotNull(withExisting.current()).entries.map { it.id })
-            .containsExactly("U-01", "X-01", "P-01").inOrder()
+            .containsExactly("E-01", "CT-01", "X-01").inOrder()
         assertThat(withExisting.saveCount).isEqualTo(1)
     }
 
@@ -180,15 +180,33 @@ class AddUserStatedFactsUseCaseTest {
     }
 
     @Test
-    fun noProfileMeansNothingIsAdded() = runTest {
+    fun noProfileMeansTheUseCaseCreatesOne() = runTest {
         val empty = FakeProfileRepository(null)
         val outcome = AddUserStatedFactsUseCase(empty, SequentialIdGenerator("bullet"))(
             listOf(draft(title = "Campus Events App")),
         )
 
-        assertThat(outcome).isEqualTo(AddFactsOutcome.NothingToAdd)
-        assertThat(empty.saveCount).isEqualTo(0)
+        val created = checkNotNull(empty.current())
+        assertThat(addedEntries(outcome)).hasSize(1)
+        assertThat(created.entries.single().isConfirmed).isTrue()
+        assertThat(created.entries.single().id).isEqualTo("P-01")
+        assertThat(empty.saveCount).isEqualTo(1)
+    }
+
+    @Test
+    fun noProfileAndNothingToAddCreatesNoProfile() = runTest {
+        val empty = FakeProfileRepository(null)
+
+        AddUserStatedFactsUseCase(empty, SequentialIdGenerator("bullet"))(listOf(draft(title = " ")))
+
         assertThat(empty.current()).isNull()
+    }
+
+    @Test
+    fun anExperienceTitledInternGetsAnInternshipId() = runTest {
+        val outcome = useCase(listOf(draft(title = "Data intern", category = EntryCategory.EXPERIENCE)))
+
+        assertThat(addedEntries(outcome).single().id).isEqualTo("I-01")
     }
 
     @Test

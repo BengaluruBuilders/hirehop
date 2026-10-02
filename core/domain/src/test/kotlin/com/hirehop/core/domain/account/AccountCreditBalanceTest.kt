@@ -7,7 +7,7 @@ import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseResult
-import com.hirehop.core.domain.offline.OfflinePaymentGateway
+import com.hirehop.core.testing.gateway.TestPaymentGateway
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -15,7 +15,7 @@ class AccountCreditBalanceTest {
 
     @Test
     fun unusedCreditsReadsTheRealGatewayBalance() = runTest {
-        val gateway = OfflinePaymentGateway().withFreeCredits(3)
+        val gateway = TestPaymentGateway().withFreeCredits(3)
         val balance = AccountCreditBalance(paymentGateway = gateway)
 
         assertThat(balance.unusedCredits()).isEqualTo(3)
@@ -23,7 +23,7 @@ class AccountCreditBalanceTest {
 
     @Test
     fun unusedCreditsCountsPurchasedCreditsToo() = runTest {
-        val gateway = OfflinePaymentGateway().withFreeCredits(0)
+        val gateway = TestPaymentGateway().withFreeCredits(0)
         gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         val balance = AccountCreditBalance(paymentGateway = gateway)
 
@@ -32,7 +32,7 @@ class AccountCreditBalanceTest {
 
     @Test
     fun clearingTakesTheRealBalanceToZero() = runTest {
-        val gateway = OfflinePaymentGateway().withFreeCredits(0)
+        val gateway = TestPaymentGateway().withFreeCredits(0)
         gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         val balance = AccountCreditBalance(paymentGateway = gateway)
 
@@ -43,7 +43,7 @@ class AccountCreditBalanceTest {
 
     @Test
     fun clearingAnAlreadyEmptyBalanceDoesNothing() = runTest {
-        val gateway = OfflinePaymentGateway().withFreeCredits(0)
+        val gateway = TestPaymentGateway().withFreeCredits(0)
         val balance = AccountCreditBalance(paymentGateway = gateway)
 
         balance.clearUnusedCredits()

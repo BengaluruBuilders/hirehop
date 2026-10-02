@@ -1,27 +1,28 @@
 package com.hirehop.feature.profile.impl.facteditor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,29 +32,38 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhButton
 import com.hirehop.core.designsystem.component.HhConfirmDialog
 import com.hirehop.core.designsystem.component.HhErrorCallout
+import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.component.HhScaffold
-import com.hirehop.core.designsystem.component.HhSectionCard
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhProvenanceChip
+import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSecondaryButton
 import com.hirehop.core.designsystem.component.HhTextField
-import com.hirehop.core.designsystem.component.HhTopAppBar
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDraftErrorReason
 import com.hirehop.core.domain.fact.FactField
 import com.hirehop.core.model.EntryCategory
-import com.hirehop.core.model.FactSource
-import com.hirehop.core.ui.FactIdTag
-import com.hirehop.core.ui.FactProvenanceChip
+import com.hirehop.feature.profile.api.navigation.FactEditorNavKey
 import com.hirehop.feature.profile.impl.R
+import com.hirehop.feature.profile.impl.common.FactStatus
+import com.hirehop.feature.profile.impl.common.Note
+import com.hirehop.feature.profile.impl.common.NoteTone
+import com.hirehop.feature.profile.impl.common.RemovableChip
+import com.hirehop.feature.profile.impl.common.ToConfirmChip
+import com.hirehop.feature.profile.impl.common.labelRes
+import com.hirehop.feature.profile.impl.common.provenanceKind
+import com.hirehop.feature.profile.impl.common.status
 
 data class FactEditorActions(
     val onTitleChange: (String) -> Unit,
@@ -66,13 +76,35 @@ data class FactEditorActions(
     val onRequestDelete: () -> Unit,
     val onConfirmDelete: () -> Unit,
     val onDismissDelete: () -> Unit,
-)
+) {
+    companion object {
+        val None = FactEditorActions(
+            onTitleChange = {},
+            onDetailChange = {},
+            onToolsChange = {},
+            onStartDateChange = {},
+            onEndDateChange = {},
+            onSave = {},
+            onCancel = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onDismissDelete = {},
+        )
+    }
+}
+
+private val CloseSize = 18.dp
+private val FieldGap = 14.dp
+private val ToolGap = 6.dp
 
 @Composable
 fun FactEditorRoute(
+    key: FactEditorNavKey,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    onClose: () -> Unit = {},
-    viewModel: FactEditorViewModel = hiltViewModel(),
+    viewModel: FactEditorViewModel = hiltViewModel<FactEditorViewModel, FactEditorViewModel.Factory>(
+        key = key.toString(),
+    ) { factory -> factory.create(key) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel) {
@@ -101,18 +133,32 @@ fun FactEditorScreen(
     actions: FactEditorActions,
     modifier: Modifier = Modifier,
 ) {
-    HhScaffold(
+    HhScreen(
         modifier = modifier,
-        topBar = { FactEditorTopBar(uiState = uiState) },
+        sheet = false,
+        header = {
+            HhInnerHeader(
+                title = stringResource(
+                    if (uiState.mode == FactEditorMode.New) {
+                        R.string.feature_profile_impl_fact_editor_title_new
+                    } else {
+                        R.string.feature_profile_impl_fact_editor_title_edit
+                    },
+                ),
+                subtitle = stringResource(uiState.draft.category.nameRes()),
+                onBack = actions.onCancel,
+                backContentDescription = stringResource(R.string.feature_profile_impl_fact_editor_navigate_back),
+            )
+        },
         bottomBar = { FactEditorActionBar(uiState = uiState, actions = actions) },
+        bottomBarNotice = {
+            Note(
+                text = stringResource(R.string.feature_profile_impl_fact_editor_hint),
+                tone = NoteTone.Outlined,
+            )
+        },
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            FactEditorBody(uiState = uiState, actions = actions)
-        }
+        FactEditorBody(uiState = uiState, actions = actions, padding = padding)
     }
     if (uiState.isDeleteDialogVisible) {
         FactEditorDeleteDialog(uiState = uiState, actions = actions)
@@ -120,25 +166,13 @@ fun FactEditorScreen(
 }
 
 @Composable
-private fun FactEditorTopBar(uiState: FactEditorUiState) {
-    HhTopAppBar(
-        title = stringResource(
-            if (uiState.mode == FactEditorMode.New) {
-                R.string.feature_profile_impl_fact_editor_title_new
-            } else {
-                R.string.feature_profile_impl_fact_editor_title_edit
-            },
-        ),
-    )
-}
-
-@Composable
 private fun FactEditorBody(
     uiState: FactEditorUiState,
     actions: FactEditorActions,
+    padding: PaddingValues,
 ) {
     if (uiState.isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             HhLoadingWheel(contentDesc = stringResource(R.string.feature_profile_impl_fact_editor_loading))
         }
         return
@@ -147,66 +181,72 @@ private fun FactEditorBody(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = HhTheme.spacing.d16, vertical = HhTheme.spacing.sm),
+            .padding(padding)
+            .padding(horizontal = HhTheme.spacing.gutter),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         if (uiState.isOffline) {
             HhOfflineBanner(message = stringResource(R.string.feature_profile_impl_fact_editor_offline))
         }
-        FactEditorIdentity(uiState = uiState)
-        Text(
-            text = stringResource(R.string.feature_profile_impl_fact_editor_hint),
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        if (!uiState.isConfirmed) {
-            Text(
-                text = stringResource(R.string.feature_profile_impl_fact_editor_unconfirmed),
-                style = HhTheme.typography.bodySmall,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
         if (uiState.isSaveFailed) {
             HhErrorCallout(title = stringResource(R.string.feature_profile_impl_fact_editor_message_save_failed))
         }
-        HhSectionCard {
+        FactEditorIdentity(uiState = uiState)
+        if (!uiState.isConfirmed) {
+            Note(text = stringResource(R.string.feature_profile_impl_fact_editor_unconfirmed))
+        }
+        HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
             FactEditorFields(uiState = uiState, actions = actions)
         }
-        FactEditorPaperLine(uiState = uiState)
+        FactEditorLiveLine(uiState = uiState)
         if (uiState.canDelete) {
             FactEditorDeleteAction(onClick = actions.onRequestDelete)
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FactEditorIdentity(uiState: FactEditorUiState) {
     val categoryName = stringResource(uiState.draft.category.nameRes())
-    val provenanceName = stringResource(uiState.provenance.nameRes())
+    val status = if (uiState.mode == FactEditorMode.New) {
+        FactStatus.UserStated
+    } else {
+        uiState.provenance.status(uiState.isConfirmed)
+    }
+    val statusLabel = stringResource(status.labelRes())
     val announcement = stringResource(
         R.string.feature_profile_impl_fact_editor_fact_announcement,
         categoryName,
         uiState.draft.title,
-        provenanceName,
-        uiState.factId,
+        statusLabel,
+        uiState.displayId,
     )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) { contentDescription = announcement },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-    ) {
-        if (uiState.factId.isNotBlank()) {
-            FactIdTag(factId = uiState.factId)
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.md)) {
+        FlowRow(
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = announcement },
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        ) {
+            if (uiState.displayId.isNotBlank()) {
+                HhFactId(id = uiState.displayId)
+            }
+            val kind = status.provenanceKind()
+            if (kind != null) {
+                HhProvenanceChip(kind = kind, label = statusLabel)
+            } else {
+                ToConfirmChip(label = statusLabel)
+            }
+            Text(
+                text = if (uiState.mode == FactEditorMode.New) {
+                    stringResource(R.string.feature_profile_impl_fact_editor_new_caption, categoryName.lowercase())
+                } else {
+                    categoryName
+                },
+                style = HhTheme.typography.bodyS,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
         }
-        Text(
-            text = categoryName,
-            style = HhTheme.typography.bodySmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Spacer(Modifier.weight(1f))
-        FactProvenanceChip(source = uiState.provenance)
     }
 }
 
@@ -215,38 +255,52 @@ private fun FactEditorFields(
     uiState: FactEditorUiState,
     actions: FactEditorActions,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+    val category = uiState.draft.category
+    Column(verticalArrangement = Arrangement.spacedBy(FieldGap)) {
         HhTextField(
             value = uiState.draft.title,
             onValueChange = actions.onTitleChange,
-            label = stringResource(R.string.feature_profile_impl_fact_editor_field_title),
-            placeholder = stringResource(R.string.feature_profile_impl_fact_editor_field_title_placeholder),
+            label = stringResource(category.titleLabelRes()),
+            placeholder = stringResource(category.titlePlaceholderRes()),
             errorText = uiState.errorTextFor(FactField.TITLE),
         )
         HhTextField(
             value = uiState.draft.detail,
             onValueChange = actions.onDetailChange,
-            label = stringResource(R.string.feature_profile_impl_fact_editor_field_detail),
+            label = stringResource(category.detailLabelRes()),
             placeholder = stringResource(R.string.feature_profile_impl_fact_editor_field_detail_placeholder),
             singleLine = false,
-            minLines = 3,
+            minLines = DETAIL_MIN_LINES,
             errorText = uiState.errorTextFor(FactField.DETAIL),
         )
-        FactEditorToolsField(uiState = uiState, onToolsChange = actions.onToolsChange)
-        HhTextField(
-            value = uiState.draft.startDate,
-            onValueChange = actions.onStartDateChange,
-            label = stringResource(R.string.feature_profile_impl_fact_editor_field_start),
-            placeholder = stringResource(R.string.feature_profile_impl_fact_editor_date_placeholder),
-            errorText = uiState.errorTextFor(FactField.START_DATE),
-        )
-        HhTextField(
-            value = uiState.draft.endDate,
-            onValueChange = actions.onEndDateChange,
-            label = stringResource(R.string.feature_profile_impl_fact_editor_field_end),
-            placeholder = stringResource(R.string.feature_profile_impl_fact_editor_date_placeholder),
-            errorText = uiState.errorTextFor(FactField.END_DATE) ?: uiState.errorTextFor(FactField.START_DATE),
-        )
+        if (category == EntryCategory.PROJECT) {
+            FactEditorToolsField(uiState = uiState, onToolsChange = actions.onToolsChange)
+        } else {
+            HhTextField(
+                value = uiState.draft.organization,
+                onValueChange = actions.onToolsChange,
+                label = stringResource(category.organizationLabelRes()),
+                errorText = uiState.errorTextFor(FactField.ORGANIZATION),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            HhTextField(
+                value = uiState.draft.startDate,
+                onValueChange = actions.onStartDateChange,
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.feature_profile_impl_fact_editor_field_start),
+                placeholder = stringResource(R.string.feature_profile_impl_fact_editor_date_placeholder),
+                errorText = uiState.errorTextFor(FactField.START_DATE),
+            )
+            HhTextField(
+                value = uiState.draft.endDate,
+                onValueChange = actions.onEndDateChange,
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.feature_profile_impl_fact_editor_field_end),
+                placeholder = stringResource(R.string.feature_profile_impl_fact_editor_date_placeholder),
+                errorText = uiState.errorTextFor(FactField.END_DATE),
+            )
+        }
     }
 }
 
@@ -256,75 +310,82 @@ private fun FactEditorToolsField(
     uiState: FactEditorUiState,
     onToolsChange: (String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        HhTextField(
-            value = uiState.draft.organization,
-            onValueChange = onToolsChange,
-            label = stringResource(R.string.feature_profile_impl_fact_editor_field_tools),
-            placeholder = stringResource(R.string.feature_profile_impl_fact_editor_field_tools_placeholder),
-            errorText = uiState.errorTextFor(FactField.ORGANIZATION),
+    var isAdding by rememberSaveable { mutableStateOf(false) }
+    var pending by rememberSaveable { mutableStateOf("") }
+    val tools = uiState.toolTokens
+    Column(verticalArrangement = Arrangement.spacedBy(ToolGap)) {
+        Text(
+            text = stringResource(R.string.feature_profile_impl_fact_editor_field_tools),
+            style = HhTheme.typography.labelL,
+            color = HhTheme.colors.onSurface,
         )
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(ToolGap),
+            verticalArrangement = Arrangement.spacedBy(ToolGap),
         ) {
-            uiState.toolTokens.forEach { token -> FactEditorToolChip(label = token) }
+            tools.forEach { tool ->
+                RemovableChip(label = tool, onRemove = { onToolsChange((tools - tool).joinToString(TOOL_JOINER)) })
+            }
+            HhOutlineButton(
+                label = stringResource(R.string.feature_profile_impl_fact_editor_add_tool),
+                onClick = { isAdding = true },
+                trailingIcon = HhIcons.Add,
+            )
+        }
+        if (isAdding) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HhTextField(
+                    value = pending,
+                    onValueChange = { pending = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = stringResource(R.string.feature_profile_impl_fact_editor_field_tools_placeholder),
+                )
+                HhSecondaryButton(
+                    label = stringResource(R.string.feature_profile_impl_add),
+                    onClick = {
+                        val added = pending.trim()
+                        if (added.isNotEmpty() && tools.none { it.equals(added, ignoreCase = true) }) {
+                            onToolsChange((tools + added).joinToString(TOOL_JOINER))
+                        }
+                        pending = ""
+                        isAdding = false
+                    },
+                    enabled = pending.isNotBlank(),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun FactEditorToolChip(label: String, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(HhTheme.shapes.sm)
-    Text(
-        text = label,
-        style = HhTheme.typography.bodyMedium,
-        color = HhTheme.colors.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = modifier
-            .background(color = HhTheme.colors.surfaceContainerLow, shape = shape)
-            .border(width = 1.dp, color = HhTheme.colors.hairline, shape = shape)
-            .padding(horizontal = HhTheme.spacing.sm, vertical = HhTheme.spacing.xs),
-    )
-}
-
-@Composable
-private fun FactEditorPaperLine(uiState: FactEditorUiState) {
+private fun FactEditorLiveLine(uiState: FactEditorUiState) {
     val announcement = if (uiState.hasLiveLine) {
         stringResource(R.string.feature_profile_impl_fact_editor_live_announcement, uiState.liveLine)
     } else {
         ""
     }
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-        Text(
-            text = stringResource(R.string.feature_profile_impl_fact_editor_live_label).uppercase(),
-            style = HhTheme.typography.monoSmall,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        val shape = RoundedCornerShape(HhTheme.shapes.md)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = HhTheme.colors.surface, shape = shape)
-                .border(width = 1.dp, color = HhTheme.colors.hairline, shape = shape)
-                .padding(HhTheme.spacing.md)
-                .heightIn(min = 48.dp)
-                .semantics(mergeDescendants = true) {
-                    if (announcement.isNotBlank()) contentDescription = announcement
-                    liveRegion = LiveRegionMode.Polite
-                },
-            contentAlignment = Alignment.CenterStart,
+    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding)) {
+        Column(
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                if (announcement.isNotBlank()) contentDescription = announcement
+                liveRegion = LiveRegionMode.Polite
+            },
+            verticalArrangement = Arrangement.spacedBy(ToolGap),
         ) {
+            Text(
+                text = stringResource(R.string.feature_profile_impl_fact_editor_live_label),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
             if (uiState.hasLiveLine) {
-                Text(
-                    text = uiState.liveLine,
-                    style = HhTheme.typography.bodyLarge,
-                    color = HhTheme.colors.onSurface,
-                )
+                Text(text = uiState.liveLine, style = HhTheme.typography.bodyL, color = HhTheme.colors.onSurface)
             } else {
                 Text(
                     text = stringResource(R.string.feature_profile_impl_fact_editor_live_empty),
-                    style = HhTheme.typography.bodyLarge,
+                    style = HhTheme.typography.bodyL,
                     color = HhTheme.colors.onSurfaceVariant,
                 )
             }
@@ -333,20 +394,23 @@ private fun FactEditorPaperLine(uiState: FactEditorUiState) {
 }
 
 @Composable
-private fun FactEditorDeleteAction(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = stringResource(R.string.feature_profile_impl_fact_editor_delete),
-        style = HhTheme.typography.labelLarge,
-        color = HhTheme.colors.error,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = HhTheme.spacing.sm),
-    )
+private fun FactEditorDeleteAction(onClick: () -> Unit) {
+    val label = stringResource(R.string.feature_profile_impl_fact_editor_delete)
+    Row(
+        modifier = Modifier
+            .heightIn(min = HhTheme.spacing.touch)
+            .clickable(role = Role.Button, onClick = onClick),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = HhIcons.Delete,
+            contentDescription = null,
+            tint = HhTheme.colors.error,
+            modifier = Modifier.size(CloseSize + HhTheme.spacing.xxs),
+        )
+        Text(text = label, style = HhTheme.typography.labelL, color = HhTheme.colors.error)
+    }
 }
 
 @Composable
@@ -354,59 +418,20 @@ private fun FactEditorActionBar(
     uiState: FactEditorUiState,
     actions: FactEditorActions,
 ) {
-    HhBottomActionBar(
-        creditDisclosure = { FactEditorActionNote(uiState = uiState) },
-    ) {
-        HhOutlinedButton(
+    HhBottomActionBar {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_profile_impl_fact_editor_cancel),
             onClick = actions.onCancel,
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 48.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.feature_profile_impl_fact_editor_cancel),
-                style = HhTheme.typography.labelLarge,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-        HhButton(
+            modifier = Modifier.weight(1f),
+        )
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_profile_impl_fact_editor_save),
             onClick = actions.onSave,
             enabled = uiState.isSaveEnabled,
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 48.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.feature_profile_impl_fact_editor_save),
-                style = HhTheme.typography.labelLarge,
-            )
-        }
+            trailingIcon = HhIcons.Check,
+            modifier = Modifier.weight(1f),
+        )
     }
-}
-
-@Composable
-private fun FactEditorActionNote(uiState: FactEditorUiState) {
-    val note = when {
-        uiState.isLoading -> null
-        uiState.outcome == FactEditorOutcome.Saved && uiState.wasQueued ->
-            R.string.feature_profile_impl_fact_editor_message_saved_queued
-        uiState.outcome == FactEditorOutcome.Saved ->
-            R.string.feature_profile_impl_fact_editor_message_saved
-        uiState.outcome == FactEditorOutcome.Deleted ->
-            R.string.feature_profile_impl_fact_editor_message_deleted
-        uiState.saveBlockReason == FactDraftErrorReason.END_BEFORE_START ->
-            R.string.feature_profile_impl_fact_editor_blocked_dates
-        uiState.saveBlockReason == FactDraftErrorReason.TOO_LONG ->
-            R.string.feature_profile_impl_fact_editor_error_too_long
-        uiState.isSaveEnabled -> null
-        else -> R.string.feature_profile_impl_fact_editor_blocked_title
-    }
-    if (note == null) return
-    Text(
-        text = stringResource(note),
-        style = HhTheme.typography.labelMedium,
-        color = HhTheme.colors.onSurface,
-    )
 }
 
 @Composable
@@ -417,11 +442,11 @@ private fun FactEditorDeleteDialog(
     HhConfirmDialog(
         title = stringResource(
             R.string.feature_profile_impl_fact_editor_delete_title,
-            uiState.factId,
+            uiState.displayId,
             uiState.draft.title,
         ),
         message = stringResource(R.string.feature_profile_impl_fact_editor_delete_message),
-        confirmLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_confirm),
+        confirmLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_confirm, uiState.displayId),
         cancelLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_cancel),
         destructive = true,
         onConfirm = actions.onConfirmDelete,
@@ -442,16 +467,5 @@ private fun FactEditorUiState.errorTextFor(field: FactField): String? =
         )
     }
 
-private fun EntryCategory.nameRes(): Int = when (this) {
-    EntryCategory.EDUCATION -> R.string.feature_profile_impl_fact_editor_category_education
-    EntryCategory.EXPERIENCE -> R.string.feature_profile_impl_fact_editor_category_experience
-    EntryCategory.PROJECT -> R.string.feature_profile_impl_fact_editor_category_project
-    EntryCategory.CERTIFICATION -> R.string.feature_profile_impl_fact_editor_category_certification
-    EntryCategory.ACHIEVEMENT -> R.string.feature_profile_impl_fact_editor_category_achievement
-}
-
-private fun FactSource.nameRes(): Int = when (this) {
-    FactSource.IMPORTED -> R.string.feature_profile_impl_fact_editor_provenance_imported
-    FactSource.USER_STATED -> R.string.feature_profile_impl_fact_editor_provenance_user_stated
-    FactSource.USER_EDITED -> R.string.feature_profile_impl_fact_editor_provenance_user_edited
-}
+private const val DETAIL_MIN_LINES = 3
+private const val TOOL_JOINER = ", "

@@ -26,6 +26,10 @@ data class HhSpacing(
     val d40: Dp,
     val d48: Dp,
     val d64: Dp,
+    val gutter: Dp,
+    val cardPadding: Dp,
+    val sectionGap: Dp,
+    val touch: Dp,
 )
 
 val LocalHhSpacing = staticCompositionLocalOf { HhSpacingDefaults.Default }
@@ -51,5 +55,9 @@ internal object HhSpacingDefaults {
         d40 = 40.dp,
         d48 = 48.dp,
         d64 = 64.dp,
+        gutter = 16.dp,
+        cardPadding = 14.dp,
+        sectionGap = 24.dp,
+        touch = 48.dp,
     )
 }

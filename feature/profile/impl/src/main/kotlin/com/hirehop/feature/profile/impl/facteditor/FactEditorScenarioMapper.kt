@@ -42,8 +42,10 @@ object FactEditorScenarioMapper {
         state: FactEditorUiState,
         entry: ProfileEntry,
         scenario: DebugScenario,
+        displayId: String = entry.id,
     ): FactEditorUiState = state.copy(
         factId = entry.id,
+        displayId = displayId,
         mode = FactEditorMode.Editing,
         draft = entry.toFactDraft(),
         isLoading = false,
@@ -56,6 +58,7 @@ object FactEditorScenarioMapper {
         nextId: String,
     ): FactEditorUiState = state.copy(
         factId = nextId,
+        displayId = nextId,
         mode = FactEditorMode.New,
         draft = blankDraft(state.draft.category),
         fieldErrors = emptyMap(),

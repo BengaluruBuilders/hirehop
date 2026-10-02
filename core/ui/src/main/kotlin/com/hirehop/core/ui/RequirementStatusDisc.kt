@@ -11,10 +11,8 @@ fun RequirementStatusDisc(
     status: MatchStatus,
     modifier: Modifier = Modifier,
 ) {
-    HhStatusDisc(
-        kind = MatchStatusKindMapper().kindOf(status),
-        modifier = modifier,
-    )
+    val kind = MatchStatusKindMapper().kindOf(status)
+    HhStatusDisc(kind = kind, modifier = modifier, contentDescription = kind.label())
 }
 
 @Composable
@@ -22,8 +20,6 @@ fun RequirementStatusDisc(
     match: RequirementMatch,
     modifier: Modifier = Modifier,
 ) {
-    HhStatusDisc(
-        kind = MatchStatusKindMapper().kindOf(match),
-        modifier = modifier,
-    )
+    val kind = MatchStatusKindMapper().kindOf(match)
+    HhStatusDisc(kind = kind, modifier = modifier, contentDescription = kind.label())
 }

@@ -1,28 +1,44 @@
 package com.hirehop.feature.settings.impl.deleteaccount
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.data.mock.NoMockLatency
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.account.AccountCreditBalance
 import com.hirehop.core.domain.account.AccountDeletionStep
 import com.hirehop.core.domain.account.DeleteAccountUseCase
-import com.hirehop.core.domain.offline.OfflinePaymentGateway
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.JobApplication
+import com.hirehop.core.model.SignInAccount
+import com.hirehop.core.navigation.PendingNavigation
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalCandidateProfile
 import com.hirehop.core.testing.data.sampleApplication
+import com.hirehop.core.testing.gateway.TestPaymentGateway
+import com.hirehop.core.testing.gateway.TestSignInGateway
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
+import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.feature.settings.api.navigation.AccountDeletedNavKey
 import com.hirehop.feature.settings.api.navigation.DeleteAccountNavKey
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DeleteAccountViewModelTest {
 
     @get:Rule
@@ -31,133 +47,134 @@ class DeleteAccountViewModelTest {
     private val applications = MutableStateFlow<List<JobApplication>>(FOUR_APPLICATIONS)
     private val profile = MutableStateFlow<CandidateProfile?>(canonicalCandidateProfile)
     private val gate = CompletableDeferred<Unit>()
+
+    @Before
+    fun clearPendingNavigation() {
+        PendingNavigation.consume()
+    }
+
+    @After
+    fun dropPendingNavigation() {
+        PendingNavigation.consume()
+    }
+
+    private val connectivity = TestConnectivityMonitor()
+    private val sessionRepository = TestSessionRepository().apply { sendAccount(SignInAccount.localAccount) }
     private var shouldFail = false
     private var waitsForGate = false
 
     @Test
-    fun theDefaultStateCountsTheRealData() = runTest {
-        val viewModel = viewModel()
+    fun ready_countsTheRealData() = runTest {
+        val viewModel = enteredViewModel()
 
-        viewModel.onEnter(DeleteAccountNavKey())
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(DeleteAccountStage.DEFAULT)
-        assertThat(viewModel.uiState.value.counts.profileFacts).isEqualTo(18)
-        assertThat(viewModel.uiState.value.counts.applications).isEqualTo(4)
-        assertThat(viewModel.uiState.value.counts.unusedCredits).isEqualTo(4)
-        assertThat(viewModel.uiState.value.isDeleteEnabled).isTrue()
-        assertThat(viewModel.uiState.value.isBackEnabled).isTrue()
+        val ready = viewModel.ready()
+        assertThat(ready.counts.profileFacts).isEqualTo(27)
+        assertThat(ready.counts.applications).isEqualTo(4)
+        assertThat(ready.counts.unusedCredits).isEqualTo(4)
+        assertThat(ready.accountEmail).isEqualTo(SignInAccount.localAccount.email)
+        assertThat(ready.isOffline).isFalse()
+        assertThat(ready.failure).isNull()
     }
 
     @Test
-    fun theDeletingStateNamesTheStepsAndLocksBack() = runTest {
+    fun deleting_namesTheStepsInTheOrderTheUseCaseRunsThem() = runTest {
         waitsForGate = true
-        val viewModel = viewModel()
+        val viewModel = enteredViewModel()
 
-        viewModel.onEnter(DeleteAccountNavKey())
-        viewModel.onAction(DeleteAccountAction.DeleteAccountTapped)
+        viewModel.onDeleteTapped()
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(DeleteAccountStage.DELETING)
-        assertThat(state.isBackEnabled).isFalse()
-        assertThat(state.isDeleteEnabled).isFalse()
-        assertThat(state.steps.map { it.step }).containsExactly(
-            AccountDeletionStep.DELETING_APPLICATIONS,
-            AccountDeletionStep.DELETING_PROFILE_FACTS,
-            AccountDeletionStep.CLOSING_ACCOUNT,
-        ).inOrder()
-        assertThat(state.steps.count { it.isCurrent }).isEqualTo(1)
-        assertThat(state.steps.count { it.isPending }).isEqualTo(2)
+        val deleting = viewModel.uiState.value as DeleteAccountUiState.Deleting
+        assertThat(deleting.step).isEqualTo(AccountDeletionStep.DELETING_APPLICATIONS)
+        assertThat(deleting.counts.applications).isEqualTo(4)
         gate.complete(Unit)
     }
 
     @Test
-    fun theDoneStateMeansTheDataIsActuallyGone() = runTest {
-        val viewModel = viewModel()
+    fun done_meansTheDataIsGoneAndTheSessionIsClearedAndTheDoneScreenWaitsForTheNewRoot() = runTest {
+        val viewModel = enteredViewModel()
 
-        viewModel.onEnter(DeleteAccountNavKey())
-        viewModel.onAction(DeleteAccountAction.DeleteAccountTapped)
+        viewModel.onDeleteTapped()
 
-        assertThat(viewModel.uiState.value.stage).isEqualTo(DeleteAccountStage.DONE)
+        assertThat(PendingNavigation.consume()).containsExactly(AccountDeletedNavKey)
         assertThat(applications.value).isEmpty()
         assertThat(profile.value).isNull()
+        assertThat(sessionRepository.observeAccount().first()).isNull()
     }
 
     @Test
-    fun theErrorStateSaysTheDataIsStillThereBecauseItIs() = runTest {
+    fun error_saysTheDataIsStillThereBecauseItIs() = runTest {
         shouldFail = true
-        val viewModel = viewModel()
+        val viewModel = enteredViewModel()
 
-        viewModel.onEnter(DeleteAccountNavKey())
-        viewModel.onAction(DeleteAccountAction.DeleteAccountTapped)
+        viewModel.onDeleteTapped()
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(DeleteAccountStage.ERROR)
-        assertThat(state.isDataIntact).isTrue()
-        assertThat(state.isBackEnabled).isTrue()
-        assertThat(applications.value.map { it.id }).containsExactlyElementsIn(
-            FOUR_APPLICATIONS.map { it.id },
-        )
+        assertThat(viewModel.ready().failure).isEqualTo(DeleteAccountFailure.DATA_INTACT)
+        assertThat(PendingNavigation.consume()).isEmpty()
+        assertThat(applications.value.map { application -> application.id })
+            .containsExactlyElementsIn(FOUR_APPLICATIONS.map { application -> application.id })
         assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
     }
 
     @Test
-    fun theOfflineStateBlocksTheButtonAndKeepsTheCopy() = runTest {
-        val viewModel = viewModel()
+    fun offline_blocksTheDeletion() = runTest {
+        connectivity.setOnline(false)
+        val viewModel = enteredViewModel()
 
-        viewModel.onEnter(DeleteAccountNavKey(scenario = DebugScenario.OFFLINE))
-        viewModel.onAction(DeleteAccountAction.DeleteAccountTapped)
+        viewModel.onDeleteTapped()
 
-        val state = viewModel.uiState.value
-        assertThat(state.isOffline).isTrue()
-        assertThat(state.isDeleteEnabled).isFalse()
-        assertThat(state.stage).isEqualTo(DeleteAccountStage.DEFAULT)
+        assertThat(viewModel.ready().isOffline).isTrue()
+        assertThat(applications.value).isNotEmpty()
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun onEnter_withTheOfflineScenario_blocksTheDeletion() = runTest {
+        val viewModel = enteredViewModel(DebugScenario.OFFLINE)
+
+        viewModel.onDeleteTapped()
+
+        assertThat(viewModel.ready().isOffline).isTrue()
         assertThat(applications.value).isNotEmpty()
     }
 
     @Test
-    fun theDoneStateSendsTheUserBackToWelcome() = runTest {
-        val viewModel = viewModel()
+    fun onEnter_withTheDeletingScenario_showsTheDeletingState() = runTest {
+        val viewModel = enteredViewModel(DebugScenario.DELETING)
 
-        viewModel.onEnter(DeleteAccountNavKey(scenario = DebugScenario.SUCCESS))
-        viewModel.onAction(DeleteAccountAction.BackToWelcomeTapped)
-
-        assertThat(viewModel.uiState.value.destination).isEqualTo(DeleteAccountDestination.WELCOME)
-    }
-
-    @Test
-    fun theDestinationIsConsumedSoItFiresOnce() = runTest {
-        val viewModel = viewModel()
-
-        viewModel.onEnter(DeleteAccountNavKey())
-        viewModel.onAction(DeleteAccountAction.DownloadDataTapped)
-        viewModel.onAction(DeleteAccountAction.DestinationConsumed)
-
-        assertThat(viewModel.uiState.value.destination).isNull()
-    }
-
-    @Test
-    fun keepingTheAccountChangesNothing() = runTest {
-        val viewModel = viewModel()
-
-        viewModel.onEnter(DeleteAccountNavKey())
-        viewModel.onAction(DeleteAccountAction.KeepAccountTapped)
-
-        assertThat(viewModel.uiState.value.stage).isEqualTo(DeleteAccountStage.DEFAULT)
+        assertThat(viewModel.uiState.value).isInstanceOf(DeleteAccountUiState.Deleting::class.java)
         assertThat(applications.value).isNotEmpty()
     }
 
     @Test
-    fun enteringTwiceKeepsTheFirstCounts() = runTest {
-        val viewModel = viewModel()
+    fun onEnter_withTheErrorScenario_showsTheErrorState() = runTest {
+        val viewModel = enteredViewModel(DebugScenario.ERROR)
 
-        viewModel.onEnter(DeleteAccountNavKey())
+        assertThat(viewModel.ready().failure).isEqualTo(DeleteAccountFailure.DATA_INTACT)
+    }
+
+    @Test
+    fun onEnter_twice_keepsTheFirstCounts() = runTest {
+        val viewModel = enteredViewModel()
+
         applications.value = emptyList()
         viewModel.onEnter(DeleteAccountNavKey())
 
-        assertThat(viewModel.uiState.value.counts.applications).isEqualTo(4)
+        assertThat(viewModel.ready().counts.applications).isEqualTo(4)
     }
 
+    private fun TestScope.enteredViewModel(scenario: DebugScenario = DebugScenario.DEFAULT): DeleteAccountViewModel {
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.onEnter(DeleteAccountNavKey(scenario = scenario))
+        return viewModel
+    }
+
+    private fun DeleteAccountViewModel.ready(): DeleteAccountUiState.Ready =
+        uiState.value as DeleteAccountUiState.Ready
+
     private fun viewModel(): DeleteAccountViewModel = DeleteAccountViewModel(
+        connectivityMonitor = connectivity,
+        sessionRepository = sessionRepository,
         deleteAccount = DeleteAccountUseCase(
             applicationRepository = GateApplicationRepository(
                 applications = applications,
@@ -166,9 +183,13 @@ class DeleteAccountViewModelTest {
                 shouldFail = { shouldFail },
             ),
             profileRepository = StaticProfileRepository(profile = profile),
+            exportHistoryRepository = TestExportHistoryRepository(),
+            sessionRepository = sessionRepository,
+            signInGateway = TestSignInGateway(sessionRepository),
             creditBalance = AccountCreditBalance(
-                paymentGateway = OfflinePaymentGateway().withFreeCredits(4),
+                paymentGateway = TestPaymentGateway().withFreeCredits(4),
             ),
+            latency = NoMockLatency,
         ),
     )
 

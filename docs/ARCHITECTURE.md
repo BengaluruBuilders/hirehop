@@ -6,7 +6,10 @@ patterns, build logic, and versions. Do not fetch it from the web.
 
 Product context: `docs/PRD.md` in the repo. The prototype covers PRD features F1, F2, F3, F4 (PDF only), F5.
 The prototype has no backend. All "AI" steps run as deterministic, offline Kotlin code behind interfaces, so a
-backend implementation can replace them later (dependency inversion).
+backend implementation can replace them later (dependency inversion). Sign-in, payment, and the account state
+are mock implementations. `docs/MOCK_BACKEND.md` describes them.
+
+The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/DESIGN_SYSTEM.md` holds the components.
 
 ## 1. Coding standards
 
@@ -31,20 +34,25 @@ backend implementation can replace them later (dependency inversion).
 
 | Module | Type | Content |
 |---|---|---|
-| `:app` | application | `HireHopApplication` (@HiltAndroidApp), `MainActivity`, `HhApp`, `HhAppState`, top-level destinations, Nav3 wiring |
+| `:app` | application | `HireHopApplication` (@HiltAndroidApp), `MainActivity`, `HhApp`, `AppViewModel`, `AppRootState`, the three top-level destinations, Nav3 wiring. The `debug` source set holds the developer menu |
 | `:core:model` | jvm library | Pure Kotlin data models (section 3) |
 | `:core:common` | android library | `Dispatcher` qualifier, `HhDispatchers`, dispatchers + application-scope DI modules, `Result` wrapper |
-| `:core:designsystem` | library compose | `HhTheme`, colors, typography, components (`HhButton`, `HhTopAppBar`, `HhNavigationSuiteScaffold`, `HhBackground`, `HhLoadingWheel`) |
+| `:core:designsystem` | library compose | `HhTheme` with the "Friendly hero, Jade" tokens (colour, type, shape, spacing, elevation, motion). `HhScreen` and the headers `HhHomeHeader` and `HhInnerHeader`. `HhDock`, `HhBottomActionBar`, sheets, dialogs, cards, chips, and text fields. Spot illustrations (`HhSpotIllustration`, `HhCharacterIllustration`) as vector drawables. `docs/DESIGN_SYSTEM.md` lists every component |
 | `:core:ui` | library compose | Shared UI pieces used by more than one feature |
-| `:core:navigation` | library | NiA `Navigator` + `NavigationState` pattern |
-| `:core:database` | library + room + hilt | Room DB, entities, DAOs, type converters |
-| `:core:data` | library + hilt | Repository interfaces and offline-first implementations |
-| `:core:domain` | library + hilt | JD analysis, gap match, tailoring, fabrication guard, resume text parser, use cases |
-| `:core:testing` | library | Test repositories, `MainDispatcherRule`, test data |
-| `:feature:applications:{api,impl}` | feature | Workspace list + detail + status (top-level, start destination) |
-| `:feature:profile:{api,impl}` | feature | View, edit, confirm profile entries; paste-resume import; demo profile (top-level) |
-| `:feature:analysis:{api,impl}` | feature | Paste JD, see gap analysis, save as application |
-| `:feature:tailor:{api,impl}` | feature | Per-bullet diff review (accept/reject), PDF export and share |
+| `:core:navigation` | library | NiA `Navigator` and `NavigationState` pattern. `PendingNavigation` holds keys to push when the main root opens |
+| `:core:database` | library + room + hilt | Room DB, entities, DAOs, type converters. It holds the profile and the applications |
+| `:core:data` | library + hilt | Repository interfaces and offline-first implementations. `SessionRepository` and `ExportHistoryRepository` store their state in `MockStateStore` (DataStore). `ConnectivityMonitor` reports the network state |
+| `:core:domain` | library + hilt | JD analysis, gap match, tailoring, fabrication guard, resume text parser, cover letter, prep questions, fact validation, use cases. Gateways: `SignInGateway`, `PaymentGateway`, `AccountDataExporter`, `SampleDataController` |
+| `:core:testing` | library | Test repositories and gateways, contract tests, `MainDispatcherRule`, test data |
+| `:core:screenshot` | library | Roborazzi screenshot helpers and test devices |
+| `:feature:onboarding:{api,impl}` | feature | Welcome, Paste JD, Sign in, Consent, Import resume, Confirm your facts (Flow 1, S1 to S6) |
+| `:feature:analysis:{api,impl}` | feature | Gap analysis and save as application (S7) |
+| `:feature:tailor:{api,impl}` | feature | Tailored resume review, bullet review, cover letter, prep questions, export preview, application pack, exported, credits (S8 to S15) |
+| `:feature:profile:{api,impl}` | feature | Profile, fact editor, guided form, evidence path (S16 to S19). Top-level |
+| `:feature:applications:{api,impl}` | feature | Application list and workspace (S20, S21). Top-level, start destination of the main root |
+| `:feature:settings:{api,impl}` | feature | Settings, your data, delete account (S22 to S24). Top-level |
+
+`docs/DESIGN_SYSTEM.md` and `design/02-screens.md` list the screens of each module.
 
 Dependency rules: features depend on `core:*` and on other features' `api` only. `core:domain` depends on
 `core:data` and `core:model`. `core:model` depends on nothing Android.
@@ -171,6 +179,9 @@ interface ApplicationRepository {
 }
 ```
 
+`SessionRepository` and `ExportHistoryRepository` are also in `:core:data`. `docs/MOCK_BACKEND.md` gives their
+signatures.
+
 Test fakes in `:core:testing`: `TestProfileRepository`, `TestApplicationRepository` (backed by
 `MutableSharedFlow`/`MutableStateFlow`, like NiA's test repositories), plus `MainDispatcherRule` and
 `com.hirehop.core.testing.data` sample objects (`sampleProfile`, `sampleApplication`).
@@ -190,6 +201,9 @@ Use cases (each a class with `operator fun invoke`, injected with `@Inject const
 `TailorResumeUseCase` (tailor, then run the guard on every bullet; a bullet with violations falls back to the
 original text with an empty `editTypes`), `CreateApplicationUseCase`.
 
+The gateways and the use cases of the account, payment, sample data, and onboarding flows are in
+`docs/MOCK_BACKEND.md`.
+
 Offline implementations use a keyword dictionary (skills, tools, degrees, soft skills) plus alias
 normalisation (`"js" -> "javascript"`, `"k8s" -> "kubernetes"`). Hilt `@Binds` modules bind interfaces to
 the offline implementations.
@@ -197,31 +211,91 @@ the offline implementations.
 ## 6. Navigation
 
 Copy NiA Navigation 3: `NavKey` objects/data classes in each feature `api` module; `EntryProvider`
-extension in each `impl` module; `core:navigation` `Navigator`/`NavigationState`. Top-level destinations:
-Applications (start) and Profile. Analysis and Tailor are pushed on top:
+extension in each `impl` module; `core:navigation` `Navigator`/`NavigationState`.
 
-- `ApplicationsNavKey`, `ApplicationDetailNavKey(applicationId: String)`
-- `ProfileNavKey`
-- `AnalysisNavKey` (new application from a pasted JD)
-- `TailorNavKey(applicationId: String)`
+### Roots
 
-Every key carries an optional `DebugScenario` from `core:model`, defaulting to
-`DebugScenario.Default`. That is the only mechanism for forcing a screen into a
-loading, empty, offline, error or partial state. The debug UI that sets it lives in
-the app's `debug` source set, so release cannot reach it, and a screenshot test can
+`AppViewModel` maps the start destination to `AppRootState`. `HhApp` shows one of two roots.
+It switches when the "onboarding complete" flag or the account of `SessionRepository` changes (Main needs both).
+
+| Root | Content |
+|---|---|
+| First run (`HhFirstRunRoot`) | One back stack that starts at `WelcomeNavKey`. No dock |
+| Main (`HhMainRoot`) | Three tabs: Applications (start), Profile, Settings. `HhDock` shows on the three tab screens only |
+
+A feature never resets a back stack. To leave the first-run root, call
+`SessionRepository.markOnboardingComplete()`. To return to it, sign out or delete the account.
+Each root has its own `ViewModelStore` (`RootViewModelStores`). The app clears the store of a root when it leaves the root.
+To open the main root with screens on top of Applications, call `PendingNavigation.set(...)` just
+before `markOnboardingComplete()`. `HhMainRoot` consumes the keys when it starts.
+`docs/REDESIGN.md` section 6 has the full navigation contract.
+
+### NavKeys
+
+Each key is registered with one `entry<...>` in its `impl` module.
+
+| Module | Keys |
+|---|---|
+| `feature:onboarding:api` | `WelcomeNavKey`, `PasteJobDescriptionNavKey`, `SignInNavKey`, `ConsentNavKey`, `ImportResumeNavKey`, `ConfirmFactsNavKey` |
+| `feature:analysis:api` | `AnalysisNavKey` |
+| `feature:tailor:api` | `TailorNavKey(applicationId)`, `BulletReviewNavKey`, `CoverLetterNavKey`, `PrepQuestionsNavKey`, `ExportPreviewNavKey`, `PackPurchaseNavKey`, `ExportedNavKey`, `ShareLastExportNavKey(applicationId)`, `CreditsNavKey` |
+| `feature:profile:api` | `ProfileNavKey`, `FactEditorNavKey`, `GuidedProfileFormNavKey`, `FactEvidenceNavKey` |
+| `feature:applications:api` | `ApplicationsNavKey`, `ApplicationDetailNavKey(applicationId)` |
+| `feature:settings:api` | `SettingsNavKey`, `YourDataNavKey`, `DeleteAccountNavKey` |
+
+Two keys of the export flow carry extra state.
+
+- `PackPurchaseNavKey.startExportOnReturn` is `true` when Export preview opens the pack screen because no credit is
+  left. When the purchase succeeds and the person goes back, the pack screen asks `PendingExportStart` to start the
+  export of that application.
+- `PendingExportStart` is a `@Singleton` in `feature:tailor:impl`. It holds one application id. Export preview
+  observes it, and for its own application it takes the id once and starts the export.
+- `ShareLastExportNavKey(applicationId)` opens the share sheet for the newest exported file of an application. The
+  workspace "Share again" action calls `navigator.navigateToShareLastExport(applicationId)`. The key has no
+  `DebugScenario`.
+
+Every key (except `ShareLastExportNavKey`) carries an optional `DebugScenario` from `core:model`, defaulting to
+`DebugScenario.DEFAULT`. That is the only mechanism for forcing a screen into a
+loading, empty, offline, error or partial state. A screenshot test can
 navigate straight to a forced state without touching feature business logic.
 
-The design in `design/claude-design` adds destinations that do not exist yet. They are
-added by the flow pull requests, not by this one:
+### Debug developer menu
 
-- `WelcomeNavKey`, `PasteJobDescriptionNavKey`, `SignInNavKey`, `ConsentNavKey`
-- `ImportResumeNavKey`, `ConfirmFactsNavKey`
-- `GuidedProfileFormNavKey`, `FactEditorNavKey`, `FactEvidenceNavKey`
-- `ExportPreviewNavKey`, `PackPurchaseNavKey`, `ExportedNavKey`, `CreditsNavKey`
-- `SettingsNavKey`, `YourDataNavKey`, `DeleteAccountNavKey`
-- `CoverLetterNavKey`, `PrepQuestionsNavKey`
+The `debug` source set of `:app` holds the developer menu. Release builds cannot reach it.
+It adds a second launcher entry, "HireHop dev" (`DebugScenarioActivity`). The menu can:
 
-Top-level destinations become three: Applications, Profile, and Settings.
+- load the sample data and reset the app data (`SampleDataController`);
+- switch the mock connectivity between online and offline;
+- open any screen of the list above with a chosen `DebugScenario`.
+
+### Mock backend state
+
+`MockStateStore` keeps the session, credits, purchases, and export history in a DataStore
+Preferences file. The state survives a process restart. Room keeps the profile and the applications.
+
+### Repositories in features
+
+A ViewModel injects the interface of a repository or a gateway. It never builds display data inline. The
+list below shows what each feature injects today.
+
+| Feature | Injects |
+|---|---|
+| `onboarding` | `SessionRepository`, `ProfileRepository`, `SignInGateway`, `UsageAllowance`, `ConnectivityMonitor`, `NextOnboardingStepUseCase`, `ProposeJobLabelUseCase`, `DiscardJobDraftsUseCase` |
+| `analysis` | `SessionRepository`, `ProfileRepository`, `PrepPlanRepository`, `ContentReportRepository`, `UsageAllowance`, `PaymentGateway`, `AnalyzeJobUseCase`, `AddUserStatedFactUseCase`, `CreateApplicationUseCase` |
+| `tailor` | `ApplicationRepository`, `ProfileRepository`, `TailoringReviewStateRepository`, `ContentReportRepository`, `ExportHistoryRepository`, `PaymentGateway`, `ConnectivityMonitor` |
+| `profile` | `ProfileRepository`, `AddUserStatedFactsUseCase`, `FactIdAllocator`, `ConnectivityMonitor` |
+| `applications` | `ApplicationRepository`, `ProfileRepository`, `ExportHistoryRepository`, `PrepPlanRepository`, `ContentReportRepository` |
+| `settings` | `SignInGateway`, `SessionRepository`, `ApplicationRepository`, `ExportHistoryRepository`, `DeleteAccountUseCase`, `ExportAccountDataUseCase` |
+
+Gap analysis consumes the daily analysis, and Paste JD only checks it. `docs/MOCK_BACKEND.md` gives the rule.
+Sign out keeps the credits. Account deletion closes the credit account, so the next sign-in starts with one
+free credit.
+
+### Fonts
+
+The UI will use Plus Jakarta Sans for text and IBM Plex Mono 500 for fact IDs. Today `HhFontFamilies` in
+`core:designsystem` points to Anek Latin (text) and JetBrains Mono (fact IDs). Plus Jakarta Sans and IBM Plex Mono
+replace them when the font files are added. The families are defined in one place, so no other file changes.
 
 ## 7. Build and host rules
 

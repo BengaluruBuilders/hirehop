@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class BulletReviewNavKey(
     val applicationId: String,
+    val bulletId: String? = null,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
@@ -23,8 +24,8 @@ data class PrepQuestionsNavKey(
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
-fun Navigator.navigateToBulletReview(applicationId: String) {
-    navigate(BulletReviewNavKey(applicationId))
+fun Navigator.navigateToBulletReview(applicationId: String, bulletId: String? = null) {
+    navigate(BulletReviewNavKey(applicationId = applicationId, bulletId = bulletId))
 }
 
 fun Navigator.navigateToCoverLetter(applicationId: String) {

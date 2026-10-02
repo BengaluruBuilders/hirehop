@@ -4,7 +4,7 @@ import com.hirehop.core.model.DebugScenario
 
 enum class WelcomeHeroStage { ORIGINAL, REWRITTEN, THREAD_DRAWN, SETTLED }
 
-enum class WelcomeDestination { PASTE_JOB_DESCRIPTION, IMPORT_RESUME, BUILD_PROFILE_STEP_BY_STEP }
+enum class WelcomeDestination { PASTE_JOB_DESCRIPTION, SIGN_IN, CONSENT, IMPORT_RESUME, BUILD_PROFILE_STEP_BY_STEP }
 
 enum class WelcomeMessage { LOAD_FAILED }
 
@@ -13,43 +13,27 @@ data class WelcomeUiState(
     val isOffline: Boolean = false,
     val message: WelcomeMessage? = null,
     val heroStage: WelcomeHeroStage = WelcomeHeroStage.SETTLED,
-    val reduceMotion: Boolean = false,
     val destination: WelcomeDestination? = null,
 ) {
     val isActionsEnabled: Boolean get() = !isLoading
     val showsRewrittenLine: Boolean get() = heroStage != WelcomeHeroStage.ORIGINAL
     val showsProvenanceThread: Boolean get() =
         heroStage == WelcomeHeroStage.THREAD_DRAWN || heroStage == WelcomeHeroStage.SETTLED
-    val showsHeroWaitingNote: Boolean get() = heroStage == WelcomeHeroStage.ORIGINAL
+    val showsNeverInventsChip: Boolean get() = heroStage == WelcomeHeroStage.SETTLED
 }
 
-fun welcomeStateFor(
-    scenario: DebugScenario,
-    reduceMotion: Boolean = false,
-): WelcomeUiState = when (scenario) {
-    DebugScenario.LOADING -> WelcomeUiState(isLoading = true, reduceMotion = reduceMotion)
+fun welcomeStateFor(scenario: DebugScenario): WelcomeUiState = when (scenario) {
+    DebugScenario.LOADING -> WelcomeUiState(isLoading = true)
 
-    DebugScenario.OFFLINE -> WelcomeUiState(isOffline = true, reduceMotion = reduceMotion)
+    DebugScenario.OFFLINE -> WelcomeUiState(isOffline = true)
 
-    DebugScenario.ERROR -> WelcomeUiState(
-        message = WelcomeMessage.LOAD_FAILED,
-        reduceMotion = reduceMotion,
-    )
+    DebugScenario.ERROR -> WelcomeUiState(message = WelcomeMessage.LOAD_FAILED)
 
-    DebugScenario.EMPTY -> WelcomeUiState(
-        heroStage = WelcomeHeroStage.ORIGINAL,
-        reduceMotion = reduceMotion,
-    )
+    DebugScenario.EMPTY -> WelcomeUiState(heroStage = WelcomeHeroStage.ORIGINAL)
 
-    DebugScenario.PARTIAL -> WelcomeUiState(
-        heroStage = WelcomeHeroStage.THREAD_DRAWN,
-        reduceMotion = reduceMotion,
-    )
+    DebugScenario.PARTIAL -> WelcomeUiState(heroStage = WelcomeHeroStage.THREAD_DRAWN)
 
-    DebugScenario.SUCCESS -> WelcomeUiState(
-        heroStage = WelcomeHeroStage.SETTLED,
-        reduceMotion = reduceMotion,
-    )
+    DebugScenario.SUCCESS -> WelcomeUiState(heroStage = WelcomeHeroStage.SETTLED)
 
-    else -> WelcomeUiState(reduceMotion = reduceMotion)
+    else -> WelcomeUiState()
 }

@@ -26,7 +26,7 @@ private const val RESUME_PICKER_KEY = "hirehop.onboarding.importResume.picker"
 fun ImportResumeRoute(
     key: ImportResumeNavKey,
     onBack: () -> Unit,
-    onGoToGuidedForm: () -> Unit,
+    onGoToGuidedForm: (resumedFromScan: Boolean) -> Unit,
     onReviewFacts: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ImportResumeViewModel = hiltViewModel(),
@@ -56,8 +56,9 @@ fun ImportResumeRoute(
                 launcher.launch(resumeMimeTypes())
             },
             onStartGuidedForm = {
+                val resumedFromScan = viewModel.uiState.value.stage == ImportStage.ScannedNoText
                 viewModel.onStartGuidedForm()
-                onGoToGuidedForm()
+                onGoToGuidedForm(resumedFromScan)
             },
             onReviewFacts = onReviewFacts,
         )

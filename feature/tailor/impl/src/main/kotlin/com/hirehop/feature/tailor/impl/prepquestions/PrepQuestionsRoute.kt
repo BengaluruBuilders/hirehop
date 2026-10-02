@@ -13,20 +13,28 @@ import com.hirehop.feature.tailor.api.navigation.PrepQuestionsNavKey
 internal fun PrepQuestionsRoute(
     key: PrepQuestionsNavKey,
     onNavigateBack: () -> Unit,
+    onOpenPrepPlan: () -> Unit,
+    onEditFact: (entryId: String, entryType: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PrepQuestionsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) { viewModel.toActions(onNavigateBack = onNavigateBack) }
+    val actions = remember(viewModel, onNavigateBack, onOpenPrepPlan, onEditFact) {
+        viewModel.toActions(onNavigateBack, onOpenPrepPlan, onEditFact)
+    }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     PrepQuestionsScreen(uiState = uiState, actions = actions, modifier = modifier)
 }
 
-private fun PrepQuestionsViewModel.toActions(onNavigateBack: () -> Unit): PrepQuestionsActions = PrepQuestionsActions(
-    onFilterChosen = { filter -> onAction(PrepQuestionsAction.FilterChosen(filter)) },
-    onPractiseToggled = { questionId -> onAction(PrepQuestionsAction.PractiseToggled(questionId)) },
+private fun PrepQuestionsViewModel.toActions(
+    onNavigateBack: () -> Unit,
+    onOpenPrepPlan: () -> Unit,
+    onEditFact: (entryId: String, entryType: String) -> Unit,
+): PrepQuestionsActions = PrepQuestionsActions(
     onReportInaccurate = { questionId -> onAction(PrepQuestionsAction.ReportInaccurate(questionId)) },
     onDismissMessage = { onAction(PrepQuestionsAction.DismissMessage) },
     onRetry = { onAction(PrepQuestionsAction.Retry) },
+    onOpenPrepPlan = onOpenPrepPlan,
+    onEditFact = onEditFact,
     onNavigateBack = onNavigateBack,
 )

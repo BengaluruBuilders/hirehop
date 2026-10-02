@@ -1,29 +1,43 @@
 package com.hirehop.feature.tailor.impl
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.FabricationGuard
+import com.hirehop.core.domain.ResumeTailor
+import com.hirehop.core.domain.TailorResumeUseCase
 import com.hirehop.core.domain.UpdateBulletDecisionUseCase
 import com.hirehop.core.model.BulletDecision
+import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
+import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.GuardrailViolation
+import com.hirehop.core.model.JobDescription
+import com.hirehop.core.model.JobRequirement
+import com.hirehop.core.model.KeywordCoverage
+import com.hirehop.core.model.MatchStatus
+import com.hirehop.core.model.ReportedItemKind
+import com.hirehop.core.model.RequirementMatch
+import com.hirehop.core.model.RequirementPriority
+import com.hirehop.core.model.RequirementType
 import com.hirehop.core.model.TailoredBullet
+import com.hirehop.core.model.TailoredResume
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestContentReportRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
+import com.hirehop.core.testing.repository.TestTailoringReviewStateRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
-import com.hirehop.feature.tailor.impl.document.ResumeDocument
-import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
-import com.hirehop.feature.tailor.impl.export.ResumePdfRenderer
+import com.hirehop.core.testing.util.TestClock
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.IOException
 import kotlin.time.Clock
 
 class TailorViewModelTest {
@@ -33,8 +47,10 @@ class TailorViewModelTest {
 
     private val applicationRepository = TestApplicationRepository()
     private val profileRepository = TestProfileRepository()
-    private val renderer = FakeResumePdfRenderer()
-    private lateinit var viewModel: TailorViewModel
+    private val connectivity = TestConnectivityMonitor()
+    private val reviewState = TestTailoringReviewStateRepository()
+    private val reports = TestContentReportRepository()
+    private val testClock = TestClock()
 
     private val reviewable = testBullet("r1", original = "Built a tool", proposed = "Developed a tool")
     private val alreadyRejected = testBullet(
@@ -44,11 +60,17 @@ class TailorViewModelTest {
         decision = BulletDecision.REJECTED,
     )
     private val unchanged = testBullet("u1", original = "Wrote SQL", proposed = "Wrote SQL")
-    private val violating = testBullet(
+    private val repairFailed = testBullet(
         id = "v1",
         original = "Helped a team",
-        proposed = "Led a team of 30",
+        proposed = "Helped a team",
         violations = listOf(GuardrailViolation.UnsupportedNumber("30")),
+    )
+    private val flagged = testBullet(
+        id = "f1",
+        original = "Made weekly reports",
+        proposed = "Built weekly reports",
+        violations = listOf(GuardrailViolation.VerbEscalation("made", "built")),
     )
     private val moveOnly = testBullet(
         id = "m1",
@@ -61,69 +83,91 @@ class TailorViewModelTest {
 
     private val profile = testProfile(
         listOf(
-            entryFor("exp-1", reviewable, alreadyRejected, unchanged, violating, moveOnly, staleSource),
+            entryFor("exp-1", reviewable, alreadyRejected, unchanged, repairFailed, flagged, moveOnly, staleSource),
             testEntry("exp-hidden", isConfirmed = false, bullets = listOf(evidenceOf(hidden))),
             testEntry("edu-1", EntryCategory.EDUCATION),
         ),
     )
 
-    @Before
-    fun setup() {
-        viewModel = TailorViewModel(
+    private val gap = GapAnalysis(
+        matches = listOf(
+            RequirementMatch(
+                requirement = JobRequirement(
+                    id = "req-1",
+                    text = "Must have Cloud data warehouse.",
+                    type = RequirementType.TOOL,
+                    priority = RequirementPriority.MUST_HAVE,
+                    keywords = emptyList(),
+                ),
+                status = MatchStatus.GAP,
+                evidenceIds = emptyList(),
+            ),
+        ),
+        keywordCoverage = KeywordCoverage(covered = 0, total = 1),
+    )
+
+    private fun viewModel(scenario: DebugScenario = DebugScenario.DEFAULT): TailorViewModel {
+        val clock = Clock.System
+        return TailorViewModel(
             applicationRepository = applicationRepository,
             profileRepository = profileRepository,
-            updateBulletDecision = UpdateBulletDecisionUseCase(applicationRepository, Clock.System),
-            assembler = ResumeDocumentAssembler(),
-            pdfRenderer = renderer,
+            connectivityMonitor = connectivity,
+            reviewStateRepository = reviewState,
+            contentReportRepository = reports,
+            clock = testClock,
+            updateBulletDecision = UpdateBulletDecisionUseCase(applicationRepository, clock),
+            handEditBullet = HandEditBulletUseCase(applicationRepository, reviewState, clock),
+            regenerateSection = RegenerateSectionUseCase(
+                applicationRepository,
+                profileRepository,
+                TailorResumeUseCase(FixedTailor(), NoViolationGuard()),
+                reviewState,
+                clock,
+            ),
             applicationId = "app-1",
+            scenario = scenario,
         )
     }
 
-    private fun TestScope.collectUiState() {
+    private fun TestScope.collectUiState(viewModel: TailorViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
     }
 
-    private fun sendDataWithEditedSource() {
-        val editedProfile = profile.copy(
-            entries = profile.entries.map { entry ->
-                entry.copy(
-                    bullets = entry.bullets.map {
-                        if (it.id == "src-s1") EvidenceBullet(it.id, "Text after the edit") else it
-                    },
-                )
-            },
-        )
-        applicationRepository.sendApplications(listOf(testApplication(listOf(reviewable, staleSource))))
-        profileRepository.sendProfile(editedProfile)
-    }
-
-    private fun sendData(bullets: List<TailoredBullet>) {
-        applicationRepository.sendApplications(listOf(testApplication(bullets)))
+    private fun sendData(
+        bullets: List<TailoredBullet>,
+        gapAnalysis: GapAnalysis? = gap,
+        entryIds: List<String>? = null,
+    ) {
+        applicationRepository.sendApplications(listOf(testApplication(bullets, gapAnalysis, entryIds)))
         profileRepository.sendProfile(profile)
     }
 
-    private fun success(): TailorUiState.Success {
-        val state = viewModel.uiState.value
+    private fun TailorViewModel.success(): TailorUiState.Success {
+        val state = uiState.value
         assertThat(state).isInstanceOf(TailorUiState.Success::class.java)
         return state as TailorUiState.Success
     }
 
-    private fun decisionOf(bulletId: String): BulletDecision =
-        success().entries.flatMap { it.bullets }.first { it.bullet.id == bulletId }.bullet.decision
+    private fun TailorViewModel.bulletOf(bulletId: String): TailorBulletUi =
+        success().sections.filterIsInstance<ReviewSection.Entries>()
+            .flatMap { it.entries }
+            .flatMap { it.bullets }
+            .first { it.bullet.id == bulletId }
 
     @Test
     fun applicationId_isTheAssistedKey() {
-        assertThat(viewModel.applicationId).isEqualTo("app-1")
+        assertThat(viewModel().applicationId).isEqualTo("app-1")
     }
 
     @Test
     fun uiState_startsLoading() {
-        assertThat(viewModel.uiState.value).isEqualTo(TailorUiState.Loading)
+        assertThat(viewModel().uiState.value).isEqualTo(TailorUiState.Loading())
     }
 
     @Test
     fun uiState_isNotFoundWhenTheApplicationIsMissing() = runTest {
-        collectUiState()
+        val viewModel = viewModel()
+        collectUiState(viewModel)
 
         applicationRepository.sendApplications(emptyList())
         profileRepository.sendProfile(profile)
@@ -133,179 +177,302 @@ class TailorViewModelTest {
 
     @Test
     fun uiState_groupsBulletsByConfirmedEntryOnly() = runTest {
-        collectUiState()
+        val viewModel = viewModel()
+        collectUiState(viewModel)
 
-        sendData(listOf(reviewable, unchanged, hidden))
+        sendData(listOf(reviewable, unchanged, hidden), entryIds = listOf("exp-1"))
 
-        assertThat(success().entries.map { it.entryId }).containsExactly("exp-1")
-        assertThat(success().entries.single().bullets.map { it.bullet.id }).containsExactly("r1", "u1").inOrder()
+        val entries = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>().flatMap { it.entries }
+        assertThat(entries.map { it.entryId }).containsExactly("exp-1")
+        assertThat(entries.last().bullets.map { it.bullet.id }).containsExactly("r1", "u1").inOrder()
     }
 
     @Test
-    fun uiState_countsOnlyBulletsThatNeedAReview() = runTest {
-        collectUiState()
+    fun uiState_leavesOutAConfirmedEntryTheTailoringNeverCovered() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
 
-        sendData(listOf(reviewable, alreadyRejected, unchanged, violating))
+        sendData(listOf(reviewable), entryIds = listOf("exp-1"))
 
-        assertThat(success().totalCount).isEqualTo(2)
-        assertThat(success().reviewedCount).isEqualTo(1)
+        val sections = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>()
+        assertThat(sections.map { it.category }).containsExactly(EntryCategory.EXPERIENCE)
     }
 
     @Test
-    fun uiState_resolvesSourceTextForEachBullet() = runTest {
-        collectUiState()
+    fun uiState_countsReviewableAndRepairFailedChangesAndTreatsRepairFailedAsReviewed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
 
-        sendData(listOf(reviewable))
+        sendData(listOf(reviewable, alreadyRejected, unchanged, repairFailed))
 
-        assertThat(success().entries.single().bullets.single().sourceTexts).containsExactly("Built a tool")
+        assertThat(viewModel.success().totalCount).isEqualTo(3)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(2)
+        assertThat(viewModel.success().openCount).isEqualTo(1)
     }
 
     @Test
     fun uiState_classifiesBulletKinds() = runTest {
-        collectUiState()
+        val viewModel = viewModel()
+        collectUiState(viewModel)
 
-        sendData(listOf(reviewable, unchanged, violating))
+        sendData(listOf(reviewable, unchanged, repairFailed, flagged, moveOnly))
 
-        val kinds = success().entries.single().bullets.associate { it.bullet.id to it.kind }
+        val kinds = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>()
+            .flatMap { it.entries }.flatMap { it.bullets }.associate { it.bullet.id to it.state }
         assertThat(kinds).containsExactly(
             "r1",
-            BulletReviewKind.REVIEWABLE,
+            BulletReviewState.TO_REVIEW,
             "u1",
-            BulletReviewKind.UNCHANGED,
+            BulletReviewState.UNCHANGED,
             "v1",
-            BulletReviewKind.VIOLATION,
+            BulletReviewState.REPAIR_FAILED,
+            "f1",
+            BulletReviewState.FLAGGED,
+            "m1",
+            BulletReviewState.TO_REVIEW,
         )
+        assertThat(viewModel.success().flaggedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun uiState_listsGapRequirementsAsNotAddedWithoutMarkerOrClosingPunctuation() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        assertThat(viewModel.success().notAdded).containsExactly("Cloud data warehouse")
+    }
+
+    @Test
+    fun uiState_resolvesSourceFactsForEachBullet() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        val source = viewModel.bulletOf("r1").sources.single()
+        assertThat(source.id).isEqualTo("src-r1")
+        assertThat(source.text).isEqualTo("Built a tool")
+    }
+
+    @Test
+    fun uiState_showsTheDesignIdOfTheSourceFactNotTheBulletId() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        val source = viewModel.bulletOf("r1").sources.single()
+        assertThat(source.displayId).isEqualTo("W-01")
+        assertThat(source.entryId).isEqualTo("exp-1")
+    }
+
+    @Test
+    fun onReportBullet_savesTheReportAndMarksTheBulletAsReported() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onReportBullet("r1")
+
+        val saved = reports.observeReports("app-1").first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.RESUME_BULLET)
+        assertThat(saved.itemId).isEqualTo("r1")
+        assertThat(saved.reportedAt).isEqualTo(testClock.instant)
+        assertThat(viewModel.success().reportedIds).containsExactly("r1")
+    }
+
+    @Test
+    fun onReportSection_marksTheSectionAsReported() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onReportSection("EXPERIENCE")
+
+        val saved = reports.observeReports("app-1").first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.SECTION)
+        assertThat(saved.itemId).isEqualTo("EXPERIENCE")
+        assertThat(viewModel.success().reportedIds).containsExactly(sectionReportId("EXPERIENCE"))
+    }
+
+    @Test
+    fun reportedBullet_staysReportedForANewViewModel() = runTest {
+        sendData(listOf(reviewable))
+        viewModel().onReportBullet("r1")
+        val reopened = viewModel()
+        collectUiState(reopened)
+
+        assertThat(reopened.success().reportedIds).containsExactly("r1")
+    }
+
+    @Test
+    fun onRegenerate_recordsTheRegenerationAgainstTheSection() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(reviewState.observe("app-1").first().regenerationsUsedIn(EntryCategory.EXPERIENCE.name)).isEqualTo(1)
     }
 
     @Test
     fun onAccept_marksTheBulletAcceptedAndCountsItAsReviewed() = runTest {
-        collectUiState()
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable, unchanged))
 
         viewModel.onAccept("r1")
 
-        assertThat(decisionOf("r1")).isEqualTo(BulletDecision.ACCEPTED)
-        assertThat(success().reviewedCount).isEqualTo(1)
-        assertThat(success().totalCount).isEqualTo(1)
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(1)
+        assertThat(viewModel.success().isAllReviewed).isTrue()
     }
 
     @Test
-    fun onReject_marksTheBulletRejectedAndCountsItAsReviewed() = runTest {
-        collectUiState()
+    fun onKeepOriginal_marksTheBulletRejectedAndCountsItAsReviewed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable, unchanged))
 
-        viewModel.onReject("r1")
+        viewModel.onKeepOriginal("r1")
 
-        assertThat(decisionOf("r1")).isEqualTo(BulletDecision.REJECTED)
-        assertThat(success().reviewedCount).isEqualTo(1)
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ORIGINAL_KEPT)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(1)
     }
 
     @Test
-    fun onAcceptAllSafeChanges_skipsViolatingUnchangedAndRejectedBullets() = runTest {
-        collectUiState()
-        sendData(listOf(reviewable, alreadyRejected, unchanged, violating))
-
-        viewModel.onAcceptAllSafeChanges()
-
-        assertThat(decisionOf("r1")).isEqualTo(BulletDecision.ACCEPTED)
-        assertThat(decisionOf("r2")).isEqualTo(BulletDecision.REJECTED)
-        assertThat(decisionOf("u1")).isEqualTo(BulletDecision.PENDING)
-        assertThat(decisionOf("v1")).isEqualTo(BulletDecision.PENDING)
-        assertThat(success().reviewedCount).isEqualTo(success().totalCount)
-    }
-
-    @Test
-    fun onAcceptAllSafeChanges_acceptsMoveOnlyBulletsAndSkipsStaleOnes() = runTest {
-        collectUiState()
-        sendDataWithEditedSource()
-        applicationRepository.sendApplications(listOf(testApplication(listOf(reviewable, moveOnly, staleSource))))
-
-        viewModel.onAcceptAllSafeChanges()
-
-        assertThat(decisionOf("m1")).isEqualTo(BulletDecision.ACCEPTED)
-        assertThat(decisionOf("r1")).isEqualTo(BulletDecision.ACCEPTED)
-        assertThat(decisionOf("s1")).isEqualTo(BulletDecision.PENDING)
-    }
-
-    @Test
-    fun documentInState_followsTheCurrentDecisions() = runTest {
-        collectUiState()
-        sendData(listOf(reviewable))
-
-        viewModel.onAccept("r1")
-
-        val bullets = success().document.sections.flatMap { it.entries }.flatMap { it.bullets }
-        assertThat(bullets).contains("Developed a tool")
-    }
-
-    @Test
-    fun onExport_rendersTheDocumentAndPublishesTheFile() = runTest {
-        collectUiState()
+    fun onUndo_putsTheBulletBackToReview() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable))
         viewModel.onAccept("r1")
 
-        viewModel.onExport()
+        viewModel.onUndo("r1")
 
-        val exportState = viewModel.exportState.value
-        assertThat(exportState).isInstanceOf(ExportUiState.Ready::class.java)
-        assertThat((exportState as ExportUiState.Ready).file.name).isEqualTo("Priya_Sharma_Acme_Backend_Engineer.pdf")
-        assertThat(renderer.lastDocument?.sections?.flatMap { it.entries }?.flatMap { it.bullets })
-            .contains("Developed a tool")
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.TO_REVIEW)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(0)
     }
 
     @Test
-    fun onExport_reportsFailureWhenTheRendererFails() = runTest {
-        collectUiState()
+    fun nextOpenChange_skipsReviewedChangesAndWrapsAround() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable, alreadyRejected, flagged))
+
+        assertThat(viewModel.success().nextOpenChange()?.bullet?.id).isEqualTo("r1")
+        assertThat(viewModel.success().nextOpenChange("r1")?.bullet?.id).isEqualTo("f1")
+        assertThat(viewModel.success().nextOpenChange("f1")?.bullet?.id).isEqualTo("r1")
+    }
+
+    @Test
+    fun onEditByHand_storesTheTextAsAcceptedUserEditedAndIgnoresBlankText() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(repairFailed))
+
+        viewModel.onEditByHand("v1", "   ")
+        assertThat(viewModel.bulletOf("v1").state).isEqualTo(BulletReviewState.REPAIR_FAILED)
+
+        viewModel.onEditByHand("v1", " Coordinated a team ")
+
+        val edited = viewModel.bulletOf("v1")
+        assertThat(edited.state).isEqualTo(BulletReviewState.USER_EDITED)
+        assertThat(edited.bullet.proposedText).isEqualTo("Coordinated a team")
+        assertThat(edited.bullet.violations).isEmpty()
+        assertThat(viewModel.success().changes.map { it.bullet.id }).containsExactly("v1")
+    }
+
+    @Test
+    fun onRegenerate_resetsTheSectionAndUsesOneIncludedRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable))
-        renderer.failWith = IOException("disk full")
+        viewModel.onAccept("r1")
+        viewModel.onEditByHand("r1", "My own words")
 
-        viewModel.onExport()
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
 
-        assertThat(viewModel.exportState.value).isEqualTo(ExportUiState.Failed)
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.TO_REVIEW)
+        assertThat(viewModel.bulletOf("r1").bullet.proposedText).isEqualTo("Developed a tool")
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(1)
     }
 
     @Test
-    fun onExport_reportsFailureForAnyRuntimeError() = runTest {
-        collectUiState()
+    fun onRegenerate_stopsAfterTheIncludedRegenerationsAreUsed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable))
-        renderer.failWithRuntime = IllegalStateException("page already open")
 
-        viewModel.onExport()
+        repeat(3) { viewModel.onRegenerate(EntryCategory.EXPERIENCE) }
+        viewModel.onAccept("r1")
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
 
-        assertThat(viewModel.exportState.value).isEqualTo(ExportUiState.Failed)
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(0)
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
     }
 
     @Test
-    fun onExportHandled_resetsTheExportState() = runTest {
-        collectUiState()
+    fun uiState_marksOfflineWhenTheDeviceIsOfflineOrTheScenarioSaysSo() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
         sendData(listOf(reviewable))
-        viewModel.onExport()
+        assertThat(viewModel.success().isOffline).isFalse()
 
-        viewModel.onExportHandled()
+        connectivity.setOnline(false)
 
-        assertThat(viewModel.exportState.value).isEqualTo(ExportUiState.Idle)
+        assertThat(viewModel.success().isOffline).isTrue()
+
+        val forced = viewModel(DebugScenario.OFFLINE)
+        collectUiState(forced)
+        assertThat(forced.success().isOffline).isTrue()
     }
 
     @Test
-    fun onExport_doesNothingBeforeTheStateLoads() = runTest {
-        collectUiState()
+    fun scenarioLoading_forcesTheLoadingStateWithCounts() = runTest {
+        val viewModel = viewModel(DebugScenario.LOADING)
+        collectUiState(viewModel)
 
-        viewModel.onExport()
+        sendData(listOf(reviewable, unchanged))
 
-        assertThat(viewModel.exportState.value).isEqualTo(ExportUiState.Idle)
-        assertThat(renderer.lastDocument).isNull()
+        val state = viewModel.uiState.value as TailorUiState.Loading
+        assertThat(state.lineCount).isEqualTo(2)
+        assertThat(state.job?.company).isEqualTo("Acme")
+    }
+
+    @Test
+    fun scenarioError_forcesTheFailedStateUntilRetry() = runTest {
+        val viewModel = viewModel(DebugScenario.ERROR)
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        assertThat(viewModel.uiState.value).isInstanceOf(TailorUiState.Failed::class.java)
+
+        viewModel.onRetry()
+
+        assertThat(viewModel.uiState.value).isInstanceOf(TailorUiState.Success::class.java)
     }
 }
 
-private class FakeResumePdfRenderer : ResumePdfRenderer {
-    var lastDocument: ResumeDocument? = null
-    var failWith: IOException? = null
-    var failWithRuntime: RuntimeException? = null
+private class FixedTailor : ResumeTailor {
+    override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume =
+        TailoredResume(
+            listOf(
+                testBullet(
+                    id = "r1",
+                    original = "Built a tool",
+                    proposed = "Developed a tool",
+                    decision = BulletDecision.ACCEPTED,
+                ),
+            ),
+        )
+}
 
-    override suspend fun render(document: ResumeDocument, fileName: String): File {
-        failWith?.let { throw it }
-        failWithRuntime?.let { throw it }
-        lastDocument = document
-        return File(fileName)
-    }
+private class NoViolationGuard : FabricationGuard {
+    override fun check(
+        proposedText: String,
+        sources: List<EvidenceBullet>,
+        profile: CandidateProfile,
+    ): List<GuardrailViolation> = emptyList()
 }

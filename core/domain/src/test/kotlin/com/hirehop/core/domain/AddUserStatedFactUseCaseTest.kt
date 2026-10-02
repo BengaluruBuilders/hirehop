@@ -43,7 +43,7 @@ class AddUserStatedFactUseCaseTest {
         useCase(requirement("docker"), "  Used Docker for a college project  ")
 
         val entry = checkNotNull(repository.current()).entries.single()
-        assertThat(entry.id).isEqualTo("user-stated")
+        assertThat(entry.id).isEqualTo("U-01")
         assertThat(entry.category).isEqualTo(EntryCategory.ACHIEVEMENT)
         assertThat(entry.title).isEqualTo("Additional experience")
         assertThat(entry.source).isEqualTo(FactSource.USER_STATED)
@@ -71,7 +71,16 @@ class AddUserStatedFactUseCaseTest {
 
         useCase(requirement("docker"), "Used Docker")
 
-        assertThat(checkNotNull(repository.current()).entries.map { it.id }).containsExactly("e1", "user-stated").inOrder()
+        assertThat(checkNotNull(repository.current()).entries.map { it.id }).containsExactly("e1", "U-01").inOrder()
+    }
+
+    @Test
+    fun theNewEntryTakesTheNextFreeUncategorisedId() = runTest {
+        repository.saveProfile(baseProfile.copy(entries = listOf(entry("U-01", EntryCategory.EDUCATION, "B.Tech", "Degree"))))
+
+        useCase(requirement("docker"), "Used Docker")
+
+        assertThat(checkNotNull(repository.current()).entries.map { it.id }).containsExactly("U-01", "U-02").inOrder()
     }
 
     @Test

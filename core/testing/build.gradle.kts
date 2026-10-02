@@ -9,6 +9,7 @@ android {
 dependencies {
     api(libs.kotlinx.coroutines.test)
     api(libs.truth)
+    api(libs.turbine)
     api(projects.core.common)
     api(projects.core.data)
     api(projects.core.domain)

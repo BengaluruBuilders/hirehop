@@ -1,146 +1,85 @@
 package com.hirehop.feature.profile.impl
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import com.hirehop.core.designsystem.component.HhOutlinedButton
-import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.model.EntryCategory
+import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.feature.profile.impl.common.Note
+import com.hirehop.feature.profile.impl.common.NoteTone
 
 @Composable
-internal fun ProfileOverview(
+internal fun ProfileOverviewScreen(
     state: ProfileUiState.Success,
     actions: ProfileActions,
-    onOpenSheet: (ProfileSheet) -> Unit,
-    onOpenFact: (String?) -> Unit,
-    onAddEvidence: () -> Unit,
+    navigation: ProfileNavigation,
+    onOpenSection: (ProfileSectionKind) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var sheet by rememberSaveable { mutableStateOf<ProfileSheet?>(null) }
     val overview = state.overview
-    val openEntries = state.profile.entries.filterNot { it.isConfirmed }
-    LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(HhTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
+    ProfileFrame(
+        header = ProfileHeaderState(
+            headerLine = overview.headlineLine,
+            factCount = overview.factCount,
+            confirmedCount = overview.confirmedCount,
+            userStatedCount = overview.userStatedCount,
+            toConfirmCount = overview.unconfirmedCount,
+        ),
+        onAddEvidence = navigation.onAddEvidence,
+        onEditContact = { sheet = ProfileSheet.Contact },
+        modifier = modifier,
     ) {
-        item(key = "header") {
-            ProfileHeader(
-                overview = overview,
-                isOffline = state.isOffline,
-                onEditContact = { onOpenSheet(ProfileSheet.EditContact) },
-            )
+        if (state.isOffline) {
+            item(key = "offline") {
+                HhOfflineBanner(message = stringResource(R.string.feature_profile_impl_offline_message))
+            }
         }
         if (overview.unconfirmedCount > 0) {
-            item(key = "open-items") {
-                OpenItemsBanner(
-                    unconfirmedCount = overview.unconfirmedCount,
-                    onReview = { onOpenFact(overview.firstUnconfirmedId) },
+            item(key = "to-confirm") {
+                Note(
+                    text = pluralStringResource(
+                        R.plurals.feature_profile_impl_open_items_banner,
+                        overview.unconfirmedCount,
+                        overview.unconfirmedCount,
+                    ),
+                    actionLabel = stringResource(R.string.feature_profile_impl_open_items_review),
+                    onAction = { overview.firstUnconfirmedId?.let(navigation.onOpenFact) },
                 )
             }
-        }
-        item(key = "retention") {
-            FileRetentionNote()
-        }
-        item(key = "actions") {
-            OverviewActions(
-                onAddEvidence = onAddEvidence,
-                onAddFact = { onOpenFact(null) },
-            )
         }
         items(items = overview.sections, key = { "section-${it.kind.name}" }) { section ->
-            ProfileSectionCard(
-                section = section,
-                onOpen = { onOpenSheet(section.kind.destinationSheet()) },
+            SectionCard(section = section, onOpen = { onOpenSection(section.kind) })
+        }
+        item(key = "add-fact") {
+            HhOutlineButton(
+                label = stringResource(R.string.feature_profile_impl_add_fact),
+                onClick = { sheet = ProfileSheet.AddFact },
+                trailingIcon = HhIcons.Add,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
-        if (overview.sections.any { it.kind == ProfileSectionKind.Skills }) {
-            item(key = "skills") {
-                SkillsEditor(
-                    skills = state.profile.skills,
-                    onAddSkill = { onOpenSheet(ProfileSheet.AddSkill) },
-                    onRemoveSkill = actions.onRemoveSkill,
-                )
-            }
-        }
-        item(key = "add-entry") {
-            AddEntryMenu(
-                onAddEntry = { onOpenSheet(ProfileSheet.EditEntry(null, it.category)) },
-                onPasteResume = { onOpenSheet(ProfileSheet.PasteResume) },
+        item(key = "file-note") {
+            Note(
+                text = stringResource(R.string.feature_profile_impl_file_deleted_note),
+                tone = NoteTone.Positive,
+                icon = HhIcons.Delete,
             )
-        }
-        if (openEntries.isNotEmpty()) {
-            item(key = "open-facts-title") {
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_open_facts_title),
-                    style = HhTheme.typography.titleMedium,
-                    color = HhTheme.colors.onSurface,
-                )
-            }
-            items(items = openEntries, key = { "open-${it.id}" }) { entry ->
-                EntryCard(
-                    entry = entry,
-                    onConfirm = { actions.onConfirmEntry(entry.id) },
-                    onEdit = { onOpenSheet(ProfileSheet.EditEntry(entry.id, entry.category)) },
-                    onDelete = { onOpenSheet(ProfileSheet.DeleteEntry(entry.id)) },
-                )
-            }
         }
     }
-}
-
-private fun ProfileSectionKind.destinationSheet(): ProfileSheet = when (this) {
-    ProfileSectionKind.Skills -> ProfileSheet.AddSkill
-    else -> ProfileSheet.EditEntry(null, entryCategory())
-}
-
-private fun ProfileSectionKind.entryCategory(): EntryCategory = when (this) {
-    ProfileSectionKind.Education -> EntryCategory.EDUCATION
-    ProfileSectionKind.Experience -> EntryCategory.EXPERIENCE
-    ProfileSectionKind.Projects -> EntryCategory.PROJECT
-    ProfileSectionKind.Skills -> EntryCategory.PROJECT
-    ProfileSectionKind.Certifications -> EntryCategory.CERTIFICATION
-    ProfileSectionKind.Extras -> EntryCategory.ACHIEVEMENT
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SkillsEditor(
-    skills: List<String>,
-    onAddSkill: () -> Unit,
-    onRemoveSkill: (String) -> Unit,
-) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-    ) {
-        skills.forEach { skill ->
-            HhOutlinedButton(
-                onClick = { onRemoveSkill(skill) },
-                text = {
-                    Text(
-                        text = skill,
-                        style = HhTheme.typography.labelLarge,
-                    )
-                },
-            )
-        }
-        HhOutlinedButton(
-            onClick = onAddSkill,
-            text = {
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_add_skill),
-                    style = HhTheme.typography.labelLarge,
-                )
-            },
-        )
-    }
+    ProfileSheetHost(
+        sheet = sheet,
+        profile = state.profile,
+        actions = actions,
+        navigation = navigation,
+        onDismiss = { sheet = null },
+    )
 }

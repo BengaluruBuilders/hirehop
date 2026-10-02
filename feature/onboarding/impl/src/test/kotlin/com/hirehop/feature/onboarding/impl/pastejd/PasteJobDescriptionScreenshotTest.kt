@@ -28,7 +28,7 @@ class PasteJobDescriptionScreenshotTest {
     fun empty_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionEmpty",
-            uiState = PasteJobDescriptionUiState(),
+            uiState = PasteJobDescriptionUiState(freeAnalysesLeft = FREE_LEFT),
         )
     }
 
@@ -37,6 +37,7 @@ class PasteJobDescriptionScreenshotTest {
         captureBothThemes(
             screenName = "PasteJobDescriptionTyping",
             uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
                 text = SAMPLE_JD,
                 company = "Northwind GCC",
                 role = "Associate Analyst",
@@ -48,7 +49,10 @@ class PasteJobDescriptionScreenshotTest {
     fun tooShort_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionTooShort",
-            uiState = PasteJobDescriptionUiState(text = "Associate Analyst"),
+            uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
+                text = "Associate Analyst",
+            ),
         )
     }
 
@@ -56,7 +60,10 @@ class PasteJobDescriptionScreenshotTest {
     fun linkOnly_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionLinkOnly",
-            uiState = PasteJobDescriptionUiState(text = "https://jobs.example.com/role/1"),
+            uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
+                text = "https://jobs.example.com/role/1",
+            ),
         )
     }
 
@@ -64,7 +71,10 @@ class PasteJobDescriptionScreenshotTest {
     fun overLong_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionOverLong",
-            uiState = PasteJobDescriptionUiState(text = "word ".repeat(PASTE_JD_MAX_CHARACTERS)),
+            uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
+                text = "word ".repeat(PASTE_JD_MAX_CHARACTERS),
+            ),
         )
     }
 
@@ -72,7 +82,13 @@ class PasteJobDescriptionScreenshotTest {
     fun offline_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionOffline",
-            uiState = PasteJobDescriptionUiState(isOffline = true, text = SAMPLE_JD),
+            uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
+                isOffline = true,
+                text = SAMPLE_JD,
+                company = "Northwind GCC",
+                role = "Associate Analyst",
+            ),
         )
     }
 
@@ -81,8 +97,24 @@ class PasteJobDescriptionScreenshotTest {
         captureBothThemes(
             screenName = "PasteJobDescriptionSharedIn",
             uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
                 text = SAMPLE_JD,
+                company = "Northwind GCC",
+                role = "Associate Analyst",
                 arrival = PasteJobDescriptionArrival.SHARED_IN,
+            ),
+        )
+    }
+
+    @Test
+    fun dailyLimitReached_readsInLightAndDark() {
+        captureBothThemes(
+            screenName = "PasteJobDescriptionDailyLimit",
+            uiState = PasteJobDescriptionUiState(
+                text = SAMPLE_JD,
+                company = "Northwind GCC",
+                role = "Associate Analyst",
+                freeAnalysesLeft = 0,
             ),
         )
     }
@@ -91,7 +123,10 @@ class PasteJobDescriptionScreenshotTest {
     fun loading_readsInLightAndDark() {
         captureBothThemes(
             screenName = "PasteJobDescriptionLoading",
-            uiState = PasteJobDescriptionUiState(isLoading = true),
+            uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
+                isLoading = true,
+            ),
         )
     }
 
@@ -101,6 +136,7 @@ class PasteJobDescriptionScreenshotTest {
         captureBothThemes(
             screenName = "PasteJobDescriptionTypingFont200",
             uiState = PasteJobDescriptionUiState(
+                freeAnalysesLeft = FREE_LEFT,
                 text = SAMPLE_JD,
                 company = "Northwind GCC",
                 role = "Associate Analyst",
@@ -134,16 +170,18 @@ class PasteJobDescriptionScreenshotTest {
 
     private val noOpActions = PasteJobDescriptionActions(
         onTextChange = {},
+        onPaste = {},
         onCompanyChange = {},
         onRoleChange = {},
         onClear = {},
         onAnalyse = {},
         onRetry = {},
-        onDismissMessage = {},
+        onBack = {},
     )
 
     private companion object {
         const val OUTPUT = "src/test/screenshots"
+        const val FREE_LEFT = 2
 
         val SAMPLE_JD: String = "Associate Analyst, Business Intelligence at Northwind Global " +
             "Capability Centre, Bengaluru. You will build weekly reports in SQL and Advanced " +

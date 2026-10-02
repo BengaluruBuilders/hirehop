@@ -1,6 +1,5 @@
 package com.hirehop.feature.profile.impl.facteditor
 
-import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.IdGenerator
@@ -11,10 +10,12 @@ import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.FactSource
+import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.sampleProfile
 import com.hirehop.core.testing.data.sampleProjectEntry
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
+import com.hirehop.feature.profile.api.navigation.FactEditorNavKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -28,6 +29,7 @@ class FactEditorViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
     private val allocator = FactIdAllocator()
     private var nextBulletId = 0
     private val idGenerator = IdGenerator { "bullet-${nextBulletId++}" }
@@ -57,16 +59,12 @@ class FactEditorViewModelTest {
         scenario: DebugScenario = DebugScenario.DEFAULT,
         profileRepository: ProfileRepository = repository,
     ): FactEditorViewModel {
-        val arguments = buildMap {
-            put(ENTRY_TYPE_KEY, entryType)
-            put(SCENARIO_KEY, scenario.name)
-            if (entryId != null) put(ENTRY_ID_KEY, entryId)
-        }
         return FactEditorViewModel(
-            savedStateHandle = SavedStateHandle(arguments),
             profileRepository = profileRepository,
             factIdAllocator = allocator,
             idGenerator = idGenerator,
+            connectivityMonitor = connectivity,
+            key = FactEditorNavKey(entryId = entryId, entryType = entryType, scenario = scenario),
         )
     }
 
@@ -80,6 +78,27 @@ class FactEditorViewModelTest {
         assertThat(state.draft.title).isEmpty()
         assertThat(state.provenance).isEqualTo(FactSource.USER_STATED)
         assertThat(state.canDelete).isFalse()
+    }
+
+    @Test
+    fun newExperienceFact_whoseTitleNamesAnInternship_getsAnInternshipId() {
+        val viewModel = createViewModel(entryType = "experience")
+        assertThat(viewModel.uiState.value.factId).startsWith("W-")
+
+        viewModel.onTitleChange("Data analyst intern")
+
+        assertThat(viewModel.uiState.value.factId).startsWith("I-")
+        assertThat(viewModel.uiState.value.displayId).isEqualTo(viewModel.uiState.value.factId)
+    }
+
+    @Test
+    fun editingFact_withAnOldIdFormat_showsTheDesignIdButKeepsTheStoredId() {
+        repository.sendProfile(sampleProfile.copy(entries = listOf(editedEntry.copy(id = "entry-7"))))
+
+        val state = createViewModel(entryId = "entry-7").uiState.value
+
+        assertThat(state.factId).isEqualTo("entry-7")
+        assertThat(state.displayId).isEqualTo("P-01")
     }
 
     @Test
@@ -159,13 +178,24 @@ class FactEditorViewModelTest {
     }
 
     @Test
-    fun validation_aFreshFormShowsTheBlockNoteButNoFieldError() {
+    fun validation_aFreshFormShowsNoFieldErrorAndLetsTheUserTapSave() {
         val state = createViewModel().uiState.value
 
         assertThat(state.fieldErrors).isEmpty()
         assertThat(state.visibleReasonFor(FactField.TITLE)).isNull()
         assertThat(state.saveBlockReason).isEqualTo(FactDraftErrorReason.REQUIRED)
-        assertThat(state.isSaveEnabled).isFalse()
+        assertThat(state.isSaveEnabled).isTrue()
+    }
+
+    @Test
+    fun save_onAFreshForm_flagsTheTitleAndKeepsTheEditorOpen() {
+        val viewModel = createViewModel()
+
+        viewModel.save()
+
+        val state = viewModel.uiState.value
+        assertThat(state.outcome).isEqualTo(FactEditorOutcome.Editing)
+        assertThat(state.visibleReasonFor(FactField.TITLE)).isEqualTo(FactDraftErrorReason.REQUIRED)
     }
 
     @Test
@@ -339,6 +369,16 @@ class FactEditorViewModelTest {
     }
 
     @Test
+    fun connectivity_losingTheNetworkMarksTheScreenOffline() {
+        val viewModel = createViewModel()
+        assertThat(viewModel.uiState.value.isOffline).isFalse()
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.uiState.value.isOffline).isTrue()
+    }
+
+    @Test
     fun scenario_offline_marksTheScreenOffline() {
         val state = createViewModel(scenario = DebugScenario.OFFLINE).uiState.value
 
@@ -414,12 +454,6 @@ class FactEditorViewModelTest {
 
     private suspend fun savedProfile(): CandidateProfile =
         checkNotNull(repository.observeProfile().first()) { "Expected a saved profile" }
-
-    private companion object {
-        const val ENTRY_ID_KEY = "entryId"
-        const val ENTRY_TYPE_KEY = "entryType"
-        const val SCENARIO_KEY = "scenario"
-    }
 }
 
 private class FailingProfileRepository(

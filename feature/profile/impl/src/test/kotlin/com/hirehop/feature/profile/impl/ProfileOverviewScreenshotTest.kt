@@ -6,14 +6,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EntryCategory
-import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
-import com.hirehop.core.screenshot.HH_THEME_DARK
-import com.hirehop.core.screenshot.HH_THEME_LIGHT
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
-import com.hirehop.core.screenshot.captureForDevice
+import com.hirehop.core.screenshot.captureMultiTheme
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -23,7 +20,7 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(qualifiers = HhTestDevices.BOARD_QUALIFIERS, sdk = [ROBORAZZI_SDK])
+@Config(qualifiers = HhTestDevices.BOARD_QUALIFIERS)
 class ProfileOverviewScreenshotTest {
 
     @get:Rule
@@ -32,128 +29,88 @@ class ProfileOverviewScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun fullState_readsInLightAndDark() = captureBothThemes(
-        screenName = "ProfileOverviewFull",
-        uiState = ProfileUiState.Success(profile = confirmedProfile, unconfirmedCount = 0),
+    fun emptyState() = capture("ProfileOverviewEmpty", ProfileUiState.Empty(headerLine = HEADER_LINE))
+
+    @Test
+    fun partlyConfirmedState() = capture("ProfileOverviewPartlyConfirmed", success(partlyConfirmedProfile))
+
+    @Test
+    fun fullState() = capture("ProfileOverviewFull", success(confirmedProfile))
+
+    @Test
+    fun offlineState() = capture("ProfileOverviewOffline", success(confirmedProfile, isOffline = true))
+
+    @Test
+    fun expandedProjectsSection() = capture(
+        screenName = "ProfileSectionProjects",
+        uiState = success(partlyConfirmedProfile),
+        expanded = ProfileSectionKind.Projects,
     )
 
     @Test
-    fun partlyConfirmedState_readsInLightAndDark() = captureBothThemes(
-        screenName = "ProfileOverviewPartlyConfirmed",
-        uiState = partlyConfirmedState(),
-    )
-
-    @Test
-    fun emptyState_readsInLightAndDark() = captureBothThemes(
-        screenName = "ProfileOverviewEmpty",
-        uiState = ProfileUiState.Empty,
-    )
-
-    @Test
-    fun offlineState_readsInLightAndDark() = captureBothThemes(
-        screenName = "ProfileOverviewOffline",
-        uiState = ProfileUiState.Success(
-            profile = confirmedProfile,
-            unconfirmedCount = 0,
-            isOffline = true,
-        ),
+    fun expandedSkillsSection() = capture(
+        screenName = "ProfileSectionSkills",
+        uiState = success(partlyConfirmedProfile),
+        expanded = ProfileSectionKind.Skills,
     )
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun partlyConfirmedState_atLargeTextStacksAndWraps() = captureBothThemes(
+    fun partlyConfirmedState_atLargeText() = capture(
         screenName = "ProfileOverviewPartlyConfirmedFont200",
-        uiState = partlyConfirmedState(),
+        uiState = success(partlyConfirmedProfile),
         device = HhTestDevices.boardLargeFont,
     )
 
-    private fun captureBothThemes(
+    private fun capture(
         screenName: String,
         uiState: ProfileUiState,
+        expanded: ProfileSectionKind? = null,
         device: HhTestDevice = HhTestDevices.board,
     ) = runBlocking {
-        darkTheme.value = false
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
                 ProfileScreen(
                     uiState = uiState,
-                    importState = ResumeImportState(),
                     actions = ProfileActions.None,
+                    navigation = ProfileNavigation.None,
+                    initiallyExpanded = expanded,
                 )
             }
         }
-        capture(theme = HH_THEME_LIGHT, screenName = screenName, device = device)
-        darkTheme.value = true
-        composeRule.waitForIdle()
-        capture(theme = HH_THEME_DARK, screenName = screenName, device = device)
-    }
-
-    private suspend fun capture(
-        theme: String,
-        screenName: String,
-        device: HhTestDevice,
-    ) {
-        composeRule.captureForDevice(
-            outputDirectory = outputDirectory,
+        composeRule.captureMultiTheme(
+            outputDirectory = SCREENSHOT_DIRECTORY,
             screenName = screenName,
             device = device,
-            theme = theme,
+            setTheme = { dark -> darkTheme.value = dark },
         )
+        Unit
     }
 }
 
-private const val ROBORAZZI_SDK = 34
-private const val TRACKED_OUTPUT_DIR = "src/test/screenshots"
+private const val SCREENSHOT_DIRECTORY = "src/test/screenshots"
+private const val HEADER_LINE = "Priya Deshmukh · Data Operations Associate"
 
-private val outputDirectory: String = TRACKED_OUTPUT_DIR
-
-private fun partlyConfirmedState(): ProfileUiState = ProfileUiState.Success(
-    profile = partlyConfirmedProfile,
-    unconfirmedCount = partlyConfirmedProfile.entries.count { !it.isConfirmed },
-)
+private fun success(profile: CandidateProfile, isOffline: Boolean = false) =
+    ProfileUiState.Success(profile = profile, isOffline = isOffline)
 
 private val partlyConfirmedProfile = CandidateProfile(
     fullName = "Priya Deshmukh",
     email = "priya.d@example.com",
-    phone = "+91 90000 00000",
-    headline = "B.Tech CS 2026",
-    skills = listOf("SQL", "Excel", "Power BI", "Kotlin", "Android"),
+    phone = "+91 98220 41873",
+    headline = "Data Operations Associate",
+    skills = listOf("SQL", "Excel", "Power BI", "Python", "Data cleaning", "Reporting", "Communication"),
     entries = listOf(
-        fact(
-            id = "E-01",
-            category = EntryCategory.EDUCATION,
-            title = "B.Tech Computer Science",
-            source = FactSource.IMPORTED,
-            isConfirmed = true,
-        ),
-        fact(
-            id = "C-01",
-            category = EntryCategory.EDUCATION,
-            title = "DBMS coursework",
-            source = FactSource.USER_STATED,
-            isConfirmed = true,
-        ),
-        fact(
-            id = "I-01",
-            category = EntryCategory.EXPERIENCE,
-            title = "Data intern, Kiran Agro Exports",
-            source = FactSource.IMPORTED,
-            isConfirmed = true,
-        ),
-        fact(
-            id = "P-02",
-            category = EntryCategory.PROJECT,
-            title = "Placement Stats Dashboard",
-            source = FactSource.IMPORTED,
-            isConfirmed = false,
-        ),
-        fact(
-            id = "X-01",
-            category = EntryCategory.ACHIEVEMENT,
-            title = "Smart India Hackathon 2024",
-            source = FactSource.USER_STATED,
-            isConfirmed = false,
-        ),
+        fact("I-01", EntryCategory.EXPERIENCE, "Data Operations Associate, Saffron Retail", FactSource.IMPORTED, true),
+        fact("I-02", EntryCategory.EXPERIENCE, "Data Intern, Kiran Agro Exports", FactSource.IMPORTED, false),
+        fact("U-01", EntryCategory.EDUCATION, "B.Tech Computer Science", FactSource.IMPORTED, true),
+        fact("U-02", EntryCategory.EDUCATION, "Coursework: DBMS, Probability and Statistics", FactSource.USER_STATED, true),
+        fact("C-01", EntryCategory.PROJECT, "Library database project (DBMS course)", FactSource.IMPORTED, true),
+        fact("C-02", EntryCategory.PROJECT, "Placement Stats Dashboard", FactSource.IMPORTED, true),
+        fact("C-03", EntryCategory.PROJECT, "Event budget tracker in Excel for the coding club", FactSource.USER_STATED, true),
+        fact("X-01", EntryCategory.CERTIFICATION, "Google Data Analytics Certificate", FactSource.IMPORTED, false),
+        fact("P-01", EntryCategory.ACHIEVEMENT, "Smart India Hackathon 2024", FactSource.IMPORTED, true),
+        fact("P-02", EntryCategory.ACHIEVEMENT, "Treasurer, coding club", FactSource.USER_STATED, true),
     ),
 )
 
@@ -171,12 +128,10 @@ private fun fact(
     id = id,
     category = category,
     title = title,
-    organization = "College training and placement cell",
-    startDate = "2024",
-    endDate = "2025",
-    bullets = listOf(
-        EvidenceBullet(id = "$id-b1", text = "Built a dashboard the placement cell used."),
-    ),
+    organization = "",
+    startDate = "",
+    endDate = "",
+    bullets = emptyList(),
     source = source,
     isConfirmed = isConfirmed,
 )

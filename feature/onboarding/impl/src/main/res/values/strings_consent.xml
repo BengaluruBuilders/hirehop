@@ -1,44 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_onboarding_impl_consent_title">Before anything leaves your phone</string>
-    <string name="feature_onboarding_impl_consent_subtitle">Tick each purpose you agree to.</string>
+    <string name="feature_onboarding_impl_consent_subtitle">Nothing is uploaded yet</string>
+    <string name="feature_onboarding_impl_consent_subtitle_read_only">Read only</string>
     <string name="feature_onboarding_impl_consent_navigation_back_content_description">Go back</string>
 
-    <string name="feature_onboarding_impl_consent_purposes_label">WHAT WE DO, AND WHAT WE KEEP</string>
-    <string name="feature_onboarding_impl_consent_purpose_read_marker">a</string>
-    <string name="feature_onboarding_impl_consent_purpose_read_label">Read your resume and job descriptions to build your profile and analyses</string>
-    <string name="feature_onboarding_impl_consent_purpose_read_supporting">Keep: on this phone, your job description text, your analyses, and the facts you confirm.</string>
-    <string name="feature_onboarding_impl_consent_purpose_analyse_marker">b</string>
-    <string name="feature_onboarding_impl_consent_purpose_analyse_label">Analyse that text on this phone, with no outside service</string>
-    <string name="feature_onboarding_impl_consent_purpose_analyse_supporting">Keep: nothing off this phone. Today your text goes to no outside service, so no provider holds a copy of it. HireHop will ask you again before adding any.</string>
-    <string name="feature_onboarding_impl_consent_purpose_facts_marker">c</string>
-    <string name="feature_onboarding_impl_consent_purpose_facts_label">Keep only the facts you confirm, not the file you brought in</string>
-    <string name="feature_onboarding_impl_consent_purpose_facts_supporting">Keep: on this phone, only the facts you confirm. The file you choose is not sent anywhere.</string>
-    <string name="feature_onboarding_impl_consent_purpose_talkback_on">on</string>
-    <string name="feature_onboarding_impl_consent_purpose_talkback_off">off</string>
+    <string name="feature_onboarding_impl_consent_we_do">We do</string>
+    <string name="feature_onboarding_impl_consent_we_keep">We keep</string>
+    <string name="feature_onboarding_impl_consent_purpose_read_do">Read your resume and JDs to build your profile and analyses.</string>
+    <string name="feature_onboarding_impl_consent_purpose_read_keep">Your confirmed facts and your analyses.</string>
+    <string name="feature_onboarding_impl_consent_purpose_analyse_do">Send the text to OpenAI, which processes it for us.</string>
+    <string name="feature_onboarding_impl_consent_purpose_analyse_keep_pending">Retention period to be confirmed</string>
+    <string name="feature_onboarding_impl_consent_purpose_facts_do">Delete your uploaded file after reading it.</string>
+    <string name="feature_onboarding_impl_consent_purpose_facts_keep">Only the facts you confirm.</string>
+    <string name="feature_onboarding_impl_consent_understand">I understand</string>
+    <string name="feature_onboarding_impl_consent_pending_tag">Copy pending</string>
 
-    <string name="feature_onboarding_impl_consent_commitments_label">OUR COMMITMENTS</string>
-    <string name="feature_onboarding_impl_consent_commitment_never_asks_marker">d</string>
     <string name="feature_onboarding_impl_consent_commitment_never_asks">We never ask for or keep your date of birth, photo, religion, caste, or marital status.</string>
-    <string name="feature_onboarding_impl_consent_commitment_edit_or_remove_marker">e</string>
-    <string name="feature_onboarding_impl_consent_commitment_edit_or_remove">You can edit or remove any fact you have added, on this phone.</string>
-
+    <string name="feature_onboarding_impl_consent_commitment_your_data">See, correct, download, or delete your data at any time in Settings.</string>
     <string name="feature_onboarding_impl_consent_policy_label">Privacy policy</string>
-    <string name="feature_onboarding_impl_consent_policy_value">Not published yet. This version keeps everything on your phone, so there is nothing here for us to hold.</string>
+    <string name="feature_onboarding_impl_consent_policy_value">Not published yet</string>
     <string name="feature_onboarding_impl_consent_grievance_label">Grievance contact</string>
-    <string name="feature_onboarding_impl_consent_grievance_value">Not published yet. A support contact will be added here before HireHop can send anything off your phone.</string>
+    <string name="feature_onboarding_impl_consent_grievance_value">Not published yet</string>
 
-    <string name="feature_onboarding_impl_consent_reason_incomplete">Tick all 3 purposes to continue.</string>
-    <string name="feature_onboarding_impl_consent_reason_complete">All 3 purposes ticked. You can continue.</string>
-    <string name="feature_onboarding_impl_consent_reason_saving">Saving your choices on this phone</string>
+    <string name="feature_onboarding_impl_consent_reason_incomplete">Agree is off until you tick all %1$d “I understand” boxes. %2$s ticked.</string>
+    <string name="feature_onboarding_impl_consent_reason_count">%1$d of %2$d</string>
     <string name="feature_onboarding_impl_consent_action_agree">Agree and continue</string>
     <string name="feature_onboarding_impl_consent_action_not_now">Not now</string>
 
-    <string name="feature_onboarding_impl_consent_offline_message">You’re offline. Nothing on this screen needs a connection.</string>
-    <string name="feature_onboarding_impl_consent_offline_supporting">Your choices are remembered on this phone.</string>
-
     <string name="feature_onboarding_impl_consent_declined_title">Nothing has left your phone.</string>
     <string name="feature_onboarding_impl_consent_declined_body">You can come back to this at any time.</string>
-    <string name="feature_onboarding_impl_consent_declined_action_read_again">Read it again</string>
-    <string name="feature_onboarding_impl_consent_declined_action_back">Back to my job description</string>
+    <string name="feature_onboarding_impl_consent_declined_action_read_again">Review the notice again</string>
+
+    <string name="feature_onboarding_impl_consent_agreed_on">You agreed on %1$s</string>
 </resources>

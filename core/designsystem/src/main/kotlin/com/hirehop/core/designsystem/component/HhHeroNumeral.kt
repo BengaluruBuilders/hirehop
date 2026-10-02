@@ -21,28 +21,26 @@ fun HhHeroNumeral(
     contentDescription: String? = null,
 ) {
     val colors = HhTheme.colors
-    val description = contentDescription
+    val semanticsModifier = if (contentDescription == null) {
+        modifier
+    } else {
+        modifier.semantics { this.contentDescription = contentDescription }
+    }
     Column(
-        modifier = modifier.then(
-            if (description == null) {
-                Modifier
-            } else {
-                Modifier.semantics { this.contentDescription = description }
-            },
-        ),
+        modifier = semanticsModifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
     ) {
         Text(
             text = value,
-            style = HhTheme.typography.heroNumeral.copy(fontFeatureSettings = HH_TABULAR_FIGURES),
+            style = HhTheme.typography.numeralHero,
             color = colors.onSurface,
             textAlign = TextAlign.Center,
         )
         if (caption != null) {
             Text(
                 text = caption,
-                style = HhTheme.typography.labelSmall,
+                style = HhTheme.typography.bodyM,
                 color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
@@ -56,23 +54,20 @@ private const val HH_HERO_NUMERAL_SAMPLE_CAPTION = "key terms covered"
 @Preview(showBackground = true)
 @Composable
 private fun HhHeroNumeralPreview() {
-    HhPreviewTheme(darkTheme = false) {
-        HhHeroNumeral(
-            value = HH_HERO_NUMERAL_SAMPLE_VALUE,
-            caption = HH_HERO_NUMERAL_SAMPLE_CAPTION,
-            modifier = Modifier.padding(HhTheme.spacing.lg),
-        )
-    }
+    HhPreviewTheme(darkTheme = false) { HhHeroNumeralPreviewBody() }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun HhHeroNumeralDarkPreview() {
-    HhPreviewTheme(darkTheme = true) {
-        HhHeroNumeral(
-            value = HH_HERO_NUMERAL_SAMPLE_VALUE,
-            caption = HH_HERO_NUMERAL_SAMPLE_CAPTION,
-            modifier = Modifier.padding(HhTheme.spacing.lg),
-        )
-    }
+    HhPreviewTheme(darkTheme = true) { HhHeroNumeralPreviewBody() }
+}
+
+@Composable
+private fun HhHeroNumeralPreviewBody() {
+    HhHeroNumeral(
+        value = HH_HERO_NUMERAL_SAMPLE_VALUE,
+        modifier = Modifier.padding(HhTheme.spacing.lg),
+        caption = HH_HERO_NUMERAL_SAMPLE_CAPTION,
+    )
 }

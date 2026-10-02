@@ -5,6 +5,13 @@ import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.model.testApplication
 import com.hirehop.core.data.model.testBareApplication
 import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.ContentReport
+import com.hirehop.core.model.PrepPlanItem
+import com.hirehop.core.model.ReportedItemKind
+import com.hirehop.core.model.TailoringReviewState
+import com.hirehop.core.model.WrittenCoverLetter
+import com.hirehop.core.model.WrittenParagraph
+import com.hirehop.core.testing.mock.TestMockStateStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -24,6 +31,7 @@ class OfflineFirstApplicationRepositoryTest {
     private fun TestScope.newRepository() = OfflineFirstApplicationRepository(
         jobApplicationDao = FakeJobApplicationDao(),
         clock = fixedClock,
+        cleanup = ApplicationCleanup {},
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
     )
 
@@ -116,5 +124,33 @@ class OfflineFirstApplicationRepositoryTest {
         repository.deleteApplication(testApplication.id)
 
         assertThat(repository.observeApplications().first()).isEmpty()
+    }
+
+    @Test
+    fun deletingAnApplicationClearsItsPrepPlanReportsReviewStateAndCoverLetter() = runTest {
+        val store = TestMockStateStore()
+        val prepPlan = StoredPrepPlanRepository(store)
+        val reports = StoredContentReportRepository(store)
+        val reviewState = StoredTailoringReviewStateRepository(store)
+        val coverLetters = StoredCoverLetterRepository(store)
+        val repository = OfflineFirstApplicationRepository(
+            jobApplicationDao = FakeJobApplicationDao(),
+            clock = fixedClock,
+            cleanup = StoredApplicationCleanup(prepPlan, reports, reviewState, coverLetters),
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+        repository.upsertApplication(testApplication)
+        prepPlan.add(testApplication.id, PrepPlanItem("p1", "Practise Kotlin"))
+        reports.report(ContentReport(testApplication.id, ReportedItemKind.RESUME_BULLET, "b1", now))
+        reviewState.recordRegeneration(testApplication.id, "EXPERIENCE")
+        reviewState.markEdited(testApplication.id, "b1")
+        coverLetters.save(testApplication.id, WrittenCoverLetter(listOf(WrittenParagraph("Hello.")), now))
+
+        repository.deleteApplication(testApplication.id)
+
+        assertThat(prepPlan.observeItems(testApplication.id).first()).isEmpty()
+        assertThat(reports.observeReports(testApplication.id).first()).isEmpty()
+        assertThat(reviewState.observe(testApplication.id).first()).isEqualTo(TailoringReviewState())
+        assertThat(coverLetters.observeLetter(testApplication.id).first()).isNull()
     }
 }

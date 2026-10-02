@@ -1,5 +1,6 @@
 package com.hirehop.feature.applications.impl
 
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,14 +30,43 @@ class ApplicationWorkspaceScreenshotTest {
     fun full_readsInLightAndDark() = capture("WorkspaceFull", previewWorkspaceReadyState())
 
     @Test
-    fun fullScrolled_showsOnePrepTaskPerGapWithATickAndTheReportAffordance() = capture(
+    fun blankRoleAndCompany_showTheFallbackWordsInTheHeader() = capture(
+        screenName = "WorkspaceBlankFields",
+        uiState = previewWorkspaceReadyState().copy(jobTitle = "", company = ""),
+    )
+
+    @Test
+    fun exportedWithPageCountAndTemplate_listsThemInTheResumeCard() = capture(
+        screenName = "WorkspaceExportDetail",
+        uiState = previewWorkspaceReadyState(
+            resume = previewExportedResume().copy(pageCount = 1, templateName = "Plain"),
+        ),
+    )
+
+    @Test
+    fun fullScrolled_showsThePrepPlanNotesJobDescriptionAndEntries() = capture(
         screenName = "WorkspaceFullScrolled",
+        uiState = previewWorkspaceReadyState(),
+        scrollTo = SCROLLED_PX,
+    )
+
+    @Test
+    fun gapExpanded_listsEveryRequirementWithItsStatusWord() = capture(
+        screenName = "WorkspaceGapExpanded",
+        uiState = previewWorkspaceReadyState(isGapExpanded = true),
+    )
+
+    @Test
+    fun reportedTask_thanksThePerson() = capture(
+        screenName = "WorkspaceTaskReported",
         uiState = previewWorkspaceReadyState(
             prepTasks = listOf(
-                previewPrepTask(id = "req-agile", isDone = false, isOverflowOpen = true),
-                previewPrepTask(id = "req-communication", isDone = true, isOverflowOpen = false),
+                previewPrepTask(id = "req-bigquery", isDone = true),
+                previewPrepTask(id = "req-agile", isDone = false, isReported = true),
+                previewPrepTask(id = "req-python", isDone = false),
             ),
         ),
+        scrollTo = SCROLLED_PX,
     )
 
     @Test
@@ -92,6 +122,7 @@ class ApplicationWorkspaceScreenshotTest {
         screenName: String,
         uiState: ApplicationDetailUiState,
         device: HhTestDevice = HhTestDevices.board,
+        scrollTo: Int = 0,
     ) = runBlocking {
         darkTheme.value = false
         composeRule.setContent {
@@ -99,6 +130,7 @@ class ApplicationWorkspaceScreenshotTest {
                 ApplicationDetailScreen(
                     uiState = uiState,
                     onAction = {},
+                    scrollState = rememberScrollState(initial = scrollTo),
                     now = PREVIEW_INSTANT,
                 )
             }
@@ -109,3 +141,5 @@ class ApplicationWorkspaceScreenshotTest {
         Unit
     }
 }
+
+private const val SCROLLED_PX = 900

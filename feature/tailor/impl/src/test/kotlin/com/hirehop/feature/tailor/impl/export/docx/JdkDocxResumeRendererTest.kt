@@ -101,6 +101,7 @@ class JdkDocxResumeRendererTest {
         headline = "Staff Engineer",
         skills = listOf("Kotlin"),
         sections = sections,
+        skillsHeading = "Skills",
     )
 
     private fun entry(bullets: List<String> = listOf("Cut release time in half")): ResumeEntry = ResumeEntry(

@@ -1,9 +1,18 @@
 package com.hirehop.feature.tailor.impl.coverletter
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
 import com.hirehop.core.model.CandidateProfile
@@ -35,13 +44,69 @@ class CoverLetterScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun generating_readsInLightAndDark() {
-        capture("CoverLetterGenerating", CoverLetterUiState())
+    fun offer_showsWriteOneAndNoThanksAtEqualWeight() {
+        capture("CoverLetterOffer", offerState())
     }
 
     @Test
-    fun readyLetter_readsInLightAndDark() {
+    fun generating_showsNamedSteps() {
+        capture("CoverLetterGenerating", offerState().copy(stage = CoverLetterStage.GENERATING))
+    }
+
+    @Test
+    fun ready_showsPerParagraphCitations() {
         capture("CoverLetterReady", readyState())
+    }
+
+    @Test
+    fun sources_listsTheFactsBehindAParagraph() {
+        captureSheet("CoverLetterSources", readyState()) {
+            val state = readyState()
+            val paragraph = state.paragraphs.first { it.basis == CoverLetterBasis.CONFIRMED_FACT }
+            ParagraphSources(position = state.positionOfParagraph(paragraph), paragraph = paragraph, onClose = {})
+        }
+    }
+
+    @Test
+    fun flaggedParagraph_asksTheCandidateToCheck() {
+        capture(
+            "CoverLetterFlagged",
+            readyState().withParagraph { paragraph ->
+                paragraph.copy(flag = CoverLetterFlag(quote = "steady practice … on a fixed weekly schedule", factId = "P-03"))
+            },
+        )
+    }
+
+    @Test
+    fun editingInPlace_showsTheHandEditNote() {
+        val ready = readyState()
+        val target = ready.paragraphs.first { it.basis == CoverLetterBasis.CONFIRMED_FACT }
+        capture(
+            "CoverLetterEditing",
+            ready.copy(editingOrdinal = target.ordinal, editingText = target.text),
+        )
+    }
+
+    @Test
+    fun userEdited_marksTheParagraphAsYours() {
+        capture("CoverLetterUserEdited", editedState())
+    }
+
+    @Test
+    fun error_offersTryAgainOrSkip() {
+        capture(
+            "CoverLetterError",
+            CoverLetterUiState(
+                stage = CoverLetterStage.ERROR,
+                jobTitle = "Associate Analyst",
+                jobCompany = "Northwind GCC",
+            ),
+        )
+    }
+
+    @Test
+    fun offline_keepsTheLetterReadable() {
+        capture("CoverLetterOffline", readyState().copy(isOffline = true))
     }
 
     @Test
@@ -50,38 +115,13 @@ class CoverLetterScreenshotTest {
     }
 
     @Test
-    fun emptyProfile_readsInLightAndDark() {
+    fun emptyProfile_asksForAFact() {
         capture("CoverLetterEmptyProfile", emptyProfileState())
     }
 
     @Test
-    fun offline_readsInLightAndDark() {
-        capture(
-            "CoverLetterOffline",
-            readyState().copy(isOffline = true, stage = CoverLetterStage.OFFLINE),
-        )
-    }
-
-    @Test
-    fun error_readsInLightAndDark() {
-        capture(
-            "CoverLetterError",
-            CoverLetterUiState(
-                stage = CoverLetterStage.ERROR,
-                jobTitle = "Associate Android Engineer",
-                jobCompany = "Northwind GCC",
-            ),
-        )
-    }
-
-    @Test
-    fun editedParagraph_readsInLightAndDark() {
-        capture("CoverLetterUserEdited", editedState())
-    }
-
-    @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun readyLetter_atLargeTextStacksFullWidth() {
+    fun ready_atLargeTextStacksFullWidth() {
         capture("CoverLetterReadyFont200", readyState(), device = HhTestDevices.boardLargeFont)
     }
 
@@ -92,57 +132,90 @@ class CoverLetterScreenshotTest {
     ) = runBlocking {
         darkTheme.value = false
         composeRule.setContent {
-            CoverLetterHost(uiState = uiState, dark = darkTheme.value)
+            HhTheme(darkTheme = darkTheme.value) {
+                CoverLetterScreen(uiState = uiState, actions = noActions())
+            }
         }
         composeRule.captureMultiTheme(TRACKED_OUTPUT_DIR, screenName, device) { dark ->
             darkTheme.value = dark
         }
         Unit
     }
-}
 
-@Composable
-private fun CoverLetterHost(
-    uiState: CoverLetterUiState,
-    dark: Boolean,
-) {
-    com.hirehop.core.designsystem.theme.HhTheme(darkTheme = dark) {
-        CoverLetterScreen(
-            uiState = uiState,
-            actions = CoverLetterActions(
-                onBeginEdit = {},
-                onEditTextChanged = {},
-                onSaveEdit = {},
-                onCancelEdit = {},
-                onCopyLetter = {},
-                onReportInaccurate = {},
-                onDismissMessage = {},
-                onRetry = {},
-                onNavigateBack = {},
-                onSkipLetter = {},
-            ),
-        )
+    private fun captureSheet(
+        screenName: String,
+        uiState: CoverLetterUiState,
+        content: @Composable () -> Unit,
+    ) = runBlocking {
+        darkTheme.value = false
+        composeRule.setContent {
+            HhTheme(darkTheme = darkTheme.value) {
+                Box(Modifier.fillMaxSize()) {
+                    CoverLetterScreen(uiState = uiState, actions = noActions())
+                    Box(Modifier.fillMaxSize().background(HhTheme.colors.scrim))
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(HhTheme.colors.surface, HhTheme.shapes.sheet)
+                            .padding(
+                                start = HhTheme.spacing.gutter,
+                                end = HhTheme.spacing.gutter,
+                                top = HhTheme.spacing.xl,
+                                bottom = HhTheme.spacing.xxl,
+                            ),
+                    ) { content() }
+                }
+            }
+        }
+        composeRule.captureMultiTheme(TRACKED_OUTPUT_DIR, screenName, HhTestDevices.board) { dark ->
+            darkTheme.value = dark
+        }
+        Unit
     }
 }
 
+private fun noActions() = CoverLetterActions(
+    onWriteOne = {},
+    onBeginEdit = {},
+    onEditTextChanged = {},
+    onSaveEdit = {},
+    onCancelEdit = {},
+    onReportInaccurate = {},
+    onDismissMessage = {},
+    onRetry = {},
+    onNavigateBack = {},
+    onSkipLetter = {},
+    onPreviewExport = {},
+)
+
+private fun CoverLetterUiState.positionOfParagraph(paragraph: CoverLetterParagraph): Int =
+    paragraphs.filter { !it.isGreeting }.indexOfFirst { it.ordinal == paragraph.ordinal } + 1
+
+private fun CoverLetterUiState.withParagraph(
+    change: (CoverLetterParagraph) -> CoverLetterParagraph,
+): CoverLetterUiState = copy(
+    paragraphs = paragraphs.map { paragraph ->
+        if (paragraph.basis == CoverLetterBasis.CONFIRMED_FACT) change(paragraph) else paragraph
+    },
+)
+
 private val generator = GenerateCoverLetterUseCase()
 
-private fun stateFor(
-    gap: GapAnalysis,
-    profile: CandidateProfile,
-    isOffline: Boolean = false,
-): CoverLetterUiState {
+private fun stateFor(gap: GapAnalysis, profile: CandidateProfile): CoverLetterUiState {
     val analysis = JobAnalysisResult(job = canonicalApplication.job, gap = gap)
     val draft = runBlocking { generator(candidate = profile, job = analysis.job, analysis = analysis) }
-    return coverLetterStateFor(
-        CoverLetterInputs(
-            profile = profile,
-            analysis = analysis,
-            draft = draft,
-            isOffline = isOffline,
-        ),
-    )
+    return coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))
+        .copy(reviewedCount = 7, totalCount = 7)
 }
+
+private fun offerState() = CoverLetterUiState(
+    stage = CoverLetterStage.OFFER,
+    jobTitle = "Associate Analyst",
+    jobCompany = "Northwind GCC",
+    reviewedCount = 7,
+    totalCount = 7,
+)
 
 private fun readyState(): CoverLetterUiState = stateFor(
     gap = requireNotNull(canonicalApplication.gapAnalysis),
@@ -166,24 +239,12 @@ private fun emptyProfileState(): CoverLetterUiState = stateFor(
     profile = canonicalProfileWithoutEntries,
 )
 
-private fun editedState(): CoverLetterUiState {
-    val ready = readyState()
-    return ready.copy(
-        paragraphs = ready.paragraphs.map { paragraph ->
-            if (paragraph.basis == CoverLetterBasis.CONFIRMED_FACT) {
-                paragraph.copy(
-                    text = "I built these myself and can walk you through each one.",
-                    sentences = listOf(
-                        CoverLetterSentence(
-                            text = "I built these myself and can walk you through each one.",
-                            factId = null,
-                        ),
-                    ),
-                    isUserEdited = true,
-                )
-            } else {
-                paragraph
-            }
-        },
+private fun editedState(): CoverLetterUiState = readyState().withParagraph { paragraph ->
+    paragraph.copy(
+        text = "I built these myself and can walk you through each one.",
+        sentences = listOf(
+            CoverLetterSentence(text = "I built these myself and can walk you through each one.", factId = null),
+        ),
+        isUserEdited = true,
     )
 }

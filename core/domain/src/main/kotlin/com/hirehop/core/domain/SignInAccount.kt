@@ -1,15 +1,3 @@
 package com.hirehop.core.domain
 
-data class SignInAccount(
-    val id: String,
-    val displayName: String,
-    val email: String,
-) {
-    companion object {
-        val localAccount = SignInAccount(
-            id = "local.account.1",
-            displayName = "Priya Deshmukh",
-            email = "priya.d@example.com",
-        )
-    }
-}
+typealias SignInAccount = com.hirehop.core.model.SignInAccount
