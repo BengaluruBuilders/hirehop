@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.hirehop.app.navigation.START_NAV_KEY
 import com.hirehop.app.navigation.TOP_LEVEL_NAV_ITEMS
@@ -34,6 +35,7 @@ import com.hirehop.core.designsystem.component.HhDockDefaults
 import com.hirehop.core.designsystem.component.HhDockIcon
 import com.hirehop.core.designsystem.component.HhDockItem
 import com.hirehop.core.designsystem.component.LocalHhBottomInset
+import com.hirehop.core.designsystem.component.rememberHhNavTransitions
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.navigation.NavigationState
 import com.hirehop.core.navigation.Navigator
@@ -168,13 +170,21 @@ private fun HhNavDisplay(
     val entryProvider = remember(navigator, dockInset) {
         withDockInset(sharedEntryProvider(navigator), dockInset)
     }
+    val transitions = rememberHhNavTransitions()
     Box(modifier = modifier) {
         NavDisplay(
             entries = navigationState.toEntries(entryProvider),
             onBack = { navigator.goBack() },
+            transitionSpec = { transitions.forward(this, hierarchical = !targetState.isTopLevel()) },
+            popTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
+            predictivePopTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
         )
     }
 }
+
+private fun Scene<NavKey>.isTopLevel(): Boolean = metadata[TOP_LEVEL_METADATA] == true
+
+private const val TOP_LEVEL_METADATA = "hhTopLevel"
 
 private fun sharedEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey> =
     entryProvider {
@@ -192,8 +202,9 @@ private fun withDockInset(
     dockInset: Dp,
 ): (NavKey) -> NavEntry<NavKey> = { key ->
     val entry = provider(key)
-    val inset = if (key.isTopLevelDestination()) dockInset else 0.dp
-    NavEntry(key = key, contentKey = entry.contentKey, metadata = entry.metadata) {
-        CompositionLocalProvider(LocalHhBottomInset provides inset) { entry.Content() }
+    val topLevel = key.isTopLevelDestination()
+    val metadata = entry.metadata + (TOP_LEVEL_METADATA to topLevel)
+    NavEntry(key = key, contentKey = entry.contentKey, metadata = metadata) {
+        CompositionLocalProvider(LocalHhBottomInset provides if (topLevel) dockInset else 0.dp) { entry.Content() }
     }
 }

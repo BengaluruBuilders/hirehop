@@ -1,5 +1,6 @@
 package com.hirehop.core.designsystem.component
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -67,8 +69,13 @@ fun HhDockItem(
     label: (@Composable () -> Unit)? = null,
 ) {
     val colors = HhTheme.colors
-    val tint = if (selected) colors.onPrimary else colors.onToolVariant
-    val background = if (selected) colors.primary else androidx.compose.ui.graphics.Color.Transparent
+    val spec = HhTheme.motion.proofSpecs.color
+    val tint by animateColorAsState(if (selected) colors.onPrimary else colors.onToolVariant, spec, label = "hhDockTint")
+    val background by animateColorAsState(
+        targetValue = if (selected) colors.primary else colors.primary.copy(alpha = 0f),
+        animationSpec = spec,
+        label = "hhDockFill",
+    )
     Surface(
         modifier = modifier
             .defaultMinSize(minWidth = HhHeightTouch, minHeight = HhHeightTouch)

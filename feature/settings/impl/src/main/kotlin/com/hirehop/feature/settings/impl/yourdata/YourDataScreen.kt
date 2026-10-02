@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhConfirmDialog
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhInnerHeader
@@ -74,10 +75,12 @@ internal fun YourDataScreen(
             null
         },
     ) { padding ->
-        when {
-            content == null -> Unit
-            isPreparing -> PreparingContent(content = content, padding = padding)
-            else -> LedgerContent(content = content, actions = actions, padding = padding)
+        HhContentSwitch(targetState = content, contentKey = { it?.export?.equals(YourDataExport.PREPARING) }) { state ->
+            when {
+                state == null -> Unit
+                state.export == YourDataExport.PREPARING -> PreparingContent(content = state, padding = padding)
+                else -> LedgerContent(content = state, actions = actions, padding = padding)
+            }
         }
     }
     val target = content?.deleteTarget
