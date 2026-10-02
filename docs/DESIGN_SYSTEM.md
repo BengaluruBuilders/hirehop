@@ -73,10 +73,47 @@ JetBrains Mono. Plus Jakarta Sans and IBM Plex Mono replace them when the font f
 Apply with `Modifier.hhShadow(shadow, shape)`.
 
 ### Motion (`HhTheme.motion`)
-`proofSpecs`: `spatial`, `spatialFast`, `offset`, `fade`, `staggerMs`, `staggerMax`.
+`proofSpecs`: `spatial`, `spatialFast`, `offset`, `size`, `fade`, `color`, `staggerMs`, `staggerMax`.
 `hopSpecs`: `spatial`, `scale`. Use `hopSpecs` only for gap closed, exported, pack purchased,
-first fact confirmed. `reduced` is true when animations are off; the specs then use `snap()`.
-There are no duration fields and no easing fields.
+first fact confirmed. `reduced` is true when animations are off; the spatial specs then use `snap()`.
+There are no duration fields and no easing fields. `size` and `color` repeat the board values of
+`spatial` and `fade` for the `IntSize` and `Color` value types.
+
+The primitives are in `component/HhMotion.kt`. A feature calls a primitive. A feature never calls
+`tween(`, `spring(`, or a numeric duration.
+
+| Need | Primitive | Token |
+|---|---|---|
+| Show or hide a part | `HhVisibility(visible)` | `fade` |
+| Show or hide a part with a 12 dp rise | `HhVisibility(visible, rise = true)` | `fade`, `offset` |
+| Switch between loading, content, empty, and error | `HhContentSwitch(targetState, contentKey = { it::class })` | `fade` |
+| Press feedback, scale 0.97 | `Modifier.hhPressScale(interactionSource)`. `Hh*` buttons and cards with `onClick` have it. | `spatialFast` |
+| Expand and collapse a block | `HhExpandable(expanded)` | `size`, `fade` |
+| List enter: 12 dp rise, 30 ms stagger, first 6 items | `rememberHhListEnterState()`, then `Modifier.hhListEnter(state, index)` on each item | `spatial`, `staggerMs`, `staggerMax` |
+| Navigation forward: the new screen rises 48 dp over the old screen | `rememberHhNavTransitions().forward(scope, hierarchical = true)` | `fade`, `offset` |
+| Navigation back and predictive back: the screen sinks 48 dp | `rememberHhNavTransitions().back(hierarchical = true)` | `fade`, `offset` |
+| Dock tab switch: fade only | `forward(scope, hierarchical = false)` and `back(hierarchical = false)` | `fade` |
+| Selected colour of a chip, a checkbox, or a dock item | Built into `HhFilterChip`, `HhCheckbox`, `HhDockItem` | `color` |
+| Progress moment | `Animatable` with a `hopSpecs` value | `hopSpecs.scale`, `hopSpecs.spatial` |
+
+Rules of the primitives:
+- If `reduced` is true, nothing moves. A fade stays, and the state change stays visible.
+- The list enter plays one time, on first composition. It does not play again when the person comes
+  back to the screen.
+- The 48 dp rise is the sheet rise of the board. It moves the whole pushed screen, because a pushed
+  screen has no sheet surface and its content can load after the first frame.
+- Give `HhContentSwitch` a `contentKey` for a state that carries data. Without it, each data change fades.
+- Every spec is a spring or a 150 ms fade, so a new target interrupts the old one. Input never waits.
+- A settled frame is the same as the frame without motion. Screenshot baselines do not change.
+
+Do not animate:
+- The size, the padding, or the position in the layout of an item in a lazy list. Use `graphicsLayer`
+  alpha, translation, and scale only. Do not put `HhExpandable` in a lazy list item.
+- Blur, `RenderEffect`, or a shadow.
+- A second stagger chain while one chain plays.
+- The multi-frame sequences of the board: gap-analysis reveal, bullet diff wipe, source-link connector.
+- Navigation, an error, or text that the person must read, with `hopSpecs`.
+- `HhBottomSheet` and `HhSwitch`. Material moves them with its standard motion scheme.
 
 ## Screen chrome
 

@@ -1,6 +1,7 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -45,7 +47,8 @@ fun HhHeroCard(
 ) {
     val colors = HhTheme.colors
     val shape = HhTheme.shapes.heroCard
-    val surfaceModifier = modifier
+    val source = remember { MutableInteractionSource() }
+    val surfaceModifier = (if (onClick == null) modifier else modifier.hhPressScale(source))
         .fillMaxWidth()
         .hhShadow(HhTheme.elevation.hero, shape)
     val border = if (HhTheme.isDark) BorderStroke(HhWidthHairline, colors.outlineVariant) else null
@@ -60,6 +63,7 @@ fun HhHeroCard(
             shape = shape,
             color = colors.document,
             border = border,
+            interactionSource = source,
         ) {
             HhCardBody(contentPadding, null, content)
         }
@@ -83,12 +87,14 @@ internal fun HhCardSurface(
             HhCardBody(padding, trailingAction, content)
         }
     } else {
+        val source = remember { MutableInteractionSource() }
         Surface(
             onClick = onClick,
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.hhPressScale(source).fillMaxWidth(),
             shape = shape,
             color = fill,
             border = border,
+            interactionSource = source,
         ) {
             HhCardBody(padding, trailingAction, content)
         }

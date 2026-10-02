@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhDestructiveButton
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhHeroCard
@@ -59,10 +60,12 @@ internal fun DeleteAccountScreen(
             else -> null
         },
     ) { padding ->
-        when (uiState) {
-            DeleteAccountUiState.Loading -> Unit
-            is DeleteAccountUiState.Ready -> ReadyContent(uiState = uiState, actions = actions, padding = padding)
-            is DeleteAccountUiState.Deleting -> DeletingContent(uiState = uiState, padding = padding)
+        HhContentSwitch(targetState = uiState, contentKey = { it::class }) { state ->
+            when (state) {
+                DeleteAccountUiState.Loading -> Unit
+                is DeleteAccountUiState.Ready -> ReadyContent(uiState = state, actions = actions, padding = padding)
+                is DeleteAccountUiState.Deleting -> DeletingContent(uiState = state, padding = padding)
+            }
         }
     }
 }

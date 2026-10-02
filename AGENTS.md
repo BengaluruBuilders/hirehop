@@ -40,6 +40,18 @@ To see a frame, run `python3 -m http.server 8766` in `design/claude-design`, the
 The files are an export of the Claude Design canvas. Do not edit them by hand.
 If the design changes, export the frames again and replace the folder in one PR.
 
+## Motion
+
+- Two registers only: `proof` (default) and `hop` (gap closed, exported, pack purchased, first fact confirmed).
+- Read specs from `HhTheme.motion`. Do not add a duration scale or an easing scale.
+- Motion code lives in `core:designsystem`. Navigation wiring lives in `:app`.
+- A feature calls an `Hh*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
+- If `HhTheme.motion.reduced` is true, nothing moves. The state change stays visible.
+- In a lazy list, animate `graphicsLayer` alpha, translation, and scale only.
+- Do not build the multi-frame sequences of the board.
+- A settled frame must not change. Do not record a screenshot baseline again for a motion change.
+- The table of needs, primitives, and tokens is in `docs/DESIGN_SYSTEM.md`, section "Motion".
+
 ## Commands
 
 | Task | Command |

@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhConfirmDialog
 import com.hirehop.core.designsystem.component.HhErrorCallout
+import com.hirehop.core.designsystem.component.HhExpandable
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhInnerHeader
@@ -332,7 +333,7 @@ private fun FactEditorToolsField(
                 trailingIcon = HhIcons.Add,
             )
         }
-        if (isAdding) {
+        HhExpandable(expanded = isAdding) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,

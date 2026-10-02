@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhHeaderIconButton
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
@@ -131,18 +132,20 @@ fun ApplicationDetailScreen(
             )
         },
     ) { padding ->
-        when (uiState) {
-            ApplicationDetailUiState.Loading -> WorkspaceLoading(padding = padding)
-            ApplicationDetailUiState.NotFound,
-            ApplicationDetailUiState.Deleted,
-            -> WorkspaceMissing(padding = padding)
-            is ApplicationDetailUiState.Ready -> WorkspaceContent(
-                state = uiState,
-                padding = padding,
-                scrollState = scrollState,
-                now = now,
-                onAction = onAction,
-            )
+        HhContentSwitch(targetState = uiState, contentKey = { it::class }) { state ->
+            when (state) {
+                ApplicationDetailUiState.Loading -> WorkspaceLoading(padding = padding)
+                ApplicationDetailUiState.NotFound,
+                ApplicationDetailUiState.Deleted,
+                -> WorkspaceMissing(padding = padding)
+                is ApplicationDetailUiState.Ready -> WorkspaceContent(
+                    state = state,
+                    padding = padding,
+                    scrollState = scrollState,
+                    now = now,
+                    onAction = onAction,
+                )
+            }
         }
     }
     if (ready == null) return

@@ -1,8 +1,5 @@
 package com.hirehop.core.designsystem.component
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarData
@@ -23,13 +20,7 @@ fun HhSnackbar(
     modifier: Modifier = Modifier,
     visible: Boolean = true,
 ) {
-    val fade = HhTheme.motion.proofSpecs.fade
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        enter = fadeIn(fade),
-        exit = fadeOut(fade),
-    ) {
+    HhVisibility(visible = visible, modifier = modifier) {
         val colors = HhTheme.colors
         Snackbar(
             modifier = Modifier.padding(HhTheme.spacing.gutter),

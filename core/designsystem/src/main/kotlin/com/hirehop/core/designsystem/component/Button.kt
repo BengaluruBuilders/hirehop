@@ -89,6 +89,7 @@ internal fun HhButtonBase(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
+            .hhPressScale(source)
             .hhFocusRing(focused, HhTheme.colors.primary, 24.dp)
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .defaultMinSize(minHeight = HhHeightTouch),

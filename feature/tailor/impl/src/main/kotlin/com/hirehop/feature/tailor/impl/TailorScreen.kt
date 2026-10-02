@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhConfirmDialog
+import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
@@ -104,7 +105,9 @@ internal fun TailorScreen(
         },
         snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
-        TailorBody(uiState, actions, interaction, padding)
+        HhContentSwitch(targetState = uiState, contentKey = { it::class }) { state ->
+            TailorBody(state, actions, interaction, padding)
+        }
     }
     (uiState as? TailorUiState.Success)?.let { ReviewOverlays(it, actions, interaction) }
 }
