@@ -153,6 +153,8 @@ fun HhDockItem(selected: Boolean, onClick: () -> Unit, contentDescription: Strin
 fun HhDockIcon(icon: ImageVector)
 ```
 Floating pill for the three top-level tabs only. The selected item shows icon and label. Board: Dock.
+`HhDock` draws one selection pill. The pill moves between items with `proofSpecs.spatial`.
+Put each `HhDockItem` inside `HhDock`. An item outside `HhDock` throws an error.
 
 ```kotlin
 fun HhBottomActionBar(modifier, contentPadding: PaddingValues? = null,

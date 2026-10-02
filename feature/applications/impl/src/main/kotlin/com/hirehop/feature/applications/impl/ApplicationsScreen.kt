@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -338,7 +339,7 @@ private fun ApplicationsListContent(
     onAction: (ApplicationsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val entered = remember { mutableSetOf<String>() }
+    val entered = rememberSaveable { mutableSetOf<String>() }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = listState,
