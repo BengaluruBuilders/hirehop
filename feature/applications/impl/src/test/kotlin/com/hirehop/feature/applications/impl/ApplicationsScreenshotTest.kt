@@ -2,8 +2,10 @@ package com.hirehop.feature.applications.impl
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.hirehop.core.designsystem.component.HhHeaderCollapseState
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.screenshot.HhTestDevice
@@ -110,6 +112,7 @@ class ApplicationsScreenshotTest {
                     uiState = uiState,
                     onAction = {},
                     listState = rememberLazyListState(initialFirstVisibleItemIndex = firstVisibleItem),
+                    collapse = remember { HhHeaderCollapseState(initialFraction = if (firstVisibleItem > 0) 1f else 0f) },
                     now = PREVIEW_INSTANT,
                 )
             }

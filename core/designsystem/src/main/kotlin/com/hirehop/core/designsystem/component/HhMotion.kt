@@ -12,6 +12,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -34,6 +35,8 @@ import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.theme.HhProofSpecs
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -42,6 +45,8 @@ import kotlinx.coroutines.delay
 internal val HhRise = 12.dp
 
 internal val HhSheetRise = 48.dp
+
+internal val HhTabShift = 24.dp
 
 private const val HH_PRESS_SCALE = 0.97f
 
@@ -170,6 +175,7 @@ class HhNavTransitions internal constructor(
     private val proof: HhProofSpecs,
     private val reduced: Boolean,
     private val sink: Int,
+    private val shift: Int,
 ) {
     fun forward(scope: AnimatedContentTransitionScope<*>, hierarchical: Boolean): ContentTransform {
         val enter = if (hierarchical && !reduced) {
@@ -188,11 +194,25 @@ class HhNavTransitions internal constructor(
         }
         return EnterTransition.None togetherWith exit
     }
+
+    fun tab(scope: AnimatedContentTransitionScope<*>, direction: Int, pop: Boolean): ContentTransform {
+        val slide = if (reduced) EnterTransition.None else slideInHorizontally(proof.offset) { direction * shift }
+        return with(scope) {
+            if (pop) {
+                slide togetherWith fadeOut(proof.fade)
+            } else {
+                fadeIn(proof.fade) + slide togetherWith ExitTransition.KeepUntilTransitionsFinished
+            }
+        }
+    }
 }
 
 @Composable
 fun rememberHhNavTransitions(): HhNavTransitions {
     val motion = HhTheme.motion
-    val sink = with(LocalDensity.current) { HhSheetRise.roundToPx() }
-    return remember(motion, sink) { HhNavTransitions(motion.proofSpecs, motion.reduced, sink) }
+    val density = LocalDensity.current
+    val sink = with(density) { HhSheetRise.roundToPx() }
+    val towardEnd = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1 else 1
+    val shift = with(density) { HhTabShift.roundToPx() } * towardEnd
+    return remember(motion, sink, shift) { HhNavTransitions(motion.proofSpecs, motion.reduced, sink, shift) }
 }

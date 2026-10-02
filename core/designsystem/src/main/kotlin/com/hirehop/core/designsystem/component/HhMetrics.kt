@@ -5,8 +5,8 @@ import androidx.compose.ui.unit.dp
 
 object HhDockDefaults {
     val height: Dp = 64.dp
-    val floatGap: Dp = 16.dp
-    val inset: Dp = height + floatGap + floatGap
+    val ballOverhang: Dp = 24.dp
+    val inset: Dp = height + ballOverhang + 8.dp
 }
 
 object HhOverlap {

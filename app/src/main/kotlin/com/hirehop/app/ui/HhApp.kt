@@ -6,12 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -137,24 +132,14 @@ private fun HhMainDock(
     navigator: Navigator,
     modifier: Modifier = Modifier,
 ) {
-    HhDock(
-        modifier = modifier
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(
-                start = HhTheme.spacing.gutter,
-                end = HhTheme.spacing.gutter,
-                bottom = HhDockDefaults.floatGap,
-            ),
-    ) {
+    HhDock(modifier = modifier) {
         TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-            val label = stringResource(navItem.labelRes)
             val selected = navKey == navigationState.currentTopLevelKey
             HhDockItem(
                 selected = selected,
                 onClick = { navigator.navigate(navKey) },
-                contentDescription = label,
+                contentDescription = stringResource(navItem.labelRes),
                 icon = { HhDockIcon(if (selected) navItem.selectedIcon else navItem.unselectedIcon) },
-                label = { Text(text = label) },
             )
         }
     }
@@ -175,16 +160,32 @@ private fun HhNavDisplay(
         NavDisplay(
             entries = navigationState.toEntries(entryProvider),
             onBack = { navigator.goBack() },
-            transitionSpec = { transitions.forward(this, hierarchical = !targetState.isTopLevel()) },
-            popTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
-            predictivePopTransitionSpec = { transitions.back(hierarchical = !initialState.isTopLevel()) },
+            transitionSpec = {
+                tabDirection(initialState, targetState)?.let { transitions.tab(this, it, pop = false) }
+                    ?: transitions.forward(this, hierarchical = !targetState.isTopLevel())
+            },
+            popTransitionSpec = {
+                tabDirection(initialState, targetState)?.let { transitions.tab(this, it, pop = true) }
+                    ?: transitions.back(hierarchical = !initialState.isTopLevel())
+            },
+            predictivePopTransitionSpec = {
+                tabDirection(initialState, targetState)?.let { direction -> transitions.tab(this, direction, pop = true) }
+                    ?: transitions.back(hierarchical = !initialState.isTopLevel())
+            },
         )
     }
 }
 
 private fun Scene<NavKey>.isTopLevel(): Boolean = metadata[TOP_LEVEL_METADATA] == true
 
+private fun tabDirection(from: Scene<NavKey>, to: Scene<NavKey>): Int? {
+    val fromIndex = from.metadata[TAB_INDEX_METADATA] as? Int ?: return null
+    val toIndex = to.metadata[TAB_INDEX_METADATA] as? Int ?: return null
+    return toIndex.compareTo(fromIndex)
+}
+
 private const val TOP_LEVEL_METADATA = "hhTopLevel"
+private const val TAB_INDEX_METADATA = "hhTabIndex"
 
 private fun sharedEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey> =
     entryProvider {
@@ -203,7 +204,9 @@ private fun withDockInset(
 ): (NavKey) -> NavEntry<NavKey> = { key ->
     val entry = provider(key)
     val topLevel = key.isTopLevelDestination()
-    val metadata = entry.metadata + (TOP_LEVEL_METADATA to topLevel)
+    val tabIndex = TOP_LEVEL_NAV_ITEMS.keys.indexOf(key)
+    val metadata = entry.metadata + (TOP_LEVEL_METADATA to topLevel) +
+        if (tabIndex >= 0) mapOf(TAB_INDEX_METADATA to tabIndex) else emptyMap()
     NavEntry(key = key, contentKey = entry.contentKey, metadata = metadata) {
         CompositionLocalProvider(LocalHhBottomInset provides if (topLevel) dockInset else 0.dp) { entry.Content() }
     }
