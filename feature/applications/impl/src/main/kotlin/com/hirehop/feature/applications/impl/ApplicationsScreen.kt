@@ -24,13 +24,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -39,11 +37,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hirehop.core.designsystem.component.HhCollapsedHomeHeader
+import com.hirehop.core.designsystem.component.HhCollapsingHomeHeader
 import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhCreditsPill
 import com.hirehop.core.designsystem.component.HhHeaderButton
-import com.hirehop.core.designsystem.component.HhHomeHeader
+import com.hirehop.core.designsystem.component.HhHeaderCollapseState
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhPrimaryButton
@@ -52,6 +50,7 @@ import com.hirehop.core.designsystem.component.HhToastHost
 import com.hirehop.core.designsystem.component.HhToastResult
 import com.hirehop.core.designsystem.component.HhToastState
 import com.hirehop.core.designsystem.component.hhListEnter
+import com.hirehop.core.designsystem.component.rememberHhHeaderCollapseState
 import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -101,13 +100,10 @@ fun ApplicationsScreen(
     onAction: (ApplicationsAction) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
+    collapse: HhHeaderCollapseState = rememberHhHeaderCollapseState(),
     now: Instant = Clock.System.now(),
 ) {
-    var isScrolled by remember { mutableStateOf(false) }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .collect { (index, offset) -> isScrolled = nextHeaderCompact(isScrolled, index, offset) }
-    }
+    val expanded = remember { HhHeaderCollapseState() }
     val message = (uiState as? ApplicationsUiState.Applications)?.message
     val toast = rememberHhToastState()
     ApplicationStatusToastEffect(message = message, toast = toast, onAction = onAction)
@@ -116,7 +112,7 @@ fun ApplicationsScreen(
         header = {
             ApplicationsHeaderBar(
                 header = uiState.header,
-                isCompact = isScrolled && uiState is ApplicationsUiState.Applications,
+                collapse = if (uiState is ApplicationsUiState.Applications) collapse else expanded,
                 onAction = onAction,
             )
         },
@@ -132,6 +128,7 @@ fun ApplicationsScreen(
                     listState = listState,
                     now = now,
                     onAction = onAction,
+                    modifier = Modifier.nestedScroll(collapse.connection),
                 )
             }
         }
@@ -145,44 +142,38 @@ fun ApplicationsScreen(
 @Composable
 private fun ApplicationsHeaderBar(
     header: ApplicationsHeader,
-    isCompact: Boolean,
+    collapse: HhHeaderCollapseState,
     onAction: (ApplicationsAction) -> Unit,
 ) {
-    val creditsPill: @Composable () -> Unit = {
-        header.credits?.let { credits ->
-            CreditsAction(credits = credits, onClick = { onAction(ApplicationsAction.CreditsChosen) })
-        }
-    }
-    if (isCompact) {
-        HhCollapsedHomeHeader(
-            title = stringResource(apiR.string.feature_applications_api_title),
-            trailing = { creditsPill() },
-        )
-    } else {
-        val name = header.firstName
-        HhHomeHeader(
-            greeting = if (name == null) {
-                stringResource(R.string.feature_applications_impl_greeting_anonymous)
-            } else {
-                stringResource(R.string.feature_applications_impl_greeting, name)
-            },
-            headline = stringResource(R.string.feature_applications_impl_headline),
-            trailing = { creditsPill() },
-            action = {
-                HhHeaderButton(
-                    label = stringResource(R.string.feature_applications_impl_paste_job),
-                    onClick = { onAction(ApplicationsAction.PasteJobChosen) },
-                    trailingIcon = HhIcons.ArrowForward,
-                )
-            },
-            illustration = {
-                HhCharacterIllustration(
-                    illustration = HhIllustration.Hero,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            },
-        )
-    }
+    val name = header.firstName
+    HhCollapsingHomeHeader(
+        collapse = collapse,
+        title = stringResource(apiR.string.feature_applications_api_title),
+        greeting = if (name == null) {
+            stringResource(R.string.feature_applications_impl_greeting_anonymous)
+        } else {
+            stringResource(R.string.feature_applications_impl_greeting, name)
+        },
+        headline = stringResource(R.string.feature_applications_impl_headline),
+        trailing = {
+            header.credits?.let { credits ->
+                CreditsAction(credits = credits, onClick = { onAction(ApplicationsAction.CreditsChosen) })
+            }
+        },
+        action = {
+            HhHeaderButton(
+                label = stringResource(R.string.feature_applications_impl_paste_job),
+                onClick = { onAction(ApplicationsAction.PasteJobChosen) },
+                trailingIcon = HhIcons.ArrowForward,
+            )
+        },
+        illustration = {
+            HhCharacterIllustration(
+                illustration = HhIllustration.Hero,
+                modifier = Modifier.fillMaxSize(),
+            )
+        },
+    )
 }
 
 @Composable
