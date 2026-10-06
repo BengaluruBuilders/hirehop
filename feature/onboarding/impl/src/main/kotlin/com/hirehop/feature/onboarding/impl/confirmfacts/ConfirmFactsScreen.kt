@@ -46,6 +46,7 @@ import com.hirehop.feature.onboarding.impl.R
 import com.hirehop.feature.onboarding.impl.common.DisclosureCard
 import com.hirehop.feature.onboarding.impl.common.NoticeTone
 import com.hirehop.feature.onboarding.impl.common.OnboardingNotice
+import com.hirehop.feature.onboarding.impl.common.ReasonText
 import com.hirehop.feature.onboarding.impl.common.StateCard
 
 data class ConfirmFactsActions(
@@ -72,19 +73,19 @@ fun ConfirmFactsScreen(
                 title = stringResource(R.string.feature_onboarding_impl_confirm_facts_title),
                 subtitle = pluralStringResource(
                     R.plurals.feature_onboarding_impl_confirm_facts_counter,
-                    uiState.facts.size,
+                    uiState.totalCount,
                     uiState.confirmedCount,
-                    uiState.facts.size,
+                    uiState.totalCount,
                 ),
                 onBack = actions.onBack,
                 backContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
             )
         },
-        bottomBar = if (uiState.isLoading || uiState.isEmpty) null else ({ ConfirmFactsBottomBar(actions) }),
-        bottomBarNotice = if (uiState.isLoading || uiState.isEmpty || uiState.openCount == 0) {
+        bottomBar = if (uiState.isLoading || uiState.isEmpty) null else ({ ConfirmFactsBottomBar(uiState, actions) }),
+        bottomBarNotice = if (uiState.isLoading || uiState.isEmpty || (uiState.openCount == 0 && uiState.canContinue)) {
             null
         } else {
-            ({ OpenFactsDisclosure(uiState.openCount) })
+            ({ ConfirmFactsNotice(uiState) })
         },
     ) { padding ->
         Column(
@@ -149,8 +150,8 @@ private fun ConfirmFactsContent(
         OnboardingNotice(
             text = pluralStringResource(
                 R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed,
-                uiState.facts.size,
-                uiState.facts.size,
+                uiState.totalCount,
+                uiState.totalCount,
             ),
             icon = HhIcons.CheckCircle,
             tone = NoticeTone.Success,
@@ -315,14 +316,30 @@ private fun EmptySectionCard(
 }
 
 @Composable
-private fun ConfirmFactsBottomBar(actions: ConfirmFactsActions) {
+private fun ConfirmFactsBottomBar(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
     HhBottomActionBar {
         HhPrimaryButton(
             label = stringResource(R.string.feature_onboarding_impl_confirm_facts_continue),
             onClick = actions.onContinue,
+            enabled = uiState.canContinue,
             trailingIcon = HhIcons.ArrowForward,
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+@Composable
+private fun ConfirmFactsNotice(uiState: ConfirmFactsUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        if (uiState.openCount > 0) {
+            OpenFactsDisclosure(uiState.openCount)
+        }
+        if (!uiState.canContinue) {
+            ReasonText(text = stringResource(R.string.feature_onboarding_impl_confirm_facts_reason_needs_one))
+        }
     }
 }
 

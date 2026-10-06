@@ -88,6 +88,7 @@ class ConfirmFactsViewModel @Inject constructor(
             }
 
             ConfirmFactsAction.Continue -> {
+                if (!mutableUiState.value.canContinue) return
                 viewModelScope.launch {
                     val step = nextOnboardingStep()
                     mutableUiState.update { it.copy(nextStep = step) }
