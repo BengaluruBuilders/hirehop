@@ -1,6 +1,5 @@
 package com.hirehop.feature.profile.impl.evidencepath
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,24 +9,19 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhFilterChip
@@ -36,6 +30,8 @@ import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
@@ -50,8 +46,8 @@ import com.hirehop.feature.profile.impl.common.Note
 
 private val RowGap = 10.dp
 private val ChipGap = 6.dp
-private val IconDisc = 40.dp
-private val CategoryRowMinHeight = 64.dp
+private val CategoryPillStyles =
+    listOf(HhPillRowStyle.Coral, HhPillRowStyle.Jade, HhPillRowStyle.Marigold)
 private const val ANSWER_LINES = 5
 
 @Composable
@@ -177,48 +173,32 @@ private fun PickerContent(actions: EvidencePathActions) {
             )
         }
     }
-    EVIDENCE_CATEGORIES.forEach { category ->
-        CategoryRow(category = category, onClick = { actions.onCategoryChosen(category) })
+    EVIDENCE_CATEGORIES.forEachIndexed { index, category ->
+        CategoryRow(
+            category = category,
+            style = CategoryPillStyles[index % CategoryPillStyles.size],
+            onClick = { actions.onCategoryChosen(category) },
+        )
     }
 }
 
 @Composable
 private fun CategoryRow(
     category: EvidenceCategory,
+    style: HhPillRowStyle,
     onClick: () -> Unit,
 ) {
     val label = stringResource(category.labelRes())
     val hint = stringResource(category.hintRes())
-    HhCard(
+    HhPillRow(
+        title = label,
         onClick = onClick,
-        contentPadding = PaddingValues(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.sm),
         modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "$label. $hint" },
-    ) {
-        Row(
-            modifier = Modifier.heightIn(min = CategoryRowMinHeight - HhTheme.spacing.lg),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.cardPadding),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(IconDisc)
-                    .clip(HhTheme.shapes.pill)
-                    .background(HhTheme.colors.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = category.icon(),
-                    contentDescription = null,
-                    tint = HhTheme.colors.onPrimaryContainer,
-                    modifier = Modifier.size(HhTheme.spacing.xl),
-                )
-            }
-            Column {
-                Text(text = label, style = HhTheme.typography.titleS, color = HhTheme.colors.onSurface)
-                Text(text = hint, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
-            }
-        }
-    }
+        style = style,
+        subtitle = hint,
+        icon = category.icon(),
+        trailingIcon = HhIcons.ArrowForward,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

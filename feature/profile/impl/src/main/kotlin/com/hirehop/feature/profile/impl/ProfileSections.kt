@@ -1,36 +1,39 @@
 package com.hirehop.feature.profile.impl
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhCard
+import com.hirehop.core.designsystem.component.HhAccent
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOnColorChip
+import com.hirehop.core.designsystem.component.HhOnColorChipStyle
+import com.hirehop.core.designsystem.component.HhOpenAction
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.component.hhListEnter
 import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -40,9 +43,20 @@ import com.hirehop.feature.profile.impl.common.FactCard
 import com.hirehop.feature.profile.impl.common.FactIdChip
 import com.hirehop.feature.profile.impl.common.FactStatus
 
-private val ArrowSize = 18.dp
-private val ChipGap = 6.dp
 private val ListGap = 10.dp
+
+private const val SECTION_CHIP_LIMIT = 3
+private const val LARGE_TEXT_CHIP_LIMIT = 2
+private const val LARGE_TEXT_SCALE = 1.3f
+
+internal fun sectionAccent(kind: ProfileSectionKind): HhAccent = when (kind) {
+    ProfileSectionKind.Education -> HhAccent.Coral
+    ProfileSectionKind.Experience -> HhAccent.Jade
+    ProfileSectionKind.Projects -> HhAccent.Marigold
+    ProfileSectionKind.Skills -> HhAccent.Coral
+    ProfileSectionKind.Certifications -> HhAccent.Jade
+    ProfileSectionKind.Extras -> HhAccent.Marigold
+}
 
 @StringRes
 internal fun ProfileSectionKind.titleRes(): Int = when (this) {
@@ -55,6 +69,16 @@ internal fun ProfileSectionKind.titleRes(): Int = when (this) {
 }
 
 @StringRes
+internal fun ProfileSectionKind.monogramRes(): Int = when (this) {
+    ProfileSectionKind.Education -> R.string.feature_profile_impl_monogram_education
+    ProfileSectionKind.Experience -> R.string.feature_profile_impl_monogram_experience
+    ProfileSectionKind.Projects -> R.string.feature_profile_impl_monogram_projects
+    ProfileSectionKind.Skills -> R.string.feature_profile_impl_monogram_skills
+    ProfileSectionKind.Certifications -> R.string.feature_profile_impl_monogram_certifications
+    ProfileSectionKind.Extras -> R.string.feature_profile_impl_monogram_extras
+}
+
+@StringRes
 internal fun ProfileSectionKind.addLabelRes(): Int = when (this) {
     ProfileSectionKind.Education -> R.string.feature_profile_impl_add_education
     ProfileSectionKind.Experience -> R.string.feature_profile_impl_add_experience
@@ -64,55 +88,47 @@ internal fun ProfileSectionKind.addLabelRes(): Int = when (this) {
     ProfileSectionKind.Extras -> R.string.feature_profile_impl_add_achievement
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SectionCard(
     section: ProfileSection,
+    accent: HhAccent,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val title = stringResource(section.kind.titleRes())
-    val factsLabel = pluralStringResource(
-        R.plurals.feature_profile_impl_fact_count_accessibility,
-        section.count,
-        section.count,
-    )
-    val description = stringResource(R.string.feature_profile_impl_section_description, title, factsLabel)
-    HhCard(
-        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },
-        onClick = onOpen,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = title, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = section.count.toString(),
-                    style = HhTheme.typography.titleM,
-                    color = HhTheme.colors.onSurface,
-                )
-                Icon(
-                    imageVector = HhIcons.ArrowForward,
-                    contentDescription = null,
-                    tint = HhTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.size(ArrowSize),
+    val subtitle = sectionSubtitle(section)
+    val description = stringResource(R.string.feature_profile_impl_section_description, title, subtitle)
+    val chipLimit = if (LocalDensity.current.fontScale > LARGE_TEXT_SCALE) LARGE_TEXT_CHIP_LIMIT else SECTION_CHIP_LIMIT
+    HhSolidCard(
+        accent = accent,
+        monogram = stringResource(section.kind.monogramRes()),
+        title = title,
+        subtitle = subtitle,
+        modifier = modifier
+            .clip(HhTheme.shapes.card)
+            .clickable(role = Role.Button, onClick = onOpen)
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                onClick {
+                    onOpen()
+                    true
+                }
+            },
+        openAction = HhOpenAction(contentDescription = description, onClick = onOpen),
+        chips = {
+            section.facts.take(chipLimit).forEach { fact ->
+                FactIdChip(id = fact.displayId, status = fact.status)
+            }
+            if (section.count > chipLimit) {
+                HhOnColorChip(
+                    label = stringResource(R.string.feature_profile_impl_section_more_facts, section.count - chipLimit),
+                    style = HhOnColorChipStyle.White,
+                    accent = accent,
                 )
             }
-        }
-        FlowRow(
-            modifier = Modifier.clearAndSetSemantics { },
-            horizontalArrangement = Arrangement.spacedBy(ChipGap),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
-            section.facts.forEach { fact -> FactIdChip(id = fact.displayId, status = fact.status) }
-        }
-    }
+        },
+    )
 }
 
 @Composable
@@ -182,6 +198,7 @@ internal fun ExpandedSectionScreen(
                             label = stringResource(R.string.feature_profile_impl_skill_remove),
                             onClick = { actions.onRemoveSkill(skill) },
                             trailingIcon = HhIcons.Delete,
+                            size = HhButtonSize.Compact,
                         )
                     }
                 }
