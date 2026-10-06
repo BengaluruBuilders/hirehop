@@ -24,7 +24,7 @@
     <string name="feature_applications_impl_row_description">%1$s at %2$s. %3$s. %4$s. %5$s.</string>
     <string name="feature_applications_impl_row_change_status">Change status</string>
     <string name="feature_applications_impl_coverage_fraction">%1$d / %2$d</string>
-    <string name="feature_applications_impl_key_terms">key terms</string>
+    <string name="feature_applications_impl_coverage_key_terms">%1$d&#160;/&#160;%2$d&#160;key&#160;terms</string>
     <string name="feature_applications_impl_updated">updated %1$s</string>
     <string name="feature_applications_impl_updated_just_now">updated just now</string>
     <string name="feature_applications_impl_sync_pending">Sync pending</string>

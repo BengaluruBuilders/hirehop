@@ -358,7 +358,7 @@ private fun LedgerRow(
     modifier: Modifier = Modifier,
     extra: @Composable () -> Unit = {},
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
         HhSolidCard(
             accent = accent,
             monogram = count.toString(),

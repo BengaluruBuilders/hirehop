@@ -69,16 +69,20 @@ internal fun ApplicationRow(
                 },
             )
         }
-    val accent = row.status.accent()
+    val coverageLine = stringResource(
+        R.string.feature_applications_impl_coverage_key_terms,
+        row.coverage.covered,
+        row.coverage.total,
+    )
     Box(modifier = rowModifier) {
-        if (accent == null) {
+        if (row.isExported) {
             val syncPending = stringResource(R.string.feature_applications_impl_sync_pending)
             val subtitle = stringResource(
                 id = R.string.feature_applications_impl_pill_subtitle,
                 statusLabel,
                 company,
                 updatedLabel,
-            ) + if (row.isSyncPending) " · $syncPending" else ""
+            ) + (if (row.isSyncPending) " · $syncPending" else "") + "\n" + coverageLine
             HhPillRow(
                 title = role,
                 onClick = onClick,
@@ -88,15 +92,14 @@ internal fun ApplicationRow(
             )
         } else {
             HhSolidCard(
-                accent = accent,
+                accent = row.status.accent(),
                 monogram = monogramOf(row.company),
                 title = role,
                 subtitle = stringResource(
-                    id = R.string.feature_applications_impl_pill_subtitle,
+                    id = R.string.feature_applications_impl_row_company_updated,
                     company,
                     updatedLabel,
-                    coverageFraction(row.coverage) + " " + stringResource(R.string.feature_applications_impl_key_terms),
-                ),
+                ) + "\n" + coverageLine,
                 openAction = HhOpenAction(contentDescription = rowDescription, onClick = onClick),
                 chips = {
                     HhApplicationStatusChip(
@@ -115,22 +118,31 @@ internal fun ApplicationRow(
 }
 
 private fun ApplicationStatus.pillStyle(): HhPillRowStyle = when (this) {
+    ApplicationStatus.SAVED -> HhPillRowStyle.Ink
+    ApplicationStatus.APPLIED -> HhPillRowStyle.Jade
+    ApplicationStatus.INTERVIEW -> HhPillRowStyle.Jade
+    ApplicationStatus.OFFER -> HhPillRowStyle.Marigold
     ApplicationStatus.REJECTED -> HhPillRowStyle.Coral
     ApplicationStatus.NO_RESPONSE -> HhPillRowStyle.Ink
-    else -> HhPillRowStyle.Jade
 }
 
 private fun ApplicationStatus.pillIcon(): ImageVector = when (this) {
     ApplicationStatus.REJECTED -> HhIcons.CancelCircle
     ApplicationStatus.NO_RESPONSE -> HhIcons.Clock
-    else -> HhIcons.Send
+    ApplicationStatus.SAVED,
+    ApplicationStatus.APPLIED,
+    ApplicationStatus.INTERVIEW,
+    ApplicationStatus.OFFER,
+    -> HhIcons.Send
 }
 
-private fun ApplicationStatus.accent(): HhAccent? = when (this) {
+private fun ApplicationStatus.accent(): HhAccent = when (this) {
     ApplicationStatus.SAVED -> HhAccent.Coral
+    ApplicationStatus.APPLIED -> HhAccent.Jade
     ApplicationStatus.INTERVIEW -> HhAccent.Jade
     ApplicationStatus.OFFER -> HhAccent.Marigold
-    ApplicationStatus.APPLIED, ApplicationStatus.REJECTED, ApplicationStatus.NO_RESPONSE -> null
+    ApplicationStatus.REJECTED -> HhAccent.Coral
+    ApplicationStatus.NO_RESPONSE -> HhAccent.Marigold
 }
 
 @Composable
@@ -177,7 +189,7 @@ private fun ApplicationRowPreviewRows() {
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
         ApplicationRow(
-            row = previewRow(id = "row-preview-1", isSyncPending = false),
+            row = previewRow(id = "row-preview-1", isSyncPending = false, isExported = true),
             now = PREVIEW_INSTANT,
             onClick = {},
             onStatusClick = {},
@@ -215,6 +227,7 @@ private fun previewRow(
     id: String,
     isSyncPending: Boolean,
     status: ApplicationStatus = ApplicationStatus.APPLIED,
+    isExported: Boolean = false,
 ) = ApplicationListRow(
     id = id,
     role = "Associate Analyst",
@@ -223,4 +236,5 @@ private fun previewRow(
     coverage = KeywordCoverage(covered = 9, total = 14),
     updatedAt = PREVIEW_INSTANT,
     isSyncPending = isSyncPending,
+    isExported = isExported,
 )
