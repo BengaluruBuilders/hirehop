@@ -60,7 +60,7 @@ sealed interface AnalysisOverlay {
 
     data class Source(val requirementId: String) : AnalysisOverlay
 
-    data class Question(val requirementId: String) : AnalysisOverlay
+    data class Question(val requirementId: String, val notClosed: Boolean = false) : AnalysisOverlay
 
     data object ShareCard : AnalysisOverlay
 }
@@ -70,15 +70,13 @@ sealed interface AnalysisToast {
 
     data object GapClosed : AnalysisToast
 
-    data object FactSaved : AnalysisToast
-
     data object Reported : AnalysisToast
 
     data object EvidenceFailed : AnalysisToast
 
     data object TailorFailed : AnalysisToast
 
-    val hasUndo: Boolean get() = this is PrepAdded || this is GapClosed || this is FactSaved
+    val hasUndo: Boolean get() = this is PrepAdded || this is GapClosed
 }
 
 sealed interface AnalysisDestination {

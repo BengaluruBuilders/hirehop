@@ -125,7 +125,7 @@ internal fun AnalysisSheets(state: AnalysisUiState.Result, actions: AnalysisActi
         }
         is AnalysisOverlay.Question -> state.itemOrNull(overlay.requirementId)?.let { item ->
             HhBottomSheet(onDismissRequest = actions.onDismissOverlay) {
-                QuestionSheetContent(item, actions)
+                QuestionSheetContent(item, actions, notClosed = overlay.notClosed)
             }
         }
         AnalysisOverlay.ShareCard -> HhBottomSheet(onDismissRequest = actions.onDismissOverlay) {
@@ -242,7 +242,7 @@ private fun HhProvenanceKind.labelRes(): Int = when (this) {
 }
 
 @Composable
-internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions) {
+internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
     var statement by rememberSaveable { mutableStateOf("") }
     val (rawName, rawDetail) = item.requirement.text.splitDetail()
     val name = RequirementPhrase.of(rawName)
@@ -263,6 +263,16 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             style = HhTheme.typography.bodyM,
             color = HhTheme.colors.body,
         )
+        if (notClosed) {
+            Text(
+                text = stringResource(
+                    R.string.feature_analysis_impl_question_not_closed,
+                    item.requirement.keywords.joinToString(", "),
+                ),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurface,
+            )
+        }
         HhTextField(
             value = statement,
             onValueChange = { statement = it },

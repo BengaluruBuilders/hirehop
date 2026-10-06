@@ -373,14 +373,31 @@ class AnalysisViewModelTest {
     }
 
     @Test
-    fun iHaveThis_whenTheWordsDoNotCloseTheGap_savesWithoutClaimingIt() = runTest {
+    fun iHaveThis_whenTheWordsDoNotCloseTheGap_savesNothingAndExplainsWhy() = runTest {
+        start()
+        val before = profileRepository.observeProfile().first()
+
+        viewModel.onIHaveThis("req-sql")
+        viewModel.onSubmitEvidence("req-sql", "I like tidy data.")
+
+        val result = result()
+        assertThat(result.item("req-sql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result.toast).isNull()
+        assertThat(result.closedRequirementId).isNull()
+        assertThat(result.overlay).isEqualTo(AnalysisOverlay.Question("req-sql", notClosed = true))
+        assertThat(profileRepository.observeProfile().first()).isEqualTo(before)
+    }
+
+    @Test
+    fun iHaveThis_whenTheWordsDoNotCloseTheGap_attachesTheWordsToNoRow() = runTest {
         start()
 
         viewModel.onSubmitEvidence("req-sql", "I like tidy data.")
 
-        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.GAP)
-        assertThat(result().toast).isEqualTo(AnalysisToast.FactSaved)
-        assertThat(result().closedRequirementId).isNull()
+        val profile = requireNotNull(profileRepository.observeProfile().first())
+        assertThat(profile.entries.map { it.source }).doesNotContain(FactSource.USER_STATED)
+        val rows = result().sections.flatMap { it.items }
+        assertThat(rows.flatMap { item -> item.factRefs.filter { it.source == FactSource.USER_STATED } }).isEmpty()
     }
 
     @Test

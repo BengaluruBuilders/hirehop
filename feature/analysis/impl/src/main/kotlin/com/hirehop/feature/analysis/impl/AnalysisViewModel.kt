@@ -199,7 +199,7 @@ class AnalysisViewModel @Inject constructor(
                 if (ready != null) viewModelScope.launch { prepPlanRepository.remove(ready.draftKey, toast.requirementId) }
                 onToastDismiss()
             }
-            AnalysisToast.GapClosed, AnalysisToast.FactSaved -> restoreProfile()
+            AnalysisToast.GapClosed -> restoreProfile()
             else -> Unit
         }
     }
@@ -211,9 +211,26 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             attempt {
                 addUserStatedFact(requirement, statement)
-                refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
+                val fresh = refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
+                val closed = fresh.analysis.gap.matches
+                    .firstOrNull { it.requirement.id == requirementId }
+                    ?.status != MatchStatus.GAP
+                if (closed) {
+                    fresh
+                } else {
+                    profileRepository.saveProfile(ready.profile)
+                    null
+                }
             }.fold(
-                onSuccess = { fresh -> applyEvidence(ready, fresh, requirementId) },
+                onSuccess = { fresh ->
+                    if (fresh != null) {
+                        applyEvidence(ready, fresh, requirementId)
+                    } else {
+                        local.update {
+                            it.copy(overlay = AnalysisOverlay.Question(requirementId, notClosed = true))
+                        }
+                    }
+                },
                 onFailure = { showToast(AnalysisToast.EvidenceFailed) },
             )
         }
@@ -311,18 +328,15 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun applyEvidence(before: Phase.Ready, fresh: Phase.Ready, requirementId: String) {
         undoProfile = before.profile
-        val closed = fresh.analysis.gap.matches
-            .firstOrNull { it.requirement.id == requirementId }
-            ?.let { it.status != MatchStatus.GAP } == true
         dropClosedGapsFromPrepPlan(fresh)
         local.update {
             it.copy(
                 phase = fresh,
                 overlay = AnalysisOverlay.None,
-                closedId = requirementId.takeIf { closed },
+                closedId = requirementId,
             )
         }
-        showToast(if (closed) AnalysisToast.GapClosed else AnalysisToast.FactSaved)
+        showToast(AnalysisToast.GapClosed)
     }
 
     private suspend fun dropClosedGapsFromPrepPlan(fresh: Phase.Ready) {
