@@ -3,7 +3,6 @@ package com.hirehop.feature.applications.impl
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -69,51 +68,52 @@ internal fun ApplicationRow(
                 },
             )
         }
+    val openRole = stringResource(R.string.feature_applications_impl_row_open, role)
     val coverageLine = stringResource(
         R.string.feature_applications_impl_coverage_key_terms,
         row.coverage.covered,
         row.coverage.total,
     )
-    Box(modifier = rowModifier) {
-        if (row.isExported) {
-            val syncPending = stringResource(R.string.feature_applications_impl_sync_pending)
-            val subtitle = stringResource(
-                id = R.string.feature_applications_impl_pill_subtitle,
-                statusLabel,
+    if (row.isExported) {
+        val syncPending = stringResource(R.string.feature_applications_impl_sync_pending)
+        val subtitle = stringResource(
+            id = R.string.feature_applications_impl_pill_subtitle,
+            statusLabel,
+            company,
+            updatedLabel,
+        ) + (if (row.isSyncPending) " · $syncPending" else "") + "\n" + coverageLine
+        HhPillRow(
+            title = role,
+            onClick = onClick,
+            style = row.status.pillStyle(),
+            subtitle = subtitle,
+            icon = row.status.pillIcon(),
+            modifier = rowModifier,
+        )
+    } else {
+        HhSolidCard(
+            accent = row.status.accent(),
+            monogram = monogramOf(row.company),
+            title = role,
+            subtitle = stringResource(
+                id = R.string.feature_applications_impl_row_company_updated,
                 company,
                 updatedLabel,
-            ) + (if (row.isSyncPending) " · $syncPending" else "") + "\n" + coverageLine
-            HhPillRow(
-                title = role,
-                onClick = onClick,
-                style = row.status.pillStyle(),
-                subtitle = subtitle,
-                icon = row.status.pillIcon(),
-            )
-        } else {
-            HhSolidCard(
-                accent = row.status.accent(),
-                monogram = monogramOf(row.company),
-                title = role,
-                subtitle = stringResource(
-                    id = R.string.feature_applications_impl_row_company_updated,
-                    company,
-                    updatedLabel,
-                ) + "\n" + coverageLine,
-                openAction = HhOpenAction(contentDescription = rowDescription, onClick = onClick),
-                chips = {
-                    HhApplicationStatusChip(
-                        kind = ApplicationStatusKindMapper().kindOf(row.status),
-                        label = statusLabel,
-                        modifier = Modifier
-                            .defaultMinSize(minHeight = HhTheme.spacing.touch)
-                            .clip(HhTheme.shapes.pill)
-                            .clickable(onClick = onStatusClick),
-                    )
-                    if (row.isSyncPending) SyncPendingChip()
-                },
-            )
-        }
+            ) + "\n" + coverageLine,
+            modifier = rowModifier,
+            openAction = HhOpenAction(contentDescription = openRole, onClick = onClick),
+            chips = {
+                HhApplicationStatusChip(
+                    kind = ApplicationStatusKindMapper().kindOf(row.status),
+                    label = statusLabel,
+                    modifier = Modifier
+                        .defaultMinSize(minHeight = HhTheme.spacing.touch)
+                        .clip(HhTheme.shapes.pill)
+                        .clickable(onClick = onStatusClick),
+                )
+                if (row.isSyncPending) SyncPendingChip()
+            },
+        )
     }
 }
 
@@ -127,13 +127,12 @@ private fun ApplicationStatus.pillStyle(): HhPillRowStyle = when (this) {
 }
 
 private fun ApplicationStatus.pillIcon(): ImageVector = when (this) {
+    ApplicationStatus.SAVED -> HhIcons.Bookmark
+    ApplicationStatus.APPLIED -> HhIcons.Send
+    ApplicationStatus.INTERVIEW -> HhIcons.Calendar
+    ApplicationStatus.OFFER -> HhIcons.Award
     ApplicationStatus.REJECTED -> HhIcons.CancelCircle
     ApplicationStatus.NO_RESPONSE -> HhIcons.Clock
-    ApplicationStatus.SAVED,
-    ApplicationStatus.APPLIED,
-    ApplicationStatus.INTERVIEW,
-    ApplicationStatus.OFFER,
-    -> HhIcons.Send
 }
 
 private fun ApplicationStatus.accent(): HhAccent = when (this) {

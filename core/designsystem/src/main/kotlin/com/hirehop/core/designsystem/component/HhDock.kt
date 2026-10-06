@@ -81,7 +81,7 @@ import kotlin.math.pow
 private val HhDockBallSize = 64.dp
 private val HhDockNotchHalfWidth = 56.dp
 private val HhDockNotchDepth = 37.dp
-private val HhDockShadowReaches = (1..8).map { (it * 6).dp }
+private val HhDockShadowReaches = (1..4).map { (it * 6).dp }
 private const val SHADOW_PEAK_LIGHT = 0.18f
 private const val SHADOW_PEAK_DARK = 0.5f
 private val HhDockIconRise = HhDockDefaults.height / 2

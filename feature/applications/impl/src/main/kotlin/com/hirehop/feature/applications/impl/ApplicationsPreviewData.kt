@@ -39,6 +39,7 @@ internal fun previewPaisaRow() = ApplicationListRow(
     coverage = KeywordCoverage(covered = 11, total = 13),
     updatedAt = PREVIEW_INSTANT - 1.days,
     isSyncPending = false,
+    isExported = true,
 )
 
 internal fun previewSahyadriRow() = ApplicationListRow(
