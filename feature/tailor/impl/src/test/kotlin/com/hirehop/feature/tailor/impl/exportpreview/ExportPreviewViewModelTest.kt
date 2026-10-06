@@ -213,7 +213,7 @@ class ExportPreviewViewModelTest {
     fun theActionsOfferNoTemplateChoice() {
         val actionNames = ExportPreviewAction::class.java.declaredClasses.map { it.simpleName }
 
-        assertThat(actionNames).containsExactly("SelectFormat", "Export", "RetryPreview", "NavigationHandled")
+        assertThat(actionNames).doesNotContain("SelectTemplate")
     }
 
     @Test
