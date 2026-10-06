@@ -30,6 +30,10 @@ class TestSessionRepository : SessionRepository {
         careerStage.value = stage
     }
 
+    override suspend fun clearCareerStage() {
+        careerStage.value = null
+    }
+
     override suspend fun saveAccount(account: SignInAccount) {
         this.account.value = account
     }

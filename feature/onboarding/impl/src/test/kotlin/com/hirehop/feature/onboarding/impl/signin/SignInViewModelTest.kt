@@ -9,6 +9,7 @@ import com.hirehop.core.domain.SignInOutcome
 import com.hirehop.core.domain.SignInResult
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
@@ -54,12 +55,14 @@ class SignInViewModelTest {
     @Test
     fun underEighteen_clearsTheKeptJobPost() = runTest {
         session.keepJobDescription(KeptJobDescription(text = "Analyst role text", company = "", role = ""))
+        session.saveCareerStage(CareerStage.entries.first())
         viewModel.onEnter(SignInNavKey(DebugScenario.DEFAULT))
 
         viewModel.onAction(SignInAction.UnderEighteen)
 
         assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.UNDER_18)
         assertThat(session.observeKeptJobDescription().first()).isNull()
+        assertThat(session.observeCareerStage().first()).isNull()
     }
 
     @Test

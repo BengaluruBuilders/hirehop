@@ -41,6 +41,10 @@ internal class StoredSessionRepository @Inject constructor(
         store.write(CAREER_STAGE_KEY, stage.name)
     }
 
+    override suspend fun clearCareerStage() {
+        store.remove(CAREER_STAGE_KEY)
+    }
+
     override suspend fun saveAccount(account: SignInAccount) {
         store.writeValue(ACCOUNT_KEY, AccountDto.serializer(), AccountDto(account.id, account.displayName, account.email))
     }

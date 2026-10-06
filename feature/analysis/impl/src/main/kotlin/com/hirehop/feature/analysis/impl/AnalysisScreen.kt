@@ -86,7 +86,7 @@ private val PillIconSize = 18.dp
 private val ShareIconSize = 18.dp
 private val RingTop = 104.dp
 private val RingEnd = 22.dp
-private val SquiggleTop = 150.dp
+private val SquiggleBottom = 3.dp
 private val SquiggleEnd = 86.dp
 
 @Composable
@@ -301,8 +301,8 @@ private fun BoxScope.HeaderDecorations() {
         kind = HhDecorationKind.Squiggle,
         color = colors.headerShape,
         modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = SquiggleTop, end = SquiggleEnd),
+            .align(Alignment.BottomEnd)
+            .padding(bottom = SquiggleBottom, end = SquiggleEnd),
     )
 }
 

@@ -67,6 +67,7 @@ class SignInViewModel @Inject constructor(
             withContext(NonCancellable) {
                 sessionRepository.observeKeptJobDescription().first()?.let { discardJobDrafts(it) }
                 sessionRepository.clearKeptJobDescription()
+                sessionRepository.clearCareerStage()
             }
             mutableState.update { it.copy(stage = SignInStage.UNDER_18) }
         }

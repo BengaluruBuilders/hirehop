@@ -19,6 +19,8 @@ interface SessionRepository {
 
     suspend fun saveCareerStage(stage: CareerStage)
 
+    suspend fun clearCareerStage()
+
     suspend fun saveAccount(account: SignInAccount)
 
     suspend fun recordConsent(record: ConsentRecord)
