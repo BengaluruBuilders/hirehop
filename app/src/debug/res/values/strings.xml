@@ -13,6 +13,7 @@
     <string name="debug_data_busy">Working</string>
     <string name="debug_connectivity_heading">Network</string>
     <string name="debug_connectivity_online">Device is online</string>
+    <string name="debug_connectivity_offline">Device is offline</string>
     <string name="debug_scenario_destination_heading">Destination</string>
     <string name="debug_scenario_state_heading">State</string>
     <string name="debug_scenario_open">Open screen</string>
