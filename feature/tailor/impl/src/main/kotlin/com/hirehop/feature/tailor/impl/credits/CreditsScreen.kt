@@ -4,32 +4,37 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.hirehop.core.designsystem.component.HhApplicationStatusChip
-import com.hirehop.core.designsystem.component.HhApplicationStatusKind
+import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOnColorChip
+import com.hirehop.core.designsystem.component.HhOnColorChipStyle
 import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.R
@@ -77,7 +82,15 @@ internal fun CreditsScreen(
 
 @Composable
 private fun CreditsLoading() {
+    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
     val loading = stringResource(R.string.feature_tailor_impl_credits_loading)
+    if (largeFont) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            HhLoadingWheel(contentDesc = loading)
+            Text(text = loading, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+        }
+        return
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
@@ -96,60 +109,44 @@ private fun CreditsReady(
         message = stringResource(R.string.feature_tailor_impl_credits_offline_banner),
         visible = uiState.isOffline,
     )
-    CreditsHero(uiState = uiState, onGetPack = actions.onGetPack)
+    CreditsHero(uiState = uiState)
+    if (uiState.canBuy) {
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_credits_get_pack),
+            onClick = actions.onGetPack,
+            style = HhPillRowStyle.Marigold,
+            icon = HhIcons.Download,
+        )
+    }
     CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
     CreditsPurchases(uiState = uiState)
     CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
     CreditsHelp(actions = actions)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CreditsHero(
-    uiState: CreditsUiState,
-    onGetPack: () -> Unit,
-) {
+private fun CreditsHero(uiState: CreditsUiState) {
     val left = uiState.totalCredits
     val description = pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left)
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs)) {
-            FlowRow(
-                modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-                itemVerticalAlignment = Alignment.Bottom,
-            ) {
-                Text(
-                    text = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
-                    style = HhTheme.typography.numeralHero,
-                    color = HhTheme.colors.onSurface,
-                )
-                Text(
-                    text = stringResource(
-                        if (uiState.creditsNeverExpire) {
-                            R.string.feature_tailor_impl_credits_never_expire
-                        } else {
-                            R.string.feature_tailor_impl_credits_may_expire
-                        },
-                    ),
-                    style = HhTheme.typography.titleM,
-                    color = HhTheme.colors.onSurface,
-                )
-            }
-            if (uiState.showsFreeNote) {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_credits_free_note),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.onSurfaceVariant,
-                )
-            }
-            HhSecondaryButton(
-                label = stringResource(R.string.feature_tailor_impl_credits_get_pack),
-                onClick = onGetPack,
-                enabled = uiState.canBuy,
-                trailingIcon = HhIcons.ArrowForward,
-            )
-        }
+    val chips: (@Composable RowScope.() -> Unit)? = if (uiState.showsFreeNote) {
+        { HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_credits_free_note)) }
+    } else {
+        null
     }
+    HhSolidCard(
+        accent = HhAccent.Coral,
+        monogram = left.toString(),
+        title = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
+        subtitle = stringResource(
+            if (uiState.creditsNeverExpire) {
+                R.string.feature_tailor_impl_credits_never_expire
+            } else {
+                R.string.feature_tailor_impl_credits_may_expire
+            },
+        ),
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+        chips = chips,
+    )
 }
 
 @Composable
@@ -174,60 +171,75 @@ private fun CreditsPurchases(uiState: CreditsUiState) {
         }
         return
     }
-    uiState.purchases.forEach { entry -> CreditsPurchaseCard(entry = entry) }
+    uiState.purchases.forEach { entry -> CreditsPurchaseRow(entry = entry) }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CreditsPurchaseCard(entry: CreditsPurchaseEntry) {
-    HhCard(modifier = Modifier.fillMaxWidth()) {
+private fun CreditsPurchaseRow(entry: CreditsPurchaseEntry) {
+    if (entry.isPending) {
+        val pending = stringResource(R.string.feature_tailor_impl_credits_pending)
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.feature_tailor_impl_credits_purchase_title,
-                        entry.credits,
-                        entry.credits,
-                        entry.formattedPrice,
-                    ),
-                    style = HhTheme.typography.titleS,
-                    color = HhTheme.colors.onSurface,
-                )
-                if (entry.isPending) {
-                    HhApplicationStatusChip(
-                        kind = HhApplicationStatusKind.Saved,
-                        label = stringResource(R.string.feature_tailor_impl_credits_pending),
+            HhSolidCard(
+                accent = HhAccent.Marigold,
+                monogram = "₹",
+                title = pluralStringResource(
+                    R.plurals.feature_tailor_impl_credits_purchase_title,
+                    entry.credits,
+                    entry.credits,
+                    entry.formattedPrice,
+                ),
+                subtitle = pluralStringResource(
+                    R.plurals.feature_tailor_impl_credits_pending_note,
+                    entry.credits,
+                    entry.credits,
+                ),
+                chips = {
+                    Icon(
+                        imageVector = HhIcons.Clock,
+                        contentDescription = null,
+                        tint = HhTheme.colors.onSpecial,
+                        modifier = Modifier.heightIn(min = HhTheme.spacing.d20),
                     )
-                }
-            }
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
+                    HhOnColorChip(label = pending, style = HhOnColorChipStyle.Ink)
+                },
             )
-            Text(text = entry.orderId, style = HhTheme.typography.factId, color = HhTheme.colors.onSurface)
-            if (entry.isPending) {
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.feature_tailor_impl_credits_pending_note,
-                        entry.credits,
-                        entry.credits,
-                    ),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                )
-            }
+            CreditsPurchaseOrder(entry = entry)
         }
+        return
     }
+    HhCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.feature_tailor_impl_credits_purchase_title,
+                entry.credits,
+                entry.credits,
+                entry.formattedPrice,
+            ),
+            style = HhTheme.typography.titleS,
+            color = HhTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+        CreditsPurchaseOrder(entry = entry)
+    }
+}
+
+@Composable
+private fun CreditsPurchaseOrder(entry: CreditsPurchaseEntry) {
+    Text(
+        text = entry.orderId,
+        style = HhTheme.typography.factId,
+        color = HhTheme.colors.onSurface,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CreditsHelp(actions: CreditsActions) {
+    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
     HhCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
             Text(
@@ -235,18 +247,33 @@ private fun CreditsHelp(actions: CreditsActions) {
                 style = HhTheme.typography.bodyM,
                 color = HhTheme.colors.body,
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
-                HhOutlineButton(
-                    label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
-                    onClick = actions.onAskRefund,
-                )
-                HhOutlineButton(
-                    label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
-                    onClick = actions.onContactHelp,
-                )
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
+                        onClick = actions.onAskRefund,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
+                        onClick = actions.onContactHelp,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                ) {
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
+                        onClick = actions.onAskRefund,
+                    )
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
+                        onClick = actions.onContactHelp,
+                    )
+                }
             }
             Text(
                 text = stringResource(R.string.feature_tailor_impl_credits_help_summary),
@@ -256,3 +283,5 @@ private fun CreditsHelp(actions: CreditsActions) {
         }
     }
 }
+
+private const val LARGE_FONT_SCALE = 1.5f
