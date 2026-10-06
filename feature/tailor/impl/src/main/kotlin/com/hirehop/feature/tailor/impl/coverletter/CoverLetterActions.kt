@@ -30,4 +30,5 @@ data class CoverLetterActions(
     val onNavigateBack: () -> Unit,
     val onSkipLetter: () -> Unit,
     val onPreviewExport: () -> Unit,
+    val onPrepQuestions: () -> Unit,
 )

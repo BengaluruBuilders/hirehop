@@ -1,10 +1,22 @@
 package com.hirehop.feature.tailor.impl
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -12,19 +24,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
-import com.hirehop.core.designsystem.component.HhConfirmDialog
 import com.hirehop.core.designsystem.component.HhContentSwitch
+import com.hirehop.core.designsystem.component.HhDecoration
+import com.hirehop.core.designsystem.component.HhDecorationKind
+import com.hirehop.core.designsystem.component.HhIconActionBar
+import com.hirehop.core.designsystem.component.HhIconButton
+import com.hirehop.core.designsystem.component.HhInkButton
 import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSegmentedCounter
+import com.hirehop.core.designsystem.component.HhSpotIllustration
 import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.component.HhToastHost
 import com.hirehop.core.designsystem.component.HhToastResult
 import com.hirehop.core.designsystem.component.rememberHhToastState
@@ -110,10 +135,20 @@ internal fun TailorScreen(
         sheet = false,
         header = {
             HhInnerHeader(
-                title = stringResource(R.string.feature_tailor_impl_title_review),
-                subtitle = uiState.jobSubtitle(),
+                title = headerRole(uiState),
+                subtitle = headerCompany(uiState),
                 onBack = actions.onBack,
                 backContentDescription = stringResource(R.string.feature_tailor_impl_back),
+                belowTitle = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                    ) {
+                        HeaderPill(headerPill(uiState))
+                        HeaderIdentity(uiState)
+                    }
+                },
+                extended = false,
             )
         },
         bottomBar = { TailorBottomBar(uiState, actions, interaction) },
@@ -131,15 +166,93 @@ internal fun TailorScreen(
     (uiState as? TailorUiState.Success)?.let { ReviewOverlays(it, actions, interaction) }
 }
 
+private fun TailorUiState.job(): JobHeader? = when (this) {
+    is TailorUiState.Loading -> job
+    is TailorUiState.Failed -> job
+    is TailorUiState.Success -> job
+    TailorUiState.NotFound -> null
+}
+
 @Composable
-private fun TailorUiState.jobSubtitle(): String? {
-    val job = when (this) {
-        is TailorUiState.Loading -> job
-        is TailorUiState.Failed -> job
-        is TailorUiState.Success -> job
-        TailorUiState.NotFound -> null
-    } ?: return null
-    return jobLine(job.title, job.company)
+private fun headerRole(state: TailorUiState): String {
+    val job = state.job() ?: return stringResource(R.string.feature_tailor_impl_title_review)
+    return job.title.trim().ifEmpty { stringResource(R.string.feature_tailor_impl_role_not_set) }
+}
+
+@Composable
+private fun headerCompany(state: TailorUiState): String? {
+    val job = state.job() ?: return null
+    return job.company.trim().ifEmpty { stringResource(R.string.feature_tailor_impl_company_not_set) }
+}
+
+@Composable
+private fun headerPill(state: TailorUiState): String {
+    val used = when (state) {
+        is TailorUiState.Success -> MAX_REGENERATIONS - state.regenerationsLeft
+        else -> 0
+    }
+    return stringResource(
+        when (used) {
+            1 -> R.string.feature_tailor_impl_title_review_draft_2nd
+            2 -> R.string.feature_tailor_impl_title_review_draft_3rd
+            else -> R.string.feature_tailor_impl_title_review
+        },
+    )
+}
+
+@Composable
+private fun HeaderPill(text: String) {
+    val colors = HhTheme.colors
+    Box(
+        modifier = Modifier
+            .background(colors.brandPressed, HhTheme.shapes.pill)
+            .heightIn(min = HhTheme.spacing.d32)
+            .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = text, style = HhTheme.typography.labelL, color = colors.onBrand)
+    }
+}
+
+@Composable
+private fun HeaderIdentity(state: TailorUiState) {
+    val company = state.job()?.company?.trim().orEmpty()
+    if (company.isEmpty()) return
+    val success = state as? TailorUiState.Success ?: return
+    val progressText = if (success.totalCount == 0) {
+        stringResource(R.string.feature_tailor_impl_no_changes)
+    } else {
+        stringResource(
+            R.string.feature_tailor_impl_progress_description,
+            success.reviewedCount,
+            success.totalCount,
+        )
+    }
+    if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) {
+        Text(
+            text = progressText,
+            style = HhTheme.typography.labelL,
+            color = HhTheme.colors.onHeader,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        return
+    }
+    Row(
+        modifier = Modifier.padding(top = HhTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HhMonogram(text = company, size = HhTheme.spacing.d48)
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
+            Text(
+                text = progressText,
+                style = HhTheme.typography.labelL,
+                color = HhTheme.colors.onHeader,
+            )
+            HhSegmentedCounter(current = success.reviewedCount, total = success.totalCount)
+        }
+    }
 }
 
 private fun ReviewToastState.messageRes(): Int = when (this) {
@@ -160,8 +273,8 @@ private fun TailorBody(
     padding: PaddingValues,
 ) {
     when (uiState) {
-        is TailorUiState.Loading -> LoadingContent(uiState, padding)
-        is TailorUiState.Failed -> StatusContent(
+        is TailorUiState.Loading -> LoadingContent(padding)
+        is TailorUiState.Failed -> FailedContent(
             padding = padding,
             title = stringResource(R.string.feature_tailor_impl_failed_title),
             body = stringResource(R.string.feature_tailor_impl_failed_body),
@@ -187,30 +300,187 @@ private fun TailorBody(
 }
 
 @Composable
-private fun LoadingContent(state: TailorUiState.Loading, padding: PaddingValues) {
-    val picked = state.factCount?.let { stringResource(R.string.feature_tailor_impl_loading_step_pick_detail, it) }
-    val written = state.lineCount?.let { stringResource(R.string.feature_tailor_impl_loading_step_write_detail, it) }
+private fun LoadingContent(padding: PaddingValues) {
     LazyColumn(
         contentPadding = PaddingValues(
             start = HhTheme.spacing.gutter,
             end = HhTheme.spacing.gutter,
-            top = padding.calculateTopPadding() + HhTheme.spacing.sm,
+            top = padding.calculateTopPadding() + HhTheme.spacing.d32 + HhTheme.spacing.sm,
             bottom = padding.calculateBottomPadding(),
         ),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         item {
-            HhStepProgress(
-                stepNames = listOf(
-                    stringResource(R.string.feature_tailor_impl_loading_step_pick),
-                    stringResource(R.string.feature_tailor_impl_loading_step_write),
-                    stringResource(R.string.feature_tailor_impl_loading_step_check),
-                ),
-                currentStepIndex = 1,
-                ordinalLabel = stringResource(R.string.feature_tailor_impl_loading_caption),
-                stepDetails = listOf(picked, written, null),
-                footnote = stringResource(R.string.feature_tailor_impl_loading_footnote),
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_loading_title),
+                style = HhTheme.typography.headlineM,
+                color = HhTheme.colors.onSurface,
             )
+        }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.d2)) {
+                val pickTitle = stringResource(R.string.feature_tailor_impl_loading_step_pick)
+                val pickSubtitle = stringResource(R.string.feature_tailor_impl_status_done)
+                HhPillRow(
+                    title = pickTitle,
+                    onClick = {},
+                    style = HhPillRowStyle.Jade,
+                    subtitle = pickSubtitle,
+                    icon = HhIcons.CheckCircle,
+                    trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$pickTitle. $pickSubtitle" },
+                )
+                val writeTitle = stringResource(R.string.feature_tailor_impl_loading_step_write)
+                val writeSubtitle = stringResource(R.string.feature_tailor_impl_status_in_progress)
+                HhPillRow(
+                    title = writeTitle,
+                    onClick = {},
+                    style = HhPillRowStyle.Marigold,
+                    subtitle = writeSubtitle,
+                    icon = HhIcons.Edit,
+                    trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$writeTitle. $writeSubtitle" },
+                )
+                val checkTitle = stringResource(R.string.feature_tailor_impl_loading_step_check)
+                val checkSubtitle = stringResource(R.string.feature_tailor_impl_status_up_next)
+                HhPillRow(
+                    title = checkTitle,
+                    onClick = {},
+                    style = HhPillRowStyle.Neutral,
+                    subtitle = checkSubtitle,
+                    icon = HhIcons.Clock,
+                    trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$checkTitle. $checkSubtitle" },
+                )
+            }
+        }
+        item { LoadingNotice() }
+    }
+}
+
+@Composable
+private fun LoadingNotice() {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.primaryContainer, HhTheme.shapes.card)
+            .padding(HhTheme.spacing.cardPadding),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(HhTheme.spacing.d40)
+                .background(colors.background, HhTheme.shapes.pill)
+                .clearAndSetSemantics {},
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = HhIcons.Bell,
+                contentDescription = null,
+                tint = colors.onPrimaryContainer,
+                modifier = Modifier.size(HhTheme.spacing.d20),
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d2),
+        ) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_loading_notice_title),
+                style = HhTheme.typography.titleM,
+                color = colors.onPrimaryContainer,
+            )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_loading_notice_body),
+                style = HhTheme.typography.bodyM,
+                color = colors.onPrimaryContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FailedContent(padding: PaddingValues, title: String, body: String) {
+    val colors = HhTheme.colors
+    LazyColumn(
+        contentPadding = PaddingValues(
+            start = HhTheme.spacing.gutter,
+            end = HhTheme.spacing.gutter,
+            top = padding.calculateTopPadding(),
+            bottom = padding.calculateBottomPadding(),
+        ),
+    ) {
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = HhTheme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = HhTheme.spacing.d64 * 3),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(HhTheme.spacing.d64 * 2 + HhTheme.spacing.d24)
+                            .background(colors.card, HhTheme.shapes.pill)
+                            .border(BorderStroke(HhTheme.spacing.d2, colors.outlineVariant), HhTheme.shapes.pill),
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+                        HhSpotIllustration(kind = HhSpotKind.Error, modifier = Modifier.align(Alignment.BottomCenter))
+                    }
+                    HhDecoration(
+                        kind = HhDecorationKind.Zigzag,
+                        color = colors.coral,
+                        modifier = Modifier.align(Alignment.CenterStart),
+                    )
+                    HhDecoration(
+                        kind = HhDecorationKind.Ring,
+                        color = colors.special,
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .background(colors.error, HhTheme.shapes.pill)
+                        .heightIn(min = HhTheme.spacing.d32 + HhTheme.spacing.d2)
+                        .padding(
+                            horizontal = HhTheme.spacing.md + HhTheme.spacing.d2,
+                            vertical = HhTheme.spacing.xs,
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs, Alignment.Start),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = HhIcons.Error,
+                        contentDescription = null,
+                        tint = colors.onError,
+                        modifier = Modifier.size(HhTheme.spacing.d20),
+                    )
+                    Text(
+                        text = stringResource(R.string.feature_tailor_impl_failed_chip),
+                        style = HhTheme.typography.labelL,
+                        color = colors.onError,
+                    )
+                }
+                Text(
+                    text = title,
+                    style = HhTheme.typography.headlineL,
+                    color = colors.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = body,
+                    style = HhTheme.typography.bodyL,
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -221,7 +491,7 @@ private fun StatusContent(padding: PaddingValues, title: String, body: String) {
         contentPadding = PaddingValues(
             start = HhTheme.spacing.gutter,
             end = HhTheme.spacing.gutter,
-            top = padding.calculateTopPadding() + HhTheme.spacing.sm,
+            top = padding.calculateTopPadding(),
             bottom = padding.calculateBottomPadding(),
         ),
     ) {
@@ -245,6 +515,7 @@ internal fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions
                 item = openItem,
                 position = state.changeIndexOf(openItem.bullet.id) + 1,
                 total = state.totalCount,
+                openCount = state.openCount,
                 actions = bulletSheetActions(state, openItem, actions, interaction, closeSheet),
                 isReported = openItem.bullet.id in state.reportedIds,
             )
@@ -330,6 +601,7 @@ private fun bulletSheetActions(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RegenerateDialog(
     state: TailorUiState.Success,
@@ -340,30 +612,132 @@ private fun RegenerateDialog(
     val changeCount = state.sections.filterIsInstance<ReviewSection.Entries>()
         .firstOrNull { it.category == category }?.changeCount ?: 0
     val used = MAX_REGENERATIONS - state.regenerationsLeft + 1
-    HhConfirmDialog(
-        title = stringResource(R.string.feature_tailor_impl_regenerate_title, stringResource(category.headingRes())),
-        message = pluralStringResource(
-            R.plurals.feature_tailor_impl_regenerate_message,
-            changeCount,
-            changeCount,
-            used,
-            MAX_REGENERATIONS,
-        ),
-        confirmLabel = stringResource(R.string.feature_tailor_impl_regenerate_confirm, used, MAX_REGENERATIONS),
-        cancelLabel = stringResource(R.string.feature_tailor_impl_regenerate_cancel),
-        onConfirm = {
-            actions.onRegenerate(category)
-            interaction.regenerateCategory = null
-        },
-        onCancel = { interaction.regenerateCategory = null },
-    )
+    HhBottomSheet(onDismissRequest = { interaction.regenerateCategory = null }) {
+        RegenerateSheet(
+            title = stringResource(R.string.feature_tailor_impl_regenerate_title, stringResource(category.headingRes())),
+            message = pluralStringResource(
+                R.plurals.feature_tailor_impl_regenerate_message,
+                changeCount,
+                changeCount,
+                used,
+                MAX_REGENERATIONS,
+            ),
+            regenerationsLeft = state.regenerationsLeft,
+            confirmLabel = stringResource(R.string.feature_tailor_impl_regenerate_confirm, used, MAX_REGENERATIONS),
+            cancelDescription = stringResource(R.string.feature_tailor_impl_regen_cancel_description),
+            onCancel = { interaction.regenerateCategory = null },
+            onConfirm = {
+                actions.onRegenerate(category)
+                interaction.regenerateCategory = null
+            },
+        )
+    }
+}
+
+@Composable
+private fun RegenerateSheet(
+    title: String,
+    message: String,
+    regenerationsLeft: Int,
+    confirmLabel: String,
+    cancelDescription: String,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(HhTheme.spacing.d48 + HhTheme.spacing.d8)
+                .background(colors.special, HhTheme.shapes.pill),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = HhIcons.Edit,
+                contentDescription = null,
+                tint = colors.onSpecial,
+                modifier = Modifier.size(HhTheme.spacing.d24),
+            )
+        }
+        HhDecoration(kind = HhDecorationKind.Squiggle, color = colors.coral)
+    }
+    Text(text = title, style = HhTheme.typography.headlineM, color = colors.onSurface, modifier = Modifier.fillMaxWidth())
+    Text(text = message, style = HhTheme.typography.bodyM, color = colors.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.card, HhTheme.shapes.pill)
+            .border(BorderStroke(HhTheme.spacing.d2, colors.outlineVariant), HhTheme.shapes.pill)
+            .heightIn(min = HhTheme.spacing.d64)
+            .padding(horizontal = HhTheme.spacing.gutter, vertical = HhTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier = Modifier.clearAndSetSemantics {},
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.d4),
+        ) {
+            repeat(regenerationsLeft) {
+                Box(
+                    modifier = Modifier
+                        .size(HhTheme.spacing.d16 + HhTheme.spacing.d2)
+                        .background(colors.special, HhTheme.shapes.pill)
+                        .border(BorderStroke(HhTheme.spacing.d2, colors.onSpecial), HhTheme.shapes.pill),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
+        ) {
+            Text(
+                text = pluralStringResource(
+                    R.plurals.feature_tailor_impl_regen_left_title,
+                    regenerationsLeft,
+                    regenerationsLeft,
+                ),
+                style = HhTheme.typography.titleM,
+                color = colors.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_regen_left_subtitle),
+                style = HhTheme.typography.labelM,
+                color = colors.onSurfaceVariant,
+            )
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = HhTheme.spacing.d4),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.d2),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HhIconButton(
+            icon = HhIcons.Close,
+            contentDescription = cancelDescription,
+            onClick = onCancel,
+            containerColor = colors.card,
+            borderColor = colors.outlineVariant,
+            size = HhTheme.spacing.d48 + HhTheme.spacing.d12,
+        )
+        HhPrimaryButton(
+            label = confirmLabel,
+            onClick = onConfirm,
+            modifier = Modifier.weight(1f),
+        )
+    }
 }
 
 @Composable
 private fun TailorBottomBar(uiState: TailorUiState, actions: TailorActions, interaction: ReviewInteraction) {
     when (uiState) {
         is TailorUiState.Loading -> HhBottomActionBar {
-            HhOutlineButton(
+            HhInkButton(
                 label = stringResource(R.string.feature_tailor_impl_loading_leave),
                 onClick = actions.onBack,
                 modifier = Modifier.weight(1f),
@@ -394,26 +768,45 @@ private fun TailorBottomBar(uiState: TailorUiState, actions: TailorActions, inte
 
 @Composable
 private fun SuccessBottomBar(state: TailorUiState.Success, actions: TailorActions, interaction: ReviewInteraction) {
-    HhBottomActionBar {
-        if (state.openCount > 0) {
-            HhPrimaryButton(
-                label = pluralStringResource(
-                    R.plurals.feature_tailor_impl_changes_left,
-                    state.openCount,
-                    state.openCount,
-                ),
-                onClick = { state.nextOpenChange()?.let { interaction.openBulletId = it.bullet.id } },
-                trailingIcon = HhIcons.ArrowForward,
-                modifier = Modifier.weight(1f),
+    val hasOpenChanges = state.openCount > 0
+    HhIconActionBar(
+        secondaryIcon = HhIcons.Edit,
+        secondaryContentDescription = if (state.regenerationsLeft == 0) {
+            stringResource(R.string.feature_tailor_impl_menu_regenerate_none)
+        } else {
+            pluralStringResource(
+                R.plurals.feature_tailor_impl_regen_open_description,
+                state.regenerationsLeft,
+                state.regenerationsLeft,
+            )
+        },
+        onSecondaryClick = {
+            if (state.regenerationsLeft > 0) {
+                state.sections.filterIsInstance<ReviewSection.Entries>()
+                    .firstOrNull { it.changeCount > 0 }
+                    ?.let { section -> interaction.regenerateCategory = section.category }
+            }
+        },
+        secondaryBadge = state.regenerationsLeft.toString(),
+        primaryLabel = if (hasOpenChanges) {
+            pluralStringResource(
+                R.plurals.feature_tailor_impl_changes_left,
+                state.openCount,
+                state.openCount,
             )
         } else {
-            HhPrimaryButton(
-                label = stringResource(R.string.feature_tailor_impl_preview_export),
-                onClick = actions.onPreviewExport,
-                enabled = state.canPreviewExport,
-                trailingIcon = HhIcons.ArrowForward,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
+            stringResource(R.string.feature_tailor_impl_preview_and_export)
+        },
+        onPrimaryClick = {
+            if (hasOpenChanges) {
+                state.nextOpenChange()?.let { next -> interaction.openBulletId = next.bullet.id }
+            } else {
+                actions.onPreviewExport()
+            }
+        },
+        primaryEnabled = !hasOpenChanges || state.canPreviewExport,
+        primaryTrailingIcon = HhIcons.ArrowForward,
+    )
 }
+
+private const val LARGE_FONT_SCALE = 1.5f
