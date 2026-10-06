@@ -86,7 +86,7 @@ internal fun EvidencePathScreen(
                 Banners(uiState)
                 when {
                     uiState.isDone -> DoneContent(uiState)
-                    uiState.category == null -> PickerContent(actions)
+                    uiState.category == null -> PickerContent(uiState, actions)
                     else -> QuestionContent(uiState, actions)
                 }
             }
@@ -158,7 +158,10 @@ private fun DoneActionBar(actions: EvidencePathActions) {
 }
 
 @Composable
-private fun PickerContent(actions: EvidencePathActions) {
+private fun PickerContent(
+    uiState: EvidencePathUiState,
+    actions: EvidencePathActions,
+) {
     HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
         Column(verticalArrangement = Arrangement.spacedBy(ChipGap)) {
             Text(
@@ -173,7 +176,7 @@ private fun PickerContent(actions: EvidencePathActions) {
             )
         }
     }
-    EVIDENCE_CATEGORIES.forEachIndexed { index, category ->
+    uiState.categoryOrder.forEachIndexed { index, category ->
         CategoryRow(
             category = category,
             style = CategoryPillStyles[index % CategoryPillStyles.size],
@@ -213,7 +216,7 @@ private fun QuestionContent(
             horizontalArrangement = Arrangement.spacedBy(ChipGap),
             verticalArrangement = Arrangement.spacedBy(ChipGap),
         ) {
-            EVIDENCE_CATEGORIES.forEach { item ->
+            uiState.categoryOrder.forEach { item ->
                 HhFilterChip(
                     label = stringResource(item.labelRes()),
                     selected = item == category,

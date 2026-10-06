@@ -3,6 +3,7 @@ package com.hirehop.core.testing.repository
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.repository.SessionRepository
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.KeptJobDescription
@@ -49,6 +50,18 @@ abstract class SessionRepositoryContractTest {
         session.recordConsent(consent)
 
         assertThat(session.observeConsent().first()).isEqualTo(consent)
+    }
+
+    @Test
+    fun aSavedCareerStageIsObservedAndClearedWithTheSession() = runTest {
+        val session = createSessionRepository()
+        assertThat(session.observeCareerStage().first()).isNull()
+
+        session.saveCareerStage(CareerStage.JUST_STARTING_OUT)
+        assertThat(session.observeCareerStage().first()).isEqualTo(CareerStage.JUST_STARTING_OUT)
+
+        session.clear()
+        assertThat(session.observeCareerStage().first()).isNull()
     }
 
     @Test

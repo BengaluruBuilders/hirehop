@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -27,10 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.designsystem.component.HhDecoration
+import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhIconButton
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.feature.onboarding.impl.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -197,3 +206,59 @@ internal fun MessageCard(
         }
     }
 }
+
+private val STEP_SQUIGGLE_WIDTH = 58.dp
+private val STEP_SQUIGGLE_HEIGHT = 16.dp
+private val STEP_CHIP_HEIGHT = 32.dp
+
+@Composable
+internal fun OnboardingStepBar(
+    step: Int?,
+    onBack: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    backContentDescription: String = "",
+    onBrand: Boolean = false,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().height(HhTheme.spacing.touch),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (onBack != null) {
+            HhIconButton(
+                icon = HhIcons.ArrowBack,
+                contentDescription = backContentDescription,
+                onClick = onBack,
+                containerColor = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.surface,
+                borderColor = if (onBrand) Color.Transparent else HhTheme.colors.outlineVariant,
+            )
+        } else {
+            Box(modifier = Modifier.width(HhTheme.spacing.touch))
+        }
+        if (step != null) {
+            HhDecoration(
+                kind = HhDecorationKind.Squiggle,
+                color = HhTheme.colors.coral,
+                modifier = Modifier.size(width = STEP_SQUIGGLE_WIDTH, height = STEP_SQUIGGLE_HEIGHT),
+            )
+            Box(
+                modifier = Modifier
+                    .height(STEP_CHIP_HEIGHT)
+                    .background(
+                        if (onBrand) HhTheme.colors.brandPressed else HhTheme.colors.primaryContainer,
+                        HhTheme.shapes.pill,
+                    )
+                    .padding(horizontal = HhTheme.spacing.d12 + HhTheme.spacing.xxs),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_onboarding_impl_step_chip, step, ONBOARDING_STEP_COUNT),
+                    style = HhTheme.typography.labelL,
+                    color = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.onPrimaryContainer,
+                )
+            }
+        }
+    }
+}
+
+internal const val ONBOARDING_STEP_COUNT = 5
