@@ -387,7 +387,11 @@ private fun SectionCountLabel(changeCount: Int, reviewedCount: Int, canRegenerat
             )
         }
         reviewedCount > 0 -> Text(
-            text = stringResource(R.string.feature_tailor_impl_section_left, changeCount - reviewedCount),
+            text = pluralStringResource(
+                R.plurals.feature_tailor_impl_section_left,
+                changeCount - reviewedCount,
+                changeCount - reviewedCount,
+            ),
             style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
             color = colors.onSurfaceVariant,
         )

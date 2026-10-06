@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -76,6 +77,7 @@ fun HhPillRow(
     monogram: String? = null,
     trailingIcon: ImageVector? = HhIcons.ArrowForward,
     leading: (@Composable () -> Unit)? = null,
+    titleMaxLines: Int = Int.MAX_VALUE,
 ) {
     val palette = pillRowPalette(style)
     val source = remember { MutableInteractionSource() }
@@ -113,7 +115,13 @@ fun HhPillRow(
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, style = HhTheme.typography.titleM, color = palette.content)
+                Text(
+                    text = title,
+                    style = HhTheme.typography.titleM,
+                    color = palette.content,
+                    maxLines = titleMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,

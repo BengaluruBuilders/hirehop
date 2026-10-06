@@ -48,7 +48,7 @@
         <item quantity="one">This uses %2$d of your %3$d included regenerations for this application. The %1$d line in this section goes back to “To review”. Your facts don’t change.</item>
         <item quantity="other">This uses %2$d of your %3$d included regenerations for this application. The %1$d lines in this section go back to “To review”. Your facts don’t change.</item>
     </plurals>
-    <string name="feature_tailor_impl_regenerate_confirm" tools:ignore="PluralsCandidate">Regenerate, use %1$d of %2$d</string>
+    <string name="feature_tailor_impl_regenerate_confirm">Regenerate, use %1$d of %2$d</string>
     <string name="feature_tailor_impl_regenerate_cancel">Keep this section</string>
     <string name="feature_tailor_impl_report_thanks">Thanks. We will check this.</string>
     <string name="feature_tailor_impl_loading_caption">Up to 60 seconds · runs in the background</string>
@@ -81,18 +81,27 @@
         <item quantity="one">%1$d change</item>
         <item quantity="other">%1$d changes</item>
     </plurals>
-    <string name="feature_tailor_impl_section_left" tools:ignore="PluralsCandidate">%1$d left</string>
+    <plurals name="feature_tailor_impl_section_left">
+        <item quantity="one">%1$d left</item>
+        <item quantity="other">%1$d left</item>
+    </plurals>
     <string name="feature_tailor_impl_section_reviewed">Reviewed</string>
     <string name="feature_tailor_impl_chip_changed">Changed</string>
     <string name="feature_tailor_impl_chip_verb_kept">Verb kept</string>
-    <string name="feature_tailor_impl_all_reviewed_title" tools:ignore="PluralsCandidate">All %1$d changes reviewed</string>
-    <string name="feature_tailor_impl_all_reviewed_summary" tools:ignore="PluralsCandidate">%1$d accepted · %2$d original kept · %3$d edited by you</string>
+    <string name="feature_tailor_impl_all_reviewed_title">All %1$d changes reviewed</string>
+    <string name="feature_tailor_impl_all_reviewed_summary">Accepted: %1$d · Original kept: %2$d · Edited by you: %3$d</string>
     <string name="feature_tailor_impl_all_reviewed_done">Done</string>
-    <string name="feature_tailor_impl_regen_left_title" tools:ignore="PluralsCandidate">%1$d free regenerations left</string>
-    <string name="feature_tailor_impl_regen_left_one">1 free regeneration left</string>
+    <plurals name="feature_tailor_impl_regen_left_title">
+        <item quantity="one">%1$d free regeneration left</item>
+        <item quantity="other">%1$d free regenerations left</item>
+    </plurals>
+
     <string name="feature_tailor_impl_regen_left_subtitle">For this application only</string>
     <string name="feature_tailor_impl_regen_cancel_description">Cancel</string>
-    <string name="feature_tailor_impl_regen_open_description" tools:ignore="PluralsCandidate">Regenerate, %1$d free left</string>
+    <plurals name="feature_tailor_impl_regen_open_description">
+        <item quantity="one">Regenerate, %1$d free left</item>
+        <item quantity="other">Regenerate, %1$d free left</item>
+    </plurals>
     <string name="feature_tailor_impl_regen_used_title">No regenerations left</string>
     <string name="feature_tailor_impl_preview_and_export">Preview and export</string>
 </resources>

@@ -695,11 +695,11 @@ private fun RegenerateSheet(
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
         ) {
             Text(
-                text = if (regenerationsLeft == 1) {
-                    stringResource(R.string.feature_tailor_impl_regen_left_one)
-                } else {
-                    stringResource(R.string.feature_tailor_impl_regen_left_title, regenerationsLeft)
-                },
+                text = pluralStringResource(
+                    R.plurals.feature_tailor_impl_regen_left_title,
+                    regenerationsLeft,
+                    regenerationsLeft,
+                ),
                 style = HhTheme.typography.titleM,
                 color = colors.onSurface,
             )
@@ -774,7 +774,11 @@ private fun SuccessBottomBar(state: TailorUiState.Success, actions: TailorAction
         secondaryContentDescription = if (state.regenerationsLeft == 0) {
             stringResource(R.string.feature_tailor_impl_menu_regenerate_none)
         } else {
-            stringResource(R.string.feature_tailor_impl_regen_open_description, state.regenerationsLeft)
+            pluralStringResource(
+                R.plurals.feature_tailor_impl_regen_open_description,
+                state.regenerationsLeft,
+                state.regenerationsLeft,
+            )
         },
         onSecondaryClick = {
             if (state.regenerationsLeft > 0) {

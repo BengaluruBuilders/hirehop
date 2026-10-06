@@ -226,7 +226,7 @@ private fun AcceptedBanner(left: Int) {
                 modifier = Modifier.size(HhTheme.spacing.d32 + HhTheme.spacing.xs),
             )
             Text(
-                text = stringResource(R.string.feature_tailor_impl_bullet_accepted_note, left),
+                text = pluralStringResource(R.plurals.feature_tailor_impl_bullet_accepted_note, left, left),
                 style = HhTheme.typography.titleM,
                 color = colors.onBrand,
             )

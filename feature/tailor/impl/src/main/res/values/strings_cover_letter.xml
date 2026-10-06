@@ -42,9 +42,16 @@
     <string name="feature_tailor_impl_cover_letter_retry">Try again</string>
     <string name="feature_tailor_impl_cover_letter_optional">Optional</string>
     <string name="feature_tailor_impl_cover_letter_generating_title">Writing your cover letter</string>
-    <string name="feature_tailor_impl_cover_letter_generating_facts" tools:ignore="PluralsCandidate">Using %1$d of your confirmed facts</string>
+    <string name="feature_tailor_impl_cover_letter_generating_facts">Using %1$d of your confirmed facts</string>
     <string name="feature_tailor_impl_cover_letter_generating_notice">This runs in the background. We\'ll notify you when it\'s ready.</string>
-    <string name="feature_tailor_impl_cover_letter_words_range" tools:ignore="PluralsCandidate">%1$d words · in the 150 to 220 range</string>
+    <plurals name="feature_tailor_impl_cover_letter_words_in_range">
+        <item quantity="one">%1$d word · in the 150 to 220 range</item>
+        <item quantity="other">%1$d words · in the 150 to 220 range</item>
+    </plurals>
+    <plurals name="feature_tailor_impl_cover_letter_words_outside_range">
+        <item quantity="one">%1$d word · the range is 150 to 220</item>
+        <item quantity="other">%1$d words · the range is 150 to 220</item>
+    </plurals>
     <string name="feature_tailor_impl_cover_letter_export_letter">Export letter</string>
     <string name="feature_tailor_impl_cover_letter_fact_sheet_title">Where this comes from</string>
     <string name="feature_tailor_impl_cover_letter_used_in_paragraph">Used in paragraph %1$d</string>

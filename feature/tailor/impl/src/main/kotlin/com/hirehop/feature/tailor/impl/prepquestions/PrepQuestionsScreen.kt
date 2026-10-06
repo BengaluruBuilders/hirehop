@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -187,14 +188,19 @@ private fun ReadyHeaderChips(uiState: PrepQuestionsUiState) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         HhOnColorChip(
-            label = stringResource(R.string.feature_tailor_impl_prep_questions_count_header, uiState.questionCount),
+            label = pluralStringResource(
+                R.plurals.feature_tailor_impl_prep_questions_count_header,
+                uiState.questionCount,
+                uiState.questionCount,
+            ),
             style = HhOnColorChipStyle.White,
             accent = HhAccent.Jade,
         )
         if (uiState.gapCards.isNotEmpty()) {
             HhOnColorChip(
-                label = stringResource(
-                    R.string.feature_tailor_impl_prep_questions_gaps_header,
+                label = pluralStringResource(
+                    R.plurals.feature_tailor_impl_prep_questions_gaps_header,
+                    uiState.gapCards.size,
                     uiState.gapCards.size,
                 ),
                 style = HhOnColorChipStyle.White,
@@ -447,7 +453,8 @@ private fun whyText(requirement: String, marked: Boolean, style: SpanStyle): Ann
     val suffix = template.substring(split + 1)
     return buildAnnotatedString {
         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(prefix) }
-        if (marked) withStyle(style) { append(requirement) } else append(requirement)
+        val trimmed = requirement.trimEnd('.')
+        if (marked) withStyle(style) { append(trimmed) } else append(trimmed)
         append(suffix)
     }
 }

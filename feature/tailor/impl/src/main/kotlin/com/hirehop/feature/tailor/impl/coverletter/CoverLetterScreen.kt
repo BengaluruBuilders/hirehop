@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -151,19 +152,27 @@ private fun HeaderMetaRow(uiState: CoverLetterUiState) {
     ) {
         HhMonogram(text = uiState.jobCompany, size = HhTheme.spacing.d48)
         if (uiState.stage == CoverLetterStage.READY) {
+            val withinRange = isWithinWordTarget(uiState.wordCount)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = HhIcons.Verified,
-                    contentDescription = null,
-                    tint = HhTheme.colors.onHeader,
-                    modifier = Modifier.heightIn(min = HhTheme.spacing.d24),
-                )
+                if (withinRange) {
+                    Icon(
+                        imageVector = HhIcons.Verified,
+                        contentDescription = null,
+                        tint = HhTheme.colors.onHeader,
+                        modifier = Modifier.heightIn(min = HhTheme.spacing.d24),
+                    )
+                }
                 Text(
-                    text = stringResource(
-                        R.string.feature_tailor_impl_cover_letter_words_range,
+                    text = pluralStringResource(
+                        if (withinRange) {
+                            R.plurals.feature_tailor_impl_cover_letter_words_in_range
+                        } else {
+                            R.plurals.feature_tailor_impl_cover_letter_words_outside_range
+                        },
+                        uiState.wordCount,
                         uiState.wordCount,
                     ),
                     style = HhTheme.typography.labelM,
@@ -177,6 +186,13 @@ private fun HeaderMetaRow(uiState: CoverLetterUiState) {
 @Composable
 private fun CoverLetterUiState.subtitle(): String? =
     jobCompany.trim().ifEmpty { stringResource(R.string.feature_tailor_impl_company_not_set) }
+
+internal fun String.initials(): String = trim()
+    .split(Regex("\\s+"))
+    .filter { word -> word.isNotEmpty() }
+    .take(2)
+    .joinToString("") { word -> word.take(1) }
+    .uppercase()
 
 private fun CoverLetterMessage.textRes(): Int = when (this) {
     CoverLetterMessage.SAVED -> R.string.feature_tailor_impl_cover_letter_saved
@@ -238,12 +254,13 @@ private fun OfferCard(uiState: CoverLetterUiState, actions: CoverLetterActions) 
                 style = HhPillRowStyle.Neutral,
                 icon = HhIcons.Description,
                 trailingIcon = null,
+                titleMaxLines = 1,
                 modifier = Modifier.clearAndSetSemantics { contentDescription = fileName },
             )
         }
         HhSolidCard(
             accent = HhAccent.Coral,
-            monogram = uiState.jobCompany,
+            monogram = uiState.jobCompany.initials(),
             title = stringResource(R.string.feature_tailor_impl_cover_letter_offer_title),
             subtitle = stringResource(R.string.feature_tailor_impl_cover_letter_offer_body),
             chips = {
