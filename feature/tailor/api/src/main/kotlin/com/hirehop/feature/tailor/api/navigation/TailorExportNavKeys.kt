@@ -18,6 +18,7 @@ data class PackPurchaseNavKey(
     val packId: String = "application_pack_5",
     val scenario: DebugScenario = DebugScenario.defaultValue,
     val startExportOnReturn: Boolean = false,
+    val format: String = "pdf",
 ) : NavKey
 
 @Serializable

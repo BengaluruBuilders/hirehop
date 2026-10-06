@@ -161,7 +161,7 @@ private fun ExportPreviewBody(
             val title = stringResource(R.string.feature_tailor_impl_export_preview_empty_title)
             HhSolidCard(
                 accent = HhAccent.Jade,
-                monogram = title.take(1).uppercase(),
+                monogram = "i",
                 title = title,
                 subtitle = stringResource(R.string.feature_tailor_impl_export_preview_empty_body),
                 modifier = Modifier.fillMaxWidth(),

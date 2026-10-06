@@ -15,20 +15,23 @@ internal fun ExportPreviewRoute(
     key: ExportPreviewNavKey,
     onNavigateBack: () -> Unit,
     onExported: (ExportFormat, Boolean) -> Unit,
-    onBuyCredits: () -> Unit,
+    onBuyCredits: (ExportFormat) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ExportPreviewViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel, onNavigateBack, onBuyCredits) {
-        viewModel.toActions(onNavigateBack = onNavigateBack, onBuyCredits = onBuyCredits)
+        viewModel.toActions(
+            onNavigateBack = onNavigateBack,
+            onBuyCredits = { onBuyCredits(viewModel.uiState.value.format) },
+        )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     LaunchedEffect(uiState.navigation) {
         when (val navigation = uiState.navigation) {
             null -> return@LaunchedEffect
             is ExportPreviewNavigation.Exported -> onExported(navigation.format, navigation.spentFreeCredit)
-            ExportPreviewNavigation.BuyCredits -> onBuyCredits()
+            ExportPreviewNavigation.BuyCredits -> onBuyCredits(uiState.format)
         }
         viewModel.onAction(ExportPreviewAction.NavigationHandled)
     }

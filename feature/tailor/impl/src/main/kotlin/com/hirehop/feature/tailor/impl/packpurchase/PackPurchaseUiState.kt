@@ -3,6 +3,7 @@ package com.hirehop.feature.tailor.impl.packpurchase
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
 
 internal enum class PackPurchaseStage {
     LOADING,
@@ -32,6 +33,7 @@ internal data class PackPurchaseUiState(
     val failureReason: PurchaseFailureReason? = null,
     val isOffline: Boolean = false,
     val hasApplication: Boolean = true,
+    val format: ExportFormat = ExportFormat.PDF,
 ) {
     val selectedPack: ApplicationPack?
         get() = packs.firstOrNull { pack -> pack.id == selectedPackId }

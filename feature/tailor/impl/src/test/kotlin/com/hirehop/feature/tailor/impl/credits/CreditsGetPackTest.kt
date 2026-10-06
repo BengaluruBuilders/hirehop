@@ -1,6 +1,7 @@
 package com.hirehop.feature.tailor.impl.credits
 
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -48,8 +49,13 @@ class CreditsGetPackTest {
     }
 
     @Test
-    fun offline_hidesTheBuyRowSoNothingOpensWithoutAConnection() {
-        show(CreditsUiState(stage = CreditsStage.READY, purchasedCredits = 4, isOffline = true))
-        composeRule.onNodeWithText(GET_PACK).assertDoesNotExist()
+    fun offline_keepsTheBuyRowVisibleButDisabledAndNothingOpens() {
+        var opened = 0
+        show(
+            CreditsUiState(stage = CreditsStage.READY, purchasedCredits = 4, isOffline = true),
+            onGetPack = { opened++ },
+        )
+        composeRule.onNodeWithText(GET_PACK).assertIsNotEnabled().performClick()
+        assertEquals(0, opened)
     }
 }

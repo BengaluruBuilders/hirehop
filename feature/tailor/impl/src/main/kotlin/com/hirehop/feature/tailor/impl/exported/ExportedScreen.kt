@@ -27,7 +27,6 @@ import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
-import com.hirehop.core.designsystem.component.HhOnColorChip
 import com.hirehop.core.designsystem.component.HhPillRow
 import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
@@ -189,15 +188,14 @@ private fun ExportedHeadlineCard(uiState: ExportedUiState) {
     val headline = stringResource(R.string.feature_tailor_impl_exported_headline)
     val savedLine = jobLine(uiState.jobTitle, uiState.jobCompany)
     HhSolidCard(
-        accent = HhAccent.Coral,
-        monogram = uiState.jobCompany.trim().ifBlank { headline }.take(2),
+        accent = HhAccent.Marigold,
+        monogram = "✓",
         title = headline,
         subtitle = if (savedLine == null) {
             stringResource(R.string.feature_tailor_impl_exported_saved_line_bare)
         } else {
             stringResource(R.string.feature_tailor_impl_exported_saved_line, savedLine)
         },
-        chips = { HhOnColorChip(label = headline) },
     )
 }
 
@@ -285,7 +283,6 @@ private fun ExportedFileCard(
             subtitle = fileDetail(uiState),
             icon = HhIcons.Description,
             trailingIcon = HhIcons.OpenInNew,
-            titleMaxLines = 2,
         )
         return
     }
@@ -363,7 +360,7 @@ private fun ExportedNextSteps(actions: ExportedActions) {
         HhPillRow(
             title = stringResource(R.string.feature_tailor_impl_exported_next_prep_questions),
             onClick = actions.onGetPrepQuestions,
-            style = HhPillRowStyle.Coral,
+            style = HhPillRowStyle.Jade,
             icon = HhIcons.Description,
         )
         HhPillRow(

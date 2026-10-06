@@ -5,6 +5,7 @@ import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseOutcome
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.gateway.TestPaymentGateway
@@ -43,11 +44,13 @@ class PackPurchaseViewModelTest {
         packId: String = ApplicationPack.APPLICATION_PACK_FIVE,
         applicationId: String = APPLICATION_ID,
         startExportOnReturn: Boolean = false,
+        format: String = "pdf",
     ) = PackPurchaseNavKey(
         applicationId = applicationId,
         packId = packId,
         scenario = scenario,
         startExportOnReturn = startExportOnReturn,
+        format = format,
     )
 
     private fun entered(scenario: DebugScenario = DebugScenario.DEFAULT): PackPurchaseViewModel {
@@ -262,5 +265,22 @@ class PackPurchaseViewModelTest {
         subject.onAction(PackPurchaseAction.Buy("no-such-pack"))
 
         assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
+    }
+
+    @Test
+    fun format_defaultsToPdf() = runTest {
+        val subject = entered()
+
+        assertThat(subject.uiState.value.format).isEqualTo(ExportFormat.PDF)
+    }
+
+    @Test
+    fun format_followsTheKeyWhenDocxWasPicked() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+
+        subject.onEnter(key(format = "docx"))
+
+        assertThat(subject.uiState.value.format).isEqualTo(ExportFormat.DOCX)
     }
 }

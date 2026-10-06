@@ -39,7 +39,6 @@ import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhOnColorChip
-import com.hirehop.core.designsystem.component.HhOnColorChipStyle
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
@@ -52,6 +51,7 @@ import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PurchaseFailureReason
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.credits.CreditCounter
 import com.hirehop.feature.tailor.impl.credits.formattedPrice
@@ -185,7 +185,6 @@ private fun PackCatalogueFailure(actions: PackPurchaseActions) {
         monogram = PACK_MONOGRAM,
         title = title,
         subtitle = stringResource(R.string.feature_tailor_impl_pack_purchase_catalogue_error_body),
-        chips = { HhOnColorChip(label = title) },
     )
     HhPrimaryButton(
         label = stringResource(R.string.feature_tailor_impl_pack_purchase_try_again),
@@ -244,9 +243,9 @@ private fun PackOffer(
             }
         },
     )
+    PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_one_time))
+    PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_no_subscription))
     if (!compact) {
-        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_one_time))
-        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_no_subscription))
         PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_each_application))
     }
     if (uiState.stage == PackPurchaseStage.PURCHASING) {
@@ -263,7 +262,7 @@ private fun PackOffer(
         }
     HhSpecialButton(
         label = buyLabel,
-        onClick = { actions.onBuy(pack.id) },
+        onClick = { if (uiState.canBuy) actions.onBuy(pack.id) },
         modifier = buyModifier,
         caption = caption,
     )
@@ -329,7 +328,6 @@ private fun PackPending(uiState: PackPurchaseUiState, actions: PackPurchaseActio
         monogram = PACK_MONOGRAM,
         title = title,
         subtitle = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_body),
-        chips = { HhOnColorChip(label = title, style = HhOnColorChipStyle.Ink) },
     )
     Text(
         text = stringResource(R.string.feature_tailor_impl_pack_purchase_pending_note),
@@ -368,7 +366,6 @@ private fun PackSuccess(
         } else {
             ""
         },
-        chips = { HhOnColorChip(label = title) },
     )
     PackBaselineRow {
         CreditCounter(
@@ -421,7 +418,13 @@ private fun PackSuccess(
             }
         }
         HhPrimaryButton(
-            label = stringResource(R.string.feature_tailor_impl_export_preview_download_pdf),
+            label = stringResource(
+                if (uiState.format == ExportFormat.PDF) {
+                    R.string.feature_tailor_impl_export_preview_download_pdf
+                } else {
+                    R.string.feature_tailor_impl_export_preview_download_docx
+                },
+            ),
             onClick = actions.onDownloadAfterPurchase,
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = HhIcons.Download,
@@ -490,7 +493,6 @@ private fun PackFailed(
                 else -> R.string.feature_tailor_impl_pack_purchase_failed_body
             },
         ),
-        chips = { HhOnColorChip(label = title) },
     )
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
         HhOutlineButton(

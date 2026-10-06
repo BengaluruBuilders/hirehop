@@ -17,10 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhCard
@@ -110,14 +112,19 @@ private fun CreditsReady(
         visible = uiState.isOffline,
     )
     CreditsHero(uiState = uiState)
-    if (uiState.canBuy) {
-        HhPillRow(
-            title = stringResource(R.string.feature_tailor_impl_credits_get_pack),
-            onClick = actions.onGetPack,
-            style = HhPillRowStyle.Marigold,
-            icon = HhIcons.Download,
-        )
-    }
+    HhPillRow(
+        title = stringResource(R.string.feature_tailor_impl_credits_get_pack),
+        onClick = { if (uiState.canBuy) actions.onGetPack() },
+        style = HhPillRowStyle.Marigold,
+        icon = HhIcons.Download,
+        modifier = if (uiState.canBuy) {
+            Modifier
+        } else {
+            Modifier
+                .alpha(0.38f)
+                .semantics { disabled() }
+        },
+    )
     CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
     CreditsPurchases(uiState = uiState)
     CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
@@ -134,7 +141,7 @@ private fun CreditsHero(uiState: CreditsUiState) {
         null
     }
     HhSolidCard(
-        accent = HhAccent.Coral,
+        accent = HhAccent.Marigold,
         monogram = left.toString(),
         title = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
         subtitle = stringResource(
@@ -178,7 +185,10 @@ private fun CreditsPurchases(uiState: CreditsUiState) {
 private fun CreditsPurchaseRow(entry: CreditsPurchaseEntry) {
     if (entry.isPending) {
         val pending = stringResource(R.string.feature_tailor_impl_credits_pending)
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+            modifier = Modifier.semantics(mergeDescendants = true) {},
+        ) {
             HhSolidCard(
                 accent = HhAccent.Marigold,
                 monogram = "₹",
@@ -203,11 +213,20 @@ private fun CreditsPurchaseRow(entry: CreditsPurchaseEntry) {
                     HhOnColorChip(label = pending, style = HhOnColorChipStyle.Ink)
                 },
             )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
             CreditsPurchaseOrder(entry = entry)
         }
         return
     }
-    HhCard(modifier = Modifier.fillMaxWidth()) {
+    HhCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {},
+    ) {
         Text(
             text = pluralStringResource(
                 R.plurals.feature_tailor_impl_credits_purchase_title,

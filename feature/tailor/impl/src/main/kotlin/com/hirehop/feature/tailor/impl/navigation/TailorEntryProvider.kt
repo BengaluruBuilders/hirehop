@@ -83,8 +83,14 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
                     ),
                 )
             },
-            onBuyCredits = {
-                navigator.navigate(PackPurchaseNavKey(applicationId = key.applicationId, startExportOnReturn = true))
+            onBuyCredits = { format ->
+                navigator.navigate(
+                    PackPurchaseNavKey(
+                        applicationId = key.applicationId,
+                        startExportOnReturn = true,
+                        format = format.name.lowercase(),
+                    ),
+                )
             },
         )
     }
