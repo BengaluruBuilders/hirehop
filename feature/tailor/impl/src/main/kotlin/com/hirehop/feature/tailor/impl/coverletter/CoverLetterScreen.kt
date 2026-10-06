@@ -44,6 +44,8 @@ import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhOnColorChip
 import com.hirehop.core.designsystem.component.HhOnColorChipStyle
 import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
@@ -60,7 +62,7 @@ import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.NoticeStrip
 import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.StatusCard
-import com.hirehop.feature.tailor.impl.jobLine
+import com.hirehop.feature.tailor.impl.export.ExportFileName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,7 +173,8 @@ private fun HeaderMetaRow(uiState: CoverLetterUiState) {
 }
 
 @Composable
-private fun CoverLetterUiState.subtitle(): String? = jobLine(jobTitle, jobCompany)
+private fun CoverLetterUiState.subtitle(): String? =
+    jobCompany.trim().ifEmpty { stringResource(R.string.feature_tailor_impl_company_not_set) }
 
 private fun CoverLetterMessage.textRes(): Int = when (this) {
     CoverLetterMessage.SAVED -> R.string.feature_tailor_impl_cover_letter_saved
@@ -235,18 +238,20 @@ private fun OfferCard(uiState: CoverLetterUiState, actions: CoverLetterActions) 
                 HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_cover_letter_optional))
             },
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            HhOutlineButton(
-                label = stringResource(R.string.feature_tailor_impl_cover_letter_no_thanks),
-                onClick = actions.onSkipLetter,
-                modifier = Modifier.weight(1f),
-            )
-            HhPrimaryButton(
-                label = stringResource(R.string.feature_tailor_impl_cover_letter_write_one),
-                onClick = actions.onWriteOne,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        HhOnColorChip(
+            label = ExportFileName.build(
+                name = uiState.candidateName,
+                company = uiState.jobCompany,
+                role = uiState.jobTitle,
+            ),
+        )
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_cover_letter_prep_title),
+            subtitle = stringResource(R.string.feature_tailor_impl_cover_letter_prep_subtitle),
+            onClick = actions.onPrepQuestions,
+            style = HhPillRowStyle.Jade,
+            icon = HhIcons.Description,
+        )
     }
 }
 

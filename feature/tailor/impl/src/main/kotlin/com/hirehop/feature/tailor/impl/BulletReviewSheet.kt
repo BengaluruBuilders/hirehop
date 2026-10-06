@@ -76,6 +76,7 @@ internal fun BulletReviewSheetContent(
     item: TailorBulletUi,
     position: Int,
     total: Int,
+    openCount: Int,
     actions: BulletSheetActions,
     modifier: Modifier = Modifier,
     isReported: Boolean = false,
@@ -91,20 +92,19 @@ internal fun BulletReviewSheetContent(
     ) {
         SheetHeader(item, position, total, actions)
         if (state == BulletReviewState.ACCEPTED) {
-            AcceptedBanner(left = total - position)
+            AcceptedBanner(left = openCount)
         }
         OriginalBlock(item, markStyle)
-        ChangedBlock(item, markStyle)
+        ChangedBlock(item, markStyle, actions.onOpenSource)
         if (item.bullet.keywordsUsed.isNotEmpty() && state.showsNewText()) {
             KeywordRow(item.bullet.keywordsUsed)
         }
         BulletNotice(item)
         VerbKeptCard(item)
-        if (state.showsNewText() && state != BulletReviewState.USER_EDITED) {
-            FactChipRow(item.sources, onClick = actions.onOpenSource)
-        }
-        item.sources.distinctBy { it.displayId }.forEach { source ->
-            SourceCard(source, onClick = actions.onOpenSource)
+        if (state != BulletReviewState.USER_EDITED) {
+            item.sources.distinctBy { it.displayId }.forEach { source ->
+                SourceCard(source, onClick = actions.onOpenSource)
+            }
         }
         BulletButtons(state, actions)
         FooterRow(position, actions, isReported)
@@ -265,10 +265,10 @@ private fun OriginalBlock(item: TailorBulletUi, markStyle: SpanStyle) {
 }
 
 @Composable
-private fun ChangedBlock(item: TailorBulletUi, markStyle: SpanStyle) {
+private fun ChangedBlock(item: TailorBulletUi, markStyle: SpanStyle, onOpenSource: () -> Unit) {
     val state = item.state
     if (state == BulletReviewState.USER_EDITED) {
-        UserEditBlock(item)
+        UserEditBlock(item, onOpenSource)
         return
     }
     val bullet = item.bullet
@@ -295,7 +295,7 @@ private fun ChangedBlock(item: TailorBulletUi, markStyle: SpanStyle) {
 }
 
 @Composable
-private fun UserEditBlock(item: TailorBulletUi) {
+private fun UserEditBlock(item: TailorBulletUi, onOpenSource: () -> Unit) {
     val colors = HhTheme.colors
     Column(
         modifier = Modifier
@@ -310,20 +310,7 @@ private fun UserEditBlock(item: TailorBulletUi) {
             style = HhTheme.typography.titleM,
             color = colors.onSurface,
         )
-        BackedByRow(
-            item.sources,
-            onClick = BulletSheetActions(
-                onPrevious = null,
-                onNext = null,
-                onAccept = {},
-                onKeepOriginal = {},
-                onUndo = {},
-                onEditByHand = {},
-                onNextChange = {},
-                onOpenSource = {},
-                onReport = {},
-            ).onOpenSource,
-        )
+        BackedByRow(item.sources, onOpenSource)
     }
 }
 
@@ -373,7 +360,9 @@ private fun BackedByRow(sources: List<TailoredBulletSource>, onClick: () -> Unit
                 style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
                 color = colors.primary,
             )
-            FactChipRow(sources, onClick)
+            sources.distinctBy { it.displayId }.forEach { source ->
+                FactChip(source, onClick)
+            }
         }
     }
 }
@@ -476,26 +465,12 @@ private fun verbKeptText(violation: GuardrailViolation.VerbEscalation): Annotate
     append(stringResource(R.string.feature_tailor_impl_bullet_verb_kept_rule))
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun FactChipRow(sources: List<TailoredBulletSource>, onClick: () -> Unit) {
-    val distinct = sources.distinctBy { it.displayId }
-    if (distinct.isEmpty()) return
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        distinct.forEach { source -> FactChip(source, onClick) }
-    }
-}
-
 @Composable
 private fun FactChip(source: TailoredBulletSource, onClick: () -> Unit) {
     val description = stringResource(R.string.feature_tailor_impl_bullet_open_source, source.displayId)
     Box(
         modifier = Modifier
-            .defaultMinSize(minHeight = HhTheme.spacing.touch)
+            .defaultMinSize(minWidth = HhTheme.spacing.touch, minHeight = HhTheme.spacing.touch)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,

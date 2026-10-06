@@ -1,14 +1,9 @@
 package com.hirehop.feature.tailor.impl
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -27,16 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.sp
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
@@ -103,39 +92,9 @@ internal fun DecisionChip(state: BulletReviewState, modifier: Modifier = Modifie
         }
         Text(
             text = stringResource(labelRes),
-            style = HhTheme.typography.labelM.copy(fontSize = 11.sp, fontWeight = FontWeight.ExtraBold),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
             color = content,
         )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun SourceBadge(
-    factIds: List<String>,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    selected: Boolean = false,
-) {
-    if (factIds.isEmpty()) return
-    val description = stringResource(R.string.feature_tailor_impl_source_description, factIds.joinToString(", "))
-    Box(
-        modifier = modifier
-            .defaultMinSize(minWidth = HhTheme.spacing.touch, minHeight = HhTheme.spacing.touch)
-            .clickable(onClick = onClick, role = Role.Button)
-            .semantics { contentDescription = description }
-            .clip(HhTheme.shapes.pill)
-            .background(if (selected) HhTheme.colors.primaryContainer else Color.Transparent)
-            .padding(HhTheme.spacing.d2),
-        contentAlignment = Alignment.CenterEnd,
-    ) {
-        FlowRow(
-            modifier = Modifier.clearAndSetSemantics {},
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
-            factIds.forEach { id -> HhFactId(id = id) }
-        }
     }
 }
 

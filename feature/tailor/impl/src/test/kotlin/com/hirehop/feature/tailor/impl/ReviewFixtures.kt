@@ -136,7 +136,11 @@ internal object ReviewFixtures {
             id = WEEKLY,
             entryId = "exp-saffron",
             original = "Made sales reports every week.",
-            proposed = "Built weekly sales reports in Excel for 40 stores.",
+            proposed = if (weeklyViolations.any { it is GuardrailViolation.VerbEscalation }) {
+                "Made weekly sales reports in Excel for 40 stores."
+            } else {
+                "Built weekly sales reports in Excel for 40 stores."
+            },
             sources = listOf("exp-saffron-b1"),
             editTypes = listOf(EditType.REWORD, EditType.EMPHASISE),
             keywords = listOf("Excel", "reports"),

@@ -26,9 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhContentSwitch
@@ -136,8 +139,15 @@ internal fun TailorScreen(
                 subtitle = headerCompany(uiState),
                 onBack = actions.onBack,
                 backContentDescription = stringResource(R.string.feature_tailor_impl_back),
-                trailing = { HeaderPill(headerPill(uiState)) },
-                belowTitle = { HeaderIdentity(uiState) },
+                belowTitle = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                    ) {
+                        HeaderPill(headerPill(uiState))
+                        HeaderIdentity(uiState)
+                    }
+                },
                 extended = false,
             )
         },
@@ -209,6 +219,25 @@ private fun HeaderIdentity(state: TailorUiState) {
     val company = state.job()?.company?.trim().orEmpty()
     if (company.isEmpty()) return
     val success = state as? TailorUiState.Success ?: return
+    val progressText = if (success.totalCount == 0) {
+        stringResource(R.string.feature_tailor_impl_no_changes)
+    } else {
+        stringResource(
+            R.string.feature_tailor_impl_progress_description,
+            success.reviewedCount,
+            success.totalCount,
+        )
+    }
+    if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) {
+        Text(
+            text = progressText,
+            style = HhTheme.typography.labelL,
+            color = HhTheme.colors.onHeader,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        return
+    }
     Row(
         modifier = Modifier.padding(top = HhTheme.spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
@@ -217,15 +246,7 @@ private fun HeaderIdentity(state: TailorUiState) {
         HhMonogram(text = company, size = HhTheme.spacing.d48)
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
             Text(
-                text = if (success.totalCount == 0) {
-                    stringResource(R.string.feature_tailor_impl_no_changes)
-                } else {
-                    stringResource(
-                        R.string.feature_tailor_impl_progress_description,
-                        success.reviewedCount,
-                        success.totalCount,
-                    )
-                },
+                text = progressText,
                 style = HhTheme.typography.labelL,
                 color = HhTheme.colors.onHeader,
             )
@@ -298,29 +319,38 @@ private fun LoadingContent(padding: PaddingValues) {
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.d2)) {
+                val pickTitle = stringResource(R.string.feature_tailor_impl_loading_step_pick)
+                val pickSubtitle = stringResource(R.string.feature_tailor_impl_status_done)
                 HhPillRow(
-                    title = stringResource(R.string.feature_tailor_impl_loading_step_pick),
+                    title = pickTitle,
                     onClick = {},
                     style = HhPillRowStyle.Jade,
-                    subtitle = stringResource(R.string.feature_tailor_impl_status_done),
+                    subtitle = pickSubtitle,
                     icon = HhIcons.CheckCircle,
                     trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$pickTitle. $pickSubtitle" },
                 )
+                val writeTitle = stringResource(R.string.feature_tailor_impl_loading_step_write)
+                val writeSubtitle = stringResource(R.string.feature_tailor_impl_status_in_progress)
                 HhPillRow(
-                    title = stringResource(R.string.feature_tailor_impl_loading_step_write),
+                    title = writeTitle,
                     onClick = {},
                     style = HhPillRowStyle.Marigold,
-                    subtitle = stringResource(R.string.feature_tailor_impl_status_in_progress),
+                    subtitle = writeSubtitle,
                     icon = HhIcons.Edit,
                     trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$writeTitle. $writeSubtitle" },
                 )
+                val checkTitle = stringResource(R.string.feature_tailor_impl_loading_step_check)
+                val checkSubtitle = stringResource(R.string.feature_tailor_impl_status_up_next)
                 HhPillRow(
-                    title = stringResource(R.string.feature_tailor_impl_loading_step_check),
+                    title = checkTitle,
                     onClick = {},
                     style = HhPillRowStyle.Neutral,
-                    subtitle = stringResource(R.string.feature_tailor_impl_status_up_next),
+                    subtitle = checkSubtitle,
                     icon = HhIcons.Clock,
                     trailingIcon = null,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "$checkTitle. $checkSubtitle" },
                 )
             }
         }
@@ -486,6 +516,7 @@ internal fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions
                 item = openItem,
                 position = state.changeIndexOf(openItem.bullet.id) + 1,
                 total = state.totalCount,
+                openCount = state.openCount,
                 actions = bulletSheetActions(state, openItem, actions, interaction, closeSheet),
                 isReported = openItem.bullet.id in state.reportedIds,
             )
@@ -741,7 +772,11 @@ private fun SuccessBottomBar(state: TailorUiState.Success, actions: TailorAction
     val hasOpenChanges = state.openCount > 0
     HhIconActionBar(
         secondaryIcon = HhIcons.Edit,
-        secondaryContentDescription = stringResource(R.string.feature_tailor_impl_regen_open_description, state.regenerationsLeft),
+        secondaryContentDescription = if (state.regenerationsLeft == 0) {
+            stringResource(R.string.feature_tailor_impl_menu_regenerate_none)
+        } else {
+            stringResource(R.string.feature_tailor_impl_regen_open_description, state.regenerationsLeft)
+        },
         onSecondaryClick = {
             if (state.regenerationsLeft > 0) {
                 state.sections.filterIsInstance<ReviewSection.Entries>()
@@ -772,3 +807,5 @@ private fun SuccessBottomBar(state: TailorUiState.Success, actions: TailorAction
 }
 
 private fun Modifier.semanticsGroup(): Modifier = this
+
+private const val LARGE_FONT_SCALE = 1.5f

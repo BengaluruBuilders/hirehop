@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,7 +70,6 @@ import com.hirehop.feature.tailor.impl.SourceFactSheetContent
 import com.hirehop.feature.tailor.impl.StatusCard
 import com.hirehop.feature.tailor.impl.TailoredBulletSource
 import com.hirehop.feature.tailor.impl.coverletter.CoverLetterFactRef
-import com.hirehop.feature.tailor.impl.jobLine
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -258,7 +256,9 @@ private fun CoverLetterFactRef.asSource(): TailoredBulletSource = TailoredBullet
 )
 
 @Composable
-private fun PrepQuestionsUiState.subtitle(): String? = jobLine(jobTitle, jobCompany)
+private fun PrepQuestionsUiState.subtitle(): String? = jobCompany.trim().ifBlank {
+    stringResource(R.string.feature_tailor_impl_company_not_set)
+}
 
 private fun PrepQuestionsUiState.gapsListIndex(showOffline: Boolean): Int =
     (if (showOffline) 1 else 0) + (if (gapCards.isEmpty()) 0 else 1) + factCards.size
@@ -457,23 +457,6 @@ private fun FactsRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit)
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun GapBridgeRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
-    val fact = card.fact ?: return
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_prep_questions_bridge),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.brand,
-        )
-        FactChip(id = fact.displayId, card = card, onFact = onFact)
-    }
-}
-
 @Composable
 private fun FactChip(id: String, card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
     val description = stringResource(R.string.feature_tailor_impl_prep_questions_fact_description, id)
@@ -527,25 +510,7 @@ private fun GapCard(
                 style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
                 color = HhTheme.colors.onSurface,
             )
-            GapBridgeRow(card, onFact)
         }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                imageVector = HhIcons.Check,
-                contentDescription = null,
-                tint = HhTheme.colors.onSpecial,
-                modifier = Modifier.size(HhTheme.spacing.lg),
-            )
-            Text(
-                text = beforeInterviewText(card.requirementText),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.onSpecial,
-            )
-        }
-        HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_prep_questions_in_prep_plan), style = HhOnColorChipStyle.Ink)
         HhInkButton(
             label = stringResource(R.string.feature_tailor_impl_prep_questions_add_to_plan),
             onClick = actions.onOpenPrepPlan,
@@ -563,23 +528,8 @@ private fun GapCard(
 }
 
 @Composable
-private fun gapLabel(card: PrepQuestionCard): String = stringResource(
-    if (card.fact == null) {
-        R.string.feature_tailor_impl_prep_questions_gap_must_have
-    } else {
-        R.string.feature_tailor_impl_prep_questions_gap_nice_to_have
-    },
-)
-
-@Composable
-private fun beforeInterviewText(plan: String): AnnotatedString {
-    val prefix = stringResource(R.string.feature_tailor_impl_prep_questions_before_interview)
-    return buildAnnotatedString {
-        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) { append(prefix) }
-        append(" ")
-        append(plan)
-    }
-}
+private fun gapLabel(card: PrepQuestionCard): String =
+    stringResource(R.string.feature_tailor_impl_prep_questions_gap_label)
 
 @Composable
 private fun ReportButton(description: String, isReported: Boolean, onClick: () -> Unit) {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="feature_tailor_impl_title_review">Tailored resume</string>
+    <string name="feature_tailor_impl_source_description">Source %1$s</string>
     <string name="feature_tailor_impl_job_subtitle">%1$s · %2$s</string>
     <string name="feature_tailor_impl_role_not_set">Role not set</string>
     <string name="feature_tailor_impl_company_not_set">Company not set</string>
@@ -36,7 +37,6 @@
     <string name="feature_tailor_impl_state_user_edited">Edited by you</string>
     <string name="feature_tailor_impl_state_source_changed">Source changed</string>
     <string name="feature_tailor_impl_line_description">%1$s. %2$s. Source %3$s. Opens the change.</string>
-    <string name="feature_tailor_impl_source_description">Source %1$s</string>
     <string name="feature_tailor_impl_decide_note">Decide on every change before you export. We never export a line you haven\'t reviewed.</string>
     <plurals name="feature_tailor_impl_changes_left">
         <item quantity="one">%1$d change left to review</item>

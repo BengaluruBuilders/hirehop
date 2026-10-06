@@ -37,11 +37,7 @@
     <string name="feature_tailor_impl_prep_questions_gaps_header" tools:ignore="PluralsCandidate">%1$d gaps to address</string>
     <string name="feature_tailor_impl_prep_questions_gaps_subtitle">An honest way to talk about each</string>
     <string name="feature_tailor_impl_prep_questions_gaps_intro">Say them straight in the interview. They never appear in your resume or cover letter.</string>
-    <string name="feature_tailor_impl_prep_questions_gap_must_have">To prepare · must-have</string>
-    <string name="feature_tailor_impl_prep_questions_gap_nice_to_have">To prepare · nice to have</string>
+    <string name="feature_tailor_impl_prep_questions_gap_label">To prepare</string>
     <string name="feature_tailor_impl_prep_questions_honest_way">One honest way to say it</string>
-    <string name="feature_tailor_impl_prep_questions_bridge">Bridge from your facts</string>
-    <string name="feature_tailor_impl_prep_questions_before_interview">Before the interview:</string>
-    <string name="feature_tailor_impl_prep_questions_in_prep_plan">In your prep plan</string>
     <string name="feature_tailor_impl_prep_questions_add_to_plan">Add to prep plan</string>
 </resources>

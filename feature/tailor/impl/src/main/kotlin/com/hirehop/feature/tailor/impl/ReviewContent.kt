@@ -1,6 +1,5 @@
 package com.hirehop.feature.tailor.impl
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -52,8 +49,6 @@ import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhIconButton
-import com.hirehop.core.designsystem.component.HhStatusChip
-import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -135,128 +130,6 @@ internal fun NoticeStrip(text: String, icon: ImageVector, modifier: Modifier = M
             style = HhTheme.typography.bodyM,
             color = HhTheme.colors.onSurface,
         )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun ProgressCard(
-    reviewed: Int,
-    total: Int,
-    flagged: Int,
-    showAllReviewedNote: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val hop = remember { Animatable(1f) }
-    val allReviewed = total > 0 && reviewed >= total
-    var wasAllReviewed by remember { mutableStateOf(allReviewed) }
-    val hopSpec = HhTheme.motion.hopSpecs.scale
-    LaunchedEffect(allReviewed) {
-        if (allReviewed && !wasAllReviewed) {
-            hop.snapTo(HOP_START_SCALE)
-            hop.animateTo(1f, hopSpec)
-        }
-        wasAllReviewed = allReviewed
-    }
-    val description = if (total == 0) {
-        stringResource(R.string.feature_tailor_impl_no_changes)
-    } else {
-        stringResource(R.string.feature_tailor_impl_progress_description, reviewed, total)
-    }
-    HhCard(
-        modifier = modifier.graphicsLayer {
-            scaleX = hop.value
-            scaleY = hop.value
-        },
-    ) {
-        Column(
-            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        ) {
-            if (total == 0) {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_no_changes),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.onSurface,
-                )
-                return@Column
-            }
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_progress_value, reviewed, total),
-                        style = HhTheme.typography.numeralM,
-                        color = HhTheme.colors.onSurface,
-                    )
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_changes_reviewed),
-                        style = HhTheme.typography.labelM,
-                        color = HhTheme.colors.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = HhTheme.spacing.d2),
-                    )
-                }
-                if (flagged > 0) {
-                    HhStatusChip(
-                        kind = HhStatusKind.Partial,
-                        label = pluralStringResource(R.plurals.feature_tailor_impl_flagged, flagged, flagged),
-                    )
-                }
-            }
-            SegmentBar(done = reviewed, total = total)
-            if (allReviewed && showAllReviewedNote) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(HhTheme.colors.metContainer, HhTheme.shapes.banner)
-                        .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm),
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Icon(
-                        imageVector = HhIcons.CheckCircle,
-                        contentDescription = null,
-                        tint = HhTheme.colors.onMetContainer,
-                        modifier = Modifier.size(HhTheme.spacing.d20),
-                    )
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_all_reviewed, reviewed, total),
-                        style = HhTheme.typography.bodyM,
-                        color = HhTheme.colors.onMetContainer,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SegmentBar(done: Int, total: Int) {
-    if (total <= 0) return
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clearAndSetSemantics {},
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.d2 + HhTheme.spacing.d2 / 2),
-    ) {
-        repeat(total) { position ->
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = HhTheme.spacing.d8)
-                    .background(
-                        if (position < done) HhTheme.colors.primary else HhTheme.colors.outlineVariant,
-                        HhTheme.shapes.pill,
-                    ),
-            )
-        }
     }
 }
 
@@ -769,5 +642,4 @@ private fun TailorBulletUi.lineText(markStyle: SpanStyle): AnnotatedString {
 private fun joinNotAdded(requirements: List<String>): String =
     requirements.joinToString(", ") { it.replaceFirstChar { char -> char.lowercaseChar() } }
 
-private const val HOP_START_SCALE = 0.96f
 private const val MENU_MIN_WIDTH_UNITS = 4

@@ -100,6 +100,7 @@ class CoverLetterViewModel @Inject constructor(
             state.copy(
                 jobTitle = application.job.title,
                 jobCompany = application.job.company,
+                candidateName = profile?.fullName.orEmpty(),
                 reviewedCount = reviewed,
                 totalCount = total,
             )

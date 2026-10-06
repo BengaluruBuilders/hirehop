@@ -67,6 +67,7 @@ data class CoverLetterUiState(
     val stage: CoverLetterStage = CoverLetterStage.OFFER,
     val jobTitle: String = "",
     val jobCompany: String = "",
+    val candidateName: String = "",
     val paragraphs: List<CoverLetterParagraph> = emptyList(),
     val isOffline: Boolean = false,
     val editingOrdinal: Int? = null,
