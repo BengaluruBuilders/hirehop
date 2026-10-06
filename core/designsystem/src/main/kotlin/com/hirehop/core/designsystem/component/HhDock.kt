@@ -76,6 +76,8 @@ import kotlin.math.min
 private val HhDockBallSize = 64.dp
 private val HhDockNotchHalfWidth = 56.dp
 private val HhDockNotchDepth = 37.dp
+private val HhDockShadowStrokes = listOf(36.dp, 24.dp, 12.dp)
+private val HhDockShadowColor = Color(0x1016181D)
 private val HhDockIconRise = HhDockDefaults.height / 2
 
 @Composable
@@ -175,13 +177,6 @@ private fun DrawScope.drawNotchedBar(
     val cx = state.notchX.value
     val lift = state.lift.value
     val depth = HhDockNotchDepth.toPx()
-    if (placed) {
-        drawCircle(
-            color = ballColor,
-            radius = HhDockBallSize.toPx() / 2 * lerp(0.5f, 1f, lift),
-            center = Offset(cx, barTop + depth * (1f - lift)),
-        )
-    }
     path.rewind()
     val corner = HhRadiusSheet.toPx()
     path.moveTo(0f, barTop + corner)
@@ -200,6 +195,16 @@ private fun DrawScope.drawNotchedBar(
     path.lineTo(size.width, size.height)
     path.lineTo(0f, size.height)
     path.close()
+    HhDockShadowStrokes.forEach { width ->
+        drawPath(path, HhDockShadowColor, style = Stroke(width.toPx()))
+    }
+    if (placed) {
+        drawCircle(
+            color = ballColor,
+            radius = HhDockBallSize.toPx() / 2 * lerp(0.5f, 1f, lift),
+            center = Offset(cx, barTop + depth * (1f - lift)),
+        )
+    }
     drawPath(path, barColor)
     if (edgeColor != null) {
         drawPath(path, edgeColor, style = Stroke(HhWidthHairline.toPx()))

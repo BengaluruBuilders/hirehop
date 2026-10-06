@@ -60,7 +60,7 @@ private fun pillRowPalette(style: HhPillRowStyle): HhPillRowPalette {
             colors.onSurfaceVariant,
             colors.brand,
             colors.onBrand,
-            BorderStroke(HhWidthHairline, colors.sheetItemBorder),
+            BorderStroke(HhWidthHairline, colors.outlineVariant),
         )
     }
 }

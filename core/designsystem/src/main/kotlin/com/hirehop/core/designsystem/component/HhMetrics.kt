@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object HhDockDefaults {
-    val height: Dp = 64.dp
+    val height: Dp = 76.dp
     val ballOverhang: Dp = 32.dp
     val inset: Dp = height + ballOverhang + 8.dp
 }

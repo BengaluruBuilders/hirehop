@@ -71,6 +71,8 @@ fun HhOnColorChip(
     }
 }
 
+class HhOpenAction(val contentDescription: String, val onClick: () -> Unit)
+
 @Composable
 fun HhSolidCard(
     accent: HhAccent,
@@ -78,8 +80,7 @@ fun HhSolidCard(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    onOpen: (() -> Unit)? = null,
-    openContentDescription: String = "",
+    openAction: HhOpenAction? = null,
     decoration: HhDecorationKind? = HhDecorationKind.Squiggle,
     chips: (@Composable RowScope.() -> Unit)? = null,
 ) {
@@ -106,11 +107,11 @@ fun HhSolidCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     HhAccentMonogram(monogram, if (accent == HhAccent.Marigold) ink else fill)
-                    if (onOpen != null) {
+                    if (openAction != null) {
                         HhIconButton(
                             icon = HhIcons.ArrowForward,
-                            contentDescription = openContentDescription,
-                            onClick = onOpen,
+                            contentDescription = openAction.contentDescription,
+                            onClick = openAction.onClick,
                             tint = Color.White,
                             containerColor = ink,
                             borderColor = Color.Transparent,
@@ -173,8 +174,7 @@ private fun HhSolidCardSamples() {
             monogram = "LH",
             title = "Data Analyst",
             subtitle = "Lumen Health · Pune",
-            onOpen = {},
-            openContentDescription = "Open Data Analyst",
+            openAction = HhOpenAction("Open Data Analyst") {},
             chips = {
                 HhOnColorChip("Resume ready")
                 HhOnColorChip("11 met", style = HhOnColorChipStyle.Outline)

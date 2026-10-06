@@ -49,16 +49,17 @@ private fun HhColors.buttonPalette(
     kind: HhButtonKind,
     surface: HhButtonSurface,
     pressed: Boolean,
+    size: HhButtonSize,
 ): HhButtonPalette = when (kind) {
     HhButtonKind.Primary -> HhButtonPalette(if (pressed) brandPressed else brand, onBrand, null)
     HhButtonKind.Ink -> HhButtonPalette(inverseSurface, inverseOnSurface, null)
     HhButtonKind.Secondary -> HhButtonPalette(primaryContainer, onPrimaryContainer, null)
     HhButtonKind.Destructive -> HhButtonPalette(error, onError, null)
-    HhButtonKind.Outline -> outlinePalette(surface)
+    HhButtonKind.Outline -> outlinePalette(surface, size)
     HhButtonKind.Text -> textPalette(surface)
 }
 
-private fun HhColors.outlinePalette(surface: HhButtonSurface): HhButtonPalette = when (surface) {
+private fun HhColors.outlinePalette(surface: HhButtonSurface, size: HhButtonSize): HhButtonPalette = when (surface) {
     HhButtonSurface.Header -> HhButtonPalette(
         Color.Transparent,
         onHeader,
@@ -67,7 +68,7 @@ private fun HhColors.outlinePalette(surface: HhButtonSurface): HhButtonPalette =
     HhButtonSurface.Default -> HhButtonPalette(
         Color.Transparent,
         onSurface,
-        BorderStroke(HhWidthStroke, onSurface),
+        BorderStroke(HhWidthStroke, if (size == HhButtonSize.Compact) outlineVariant else onSurface),
     )
 }
 
@@ -97,7 +98,7 @@ internal fun HhButtonBase(
     val palette = if (filledDisabled) {
         HhTheme.colors.disabledPalette()
     } else {
-        HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current, pressed)
+        HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current, pressed, size)
     }
     val focused by source.collectIsFocusedAsState()
     Surface(

@@ -51,7 +51,7 @@ fun HhHeroCard(
     val surfaceModifier = (if (onClick == null) modifier else modifier.hhPressScale(source))
         .fillMaxWidth()
         .hhShadow(HhTheme.elevation.hero, shape)
-    val border = if (HhTheme.isDark) BorderStroke(HhWidthHairline, colors.sheetItemBorder) else null
+    val border = if (HhTheme.isDark) BorderStroke(HhWidthHairline, colors.outlineVariant) else null
     if (onClick == null) {
         Surface(modifier = surfaceModifier, shape = shape, color = colors.document, border = border) {
             HhCardBody(contentPadding, null, content)
@@ -80,7 +80,7 @@ internal fun HhCardSurface(
     fill: Color = HhTheme.colors.card,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val border = BorderStroke(width = HhWidthHairline, color = HhTheme.colors.sheetItemBorder)
+    val border = BorderStroke(width = HhWidthHairline, color = HhTheme.colors.outlineVariant)
     val padding = contentPadding ?: PaddingValues(HhTheme.spacing.cardPadding)
     if (onClick == null) {
         Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = fill, border = border) {

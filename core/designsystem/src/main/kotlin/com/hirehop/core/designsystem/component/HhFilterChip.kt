@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -58,6 +59,7 @@ fun HhFilterChip(
     val interactionSource = remember { MutableInteractionSource() }
     Surface(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .heightIn(min = HhFilterChipDefaults.height())
             .selectable(
                 selected = selected,
