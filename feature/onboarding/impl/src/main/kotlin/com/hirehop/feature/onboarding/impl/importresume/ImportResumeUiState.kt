@@ -140,7 +140,7 @@ private val SAMPLE_FACTS: List<ImportedFactUi> = listOf(
                 organization = "Power BI, Excel",
                 startDate = "2024",
                 endDate = "2024",
-                detail = "Three batches of placement data for the college placement cell.",
+                detail = "Three batches of placement data for the placement cell.",
             ),
         ),
     ),

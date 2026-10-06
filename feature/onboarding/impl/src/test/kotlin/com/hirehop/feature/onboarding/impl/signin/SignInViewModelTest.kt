@@ -1,6 +1,7 @@
 package com.hirehop.feature.onboarding.impl.signin
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.DiscardJobDraftsUseCase
 import com.hirehop.core.domain.SignInAccount
 import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.core.domain.SignInGateway
@@ -8,12 +9,17 @@ import com.hirehop.core.domain.SignInOutcome
 import com.hirehop.core.domain.SignInResult
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.repository.TestContentReportRepository
+import com.hirehop.core.testing.repository.TestPrepPlanRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -42,7 +48,22 @@ class SignInViewModelTest {
         signInGateway = signInGateway,
         nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
         connectivityMonitor = connectivity,
+        sessionRepository = session,
+        discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
     )
+
+    @Test
+    fun underEighteen_clearsTheKeptJobPost() = runTest {
+        session.keepJobDescription(KeptJobDescription(text = "Analyst role text", company = "", role = ""))
+        session.saveCareerStage(CareerStage.entries.first())
+        viewModel.onEnter(SignInNavKey(DebugScenario.DEFAULT))
+
+        viewModel.onAction(SignInAction.UnderEighteen)
+
+        assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.UNDER_18)
+        assertThat(session.observeKeptJobDescription().first()).isNull()
+        assertThat(session.observeCareerStage().first()).isNull()
+    }
 
     @Test
     fun defaultScenario_startsIdleAndUnticked() {
@@ -134,15 +155,6 @@ class SignInViewModelTest {
         viewModel.onAction(SignInAction.NextStepConsumed)
 
         assertThat(viewModel.uiState.value.nextStep).isNull()
-    }
-
-    @Test
-    fun referralCode_isKeptInTheState() = runTest {
-        viewModel.onEnter(SignInNavKey())
-
-        viewModel.onAction(SignInAction.ReferralCodeChanged("CAMPUS-7"))
-
-        assertThat(viewModel.uiState.value.referralCode).isEqualTo("CAMPUS-7")
     }
 
     @Test

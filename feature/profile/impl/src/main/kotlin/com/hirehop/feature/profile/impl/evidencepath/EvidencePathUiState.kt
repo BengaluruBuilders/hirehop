@@ -32,6 +32,7 @@ data class EvidencePathUiState(
     val problem: EvidenceFieldProblem? = null,
     val cards: List<EvidenceFactCard> = emptyList(),
     val visited: Set<EvidenceCategory> = emptySet(),
+    val categoryOrder: List<EvidenceCategory> = EVIDENCE_CATEGORIES,
     val skipNote: EvidenceSkipNote? = null,
     val isDone: Boolean = false,
     val message: EvidenceMessage? = null,

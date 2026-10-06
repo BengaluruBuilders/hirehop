@@ -3,6 +3,8 @@ package com.hirehop.feature.onboarding.impl.signin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.SessionRepository
+import com.hirehop.core.domain.DiscardJobDraftsUseCase
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.SignInResult
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
@@ -10,11 +12,14 @@ import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 import com.hirehop.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +27,8 @@ class SignInViewModel @Inject constructor(
     private val signInGateway: SignInGateway,
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val sessionRepository: SessionRepository,
+    private val discardJobDrafts: DiscardJobDraftsUseCase,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(SignInUiState())
@@ -45,14 +52,24 @@ class SignInViewModel @Inject constructor(
     fun onAction(action: SignInAction) {
         when (action) {
             is SignInAction.AdultConfirmationChanged -> onAdultConfirmationChanged(action.isConfirmed)
-            is SignInAction.ReferralCodeChanged -> mutableState.update { it.copy(referralCode = action.value) }
             SignInAction.Continue -> onContinue()
-            SignInAction.UnderEighteen -> mutableState.update { it.copy(stage = SignInStage.UNDER_18) }
+            SignInAction.UnderEighteen -> onUnderEighteen()
             SignInAction.BackFromUnderEighteen -> {
                 mutableState.update { it.copy(stage = SignInStage.IDLE, isAdultNudged = false) }
             }
 
             SignInAction.NextStepConsumed -> mutableState.update { it.copy(nextStep = null) }
+        }
+    }
+
+    private fun onUnderEighteen() {
+        viewModelScope.launch {
+            withContext(NonCancellable) {
+                sessionRepository.observeKeptJobDescription().first()?.let { discardJobDrafts(it) }
+                sessionRepository.clearKeptJobDescription()
+                sessionRepository.clearCareerStage()
+            }
+            mutableState.update { it.copy(stage = SignInStage.UNDER_18) }
         }
     }
 

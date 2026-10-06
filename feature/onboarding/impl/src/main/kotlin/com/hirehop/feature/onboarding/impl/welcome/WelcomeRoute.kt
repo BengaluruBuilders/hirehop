@@ -15,8 +15,6 @@ internal fun WelcomeRoute(
     onNavigateToPasteJobDescription: () -> Unit,
     onNavigateToSignIn: () -> Unit,
     onNavigateToConsent: () -> Unit,
-    onNavigateToImportResume: () -> Unit,
-    onNavigateToBuildProfileStepByStep: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WelcomeViewModel = hiltViewModel(),
 ) {
@@ -40,16 +38,6 @@ internal fun WelcomeRoute(
                 onNavigateToConsent()
             }
 
-            WelcomeDestination.IMPORT_RESUME -> {
-                viewModel.onAction(WelcomeAction.DestinationConsumed)
-                onNavigateToImportResume()
-            }
-
-            WelcomeDestination.BUILD_PROFILE_STEP_BY_STEP -> {
-                viewModel.onAction(WelcomeAction.DestinationConsumed)
-                onNavigateToBuildProfileStepByStep()
-            }
-
             null -> Unit
         }
     }
@@ -58,8 +46,8 @@ internal fun WelcomeRoute(
 
 private fun WelcomeViewModel.toActions(): WelcomeActions = WelcomeActions(
     onPasteJobDescription = { onAction(WelcomeAction.PasteJobDescriptionTapped) },
-    onImportResume = { onAction(WelcomeAction.ImportResumeTapped) },
-    onBuildProfileStepByStep = { onAction(WelcomeAction.BuildProfileStepByStepTapped) },
+    onSelectCareerStage = { onAction(WelcomeAction.CareerStageSelected(it)) },
+    onHaveAccount = { onAction(WelcomeAction.HaveAccountTapped) },
     onRetry = { onAction(WelcomeAction.RetryTapped) },
     onDismissMessage = { onAction(WelcomeAction.DismissMessageTapped) },
 )

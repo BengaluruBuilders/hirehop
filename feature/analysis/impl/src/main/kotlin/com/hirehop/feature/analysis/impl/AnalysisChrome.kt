@@ -1,13 +1,16 @@
 package com.hirehop.feature.analysis.impl
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -18,6 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -25,47 +31,173 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.repository.UsageAllowance
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
-import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
+private enum class WaitingPillKind { Done, InProgress, UpNext }
+
 @Composable
 internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: PaddingValues) {
-    val readDetail = if (state.keyTermCount != null && state.requirementCount != null) {
-        pluralStringResource(
-            R.plurals.feature_analysis_impl_step_read_detail_terms,
-            state.keyTermCount,
-            state.keyTermCount,
-        ) + ", " + pluralStringResource(
-            R.plurals.feature_analysis_impl_step_read_detail_requirements,
-            state.requirementCount,
-            state.requirementCount,
+    val stepIndex = state.stepIndex
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = HhTheme.spacing.gutter)
+            .padding(top = contentPadding.calculateTopPadding() + 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.feature_analysis_impl_waiting_heading),
+            style = HhTheme.typography.titleL,
+            color = HhTheme.colors.onSurface,
+            modifier = Modifier.semantics { heading() },
         )
-    } else {
-        null
-    }
-    val matchDetail = if (state.factCount > 0) {
-        pluralStringResource(R.plurals.feature_analysis_impl_step_match_detail, state.factCount, state.factCount)
-    } else {
-        null
-    }
-    Column(Modifier.fillMaxSize()) {
-        HhStepProgress(
-            stepNames = listOf(
-                stringResource(R.string.feature_analysis_impl_step_read),
-                stringResource(R.string.feature_analysis_impl_step_match),
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            val readTitle = if (state.requirementCount != null && stepIndex > 0) {
+                pluralStringResource(
+                    R.plurals.feature_analysis_impl_step_read_done,
+                    state.requirementCount,
+                    state.requirementCount,
+                )
+            } else {
+                stringResource(R.string.feature_analysis_impl_step_read)
+            }
+            val matchTitle = if (state.factCount > 0) {
+                pluralStringResource(
+                    R.plurals.feature_analysis_impl_step_match_count,
+                    state.factCount,
+                    state.factCount,
+                )
+            } else {
+                stringResource(R.string.feature_analysis_impl_step_match)
+            }
+            listOf(
+                readTitle,
+                matchTitle,
                 stringResource(R.string.feature_analysis_impl_step_sort),
-            ),
-            currentStepIndex = state.stepIndex,
+            ).forEachIndexed { position, title ->
+                val kind = pillKind(position = position, current = stepIndex)
+                WaitingPill(title = title, stateLabel = stringResource(kind.stateLabelRes()), kind = kind)
+            }
+        }
+        WaitingFootnote(text = stringResource(R.string.feature_analysis_impl_waiting_footnote))
+    }
+}
+
+private fun pillKind(position: Int, current: Int): WaitingPillKind = when {
+    position < current -> WaitingPillKind.Done
+    position == current -> WaitingPillKind.InProgress
+    else -> WaitingPillKind.UpNext
+}
+
+@StringRes
+private fun WaitingPillKind.stateLabelRes(): Int = when (this) {
+    WaitingPillKind.Done -> R.string.feature_analysis_impl_step_state_done
+    WaitingPillKind.InProgress -> R.string.feature_analysis_impl_step_state_in_progress
+    WaitingPillKind.UpNext -> R.string.feature_analysis_impl_step_state_up_next
+}
+
+@Composable
+private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind) {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp)
+            .background(
+                color = when (kind) {
+                    WaitingPillKind.Done -> colors.brand
+                    WaitingPillKind.InProgress -> colors.special
+                    WaitingPillKind.UpNext -> colors.card
+                },
+                shape = HhTheme.shapes.pill,
+            )
+            .then(
+                if (kind == WaitingPillKind.UpNext) {
+                    Modifier.border(1.dp, colors.outlineVariant, HhTheme.shapes.pill)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 12.dp)
+            .semantics(mergeDescendants = true) { contentDescription = "$title. $stateLabel" },
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
             modifier = Modifier
-                .padding(horizontal = HhTheme.spacing.gutter)
-                .padding(top = contentPadding.calculateTopPadding()),
-            ordinalLabel = stringResource(R.string.feature_analysis_impl_waiting_limit),
-            stepDetails = listOf(readDetail, matchDetail, null),
-            footnote = stringResource(R.string.feature_analysis_impl_waiting_footnote),
+                .size(48.dp)
+                .background(colors.surface, HhTheme.shapes.pill),
+            contentAlignment = Alignment.Center,
+        ) {
+            when (kind) {
+                WaitingPillKind.Done -> Icon(
+                    imageVector = HhIcons.Check,
+                    contentDescription = null,
+                    tint = colors.brand,
+                    modifier = Modifier.size(24.dp),
+                )
+                WaitingPillKind.InProgress -> Icon(
+                    imageVector = HhIcons.Clock,
+                    contentDescription = null,
+                    tint = colors.onSurface,
+                    modifier = Modifier.size(24.dp),
+                )
+                WaitingPillKind.UpNext -> Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .border(2.dp, colors.outlineVariant, HhTheme.shapes.pill),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
+        ) {
+            Text(
+                text = title,
+                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
+                color = when (kind) {
+                    WaitingPillKind.Done -> colors.onBrand
+                    WaitingPillKind.InProgress -> colors.onSurface
+                    WaitingPillKind.UpNext -> colors.onSurface
+                },
+            )
+            Text(
+                text = stateLabel,
+                style = HhTheme.typography.labelM,
+                color = when (kind) {
+                    WaitingPillKind.Done -> colors.onHeaderVariant
+                    WaitingPillKind.InProgress -> colors.onSurface
+                    WaitingPillKind.UpNext -> colors.onSurfaceVariant
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun WaitingFootnote(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Info,
+            contentDescription = null,
+            tint = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = text,
+            style = HhTheme.typography.labelL,
+            color = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -78,30 +210,51 @@ internal fun MessageContent(
     note: String? = null,
 ) {
     val isError = note == null
+    val colors = HhTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = HhTheme.spacing.gutter)
-            .padding(top = contentPadding.calculateTopPadding()),
+            .padding(top = contentPadding.calculateTopPadding() + 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding + HhTheme.spacing.xs)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
+        Text(
+            text = title,
+            style = HhTheme.typography.titleL,
+            color = colors.onSurface,
+            modifier = Modifier.semantics { heading() },
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colors.card, HhTheme.shapes.card)
+                .border(1.dp, colors.outlineVariant, HhTheme.shapes.card)
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(colors.surface, HhTheme.shapes.pill)
+                    .border(1.dp, colors.outlineVariant, HhTheme.shapes.pill),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = if (isError) HhIcons.Error else HhIcons.Clock,
                     contentDescription = null,
-                    tint = if (isError) HhTheme.colors.error else HhTheme.colors.gap,
-                    modifier = Modifier.size(HhTheme.spacing.xxl),
+                    tint = if (isError) colors.error else colors.gap,
+                    modifier = Modifier.size(24.dp),
                 )
-                Text(text = title, style = HhTheme.typography.titleL, color = HhTheme.colors.onSurface)
             }
-            Text(text = body, style = HhTheme.typography.bodyL, color = HhTheme.colors.body)
-            if (note != null) {
-                Text(text = note, style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurfaceVariant)
-            }
+            Text(
+                text = body,
+                style = HhTheme.typography.bodyL,
+                color = colors.body,
+                modifier = Modifier.weight(1f),
+            )
         }
+        if (note != null) WaitingFootnote(text = note)
     }
 }
 
@@ -151,12 +304,6 @@ internal fun analysisBottomBarNotice(uiState: AnalysisUiState): (@Composable () 
 @Composable
 private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
     HhBottomActionBar {
-        HhOutlineButton(
-            label = stringResource(R.string.feature_analysis_impl_share_card),
-            onClick = actions.onOpenShareCard,
-            modifier = Modifier.weight(1f),
-            trailingIcon = HhIcons.Share,
-        )
         HhPrimaryButton(
             label = stringResource(R.string.feature_analysis_impl_tailor),
             onClick = actions.onTailor,

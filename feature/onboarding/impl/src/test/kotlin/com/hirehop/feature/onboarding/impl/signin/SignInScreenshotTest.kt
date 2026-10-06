@@ -150,7 +150,6 @@ class SignInScreenshotTest {
 
     private val noOpActions = SignInActions(
         onAdultConfirmationChange = { },
-        onReferralCodeChange = {},
         onContinue = {},
         onUnderEighteen = {},
         onBackFromUnderEighteen = {},
