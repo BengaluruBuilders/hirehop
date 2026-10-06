@@ -26,8 +26,13 @@ the constitution wins. Update section 2 and the chunk table each time a chunk ch
   `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` is 44 dp with a 48 dp touch area.
   Pressed jade is #064D3A. The dark sheet-item border is #3A404A. The dock is 76 dp with a stepped
   shadow.
-- Open low finding from C1: the dock shadow halo reaches 48 dp. The frame shows 24 dp. C6 tunes it.
-- In progress: C2 and C3.
+- Merged: C2 (#64), C3 (#62), C5 (#63), C6 (#65).
+- In review: C4 (#67), the whole-card tap fix (#66), the status-bar icon contrast fix (#68).
+- Open lows that stay:
+  - The S3b dark under-18 disc needs a dark illustration variant in `core:designsystem`.
+  - The inner header 200% layout should move into `HhInnerHeader` (follow-up task).
+  - C5 cosmetic notes: 200% "14 facts" spacing, header strip alignment on S17 and S18, S18 Employer placeholder.
+  - C6 notes: the Sign out icon, the small Delete text on S23.
 
 ## 3. Locked decisions
 
@@ -121,11 +126,11 @@ push"; and the report format (files changed, gate results, open questions, under
 |---|---|---|---|---|
 | C0 | One export template | none | 2 h | Merged (#59) |
 | C1 | Design system restyle | foundations boards | 2 to 3 days | Merged (#60) |
-| C2 | Flow 1 screens | C1 | 2 days | In progress (#54) |
-| C3 | Flow 2 screens | C1 | 2 days | In progress (#55) |
-| C4 | Flow 3 screens | C1 | 1.5 days | Ready (after C3) |
-| C5 | Flow 4 screens | C1 | 2 days | Ready |
-| C6 | Flow 5 screens | C1 | 2 days | Ready |
+| C2 | Flow 1 screens | C1 | 2 days | Merged (#64) |
+| C3 | Flow 2 screens | C1 | 2 days | Merged (#62) |
+| C4 | Flow 3 screens | C1 | 1.5 days | In review (#67) |
+| C5 | Flow 4 screens | C1 | 2 days | Merged (#63) |
+| C6 | Flow 5 screens | C1 | 2 days | Merged (#65) |
 | C7 | R0 spikes | none | 3 days | Ready, needs user input |
 | C8 | I.5 amendment and backend | C7, user decision | 8 to 10 weeks | Blocked |
 | C9 | Play Billing | C8 | 1 week | Blocked |
@@ -243,3 +248,37 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-07 | C0 | Remove SPACIOUS and the `ExportTemplate` enum, not only COMPACT. Keep `templateName` and record "Plain". | One template remains; old records still show a name. |
 | 2026-10-07 | C0 | No emulator walk-through for C0. | It is a behaviour chunk; screenshot tests cover the export preview; the full walk-through runs at C6. |
 | 2026-10-07 | C2 to C6 | A lane driver may write strings XML and small glue edits itself. If 8 MiniMax calls do not finish a chunk, the PR opens with the unmet list and Coder pass 2 continues. | Screen chunks need more files than 8 calls; the budget stays per Coder pass. |
+| 2026-10-07 | docs | A docs-only record PR gets a lead read of the diff, not an Opus review. | It has no code; the lead read meets the review condition of the merge rule. |
+| 2026-10-07 | C3 | Regenerate stays per section. | It keeps the existing behaviour and tests; the PRD counts 2 regenerations per application either way. |
+| 2026-10-07 | C3 | Export stays blocked until every line is reviewed. | Constitution I.2: nothing reaches an export without an explicit accept. The constitution wins over frame S8b. |
+| 2026-10-07 | C3 | Keep the centred `HhInnerHeader`. | The frame is left-aligned, but that needs a `core:designsystem` change outside C3; this is the smaller option. |
+| 2026-10-07 | C3 | Fact-sheet page numbers stay out. | `TailoredBulletSource` and `FactSource` carry no page data; adding it needs `core:model`. |
+| 2026-10-07 | C2 | The small time overrun ends Coder pass 1. It is not a block. | The pass stopped at the budget and opened the PR with the unmet list, as the lane rule says. |
+| 2026-10-07 | C2 | The JD minimum stays at 20 words. The hint shows the code value, not the 80 of the frame. | It keeps the existing behaviour and tests; the frame decides the look only. |
+| 2026-10-07 | C2 | Drop the S4 "Help improve HireHop" row. | Constitution I.5 forbids analytics until an amendment. |
+| 2026-10-07 | C2 | Drop the S3 role line, the S2b location chip and the referral field. | The state holds no such data; the app does not parse location; referral credit is cut from the MVP (PRD 6.1.1). |
+| 2026-10-07 | C2 | The career choice is optional. | This is the conservative option; Continue keeps working as before. |
+| 2026-10-07 | C5 | Restore the per-fact status chips on the profile home cards. | The status rule (shape, word and colour) wins over a cleaner card. |
+| 2026-10-07 | C5 | Fix the vertical padding of `HhPillRow` inside the C5 PR with one `core:designsystem` modifier. | 200% font clipping fails a C5 criterion; this is smaller than a separate designsystem PR. The affected baselines are re-recorded. |
+| 2026-10-07 | C5 | Ordering the evidence path by career choice is a C2 item. | C2 PR #64 builds it. |
+| 2026-10-07 | C2 | S6 fact cards have no Remove action. Confirm is full width. Delete the unused string. | `main` has no remove behaviour; adding one is new scope. |
+| 2026-10-07 | C6 | The home pill rows show exported applications (`ExportHistoryRepository`). The cards show applications that are not exported. | This follows the MVP_PLAN card text, and the data exists. |
+| 2026-10-07 | C6 | Accept three C6 defects. A pill row tap no longer opens the status sheet. The offline delete pill keeps the press scale. Rejected and Saved share coral. | After the export split the workspace keeps the status chip. A fix needs `core:designsystem`. The word and the icon still differ. |
+| 2026-10-07 | C3 | The prep gap button label states the true action: "Open prep plan". | The rule against untrue claims wins over the frame copy. |
+| 2026-10-07 | C3 | Keep "Closes #55". Merge only after the emulator walk-through passes. | The merge rule makes the last criterion true at merge time. |
+| 2026-10-07 | C3 | The file-name wrap and the company monogram stay open lows. C4 fixes them. | The extra final review was used; both are lows; the C4 lane works in the same module. |
+| 2026-10-07 | C2 | S7c keeps one "New fact" path. S7d has no Save image. S5b has no "page 2 of 2". | The state has no confirmed-fact list, no save action and no page count; adding them is new scope. |
+| 2026-10-07 | C3 | Remove the `tools:ignore PluralsCandidate` suppressions from the PR and use plurals. Fix the two open lows now. | Constitution VII.4: a suppression is an amendment. A fix pass is needed anyway, so the lows cost little now. |
+| 2026-10-07 | C6 | The C6 Fixer tunes the dock halo in `HhDock` (maximum reach 24 dp) and re-records the dock baselines. | MVP_PLAN section 2 assigns it to C6; a constant change is small. |
+| 2026-10-07 | C5 | The four cosmetic walk-through notes become listed open lows. They do not start a new pass. | No criterion fails; the final review budget is used. |
+| 2026-10-07 | C6 | PR #65 merges after a Flow 5 walk-through. The all-flows walk-through runs once on `main` after the last chunk merges. | The goal names one final walk-through of all flows; running it per PR would repeat it on heads that change again. |
+| 2026-10-07 | All | After a pure "merge main and re-record baselines" update, verify with CI green, a scope check and a lead view of the changed baselines. Do not run a new emulator walk. | The delta has no behaviour change; the earlier walk-through still holds. |
+| 2026-10-07 | C3 | Fix the 200% header at feature level (the `TailorScreen` pattern), not in `HhInnerHeader`. | It keeps the scope and avoids re-recording every module now. The root fix in `HhInnerHeader` is a follow-up. |
+| 2026-10-07 | C6 | Merge with the card-body tap regression as a listed low. Fix it in a small follow-up PR in this run. | The arrow and TalkBack still open the workspace; a fix cycle would push C2 and C3 behind `main` again. |
+| 2026-10-07 | PR #66 | Verify with CI, a scope check and the click test. The final all-flows walk-through on `main` covers the tap. | It is a 2-file behaviour fix with a direct test. |
+| 2026-10-07 | C2 | Under-18 also clears the stored career choice. | The screen says "Nothing was kept"; truthful copy wins. It is one line and a test. |
+| 2026-10-07 | App | The status-bar icon contrast is an `:app` issue on `main` (`SystemBarStyle.dark` is always used). Fix it in a separate small PR, not in C2. | It was there before C2; one concern per PR (VI.3). |
+| 2026-10-07 | C4 | The hero cards on Exported and Credits use marigold, not coral. | Coral is also the error colour (C1); a coral success card can read as an error. |
+| 2026-10-07 | C4 | Keep the "Get an application pack" row visible and disabled offline. | It keeps the existing behaviour; this is the smaller change. |
+| 2026-10-07 | C4 | Keep "Price includes GST" and "No subscription. Nothing renews." at 200%. | The price disclosure must stay; truthful copy wins over the frame. |
+| 2026-10-07 | Status bar | Add an explicit `HhScreen` `lightTop` flag. The default is header == null. Profile is false. The C2 consent and import screens are true. The fixer runs after C2 merges. | A header does not tell the top colour; the defect lives on the C2 branch. |
