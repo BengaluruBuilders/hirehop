@@ -57,7 +57,7 @@ internal fun ProfileOverviewScreen(
             }
         }
         items(items = overview.sections, key = { "section-${it.kind.name}" }) { section ->
-            SectionCard(section = section, onOpen = { onOpenSection(section.kind) })
+            SectionCard(section = section, accent = sectionAccent(section.kind), onOpen = { onOpenSection(section.kind) })
         }
         item(key = "add-fact") {
             HhOutlineButton(

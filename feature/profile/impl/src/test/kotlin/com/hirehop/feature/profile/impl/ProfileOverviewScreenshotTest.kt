@@ -62,6 +62,14 @@ class ProfileOverviewScreenshotTest {
         device = HhTestDevices.boardLargeFont,
     )
 
+    @Test
+    @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
+    fun skillsCard_atLargeText() = capture(
+        screenName = "ProfileOverviewSkillsFont200",
+        uiState = success(partlyConfirmedProfile.copy(entries = emptyList())),
+        device = HhTestDevices.boardLargeFont,
+    )
+
     private fun capture(
         screenName: String,
         uiState: ProfileUiState,
