@@ -19,8 +19,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.hirehop.core.designsystem.component.HhAccent
@@ -57,16 +61,15 @@ internal fun ApplicationRow(
         coveragePhrase(row.coverage),
         updatedLabel,
     )
+    val changeStatusAction = CustomAccessibilityAction(label = changeStatus) {
+        onStatusClick()
+        true
+    }
     val rowModifier = modifier
         .fillMaxWidth()
         .semantics(mergeDescendants = true) {
             contentDescription = rowDescription
-            customActions = listOf(
-                CustomAccessibilityAction(label = changeStatus) {
-                    onStatusClick()
-                    true
-                },
-            )
+            customActions = listOf(changeStatusAction)
         }
     val openRole = stringResource(R.string.feature_applications_impl_row_open, role)
     val coverageLine = stringResource(
@@ -100,7 +103,19 @@ internal fun ApplicationRow(
                 company,
                 updatedLabel,
             ) + "\n" + coverageLine,
-            modifier = rowModifier,
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(HhTheme.shapes.card)
+                .clickable(role = Role.Button, onClick = onClick)
+                .clearAndSetSemantics {
+                    contentDescription = rowDescription
+                    this.role = Role.Button
+                    customActions = listOf(changeStatusAction)
+                    onClick {
+                        onClick()
+                        true
+                    }
+                },
             openAction = HhOpenAction(contentDescription = openRole, onClick = onClick),
             chips = {
                 HhApplicationStatusChip(
