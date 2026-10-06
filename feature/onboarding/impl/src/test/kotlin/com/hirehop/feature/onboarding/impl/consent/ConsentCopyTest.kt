@@ -38,24 +38,24 @@ class ConsentCopyTest {
     }
 
     @Test
-    fun theNoticeNamesNoRetentionPeriodItCannotBackUp() {
-        val retention = stringValue(consentStrings, "feature_onboarding_impl_consent_purpose_analyse_keep_pending")
-
-        assertThat(retention).contains("to be confirmed")
-        assertThat(retention).doesNotContain("never")
-    }
-
-    @Test
     fun noRawDesignPlaceholderIsCommitted() {
         assertThat(consentStrings).doesNotContain("{{")
         assertThat(signInStrings).doesNotContain("{{")
     }
 
     @Test
-    fun theSignInScreenKeepsTheUnderEighteenPathAndTheReferralLabel() {
+    fun theSignInScreenKeepsTheUnderEighteenPath() {
         assertThat(signInStrings).contains("feature_onboarding_impl_sign_in_action_under_18")
-        assertThat(stringValue(signInStrings, "feature_onboarding_impl_sign_in_code_label"))
-            .isEqualTo("Group or referral code (optional)")
+    }
+
+    @Test
+    fun theMatchNoticeNamesOpenAiAndStatesNoRetentionPeriod() {
+        val body = stringValue(consentStrings, "feature_onboarding_impl_consent_match_body")
+
+        assertThat(body).contains("OpenAI")
+        assertThat(body).doesNotContainMatch("\\d+\\s*(day|days|hour|hours|month|months|year|years)")
+        assertThat(body.lowercase(Locale.ROOT)).doesNotContain("retain")
+        assertThat(body.lowercase(Locale.ROOT)).doesNotContain("retention")
     }
 
     @Test

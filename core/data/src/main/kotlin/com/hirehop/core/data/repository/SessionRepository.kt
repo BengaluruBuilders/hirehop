@@ -1,5 +1,6 @@
 package com.hirehop.core.data.repository
 
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.model.SignInAccount
@@ -13,6 +14,12 @@ interface SessionRepository {
     fun observeOnboardingComplete(): Flow<Boolean>
 
     fun observeKeptJobDescription(): Flow<KeptJobDescription?>
+
+    fun observeCareerStage(): Flow<CareerStage?>
+
+    suspend fun saveCareerStage(stage: CareerStage)
+
+    suspend fun clearCareerStage()
 
     suspend fun saveAccount(account: SignInAccount)
 

@@ -1,5 +1,6 @@
 package com.hirehop.feature.profile.impl.evidencepath
 
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.EntryCategory
 
 enum class EvidenceCategory(
@@ -16,6 +17,19 @@ enum class EvidenceCategory(
 }
 
 val EVIDENCE_CATEGORIES: List<EvidenceCategory> = EvidenceCategory.entries
+
+fun evidenceCategoriesFor(stage: CareerStage?): List<EvidenceCategory> = when (stage) {
+    CareerStage.JUST_STARTING_OUT -> listOf(
+        EvidenceCategory.PROJECTS,
+        EvidenceCategory.INTERNSHIPS,
+        EvidenceCategory.COURSEWORK,
+        EvidenceCategory.COMPETITIONS,
+        EvidenceCategory.POSITIONS,
+        EvidenceCategory.WORK,
+    )
+
+    CareerStage.ONE_TO_TWO_YEARS_IN, null -> EVIDENCE_CATEGORIES
+}
 
 fun evidenceCategoryOrNull(key: String): EvidenceCategory? =
     EVIDENCE_CATEGORIES.firstOrNull { it.key.equals(key.trim(), ignoreCase = true) }

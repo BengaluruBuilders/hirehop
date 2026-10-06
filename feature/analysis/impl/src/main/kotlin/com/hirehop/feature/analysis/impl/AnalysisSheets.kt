@@ -1,6 +1,7 @@
 package com.hirehop.feature.analysis.impl
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,15 +35,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
-import com.hirehop.core.designsystem.component.HhFitShareCard
-import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
+import com.hirehop.core.designsystem.component.HhStatusDisc
+import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhTextField
 import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
@@ -51,7 +55,6 @@ import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.designsystem.theme.hhShadow
 import com.hirehop.core.domain.displayKeywords
 import com.hirehop.core.domain.prep.RequirementPhrase
-import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.ui.FactSourceProvenance
 import kotlin.math.roundToInt
 
@@ -129,9 +132,7 @@ internal fun AnalysisSheets(state: AnalysisUiState.Result, actions: AnalysisActi
                 QuestionSheetContent(item, actions, notClosed = overlay.notClosed)
             }
         }
-        AnalysisOverlay.ShareCard -> HhBottomSheet(onDismissRequest = actions.onDismissOverlay) {
-            ShareSheetContent(state, actions)
-        }
+        AnalysisOverlay.ShareCard -> ShareFitScreen(state, actions)
         else -> Unit
     }
 }
@@ -245,24 +246,38 @@ private fun HhProvenanceKind.labelRes(): Int = when (this) {
 @Composable
 internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
     var statement by rememberSaveable { mutableStateOf("") }
-    val (rawName, rawDetail) = item.requirement.text.splitDetail()
-    val name = RequirementPhrase.of(rawName)
-    val detail = rawDetail?.let(RequirementPhrase::of)
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text(
-            text = stringResource(R.string.feature_analysis_impl_question_eyebrow, name),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_question_title, detail ?: name),
-            style = HhTheme.typography.titleL,
+            text = stringResource(R.string.feature_analysis_impl_question_title),
+            style = HhTheme.typography.headlineM,
             color = HhTheme.colors.onSurface,
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .background(HhTheme.colors.card, HhTheme.shapes.pill)
+                .padding(horizontal = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhStatusDisc(kind = HhStatusKind.Gap, size = 22.dp)
+            Text(
+                text = item.requirement.text.headline(),
+                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
+                color = HhTheme.colors.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = stringResource(R.string.feature_analysis_impl_status_gap),
+                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
+                color = HhTheme.colors.body,
+            )
+        }
         Text(
             text = stringResource(R.string.feature_analysis_impl_question_body),
             style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.body,
+            color = HhTheme.colors.onSurfaceVariant,
         )
         if (notClosed) {
             val keywords = displayKeywords(item.requirement)
@@ -276,6 +291,10 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
                 color = HhTheme.colors.onSurface,
             )
         }
+        NewFactRow(
+            id = stringResource(R.string.feature_analysis_impl_question_new_fact_id),
+            text = stringResource(R.string.feature_analysis_impl_question_new_fact_text),
+        )
         HhTextField(
             value = statement,
             onValueChange = { statement = it },
@@ -283,72 +302,51 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             singleLine = false,
             minLines = QUESTION_MIN_LINES,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            HhOutlineButton(
-                label = stringResource(R.string.feature_analysis_impl_cancel),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhIconButton(
+                icon = HhIcons.Close,
+                contentDescription = stringResource(R.string.feature_analysis_impl_question_close),
                 onClick = actions.onDismissOverlay,
-                modifier = Modifier.weight(1f),
+                size = 60.dp,
+                containerColor = HhTheme.colors.card,
+                borderColor = HhTheme.colors.outlineVariant,
             )
             HhPrimaryButton(
-                label = stringResource(R.string.feature_analysis_impl_save_fact),
+                label = stringResource(R.string.feature_analysis_impl_question_write),
                 onClick = { actions.onSubmitEvidence(item.id, statement) },
                 modifier = Modifier.weight(1f),
                 enabled = statement.isNotBlank(),
-                trailingIcon = HhIcons.Check,
             )
         }
     }
 }
 
 @Composable
-internal fun ShareSheetContent(state: AnalysisUiState.Result, actions: AnalysisActions) {
-    val coverage = state.keywordCoverage
-    val toPrepare = coverage.total - coverage.covered
-    val title = state.job.title.ifBlank { stringResource(R.string.feature_analysis_impl_role_not_set) }
-    val company = state.job.company.ifBlank { stringResource(R.string.feature_analysis_impl_company_not_set) }
-    val shareText = stringResource(
-        R.string.feature_analysis_impl_share_text,
-        title,
-        company,
-        coverage.covered.toString(),
-        coverage.total.toString(),
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-        HhFitShareCard(
-            eyebrow = listOf(stringResource(R.string.feature_analysis_impl_share_eyebrow), title, company)
-                .joinToString(separator = " · "),
-            headline = stringResource(R.string.feature_analysis_impl_share_headline),
-            met = coverage.covered,
-            partial = null,
-            gap = toPrepare,
-            caption = stringResource(R.string.feature_analysis_impl_share_caption),
-            metLegend = stringResource(R.string.feature_analysis_impl_coverage_met, coverage.covered.toString()),
-            partialLegend = null,
-            gapLegend = stringResource(R.string.feature_analysis_impl_coverage_gap, toPrepare.toString()),
-            matchedTerms = state.matchedTerms(),
-            footer = stringResource(R.string.feature_analysis_impl_share_footer),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+private fun NewFactRow(id: String, text: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill)
+            .border(2.dp, HhTheme.colors.brand, HhTheme.shapes.pill)
+            .padding(start = 14.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+    ) {
+        Text(
+            text = id,
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            HhOutlineButton(
-                label = stringResource(R.string.feature_analysis_impl_cancel),
-                onClick = actions.onDismissOverlay,
-                modifier = Modifier.weight(1f),
-            )
-            HhPrimaryButton(
-                label = stringResource(R.string.feature_analysis_impl_share_action),
-                onClick = { actions.onShareText(shareText) },
-                modifier = Modifier.weight(1f),
-                leadingIcon = HhIcons.Share,
-            )
-        }
+        Text(
+            text = text,
+            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+            color = HhTheme.colors.onPrimaryContainer,
+        )
     }
 }
-
-internal fun AnalysisUiState.Result.matchedTerms(): List<String> = items
-    .filter { it.status == MatchStatus.MET }
-    .map { it.requirement.text.headline() }
-    .take(MAX_SHARE_TERMS)
 
 internal fun String.splitDetail(): Pair<String, String?> {
     val match = DETAIL_PATTERN.matchEntire(trim()) ?: return trim() to null
@@ -360,4 +358,3 @@ internal fun String.headline(): String = RequirementPhrase.of(splitDetail().firs
 private val DETAIL_PATTERN = Regex("""^(.*?)\s*\((.+)\)$""")
 private const val MENU_WIDTH_UNITS = 4
 private const val QUESTION_MIN_LINES = 3
-private const val MAX_SHARE_TERMS = 6
