@@ -339,9 +339,10 @@ private fun ParagraphNotes(paragraph: CoverLetterParagraph) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ParagraphActions(paragraph: CoverLetterParagraph, isReported: Boolean, actions: CoverLetterActions) {
-    Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
         HhTextButton(
             label = stringResource(
                 if (isReported) R.string.feature_tailor_impl_menu_reported else R.string.feature_tailor_impl_cover_letter_report,
