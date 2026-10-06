@@ -1,6 +1,6 @@
 # MVP build plan and orchestrator runbook
 
-Last update: 2026-10-06. This file lets a new agent take over as orchestrator and build the HireHop
+Last update: 2026-10-07. This file lets a new agent take over as orchestrator and build the HireHop
 MVP. Read it from top to bottom before you act. When this file and `docs/CONSTITUTION.md` disagree,
 the constitution wins. Update section 2 and the chunk table each time a chunk changes state.
 
@@ -17,24 +17,17 @@ the constitution wins. Update section 2 and the chunk table each time a chunk ch
 ## 2. Current state
 
 - `main` has all 24 screens on the on-device mock backend. PDF and DOCX export, the share card
-  (`HhFitShareCard`), prep questions and the cover letter exist. Two export templates exist
-  (`ExportTemplate` in `feature/tailor/impl/.../document/`); the MVP keeps one.
+  (`HhFitShareCard`), prep questions and the cover letter exist.
 - The app has no network code. Constitution I.5 forbids it until an amendment.
-- Not committed yet on `main`: `docs/PRD.md` (MVP lock), this file, `design/jade-restyle/`.
-- C1 finished on 2026-10-06 in the worktree
-  `.claude/worktrees/agent-a1e7062fb357f0b2f` (branch `worktree-agent-a1e7062fb357f0b2f`). Nothing
-  is committed. About 500 files: theme, 17 edited and 3 new `Hh*` components (`HhSolidCard`,
-  `HhPillRow`, `HhDecoration`, plus `HhIconActionBar`, `HhStatusRow`, `HhInkButton`), 501 PNG
-  baselines, `docs/DESIGN_SYSTEM.md`. The agent reports that all gates passed, including
-  `tools/ci/verify-local.sh`. Sonnet wrote it, so only an Opus `final-review:` agent reviews it.
-  Points for that review:
-  1. `error` is now coral #B94C37, the same as the new `coral` accent. Check that error and
-     destructive states still read as errors.
-  2. Buttons are 60 dp everywhere, also inside cards. Screen chunks need a compact size; add it in
-     C1's fix pass or as the first step of C2.
-  3. The dock keeps its animated notch; the raised white-ringed circle is approximated.
-  4. Not done: pressed jade #064D3A, dark sheet-item border #3A404A, the fonts (no download).
-  5. `verifyRoborazziDebug` ran before the last header-corner fix; `verify-local.sh` ran after.
+- C0 merged in PR #59. The app has one export template. `ExportTemplate` is removed.
+  `ExportRecord.templateName` records "Plain".
+- C1 merged in PR #60. It has the Jade restyle tokens and the `Hh*` components. Fonts are Plus
+  Jakarta Sans (variable) and IBM Plex Mono 500. The OFL texts are in
+  `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` is 44 dp with a 48 dp touch area.
+  Pressed jade is #064D3A. The dark sheet-item border is #3A404A. The dock is 76 dp with a stepped
+  shadow.
+- Open low finding from C1: the dock shadow halo reaches 48 dp. The frame shows 24 dp. C6 tunes it.
+- In progress: C2 and C3.
 
 ## 3. Locked decisions
 
@@ -126,13 +119,13 @@ push"; and the report format (files changed, gate results, open questions, under
 
 | # | Chunk | Depends on | Size | State |
 |---|---|---|---|---|
-| C0 | One export template | none | 2 h | Ready |
-| C1 | Design system restyle | foundations boards | 2 to 3 days | Built, uncommitted; needs PR and Opus review (section 2) |
-| C2 | Flow 1 screens | C1 | 2 days | Ready after C1 |
-| C3 | Flow 2 screens | C1 | 2 days | Ready after C1 |
-| C4 | Flow 3 screens | C1 | 1.5 days | Ready after C1 (old frames) |
-| C5 | Flow 4 screens | C1 | 2 days | Ready after C1 (old frames) |
-| C6 | Flow 5 screens | C1 | 2 days | Ready after C1 (old frames) |
+| C0 | One export template | none | 2 h | Merged (#59) |
+| C1 | Design system restyle | foundations boards | 2 to 3 days | Merged (#60) |
+| C2 | Flow 1 screens | C1 | 2 days | In progress (#54) |
+| C3 | Flow 2 screens | C1 | 2 days | In progress (#55) |
+| C4 | Flow 3 screens | C1 | 1.5 days | Ready (after C3) |
+| C5 | Flow 4 screens | C1 | 2 days | Ready |
+| C6 | Flow 5 screens | C1 | 2 days | Ready |
 | C7 | R0 spikes | none | 3 days | Ready, needs user input |
 | C8 | I.5 amendment and backend | C7, user decision | 8 to 10 weeks | Blocked |
 | C9 | Play Billing | C8 | 1 week | Blocked |
@@ -235,6 +228,18 @@ more testers for 14 days, legal check of the consent copy.
 2. Support email, privacy policy URL, delete-account URL.
 3. Personal or organisation Play developer account.
 4. Restyle frames for Flows 3 to 5 now (section 4), or build them from the old frames.
-5. Fonts: the app still ships Anek Latin, Bricolage Grotesque and JetBrains Mono
-   (`core/designsystem/src/main/res/font`). Plus Jakarta Sans and IBM Plex Mono need the user's
-   approval to download (OFL licence). C1 keeps the current files until then.
+5. Fonts: done in C1 (PR #60). The app ships Plus Jakarta Sans and IBM Plex Mono.
+
+## 8. Decision log
+
+| Date | Chunk | Decision | Reason |
+|---|---|---|---|
+| 2026-10-06 | C1 | Use the google/fonts files as shipped. Plus Jakarta Sans is a variable TTF, wired with `FontVariation` weights 400, 600, 700, 800. | Only the google/fonts download was authorized; no font tool is installed. |
+| 2026-10-06 | C1 | Add the compact button, pressed jade and the dark sheet-item border in C1. | Screen chunks need them; this is smaller than a detour in C2. |
+| 2026-10-07 | C1 | Error stays coral #B94C37. | Every error path pairs an icon or a word with the colour; the frame lists coral for errors. |
+| 2026-10-07 | C1 | The dock follows the frame now: 76 dp and a shadow. | C2 to C6 take their bottom padding from `HhDockDefaults.inset`; a later change would re-record every screen. |
+| 2026-10-07 | C1 | The dock shadow is drawn as stepped rings in one layer, not a blur. | Robolectric baselines must match on macOS and on the Linux CI runner. |
+| 2026-10-07 | C1 | Accept the wide dock shadow halo as an open low finding. | The extra final review was used; the issue is cosmetic; C6 tunes it on the emulator. |
+| 2026-10-07 | C0 | Remove SPACIOUS and the `ExportTemplate` enum, not only COMPACT. Keep `templateName` and record "Plain". | One template remains; old records still show a name. |
+| 2026-10-07 | C0 | No emulator walk-through for C0. | It is a behaviour chunk; screenshot tests cover the export preview; the full walk-through runs at C6. |
+| 2026-10-07 | C2 to C6 | A lane driver may write strings XML and small glue edits itself. If 8 MiniMax calls do not finish a chunk, the PR opens with the unmet list and Coder pass 2 continues. | Screen chunks need more files than 8 calls; the budget stays per Coder pass. |
