@@ -9,14 +9,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipe
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.screenshot.HhTestDevice
@@ -34,6 +38,8 @@ private const val LANDSCAPE_QUALIFIERS = "w800dp-h360dp-normal-long-notround-any
 private const val SWIPE_COUNT = 5
 private const val SWIPE_START = 0.6f
 private const val SWIPE_END = 0.1f
+private const val SWIPE_X = 4f
+private const val FORM_TAG = "form"
 
 private val device = HhTestDevice("landscape-phone", LANDSCAPE_QUALIFIERS, 1.0f)
 
@@ -67,8 +73,9 @@ class HhScreenLandscapeScreenshotTest {
             ) { padding ->
                 Column(
                     Modifier.fillMaxSize().padding(padding)
-                        .padding(horizontal = HhTheme.spacing.gutter)
-                        .verticalScroll(rememberScrollState()),
+                        .testTag(FORM_TAG)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = HhTheme.spacing.gutter),
                     verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
                 ) {
                     HhTextField(value = "", onValueChange = {}, label = "Job description", minLines = 6, singleLine = false)
@@ -79,25 +86,35 @@ class HhScreenLandscapeScreenshotTest {
         }
     }
 
+    private fun swipeFormUp() {
+        repeat(SWIPE_COUNT) {
+            composeRule.onNodeWithTag(FORM_TAG).performTouchInput {
+                swipe(Offset(SWIPE_X, height * SWIPE_START), Offset(SWIPE_X, height * SWIPE_END))
+            }
+        }
+    }
+
     @Test
     fun formReachableAfterScroll_headerScrollsAway() {
         composeRule.setContent { FormContent() }
-        repeat(SWIPE_COUNT) { composeRule.onRoot().performTouchInput { swipeUp(startY = height * SWIPE_START, endY = height * SWIPE_END) } }
+        swipeFormUp()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Role").assertIsDisplayed()
         val role = composeRule.onNodeWithText("Role").getUnclippedBoundsInRoot()
         val action = composeRule.onNodeWithText("Analyse").getUnclippedBoundsInRoot()
         assertTrue(role.bottom <= action.top)
         composeRule.onNodeWithText("Paste a job description").assertIsNotDisplayed()
+        composeRule.onAllNodes(isFocused()).assertCountEquals(0)
     }
 
     @Test
     fun landscapeForm_readsInLightAndDark() = runBlocking<Unit> {
         composeRule.setContent { FormContent() }
-        repeat(SWIPE_COUNT) { composeRule.onRoot().performTouchInput { swipeUp(startY = height * SWIPE_START, endY = height * SWIPE_END) } }
+        swipeFormUp()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Paste a job description").assertIsNotDisplayed()
         composeRule.onNodeWithText("Role").assertIsDisplayed()
+        composeRule.onAllNodes(isFocused()).assertCountEquals(0)
         composeRule.captureMultiTheme(
             outputDirectory = "src/test/screenshots",
             screenName = "HhScreenLandscapeForm",
