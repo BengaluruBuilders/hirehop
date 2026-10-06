@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -21,6 +22,7 @@ import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.captureMultiTheme
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -83,6 +85,9 @@ class HhScreenLandscapeScreenshotTest {
         repeat(SWIPE_COUNT) { composeRule.onRoot().performTouchInput { swipeUp(startY = height * SWIPE_START, endY = height * SWIPE_END) } }
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Role").assertIsDisplayed()
+        val role = composeRule.onNodeWithText("Role").getUnclippedBoundsInRoot()
+        val action = composeRule.onNodeWithText("Analyse").getUnclippedBoundsInRoot()
+        assertTrue(role.bottom <= action.top)
         composeRule.onNodeWithText("Paste a job description").assertIsNotDisplayed()
     }
 
@@ -91,9 +96,23 @@ class HhScreenLandscapeScreenshotTest {
         composeRule.setContent { FormContent() }
         repeat(SWIPE_COUNT) { composeRule.onRoot().performTouchInput { swipeUp(startY = height * SWIPE_START, endY = height * SWIPE_END) } }
         composeRule.waitForIdle()
+        composeRule.onNodeWithText("Paste a job description").assertIsNotDisplayed()
+        composeRule.onNodeWithText("Role").assertIsDisplayed()
         composeRule.captureMultiTheme(
             outputDirectory = "src/test/screenshots",
             screenName = "HhScreenLandscapeForm",
+            device = device,
+            setTheme = { dark -> composeRule.runOnUiThread { darkTheme.value = dark } },
+        )
+    }
+
+    @Test
+    fun landscapeFormInitial_readsInLightAndDark() = runBlocking<Unit> {
+        composeRule.setContent { FormContent() }
+        composeRule.waitForIdle()
+        composeRule.captureMultiTheme(
+            outputDirectory = "src/test/screenshots",
+            screenName = "HhScreenLandscapeFormInitial",
             device = device,
             setTheme = { dark -> composeRule.runOnUiThread { darkTheme.value = dark } },
         )
