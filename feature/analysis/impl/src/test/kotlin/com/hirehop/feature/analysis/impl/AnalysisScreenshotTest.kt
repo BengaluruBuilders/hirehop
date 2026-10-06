@@ -62,8 +62,8 @@ class AnalysisScreenshotTest {
     }
 
     @Test
-    fun questionNotClosed_f1s7_08() = capture("AnalysisQuestionNotClosed", resultState()) {
-        SheetOver { QuestionSheetContent(resultState().item(SQL), AnalysisActions(), notClosed = true) }
+    fun questionNotClosed() = capture("AnalysisQuestionNotClosed", resultState()) {
+        SheetOver { QuestionSheetContent(resultState().item(CLOUD), AnalysisActions(), notClosed = true) }
     }
 
     @Test

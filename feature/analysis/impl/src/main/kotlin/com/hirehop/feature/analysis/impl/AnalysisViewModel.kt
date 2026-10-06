@@ -209,7 +209,7 @@ class AnalysisViewModel @Inject constructor(
         val ready = local.value.phase as? Phase.Ready ?: return
         val match = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }
         val requirement = match?.requirement
-        if (requirement == null || match.status == MatchStatus.MET || statement.isBlank() || submitting) return
+        if (requirement == null || match.status != MatchStatus.GAP || statement.isBlank() || submitting) return
         submitting = true
         viewModelScope.launch {
             try {

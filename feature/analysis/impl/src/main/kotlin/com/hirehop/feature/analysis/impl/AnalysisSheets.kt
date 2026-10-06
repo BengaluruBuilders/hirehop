@@ -268,7 +268,7 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             val keywords = displayKeywords(item.requirement)
             Text(
                 text = if (keywords.isNotEmpty()) {
-                    stringResource(R.string.feature_analysis_impl_question_not_closed, keywords.joinToString(", "))
+                    stringResource(R.string.feature_analysis_impl_question_not_closed, keywords.joinToString(" or "))
                 } else {
                     stringResource(R.string.feature_analysis_impl_question_not_closed_generic)
                 },

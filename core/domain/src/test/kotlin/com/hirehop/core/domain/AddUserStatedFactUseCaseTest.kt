@@ -179,4 +179,25 @@ class AddUserStatedFactUseCaseTest {
 
         assertThat(gap.matches.single { it.requirement.id == requirement.id }.status).isNotEqualTo(MatchStatus.GAP)
     }
+
+    @Test
+    fun theUserStatedMarkLandsOnEveryRowTheWordsNameAndOnNoOtherRow() = runTest {
+        val sql = requirement("sql").copy(id = "req-sql")
+        val docker = requirement("docker").copy(id = "req-docker")
+        val kubernetes = requirement("kubernetes").copy(id = "req-kubernetes")
+        val job = JobDescription("Data Engineer", "Northwind", "raw", listOf(sql, docker, kubernetes))
+        val repository = FakeProfileRepository(profileOf(emptyList()))
+        val preview = checkNotNull(
+            AddUserStatedFactUseCase(repository, SequentialIdGenerator("fact"))
+                .preview(sql, "I wrote SQL for Docker pipelines"),
+        )
+
+        val gap = OfflineGapMatcher().match(preview, job)
+
+        fun markedBy(id: String) = gap.matches.single { it.requirement.id == id }
+        assertThat(markedBy("req-sql").evidenceIds).contains("fact-1")
+        assertThat(markedBy("req-docker").evidenceIds).contains("fact-1")
+        assertThat(markedBy("req-kubernetes").status).isEqualTo(MatchStatus.GAP)
+        assertThat(markedBy("req-kubernetes").evidenceIds).doesNotContain("fact-1")
+    }
 }
