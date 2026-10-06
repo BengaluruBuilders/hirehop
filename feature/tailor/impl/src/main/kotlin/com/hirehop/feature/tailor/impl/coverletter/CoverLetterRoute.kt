@@ -15,12 +15,13 @@ internal fun CoverLetterRoute(
     onNavigateBack: () -> Unit,
     onSkipLetter: () -> Unit,
     onPreviewExport: () -> Unit,
+    onPrepQuestions: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CoverLetterViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onNavigateBack, onSkipLetter, onPreviewExport) {
-        viewModel.toActions(onNavigateBack, onSkipLetter, onPreviewExport)
+    val actions = remember(viewModel, onNavigateBack, onSkipLetter, onPreviewExport, onPrepQuestions) {
+        viewModel.toActions(onNavigateBack, onSkipLetter, onPreviewExport, onPrepQuestions)
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     CoverLetterScreen(uiState = uiState, actions = actions, modifier = modifier)
@@ -30,6 +31,7 @@ private fun CoverLetterViewModel.toActions(
     onNavigateBack: () -> Unit,
     onSkipLetter: () -> Unit,
     onPreviewExport: () -> Unit,
+    onPrepQuestions: () -> Unit,
 ): CoverLetterActions = CoverLetterActions(
     onWriteOne = { onAction(CoverLetterAction.WriteOne) },
     onBeginEdit = { ordinal -> onAction(CoverLetterAction.BeginEdit(ordinal)) },
@@ -42,4 +44,5 @@ private fun CoverLetterViewModel.toActions(
     onNavigateBack = onNavigateBack,
     onSkipLetter = onSkipLetter,
     onPreviewExport = onPreviewExport,
+    onPrepQuestions = onPrepQuestions,
 )
