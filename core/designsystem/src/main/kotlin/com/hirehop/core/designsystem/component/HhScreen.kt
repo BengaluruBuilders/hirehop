@@ -41,6 +41,7 @@ private enum class HhScreenSlot { Header, Sheet, Content, Bottom, Notice, Snackb
 fun HhScreen(
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
+    lightTop: Boolean = header == null,
     sheet: Boolean = true,
     bottomBar: (@Composable () -> Unit)? = null,
     snackbarHost: @Composable () -> Unit = {},
@@ -55,7 +56,7 @@ fun HhScreen(
     val gutter = HhTheme.spacing.gutter
     val sheetTop = HhTheme.spacing.d24
     val collapse = rememberHhHeaderCollapseState()
-    HhStatusBarIcons(darkIcons = header == null && !LocalHhDark.current)
+    HhStatusBarIcons(darkIcons = lightTop && !LocalHhDark.current)
     SubcomposeLayout(
         modifier = modifier
             .fillMaxSize()

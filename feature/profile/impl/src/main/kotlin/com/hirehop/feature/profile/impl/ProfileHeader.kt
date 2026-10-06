@@ -73,7 +73,7 @@ internal fun ProfileFrame(
     onEditContact: (() -> Unit)? = null,
     content: LazyListScope.() -> Unit,
 ) {
-    HhScreen(modifier = modifier, sheet = false) { padding ->
+    HhScreen(modifier = modifier, sheet = false, lightTop = false) { padding ->
         Column(modifier = Modifier.fillMaxSize()) {
             ProfileHeaderBlock(
                 state = header,

@@ -1,11 +1,18 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,21 +31,33 @@ class HhStatusBarIconsTest {
         return WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars
     }
 
-    @Test
-    fun whiteTopScreenInLightThemeUsesDarkIcons() {
-        assertEquals(true, darkIconsAfter(darkTheme = false) { HhScreen { } })
+    @Composable
+    private fun WhiteBar() {
+        Box(Modifier.fillMaxWidth().statusBarsPadding().height(48.dp))
     }
 
     @Test
-    fun jadeHeaderScreenUsesLightIcons() {
-        assertEquals(
-            false,
-            darkIconsAfter(darkTheme = false) { HhScreen(header = { HhInnerHeader(title = "T") }) { } },
-        )
+    fun headerlessWhiteTopInLightThemeUsesDarkIcons() {
+        assertTrue(darkIconsAfter(darkTheme = false) { HhScreen { } })
     }
 
     @Test
-    fun whiteTopScreenInDarkThemeUsesLightIcons() {
-        assertEquals(false, darkIconsAfter(darkTheme = true) { HhScreen { } })
+    fun jadeHeaderUsesLightIcons() {
+        assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(header = { HhInnerHeader(title = "T") }) { } })
+    }
+
+    @Test
+    fun jadeCustomTopWithLightTopFalseUsesLightIcons() {
+        assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(lightTop = false) { } })
+    }
+
+    @Test
+    fun whiteHeaderWithLightTopTrueUsesDarkIcons() {
+        assertTrue(darkIconsAfter(darkTheme = false) { HhScreen(lightTop = true, header = { WhiteBar() }) { } })
+    }
+
+    @Test
+    fun darkThemeUsesLightIcons() {
+        assertFalse(darkIconsAfter(darkTheme = true) { HhScreen(lightTop = true, header = { WhiteBar() }) { } })
     }
 }
