@@ -230,7 +230,6 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
     is AnalysisToast.PrepAdded ->
         stringResource(R.string.feature_analysis_impl_toast_prep_added, toast.requirementText.headline())
     AnalysisToast.GapClosed -> stringResource(R.string.feature_analysis_impl_toast_gap_closed)
-    AnalysisToast.FactSaved -> stringResource(R.string.feature_analysis_impl_toast_fact_saved)
     AnalysisToast.Reported -> stringResource(R.string.feature_analysis_impl_toast_reported)
     AnalysisToast.EvidenceFailed -> stringResource(R.string.feature_analysis_impl_toast_evidence_failed)
     AnalysisToast.TailorFailed -> stringResource(R.string.feature_analysis_impl_toast_tailor_failed)

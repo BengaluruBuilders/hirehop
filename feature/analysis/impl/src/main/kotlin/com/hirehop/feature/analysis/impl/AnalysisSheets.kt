@@ -49,6 +49,7 @@ import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.designsystem.theme.hhShadow
+import com.hirehop.core.domain.displayKeywords
 import com.hirehop.core.domain.prep.RequirementPhrase
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.ui.FactSourceProvenance
@@ -125,7 +126,7 @@ internal fun AnalysisSheets(state: AnalysisUiState.Result, actions: AnalysisActi
         }
         is AnalysisOverlay.Question -> state.itemOrNull(overlay.requirementId)?.let { item ->
             HhBottomSheet(onDismissRequest = actions.onDismissOverlay) {
-                QuestionSheetContent(item, actions)
+                QuestionSheetContent(item, actions, notClosed = overlay.notClosed)
             }
         }
         AnalysisOverlay.ShareCard -> HhBottomSheet(onDismissRequest = actions.onDismissOverlay) {
@@ -242,7 +243,7 @@ private fun HhProvenanceKind.labelRes(): Int = when (this) {
 }
 
 @Composable
-internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions) {
+internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
     var statement by rememberSaveable { mutableStateOf("") }
     val (rawName, rawDetail) = item.requirement.text.splitDetail()
     val name = RequirementPhrase.of(rawName)
@@ -263,6 +264,18 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             style = HhTheme.typography.bodyM,
             color = HhTheme.colors.body,
         )
+        if (notClosed) {
+            val keywords = displayKeywords(item.requirement)
+            Text(
+                text = if (keywords.isNotEmpty()) {
+                    stringResource(R.string.feature_analysis_impl_question_not_closed, keywords.joinToString(" or "))
+                } else {
+                    stringResource(R.string.feature_analysis_impl_question_not_closed_generic)
+                },
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurface,
+            )
+        }
         HhTextField(
             value = statement,
             onValueChange = { statement = it },

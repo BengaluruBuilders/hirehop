@@ -77,6 +77,7 @@ class AnalysisViewModel @Inject constructor(
     private var undoProfile: CandidateProfile? = null
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
+    private var submitting = false
 
     val destinations: Flow<AnalysisDestination> = destinationChannel.receiveAsFlow()
 
@@ -199,23 +200,46 @@ class AnalysisViewModel @Inject constructor(
                 if (ready != null) viewModelScope.launch { prepPlanRepository.remove(ready.draftKey, toast.requirementId) }
                 onToastDismiss()
             }
-            AnalysisToast.GapClosed, AnalysisToast.FactSaved -> restoreProfile()
+            AnalysisToast.GapClosed -> restoreProfile()
             else -> Unit
         }
     }
 
     fun onSubmitEvidence(requirementId: String, statement: String) {
         val ready = local.value.phase as? Phase.Ready ?: return
-        val requirement = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }?.requirement
-        if (requirement == null || statement.isBlank()) return
+        val match = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }
+        val requirement = match?.requirement
+        if (requirement == null || match.status != MatchStatus.GAP || statement.isBlank() || submitting) return
+        submitting = true
         viewModelScope.launch {
-            attempt {
-                addUserStatedFact(requirement, statement)
-                refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
-            }.fold(
-                onSuccess = { fresh -> applyEvidence(ready, fresh, requirementId) },
-                onFailure = { showToast(AnalysisToast.EvidenceFailed) },
-            )
+            try {
+                attempt {
+                    val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
+                    val previewed = refreshed(ready, preview)
+                    val closed = previewed.analysis.gap.matches
+                        .firstOrNull { it.requirement.id == requirementId }
+                        ?.status != MatchStatus.GAP
+                    if (closed) {
+                        addUserStatedFact(requirement, statement)
+                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
+                    } else {
+                        null
+                    }
+                }.fold(
+                    onSuccess = { fresh ->
+                        if (fresh != null) {
+                            applyEvidence(ready, fresh, requirementId)
+                        } else {
+                            local.update {
+                                it.copy(overlay = AnalysisOverlay.Question(requirementId, notClosed = true))
+                            }
+                        }
+                    },
+                    onFailure = { showToast(AnalysisToast.EvidenceFailed) },
+                )
+            } finally {
+                submitting = false
+            }
         }
     }
 
@@ -311,18 +335,15 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun applyEvidence(before: Phase.Ready, fresh: Phase.Ready, requirementId: String) {
         undoProfile = before.profile
-        val closed = fresh.analysis.gap.matches
-            .firstOrNull { it.requirement.id == requirementId }
-            ?.let { it.status != MatchStatus.GAP } == true
         dropClosedGapsFromPrepPlan(fresh)
         local.update {
             it.copy(
                 phase = fresh,
                 overlay = AnalysisOverlay.None,
-                closedId = requirementId.takeIf { closed },
+                closedId = requirementId,
             )
         }
-        showToast(if (closed) AnalysisToast.GapClosed else AnalysisToast.FactSaved)
+        showToast(AnalysisToast.GapClosed)
     }
 
     private suspend fun dropClosedGapsFromPrepPlan(fresh: Phase.Ready) {
