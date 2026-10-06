@@ -9,13 +9,7 @@ import com.hirehop.feature.tailor.impl.document.ResumeSection
 internal class ResumePdfComposer(
     private val writer: PdfPageWriter,
     private val style: PdfResumeStyle,
-    private val spaceScale: Float = 1f,
 ) {
-
-    private val sectionGap = SECTION_GAP * spaceScale
-    private val ruleGap = RULE_GAP * spaceScale
-    private val entryGap = ENTRY_GAP * spaceScale
-    private val bulletGap = BULLET_GAP * spaceScale
 
     fun compose(document: ResumeDocument) {
         header(document)
@@ -42,11 +36,11 @@ internal class ResumePdfComposer(
     }
 
     private fun heading(text: String) {
-        writer.space(sectionGap)
+        writer.space(SECTION_GAP)
         writer.drawBlock(layout(text, style.sectionHeading), keepWithNext = HEADING_KEEP_WITH_NEXT)
-        writer.space(ruleGap)
+        writer.space(RULE_GAP)
         writer.drawRule(style.rule)
-        writer.space(ruleGap)
+        writer.space(RULE_GAP)
     }
 
     private fun entry(entry: ResumeEntry) {
@@ -54,14 +48,14 @@ internal class ResumePdfComposer(
         block(titleLine, style.entryTitle, keepWithNext = ENTRY_KEEP_WITH_NEXT)
         block(entry.dateRange, style.entryDetail, keepWithNext = ENTRY_KEEP_WITH_NEXT)
         entry.bullets.forEach(::bullet)
-        writer.space(entryGap)
+        writer.space(ENTRY_GAP)
     }
 
     private fun bullet(text: String) {
         val marker = layout(BULLET_MARKER, style.body, width = BULLET_INDENT.toInt())
         val body = layout(text, style.body, width = writer.contentWidth - BULLET_INDENT.toInt())
         writer.drawHanging(marker, body, BULLET_INDENT)
-        writer.space(bulletGap)
+        writer.space(BULLET_GAP)
     }
 
     private fun block(text: String, paint: TextPaint, keepWithNext: Float = 0f) {

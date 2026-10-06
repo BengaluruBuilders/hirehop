@@ -9,7 +9,6 @@ internal data class ResumeDocument(
     val skills: List<String>,
     val sections: List<ResumeSection>,
     val skillsHeading: String,
-    val template: ExportTemplate = ExportTemplate.PLAIN,
 ) {
     val isEmpty: Boolean get() = sections.isEmpty()
 }
