@@ -51,7 +51,7 @@ class SignInViewModelTest {
         assertThat(viewModel.uiState.value.stage).isEqualTo(SignInStage.IDLE)
         assertThat(viewModel.uiState.value.isAdultConfirmed).isFalse()
         assertThat(viewModel.uiState.value.needsAdultConfirmation).isTrue()
-        assertThat(viewModel.uiState.value.canContinue).isFalse()
+        assertThat(viewModel.uiState.value.canContinue).isTrue()
     }
 
     @Test

@@ -11,7 +11,6 @@
     <string name="feature_onboarding_impl_sign_in_disclosure">Next, your JD and resume go to HireHop\'s server to be read. They stay private to your account.</string>
     <string name="feature_onboarding_impl_sign_in_action_continue">Continue with Google</string>
     <string name="feature_onboarding_impl_sign_in_action_under_18">I\'m under 18</string>
-    <string name="feature_onboarding_impl_sign_in_reason_needs_tick">Continue is off until you tick “I am 18 or older”.</string>
     <string name="feature_onboarding_impl_sign_in_reason_in_progress">Signing in with Google</string>
     <string name="feature_onboarding_impl_sign_in_reason_offline">Continue needs a connection.</string>
     <string name="feature_onboarding_impl_sign_in_offline_message">You\'re offline. Sign in needs a connection. Nothing was sent.</string>

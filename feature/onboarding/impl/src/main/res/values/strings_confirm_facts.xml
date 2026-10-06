@@ -20,6 +20,7 @@
         <item quantity="other">All %1$d facts are confirmed. HireHop uses only these.</item>
     </plurals>
     <string name="feature_onboarding_impl_confirm_facts_continue">Continue to my analysis</string>
+    <string name="feature_onboarding_impl_confirm_facts_reason_needs_one">Continue is off until you confirm at least one item below.</string>
 
     <string name="feature_onboarding_impl_confirm_facts_removed_banner">We removed your date of birth and your photo from this import. HireHop never keeps these.</string>
     <string name="feature_onboarding_impl_confirm_facts_offline_message">You\'re offline. Your edits are saved on this phone and sync when you\'re back.</string>

@@ -2,6 +2,7 @@ package com.hirehop.app.debug
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.app.R
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.sample.TestSampleDataController
 import com.hirehop.core.testing.util.MainDispatcherRule
@@ -48,6 +49,18 @@ class DebugMenuViewModelTest {
             assertThat(awaitItem().online).isTrue()
             viewModel.setOnline(false)
             assertThat(awaitItem().online).isFalse()
+        }
+    }
+
+    @Test
+    fun setOnline_changesTheConnectivityLabel() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            assertThat(awaitItem().connectivityLabel).isEqualTo(R.string.debug_connectivity_online)
+            viewModel.setOnline(false)
+            assertThat(awaitItem().connectivityLabel).isEqualTo(R.string.debug_connectivity_offline)
+            viewModel.setOnline(true)
+            assertThat(awaitItem().connectivityLabel).isEqualTo(R.string.debug_connectivity_online)
         }
     }
 

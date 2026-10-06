@@ -440,6 +440,8 @@ The first rule that matches wins:
 | 6 | Onboarding is complete | `Applications` |
 | 7 | Otherwise | `PasteJobDescription` |
 
+The Confirm facts screen enables "Continue to my analysis" only when at least one entry is confirmed. This matches rule 4. Skills count as confirmed, as in `factCounts()`. Paste JD treats a text of fewer than 20 words as too short (`PASTE_JD_MIN_WORDS`). Design frame S2-05 shows that 18 words is too short.
+
 ### Fact counts
 
 `CandidateProfile.factCounts()` (in `core:model`) gives `ProfileFactCounts(total, confirmed, userStated)`. `total` is skills plus entries. `confirmed` is skills plus confirmed entries that are not user-stated. `userStated` is confirmed user-stated entries. Profile, Your data, and Delete account use it. No screen counts facts by itself.

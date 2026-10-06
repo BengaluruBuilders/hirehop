@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -255,7 +256,7 @@ private fun SummaryCard(count: Int) {
             ) {
                 Text(text = count.toString(), style = HhTheme.typography.numeralM, color = HhTheme.colors.onSurface)
                 Text(
-                    text = stringResource(R.string.feature_tailor_impl_prep_questions_count_label),
+                    text = pluralStringResource(R.plurals.feature_tailor_impl_prep_questions_count_label, count),
                     style = HhTheme.typography.bodyM,
                     color = HhTheme.colors.onSurfaceVariant,
                 )

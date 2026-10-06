@@ -18,12 +18,16 @@ class AddUserStatedFactUseCase @Inject constructor(
     private val idAllocator = FactIdAllocator()
 
     suspend operator fun invoke(requirement: JobRequirement, statement: String) {
-        val trimmed = statement.trim()
-        if (trimmed.isEmpty()) return
-        val profile = profileRepository.observeProfile().first() ?: return
-        val stated = keywordsStatedIn(requirement, trimmed)
-        val updated = profile.copy(skills = mergedSkills(profile.skills, stated)).withStatement(trimmed)
+        val updated = preview(requirement, statement) ?: return
         profileRepository.saveProfile(updated)
+    }
+
+    suspend fun preview(requirement: JobRequirement, statement: String): CandidateProfile? {
+        val trimmed = statement.trim()
+        if (trimmed.isEmpty()) return null
+        val profile = profileRepository.observeProfile().first() ?: return null
+        val stated = keywordsStatedIn(requirement, trimmed)
+        return profile.copy(skills = mergedSkills(profile.skills, stated)).withStatement(trimmed)
     }
 
     private fun mergedSkills(existing: List<String>, stated: List<String>): List<String> {

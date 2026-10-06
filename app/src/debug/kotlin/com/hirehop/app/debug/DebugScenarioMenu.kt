@@ -1,5 +1,6 @@
 package com.hirehop.app.debug
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -63,7 +64,7 @@ fun DebugScenarioMenu(
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
             DebugDataCard(uiState = uiState, actions = actions)
-            DebugConnectivityCard(online = uiState.online, onOnlineChange = actions.onOnlineChange)
+            DebugConnectivityCard(online = uiState.online, label = uiState.connectivityLabel, onOnlineChange = actions.onOnlineChange)
             DebugScenarioCard(
                 selectedTarget = selectedTarget,
                 selectedScenario = selectedScenario,
@@ -113,6 +114,7 @@ private fun DebugDataCard(
 @Composable
 private fun DebugConnectivityCard(
     online: Boolean,
+    @StringRes label: Int,
     onOnlineChange: (Boolean) -> Unit,
 ) {
     HhCard(modifier = Modifier.fillMaxWidth()) {
@@ -123,7 +125,7 @@ private fun DebugConnectivityCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.debug_connectivity_online),
+                text = stringResource(label),
                 style = HhTheme.typography.bodyL,
                 color = HhTheme.colors.onSurface,
             )
