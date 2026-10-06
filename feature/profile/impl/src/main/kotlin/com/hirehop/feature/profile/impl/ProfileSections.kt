@@ -2,47 +2,47 @@ package com.hirehop.feature.profile.impl
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhCard
+import com.hirehop.core.designsystem.component.HhAccent
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOnColorChip
+import com.hirehop.core.designsystem.component.HhOnColorChipStyle
+import com.hirehop.core.designsystem.component.HhOpenAction
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.component.hhListEnter
 import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.feature.profile.impl.common.FactCard
-import com.hirehop.feature.profile.impl.common.FactIdChip
 import com.hirehop.feature.profile.impl.common.FactStatus
 
-private val ArrowSize = 18.dp
-private val ChipGap = 6.dp
 private val ListGap = 10.dp
+
+internal fun sectionAccent(index: Int): HhAccent = when (index.mod(3)) {
+    1 -> HhAccent.Jade
+    2 -> HhAccent.Marigold
+    else -> HhAccent.Coral
+}
 
 @StringRes
 internal fun ProfileSectionKind.titleRes(): Int = when (this) {
@@ -64,10 +64,10 @@ internal fun ProfileSectionKind.addLabelRes(): Int = when (this) {
     ProfileSectionKind.Extras -> R.string.feature_profile_impl_add_achievement
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SectionCard(
     section: ProfileSection,
+    accent: HhAccent,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -78,41 +78,23 @@ internal fun SectionCard(
         section.count,
     )
     val description = stringResource(R.string.feature_profile_impl_section_description, title, factsLabel)
-    HhCard(
+    HhSolidCard(
+        accent = accent,
+        monogram = title.take(1).uppercase(),
+        title = title,
+        subtitle = sectionSubtitle(section),
         modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },
-        onClick = onOpen,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = title, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = section.count.toString(),
-                    style = HhTheme.typography.titleM,
-                    color = HhTheme.colors.onSurface,
-                )
-                Icon(
-                    imageVector = HhIcons.ArrowForward,
-                    contentDescription = null,
-                    tint = HhTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.size(ArrowSize),
+        openAction = HhOpenAction(contentDescription = description, onClick = onOpen),
+        chips = {
+            section.facts.forEach { fact ->
+                HhOnColorChip(
+                    label = fact.displayId,
+                    style = HhOnColorChipStyle.White,
+                    accent = accent,
                 )
             }
-        }
-        FlowRow(
-            modifier = Modifier.clearAndSetSemantics { },
-            horizontalArrangement = Arrangement.spacedBy(ChipGap),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
-            section.facts.forEach { fact -> FactIdChip(id = fact.displayId, status = fact.status) }
-        }
-    }
+        },
+    )
 }
 
 @Composable
@@ -182,6 +164,7 @@ internal fun ExpandedSectionScreen(
                             label = stringResource(R.string.feature_profile_impl_skill_remove),
                             onClick = { actions.onRemoveSkill(skill) },
                             trailingIcon = HhIcons.Delete,
+                            size = HhButtonSize.Compact,
                         )
                     }
                 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
@@ -50,12 +51,14 @@ internal fun FactCard(
             label = stringResource(R.string.feature_profile_impl_fact_edit),
             onClick = onEdit,
             trailingIcon = HhIcons.Edit,
+            size = HhButtonSize.Compact,
         )
         if (onConfirm != null) {
             HhSecondaryButton(
                 label = stringResource(R.string.feature_profile_impl_fact_confirm),
                 onClick = onConfirm,
                 trailingIcon = HhIcons.Check,
+                size = HhButtonSize.Compact,
             )
         }
     }

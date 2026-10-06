@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhConfirmDialog
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhExpandable
@@ -331,6 +332,7 @@ private fun FactEditorToolsField(
                 label = stringResource(R.string.feature_profile_impl_fact_editor_add_tool),
                 onClick = { isAdding = true },
                 trailingIcon = HhIcons.Add,
+                size = HhButtonSize.Compact,
             )
         }
         HhExpandable(expanded = isAdding) {

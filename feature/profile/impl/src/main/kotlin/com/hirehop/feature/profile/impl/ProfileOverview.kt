@@ -1,7 +1,7 @@
 package com.hirehop.feature.profile.impl
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,8 +56,8 @@ internal fun ProfileOverviewScreen(
                 )
             }
         }
-        items(items = overview.sections, key = { "section-${it.kind.name}" }) { section ->
-            SectionCard(section = section, onOpen = { onOpenSection(section.kind) })
+        itemsIndexed(items = overview.sections, key = { _, it -> "section-${it.kind.name}" }) { index, section ->
+            SectionCard(section = section, accent = sectionAccent(index), onOpen = { onOpenSection(section.kind) })
         }
         item(key = "add-fact") {
             HhOutlineButton(
