@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -121,65 +122,83 @@ internal fun CoverLetterScreen(
 
 @Composable
 private fun CoverLetterHeader(uiState: CoverLetterUiState, actions: CoverLetterActions) {
+    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
     HhInnerHeader(
         title = uiState.jobTitle.trim().ifEmpty { stringResource(R.string.feature_tailor_impl_cover_letter_title) },
         subtitle = uiState.subtitle(),
         onBack = actions.onNavigateBack,
         backContentDescription = stringResource(R.string.feature_tailor_impl_cover_letter_back),
-        trailing = {
-            HhOnColorChip(
-                label = stringResource(
-                    if (uiState.isEditing) {
-                        R.string.feature_tailor_impl_cover_letter_editing_title
-                    } else {
-                        R.string.feature_tailor_impl_cover_letter_title
-                    },
-                ),
-                style = HhOnColorChipStyle.Ink,
-            )
-        },
+        trailing = if (largeFont) null else ({ CoverLetterPill(uiState) }),
         belowTitle = {
-            HeaderMetaRow(uiState)
+            HeaderMetaRow(uiState, largeFont)
         },
     )
 }
 
 @Composable
-private fun HeaderMetaRow(uiState: CoverLetterUiState) {
+private fun CoverLetterPill(uiState: CoverLetterUiState) {
+    HhOnColorChip(
+        label = stringResource(
+            if (uiState.isEditing) {
+                R.string.feature_tailor_impl_cover_letter_editing_title
+            } else {
+                R.string.feature_tailor_impl_cover_letter_title
+            },
+        ),
+        style = HhOnColorChipStyle.Ink,
+    )
+}
+
+@Composable
+private fun HeaderMetaRow(uiState: CoverLetterUiState, largeFont: Boolean) {
+    if (largeFont) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        ) {
+            CoverLetterPill(uiState)
+            HeaderWordCount(uiState)
+        }
+        return
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         HhMonogram(text = uiState.jobCompany, size = HhTheme.spacing.d48)
-        if (uiState.stage == CoverLetterStage.READY) {
-            val withinRange = isWithinWordTarget(uiState.wordCount)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (withinRange) {
-                    Icon(
-                        imageVector = HhIcons.Verified,
-                        contentDescription = null,
-                        tint = HhTheme.colors.onHeader,
-                        modifier = Modifier.heightIn(min = HhTheme.spacing.d24),
-                    )
-                }
-                Text(
-                    text = pluralStringResource(
-                        if (withinRange) {
-                            R.plurals.feature_tailor_impl_cover_letter_words_in_range
-                        } else {
-                            R.plurals.feature_tailor_impl_cover_letter_words_outside_range
-                        },
-                        uiState.wordCount,
-                        uiState.wordCount,
-                    ),
-                    style = HhTheme.typography.labelM,
-                    color = HhTheme.colors.onHeader,
-                )
-            }
+        HeaderWordCount(uiState)
+    }
+}
+
+@Composable
+private fun HeaderWordCount(uiState: CoverLetterUiState) {
+    if (uiState.stage != CoverLetterStage.READY) return
+    val withinRange = isWithinWordTarget(uiState.wordCount)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (withinRange) {
+            Icon(
+                imageVector = HhIcons.Verified,
+                contentDescription = null,
+                tint = HhTheme.colors.onHeader,
+                modifier = Modifier.heightIn(min = HhTheme.spacing.d24),
+            )
         }
+        Text(
+            text = pluralStringResource(
+                if (withinRange) {
+                    R.plurals.feature_tailor_impl_cover_letter_words_in_range
+                } else {
+                    R.plurals.feature_tailor_impl_cover_letter_words_outside_range
+                },
+                uiState.wordCount,
+                uiState.wordCount,
+            ),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onHeader,
+        )
     }
 }
 
@@ -626,3 +645,5 @@ private fun CoverLetterBottomBar(uiState: CoverLetterUiState, actions: CoverLett
         }
     }
 }
+
+private const val LARGE_FONT_SCALE = 1.5f

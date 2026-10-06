@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -140,6 +141,7 @@ private fun PrepQuestionsHeader(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
     HhInnerHeader(
         title = uiState.jobTitle.ifBlank {
             stringResource(R.string.feature_tailor_impl_role_not_set)
@@ -147,38 +149,45 @@ private fun PrepQuestionsHeader(
         subtitle = uiState.subtitle(),
         onBack = actions.onNavigateBack,
         backContentDescription = stringResource(R.string.feature_tailor_impl_prep_questions_back),
-        trailing = {
-            Row(
-                modifier = Modifier
-                    .clip(HhTheme.shapes.pill)
-                    .background(HhTheme.colors.inverseSurface)
-                    .defaultMinSize(minHeight = HhTheme.spacing.d32)
-                    .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_prep_questions_title),
-                    style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-                    color = HhTheme.colors.inverseOnSurface,
-                )
-            }
-        },
+        trailing = if (largeFont) null else ({ PrepQuestionsPill() }),
         belowTitle = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
             ) {
-                HhMonogram(
-                    text = uiState.jobCompany.ifBlank {
-                        stringResource(R.string.feature_tailor_impl_company_not_set)
-                    },
-                )
+                if (largeFont) {
+                    PrepQuestionsPill()
+                } else {
+                    HhMonogram(
+                        text = uiState.jobCompany.ifBlank {
+                            stringResource(R.string.feature_tailor_impl_company_not_set)
+                        },
+                    )
+                }
                 if (uiState.stage == PrepQuestionsStage.READY) {
                     ReadyHeaderChips(uiState)
                 }
             }
         },
     )
+}
+
+@Composable
+private fun PrepQuestionsPill() {
+    Row(
+        modifier = Modifier
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.inverseSurface)
+            .defaultMinSize(minHeight = HhTheme.spacing.d32)
+            .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_prep_questions_title),
+            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+            color = HhTheme.colors.inverseOnSurface,
+        )
+    }
 }
 
 @Composable
@@ -564,3 +573,5 @@ private fun ReportButton(description: String, isReported: Boolean, onClick: () -
             .semantics { contentDescription = description },
     )
 }
+
+private const val LARGE_FONT_SCALE = 1.5f
