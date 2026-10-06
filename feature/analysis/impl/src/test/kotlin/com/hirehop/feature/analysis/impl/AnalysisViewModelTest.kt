@@ -31,12 +31,15 @@ import com.hirehop.core.testing.repository.TestUsageAllowance
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.TailorNavKey
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -75,6 +78,7 @@ class AnalysisViewModelTest {
         onboardingComplete: Boolean = false,
         profile: CandidateProfile? = confirmedProfile(),
         freeCredits: Int? = null,
+        compute: CoroutineDispatcher = UnconfinedTestDispatcher(),
     ) {
         if (freeCredits != null) paymentGateway = TestPaymentGateway().withFreeCredits(freeCredits)
         sessionRepository.sendAccount(SignInAccount.localAccount)
@@ -82,12 +86,12 @@ class AnalysisViewModelTest {
         sessionRepository.sendOnboardingComplete(onboardingComplete)
         profileRepository.sendProfile(profile)
         if (job != null) sessionRepository.keepJobDescription(job)
-        viewModel = createViewModel()
+        viewModel = createViewModel(compute)
         viewModel.onEnter(scenario)
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
     }
 
-    private fun createViewModel() = AnalysisViewModel(
+    private fun createViewModel(compute: CoroutineDispatcher = UnconfinedTestDispatcher()) = AnalysisViewModel(
         sessionRepository = sessionRepository,
         profileRepository = profileRepository,
         nextOnboardingStep = NextOnboardingStepUseCase(sessionRepository, profileRepository),
@@ -105,7 +109,7 @@ class AnalysisViewModelTest {
         paymentGateway = paymentGateway,
         clock = FixedClock,
         connectivityMonitor = connectivity,
-        computeDispatcher = UnconfinedTestDispatcher(),
+        computeDispatcher = compute,
         applicationScope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
     )
 
@@ -373,14 +377,66 @@ class AnalysisViewModelTest {
     }
 
     @Test
-    fun iHaveThis_whenTheWordsDoNotCloseTheGap_savesWithoutClaimingIt() = runTest {
+    fun iHaveThis_whenTheWordsCloseTheGapWithoutNamingTheKeyword_stillSaves() = runTest {
         start()
+
+        viewModel.onSubmitEvidence("req-sql", "My work used SQLite daily.")
+
+        val result = result()
+        assertThat(result.item("req-sql").status).isNotEqualTo(MatchStatus.GAP)
+        assertThat(result.toast).isEqualTo(AnalysisToast.GapClosed)
+        val entry = requireNotNull(profileRepository.observeProfile().first()).entries.first { it.id == "U-01" }
+        assertThat(entry.source).isEqualTo(FactSource.USER_STATED)
+        assertThat(entry.bullets.map { it.text }).contains("My work used SQLite daily.")
+    }
+
+    @Test
+    fun iHaveThis_ignoresASecondSubmitOfTheSameWords() = runTest {
+        start(compute = StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        val before = requireNotNull(profileRepository.observeProfile().first())
+        val bulletsBefore = before.entries.sumOf { it.bullets.size }
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+        advanceUntilIdle()
+
+        val profile = requireNotNull(profileRepository.observeProfile().first())
+        val entry = profile.entries.first { it.id == "U-01" }
+        assertThat(entry.bullets).hasSize(1)
+        assertThat(profile.entries.sumOf { it.bullets.size }).isEqualTo(bulletsBefore + 1)
+    }
+
+    @Test
+    fun iHaveThis_whenTheWordsDoNotCloseTheGap_savesNothingAndExplainsWhy() = runTest {
+        start()
+        val before = profileRepository.observeProfile().first()
+
+        viewModel.onIHaveThis("req-sql")
+        viewModel.onSubmitEvidence("req-sql", "I like tidy data.")
+
+        val result = result()
+        assertThat(result.item("req-sql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result.toast).isNull()
+        assertThat(result.closedRequirementId).isNull()
+        assertThat(result.overlay).isEqualTo(AnalysisOverlay.Question("req-sql", notClosed = true))
+        assertThat(profileRepository.observeProfile().first()).isEqualTo(before)
+    }
+
+    @Test
+    fun iHaveThis_whenTheWordsDoNotCloseTheGap_attachesTheWordsToNoRow() = runTest {
+        start()
+        val before = requireNotNull(profileRepository.observeProfile().first())
+        val bulletsBefore = before.entries.sumOf { it.bullets.size }
 
         viewModel.onSubmitEvidence("req-sql", "I like tidy data.")
 
-        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.GAP)
-        assertThat(result().toast).isEqualTo(AnalysisToast.FactSaved)
-        assertThat(result().closedRequirementId).isNull()
+        val profile = requireNotNull(profileRepository.observeProfile().first())
+        assertThat(profile.entries).hasSize(before.entries.size)
+        assertThat(profile.entries.sumOf { it.bullets.size }).isEqualTo(bulletsBefore)
+        assertThat(profile.entries.map { it.source }).doesNotContain(FactSource.USER_STATED)
+        val rows = result().sections.flatMap { it.items }
+        assertThat(rows.flatMap { item -> item.factRefs.filter { it.source == FactSource.USER_STATED } }).isEmpty()
     }
 
     @Test

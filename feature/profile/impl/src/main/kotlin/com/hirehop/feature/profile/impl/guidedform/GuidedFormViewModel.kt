@@ -147,7 +147,7 @@ class GuidedFormViewModel @Inject internal constructor(
         val state = initial.withPendingSkill()
         val step = state.step
         val drafts = draftsFor(step, state.values)
-        val problems = problemsOf(step, drafts)
+        val problems = problemsOf(step, drafts) + contactProblemsOf(step, state.values)
         if (problems.isNotEmpty()) {
             mutableState.value = state.copy(fieldProblems = problems)
             return
@@ -224,6 +224,20 @@ class GuidedFormViewModel @Inject internal constructor(
             detail = "",
         )
         return listOf(degree, coursework).filter { it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
+    }
+
+    private fun contactProblemsOf(step: GuidedStep, values: Map<GuidedField, String>): Map<GuidedField, GuidedFieldProblem> {
+        if (step != GuidedStep.CONTACT) return emptyMap()
+        val email = values[GuidedField.EMAIL].orEmpty()
+        val phone = values[GuidedField.PHONE].orEmpty()
+        return buildMap {
+            if (email.isNotBlank() && !ContactFieldValidator.isValidEmail(email)) {
+                put(GuidedField.EMAIL, GuidedFieldProblem.INVALID_EMAIL)
+            }
+            if (phone.isNotBlank() && !ContactFieldValidator.isValidPhone(phone)) {
+                put(GuidedField.PHONE, GuidedFieldProblem.INVALID_PHONE)
+            }
+        }
     }
 
     private fun problemsOf(step: GuidedStep, drafts: List<FactDraft>): Map<GuidedField, GuidedFieldProblem> =

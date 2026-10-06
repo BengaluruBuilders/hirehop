@@ -58,9 +58,28 @@ internal class ReviewInteraction(initialBulletId: String? = null, initialToast: 
     var openBulletId by mutableStateOf(initialBulletId)
     var editBulletId by mutableStateOf<String?>(null)
     var editText by mutableStateOf("")
+        private set
+    var editShowsError by mutableStateOf(false)
+        private set
     var sourceBulletId by mutableStateOf<String?>(null)
     var regenerateCategory by mutableStateOf<EntryCategory?>(null)
     var toast by mutableStateOf(initialToast)
+
+    fun startEdit(bulletId: String, proposedText: String) {
+        editText = proposedText
+        editShowsError = false
+        editBulletId = bulletId
+    }
+
+    fun changeEditText(text: String) {
+        editText = text
+        editShowsError = false
+    }
+
+    fun canSaveEdit(): Boolean {
+        editShowsError = editText.isBlank()
+        return !editShowsError
+    }
 }
 
 @Composable
@@ -212,7 +231,7 @@ private fun StatusContent(padding: PaddingValues, title: String, body: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions, interaction: ReviewInteraction) {
+internal fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions, interaction: ReviewInteraction) {
     val closeSheet = {
         interaction.openBulletId = null
         actions.onBulletSheetClosed()
@@ -236,11 +255,14 @@ private fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions,
             EditByHandContent(
                 position = state.changeIndexOf(editItem.bullet.id) + 1,
                 text = interaction.editText,
-                onTextChange = { interaction.editText = it },
+                onTextChange = interaction::changeEditText,
+                showsError = interaction.editShowsError,
                 onCancel = { interaction.editBulletId = null },
                 onSave = {
-                    actions.onEditByHand(editItem.bullet.id, interaction.editText)
-                    interaction.editBulletId = null
+                    if (interaction.canSaveEdit()) {
+                        actions.onEditByHand(editItem.bullet.id, interaction.editText)
+                        interaction.editBulletId = null
+                    }
                 },
             )
         }
@@ -294,8 +316,7 @@ private fun bulletSheetActions(
         },
         onUndo = { actions.onUndo(id) },
         onEditByHand = {
-            interaction.editText = item.bullet.proposedText
-            interaction.editBulletId = id
+            interaction.startEdit(id, item.bullet.proposedText)
         },
         onNextChange = {
             val next = state.nextOpenChange(id)

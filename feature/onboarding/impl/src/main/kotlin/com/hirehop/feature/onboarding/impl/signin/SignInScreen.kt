@@ -172,7 +172,6 @@ private fun SignInBarNotice(uiState: SignInUiState) {
     val reason = when {
         uiState.isBusy -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_in_progress)
         uiState.isOffline -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_offline)
-        !uiState.isAdultConfirmed -> stringResource(R.string.feature_onboarding_impl_sign_in_reason_needs_tick)
         else -> null
     }
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {

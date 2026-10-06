@@ -20,7 +20,7 @@ data class SignInUiState(
     val isBusy: Boolean get() = stage == SignInStage.IN_PROGRESS
     val needsAdultConfirmation: Boolean get() = stage == SignInStage.IDLE && !isAdultConfirmed
     val canContinue: Boolean
-        get() = stage != SignInStage.IN_PROGRESS && stage != SignInStage.UNDER_18 && isAdultConfirmed && !isOffline
+        get() = stage != SignInStage.IN_PROGRESS && stage != SignInStage.UNDER_18 && !isOffline
     val isSettled: Boolean get() = stage == SignInStage.SIGNED_IN
 }
 
