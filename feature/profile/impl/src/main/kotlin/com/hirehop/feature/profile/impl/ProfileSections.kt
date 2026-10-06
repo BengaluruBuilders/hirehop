@@ -1,6 +1,7 @@
 package com.hirehop.feature.profile.impl
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,8 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -34,14 +37,20 @@ import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.feature.profile.impl.common.FactCard
+import com.hirehop.feature.profile.impl.common.FactIdChip
 import com.hirehop.feature.profile.impl.common.FactStatus
 
 private val ListGap = 10.dp
 
-internal fun sectionAccent(index: Int): HhAccent = when (index.mod(3)) {
-    1 -> HhAccent.Jade
-    2 -> HhAccent.Marigold
-    else -> HhAccent.Coral
+private const val SECTION_CHIP_LIMIT = 3
+
+internal fun sectionAccent(kind: ProfileSectionKind): HhAccent = when (kind) {
+    ProfileSectionKind.Education -> HhAccent.Coral
+    ProfileSectionKind.Experience -> HhAccent.Jade
+    ProfileSectionKind.Projects -> HhAccent.Marigold
+    ProfileSectionKind.Skills -> HhAccent.Coral
+    ProfileSectionKind.Certifications -> HhAccent.Jade
+    ProfileSectionKind.Extras -> HhAccent.Marigold
 }
 
 @StringRes
@@ -52,6 +61,16 @@ internal fun ProfileSectionKind.titleRes(): Int = when (this) {
     ProfileSectionKind.Skills -> R.string.feature_profile_impl_section_skills
     ProfileSectionKind.Certifications -> R.string.feature_profile_impl_section_certifications
     ProfileSectionKind.Extras -> R.string.feature_profile_impl_section_extras
+}
+
+@StringRes
+internal fun ProfileSectionKind.monogramRes(): Int = when (this) {
+    ProfileSectionKind.Education -> R.string.feature_profile_impl_monogram_education
+    ProfileSectionKind.Experience -> R.string.feature_profile_impl_monogram_experience
+    ProfileSectionKind.Projects -> R.string.feature_profile_impl_monogram_projects
+    ProfileSectionKind.Skills -> R.string.feature_profile_impl_monogram_skills
+    ProfileSectionKind.Certifications -> R.string.feature_profile_impl_monogram_certifications
+    ProfileSectionKind.Extras -> R.string.feature_profile_impl_monogram_extras
 }
 
 @StringRes
@@ -72,23 +91,25 @@ internal fun SectionCard(
     modifier: Modifier = Modifier,
 ) {
     val title = stringResource(section.kind.titleRes())
-    val factsLabel = pluralStringResource(
-        R.plurals.feature_profile_impl_fact_count_accessibility,
-        section.count,
-        section.count,
-    )
-    val description = stringResource(R.string.feature_profile_impl_section_description, title, factsLabel)
+    val subtitle = sectionSubtitle(section)
+    val description = stringResource(R.string.feature_profile_impl_section_description, title, subtitle)
     HhSolidCard(
         accent = accent,
-        monogram = title.take(1).uppercase(),
+        monogram = stringResource(section.kind.monogramRes()),
         title = title,
-        subtitle = sectionSubtitle(section),
-        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },
+        subtitle = subtitle,
+        modifier = modifier
+            .clip(HhTheme.shapes.card)
+            .clickable(role = Role.Button, onClick = onOpen)
+            .semantics(mergeDescendants = true) { contentDescription = description },
         openAction = HhOpenAction(contentDescription = description, onClick = onOpen),
         chips = {
-            section.facts.forEach { fact ->
+            section.facts.take(SECTION_CHIP_LIMIT).forEach { fact ->
+                FactIdChip(id = fact.displayId, status = fact.status)
+            }
+            if (section.count > SECTION_CHIP_LIMIT) {
                 HhOnColorChip(
-                    label = fact.displayId,
+                    label = stringResource(R.string.feature_profile_impl_section_more_facts, section.count - SECTION_CHIP_LIMIT),
                     style = HhOnColorChipStyle.White,
                     accent = accent,
                 )

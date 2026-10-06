@@ -211,7 +211,7 @@ private fun QuestionContent(
     HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.sm + HhTheme.spacing.xxs)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(ChipGap),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
+            verticalArrangement = Arrangement.spacedBy(ChipGap),
         ) {
             EVIDENCE_CATEGORIES.forEach { item ->
                 HhFilterChip(
