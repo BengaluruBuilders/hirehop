@@ -23,6 +23,7 @@ private const val HH_RECORD_PROPERTY = "roborazzi.test.record"
 private const val HH_COMPARE_PROPERTY = "roborazzi.test.compare"
 private const val HH_VERIFY_PROPERTY = "roborazzi.test.verify"
 private const val HH_COMPARE_DIRECTORY_PROPERTY = "roborazzi.compare.output.dir"
+private const val HH_EMBEDDED_VIEW_ROOT_PROPERTY = "robolectric.useEmbeddedViewRoot"
 
 private fun propertyIsSet(name: String): Boolean = System.getProperty(name) == HH_ENABLED
 
@@ -53,7 +54,12 @@ private fun hhRoborazziOptions(): RoborazziOptions = RoborazziOptions(
 
 @OptIn(ExperimentalRoborazziApi::class)
 fun captureScreenHh(filePath: String) {
+    stopCapturesSharingTheWindowRenderer()
     captureScreenRoboImage(filePath, hhRoborazziOptions())
+}
+
+private fun stopCapturesSharingTheWindowRenderer() {
+    System.setProperty(HH_EMBEDDED_VIEW_ROOT_PROPERTY, "false")
 }
 
 fun HhTestDevice.imageFileName(
@@ -67,7 +73,6 @@ fun HhTestDevice.imageFile(
     theme: String,
 ): File = File(outputDirectory, imageFileName(screenName, theme))
 
-@OptIn(ExperimentalRoborazziApi::class)
 suspend fun ComposeTestRule.captureForDevice(
     outputDirectory: String,
     screenName: String,
@@ -75,7 +80,7 @@ suspend fun ComposeTestRule.captureForDevice(
     theme: String = HH_THEME_LIGHT,
 ): String {
     val file = device.imageFile(outputDirectory, screenName, theme)
-    captureScreenRoboImage(file.path, hhRoborazziOptions())
+    captureScreenHh(file.path)
     return file.path
 }
 
