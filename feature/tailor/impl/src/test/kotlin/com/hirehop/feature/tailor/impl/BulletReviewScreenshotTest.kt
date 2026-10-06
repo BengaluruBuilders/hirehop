@@ -150,6 +150,7 @@ class BulletReviewScreenshotTest {
             item = item,
             position = index + 1,
             total = state.totalCount,
+            openCount = state.openCount,
             actions = BulletSheetActions(
                 onPrevious = if (index > 0) ({}) else null,
                 onNext = if (index < state.totalCount - 1) ({}) else null,

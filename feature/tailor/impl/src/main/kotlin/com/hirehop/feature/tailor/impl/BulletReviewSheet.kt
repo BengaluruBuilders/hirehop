@@ -1,6 +1,8 @@
 package com.hirehop.feature.tailor.impl
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,10 +12,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -31,24 +37,26 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.hirehop.core.designsystem.component.HhEditTypeTag
+import com.hirehop.core.designsystem.component.HhDecoration
+import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhEvidenceMark
 import com.hirehop.core.designsystem.component.HhEvidenceText
+import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
-import com.hirehop.core.designsystem.component.HhSecondaryButton
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhTextField
 import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.model.GuardrailViolation
 import com.hirehop.feature.tailor.impl.diff.WordDiff
 
 internal data class BulletSheetActions(
@@ -68,6 +76,7 @@ internal fun BulletReviewSheetContent(
     item: TailorBulletUi,
     position: Int,
     total: Int,
+    openCount: Int,
     actions: BulletSheetActions,
     modifier: Modifier = Modifier,
     isReported: Boolean = false,
@@ -81,18 +90,24 @@ internal fun BulletReviewSheetContent(
             .semantics { contentDescription = description },
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
-        PagerRow(position, total, actions)
-        TagRow(item)
-        BulletTexts(item, markStyle)
+        SheetHeader(item, position, total, actions)
+        if (state == BulletReviewState.ACCEPTED) {
+            AcceptedBanner(left = openCount)
+        }
+        OriginalBlock(item, markStyle)
+        ChangedBlock(item, markStyle, actions.onOpenSource)
         if (item.bullet.keywordsUsed.isNotEmpty() && state.showsNewText()) {
             KeywordRow(item.bullet.keywordsUsed)
         }
         BulletNotice(item)
-        item.sources.distinctBy { it.displayId }.forEach { source ->
-            SourceRow(source, onClick = actions.onOpenSource)
+        VerbKeptCard(item)
+        if (state != BulletReviewState.USER_EDITED) {
+            item.sources.distinctBy { it.displayId }.forEach { source ->
+                SourceCard(source, onClick = actions.onOpenSource)
+            }
         }
         BulletButtons(state, actions)
-        FooterRow(item, position, actions, isReported)
+        FooterRow(position, actions, isReported)
     }
 }
 
@@ -130,26 +145,45 @@ private fun bulletDescription(item: TailorBulletUi, position: Int, total: Int): 
 }
 
 @Composable
-private fun PagerRow(position: Int, total: Int, actions: BulletSheetActions) {
+private fun SheetHeader(item: TailorBulletUi, position: Int, total: Int, actions: BulletSheetActions) {
+    val entry = bulletEntryLine(item)
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PagerButton(HhIcons.ArrowBack, stringResource(R.string.feature_tailor_impl_bullet_previous), actions.onPrevious)
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_bullet_position, position, total),
-            style = HhTheme.typography.titleS,
-            color = HhTheme.colors.onSurface,
-            textAlign = TextAlign.Center,
+        Column(
             modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
+        ) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_bullet_position, position, total),
+                style = HhTheme.typography.titleL,
+                color = HhTheme.colors.onSurface,
+            )
+            if (entry.isNotEmpty()) {
+                Text(
+                    text = entry,
+                    style = HhTheme.typography.labelM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+            }
+        }
+        PagerButton(
+            HhIcons.ArrowBack,
+            stringResource(R.string.feature_tailor_impl_bullet_previous),
+            actions.onPrevious,
         )
-        PagerButton(HhIcons.ArrowForward, stringResource(R.string.feature_tailor_impl_bullet_next), actions.onNext)
+        PagerButton(
+            HhIcons.ArrowForward,
+            stringResource(R.string.feature_tailor_impl_bullet_next),
+            actions.onNext,
+        )
     }
 }
 
 @Composable
-private fun PagerButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: (() -> Unit)?) {
+private fun PagerButton(icon: ImageVector, description: String, onClick: (() -> Unit)?) {
     HhIconButton(
         icon = icon,
         contentDescription = description,
@@ -160,67 +194,174 @@ private fun PagerButton(icon: androidx.compose.ui.graphics.vector.ImageVector, d
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TagRow(item: TailorBulletUi) {
-    val state = item.state
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+private fun bulletEntryLine(item: TailorBulletUi): String {
+    val source = item.sources.firstOrNull() ?: return ""
+    val head = source.entryTitle.ifEmpty { stringResource(source.category.headingRes()) }
+    return listOf(head, source.organization)
+        .filter { it.isNotEmpty() }
+        .joinToString(" · ")
+}
+
+@Composable
+private fun AcceptedBanner(left: Int) {
+    val colors = HhTheme.colors
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.brand, HhTheme.shapes.statusRow),
     ) {
-        when (state) {
-            BulletReviewState.TO_REVIEW, BulletReviewState.FLAGGED ->
-                item.bullet.editTypes.forEach { HhEditTypeTag(label = stringResource(it.labelRes())) }
-            else -> DecisionChip(state)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = HhTheme.spacing.d48 + HhTheme.spacing.d8)
+                .padding(start = HhTheme.spacing.d8, end = HhTheme.spacing.cardPadding, top = HhTheme.spacing.sm, bottom = HhTheme.spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = HhIcons.CheckCircle,
+                contentDescription = null,
+                tint = colors.onBrand,
+                modifier = Modifier.size(HhTheme.spacing.d32 + HhTheme.spacing.xs),
+            )
+            Text(
+                text = pluralStringResource(R.plurals.feature_tailor_impl_bullet_accepted_note, left, left),
+                style = HhTheme.typography.titleM,
+                color = colors.onBrand,
+            )
         }
+        HhDecoration(
+            kind = HhDecorationKind.Squiggle,
+            color = colors.special,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = -HhTheme.spacing.md, y = HhTheme.spacing.sm),
+        )
     }
 }
 
 @Composable
-private fun BulletTexts(item: TailorBulletUi, markStyle: SpanStyle) {
-    val state = item.state
+private fun OriginalBlock(item: TailorBulletUi, markStyle: SpanStyle) {
     val bullet = item.bullet
     val diff = remember(bullet.originalText, bullet.proposedText) {
         WordDiff.diff(bullet.originalText, bullet.proposedText)
     }
-    val showsDiff = state.showsNewText() && bullet.originalText.trim() != bullet.proposedText.trim()
+    val showsDiff = item.state.showsNewText() && bullet.originalText.trim() != bullet.proposedText.trim()
     LabeledText(
-        label = stringResource(R.string.feature_tailor_impl_bullet_original),
+        label = stringResource(R.string.feature_tailor_impl_bullet_chip_original),
         labelColor = HhTheme.colors.onSurfaceVariant,
     ) {
-        val struck = SpanStyle(background = HhTheme.colors.neutralContainer, textDecoration = TextDecoration.LineThrough)
+        val struck = SpanStyle(
+            background = HhTheme.colors.neutralContainer,
+            textDecoration = TextDecoration.LineThrough,
+        )
         HhEvidenceText(
             text = if (showsDiff) diff.original.annotated(struck) else AnnotatedString(bullet.originalText),
             style = HhTheme.typography.bodyM,
             color = if (showsDiff) HhTheme.colors.onSurfaceVariant else HhTheme.colors.onSurface,
         )
     }
-    when {
-        state == BulletReviewState.USER_EDITED -> LabeledText(
-            label = stringResource(R.string.feature_tailor_impl_bullet_your_edit),
-            labelColor = HhTheme.colors.primary,
-        ) {
-            Text(
-                text = bullet.proposedText,
-                style = HhTheme.typography.bodyL,
-                fontWeight = FontWeight.SemiBold,
-                color = HhTheme.colors.onSurface,
-            )
-        }
-        showsDiff -> LabeledText(
-            label = stringResource(R.string.feature_tailor_impl_bullet_new),
-            labelColor = HhTheme.colors.primary,
-        ) {
+}
+
+@Composable
+private fun ChangedBlock(item: TailorBulletUi, markStyle: SpanStyle, onOpenSource: () -> Unit) {
+    val state = item.state
+    if (state == BulletReviewState.USER_EDITED) {
+        UserEditBlock(item, onOpenSource)
+        return
+    }
+    val bullet = item.bullet
+    val diff = remember(bullet.originalText, bullet.proposedText) {
+        WordDiff.diff(bullet.originalText, bullet.proposedText)
+    }
+    val showsDiff = state.showsNewText() && bullet.originalText.trim() != bullet.proposedText.trim()
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        DecisionChip(state)
+        if (showsDiff) {
             HhEvidenceText(
                 text = diff.proposed.annotated(markStyle),
-                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+                style = HhTheme.typography.titleM,
+                color = HhTheme.colors.onSurface,
+            )
+        } else if (state.showsNewText()) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_bullet_position_only),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurfaceVariant,
             )
         }
-        state.showsNewText() -> Text(
-            text = stringResource(R.string.feature_tailor_impl_bullet_position_only),
-            style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.onSurfaceVariant,
+    }
+}
+
+@Composable
+private fun UserEditBlock(item: TailorBulletUi, onOpenSource: () -> Unit) {
+    val colors = HhTheme.colors
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(HhTheme.spacing.d2, colors.onSurface), HhTheme.shapes.statusRow)
+            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    ) {
+        InkChip(stringResource(R.string.feature_tailor_impl_bullet_edited_by_you))
+        Text(
+            text = item.bullet.proposedText,
+            style = HhTheme.typography.titleM,
+            color = colors.onSurface,
         )
+        BackedByRow(item.sources, onOpenSource)
+    }
+}
+
+@Composable
+private fun InkChip(label: String) {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier
+            .background(colors.inverseSurface, HhTheme.shapes.pill)
+            .padding(horizontal = HhTheme.spacing.sm, vertical = HhTheme.spacing.xxs),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = HhIcons.Edit,
+            contentDescription = null,
+            tint = colors.inverseOnSurface,
+            modifier = Modifier.size(HhTheme.spacing.d12),
+        )
+        Text(
+            text = label,
+            style = HhTheme.typography.labelM,
+            color = colors.inverseOnSurface,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BackedByRow(sources: List<TailoredBulletSource>, onClick: () -> Unit) {
+    val colors = HhTheme.colors
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = HhIcons.CheckCircle,
+            contentDescription = null,
+            tint = colors.primary,
+            modifier = Modifier.size(HhTheme.spacing.lg),
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_bullet_backed_by),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
+            color = colors.primary,
+        )
+        sources.distinctBy { it.displayId }.forEach { source ->
+            FactChip(source, onClick)
+        }
     }
 }
 
@@ -259,8 +400,13 @@ private fun KeywordRow(keywords: List<String>) {
 
 @Composable
 private fun BulletNotice(item: TailorBulletUi) {
+    val verbKept = item.flagViolation is GuardrailViolation.VerbEscalation
     val note = when (item.state) {
-        BulletReviewState.FLAGGED -> item.flagViolation?.flagNote(item.sources.firstOrNull()?.displayId.orEmpty())
+        BulletReviewState.FLAGGED -> if (verbKept) {
+            null
+        } else {
+            item.flagViolation?.flagNote(item.sources.firstOrNull()?.displayId.orEmpty())
+        }
         BulletReviewState.REPAIR_FAILED -> stringResource(R.string.feature_tailor_impl_bullet_repair_failed)
         BulletReviewState.USER_EDITED -> stringResource(R.string.feature_tailor_impl_bullet_user_edited_note)
         else -> null
@@ -270,79 +416,187 @@ private fun BulletNotice(item: TailorBulletUi) {
 }
 
 @Composable
-private fun SourceRow(source: TailoredBulletSource, onClick: () -> Unit) {
+private fun VerbKeptCard(item: TailorBulletUi) {
+    val violation = item.flagViolation as? GuardrailViolation.VerbEscalation ?: return
     val colors = HhTheme.colors
-    val description = stringResource(R.string.feature_tailor_impl_bullet_open_source, source.displayId)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .border(BorderStroke(HhTheme.spacing.d2, colors.error), HhTheme.shapes.statusRow)
+            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Flag,
+            contentDescription = null,
+            tint = colors.error,
+            modifier = Modifier.size(HhTheme.spacing.d20),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_bullet_verb_kept_title),
+                style = HhTheme.typography.titleM,
+                color = colors.error,
+            )
+            Text(
+                text = verbKeptText(violation),
+                style = HhTheme.typography.bodyM,
+                color = colors.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun verbKeptText(violation: GuardrailViolation.VerbEscalation): AnnotatedString = buildAnnotatedString {
+    append(stringResource(R.string.feature_tailor_impl_bullet_verb_kept_said))
+    withStyle(
+        SpanStyle(
+            color = HhTheme.colors.error,
+            fontWeight = FontWeight.Bold,
+            textDecoration = TextDecoration.LineThrough,
+        ),
+    ) { append(violation.to) }
+    append(stringResource(R.string.feature_tailor_impl_bullet_verb_kept_fact))
+    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(violation.from) }
+    append(stringResource(R.string.feature_tailor_impl_bullet_verb_kept_rule))
+}
+
+@Composable
+private fun FactChip(source: TailoredBulletSource, onClick: () -> Unit) {
+    val description = stringResource(R.string.feature_tailor_impl_bullet_open_source, source.displayId)
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = HhTheme.spacing.touch, minHeight = HhTheme.spacing.touch)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        HhFactId(id = source.displayId)
+    }
+}
+
+@Composable
+private fun SourceCard(source: TailoredBulletSource, onClick: () -> Unit) {
+    val colors = HhTheme.colors
+    val markStyle = evidenceMarkSpanStyle()
+    val description = stringResource(R.string.feature_tailor_impl_bullet_open_source, source.displayId)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
             .defaultMinSize(minHeight = HhTheme.spacing.touch)
-            .background(colors.card, HhTheme.shapes.banner)
-            .dashedBorder(colors.outline, HhTheme.spacing.d2 / 2, HhTheme.spacing.d16)
+            .background(colors.primaryContainer, HhTheme.shapes.statusRow)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description }
-            .padding(horizontal = HhTheme.spacing.md - HhTheme.spacing.d2, vertical = HhTheme.spacing.sm),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
-        Text(text = source.displayId, style = HhTheme.typography.factId, color = colors.primary)
-        Text(
-            text = listOf(source.entryTitle, source.organization).filter { it.isNotEmpty() }.joinToString(", "),
-            style = HhTheme.typography.labelM,
-            color = colors.onSurface,
-            modifier = Modifier.weight(1f),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhFactId(id = source.displayId)
+            Text(
+                text = sourceEntryLine(source),
+                style = HhTheme.typography.labelM,
+                color = colors.onPrimaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            HhProvenanceChip(
+                kind = source.source.provenanceKind(),
+                label = stringResource(source.source.provenanceRes()),
+            )
+        }
+        HhEvidenceText(
+            text = markedFact(source.text, markStyle),
+            style = HhTheme.typography.bodyM,
+            color = colors.onPrimaryContainer,
         )
-        HhProvenanceChip(kind = source.source.provenanceKind(), label = stringResource(source.source.provenanceRes()))
     }
 }
 
 @Composable
 private fun BulletButtons(state: BulletReviewState, actions: BulletSheetActions) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-    ) {
-        when (state) {
-            BulletReviewState.TO_REVIEW, BulletReviewState.FLAGGED -> {
-                HhSecondaryButton(
-                    label = stringResource(R.string.feature_tailor_impl_bullet_keep_original),
-                    onClick = actions.onKeepOriginal,
-                    modifier = Modifier.weight(1f),
-                )
-                HhSecondaryButton(
+    when (state) {
+        BulletReviewState.TO_REVIEW, BulletReviewState.FLAGGED -> {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                HhPrimaryButton(
                     label = stringResource(R.string.feature_tailor_impl_bullet_accept),
                     onClick = actions.onAccept,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = HhIcons.Check,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                ) {
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_bullet_keep_original),
+                        onClick = actions.onKeepOriginal,
+                        modifier = Modifier.weight(1f),
+                    )
+                    HhOutlineButton(
+                        label = stringResource(R.string.feature_tailor_impl_bullet_edit_by_hand),
+                        onClick = actions.onEditByHand,
+                        modifier = Modifier.weight(1f),
+                        leadingIcon = HhIcons.Edit,
+                    )
+                }
+            }
+        }
+        BulletReviewState.USER_EDITED -> {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                HhTextButton(
+                    label = stringResource(R.string.feature_tailor_impl_bullet_go_back_suggestion),
+                    onClick = actions.onUndo,
+                    leadingIcon = HhIcons.ArrowBack,
+                )
+                HhIconActionBar(
+                    secondaryIcon = HhIcons.Edit,
+                    secondaryContentDescription = stringResource(R.string.feature_tailor_impl_bullet_edit_again),
+                    onSecondaryClick = actions.onEditByHand,
+                    primaryLabel = stringResource(R.string.feature_tailor_impl_bullet_next_change),
+                    onPrimaryClick = actions.onNextChange,
+                    primaryTrailingIcon = HhIcons.ArrowForward,
                 )
             }
-            BulletReviewState.USER_EDITED, BulletReviewState.REPAIR_FAILED -> {
-                HhSecondaryButton(
-                    label = stringResource(
-                        if (state == BulletReviewState.USER_EDITED) {
-                            R.string.feature_tailor_impl_bullet_edit_again
-                        } else {
-                            R.string.feature_tailor_impl_bullet_edit_by_hand
-                        },
-                    ),
+        }
+        BulletReviewState.REPAIR_FAILED -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
+                HhOutlineButton(
+                    label = stringResource(R.string.feature_tailor_impl_bullet_edit_by_hand),
                     onClick = actions.onEditByHand,
                     modifier = Modifier.weight(1f),
+                    leadingIcon = HhIcons.Edit,
                 )
-                HhSecondaryButton(
-                    label = stringResource(R.string.feature_tailor_impl_bullet_next),
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_tailor_impl_bullet_next_change),
                     onClick = actions.onNextChange,
                     modifier = Modifier.weight(1f),
+                    trailingIcon = HhIcons.ArrowForward,
                 )
             }
-            else -> {
-                HhSecondaryButton(
+        }
+        else -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
+                HhOutlineButton(
                     label = stringResource(R.string.feature_tailor_impl_bullet_undo),
                     onClick = actions.onUndo,
                     modifier = Modifier.weight(1f),
+                    leadingIcon = HhIcons.ArrowBack,
                 )
-                HhSecondaryButton(
-                    label = stringResource(R.string.feature_tailor_impl_bullet_next),
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_tailor_impl_bullet_next_change),
                     onClick = actions.onNextChange,
                     modifier = Modifier.weight(1f),
+                    trailingIcon = HhIcons.ArrowForward,
                 )
             }
         }
@@ -350,22 +604,13 @@ private fun BulletButtons(state: BulletReviewState, actions: BulletSheetActions)
 }
 
 @Composable
-private fun FooterRow(item: TailorBulletUi, position: Int, actions: BulletSheetActions, isReported: Boolean) {
+private fun FooterRow(position: Int, actions: BulletSheetActions, isReported: Boolean) {
     var menuOpen by remember { mutableStateOf(false) }
-    val showsEditLink = item.state == BulletReviewState.TO_REVIEW || item.state == BulletReviewState.FLAGGED
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (showsEditLink) {
-            HhTextButton(
-                label = stringResource(R.string.feature_tailor_impl_bullet_edit_by_hand),
-                onClick = actions.onEditByHand,
-            )
-        } else {
-            Box(Modifier)
-        }
         Box {
             HhIconButton(
                 icon = HhIcons.More,
@@ -412,22 +657,46 @@ internal fun EditByHandContent(
     showsError: Boolean = false,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_edit_sheet_title, position),
-            style = HhTheme.typography.titleL,
-            color = HhTheme.colors.onSurface,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_edit_hand_title),
+                style = HhTheme.typography.headlineM,
+                color = HhTheme.colors.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_edit_sheet_title, position),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+        }
+        val words = remember(text) {
+            text.trim().split(WHITESPACE).count { it.isNotEmpty() }
+        }
         HhTextField(
             value = text,
             onValueChange = onTextChange,
-            label = stringResource(R.string.feature_tailor_impl_edit_sheet_label),
+            label = stringResource(R.string.feature_tailor_impl_edit_hand_field),
             singleLine = false,
             minLines = 3,
-            errorText = if (showsError) stringResource(R.string.feature_tailor_impl_edit_sheet_error_required) else null,
+            errorText = if (showsError) {
+                stringResource(R.string.feature_tailor_impl_edit_sheet_error_required)
+            } else {
+                null
+            },
+            trailingSlot = {
+                Text(
+                    text = pluralStringResource(R.plurals.feature_tailor_impl_edit_hand_words, words, words),
+                    style = HhTheme.typography.bodyS,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
         )
-        NoticeStrip(text = stringResource(R.string.feature_tailor_impl_edit_sheet_note), icon = HhIcons.Verified)
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        NewFactNote()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        ) {
             HhOutlineButton(
                 label = stringResource(R.string.feature_tailor_impl_edit_sheet_cancel),
                 onClick = onCancel,
@@ -443,6 +712,35 @@ internal fun EditByHandContent(
 }
 
 @Composable
+private fun NewFactNote() {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Info,
+            contentDescription = null,
+            tint = colors.onSurfaceVariant,
+            modifier = Modifier.size(HhTheme.spacing.d20),
+        )
+        Text(
+            text = buildAnnotatedString {
+                append(stringResource(R.string.feature_tailor_impl_edit_hand_new_fact_a))
+                append(" ")
+                withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold)) {
+                    append(stringResource(R.string.feature_tailor_impl_edit_hand_new_fact_b))
+                }
+                append(stringResource(R.string.feature_tailor_impl_edit_hand_new_fact_c))
+            },
+            style = HhTheme.typography.bodyM,
+            color = colors.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 internal fun SourceFactSheetContent(
     sources: List<TailoredBulletSource>,
     onEditFact: (TailoredBulletSource) -> Unit,
@@ -451,6 +749,7 @@ internal fun SourceFactSheetContent(
     isReported: Boolean = false,
 ) {
     val colors = HhTheme.colors
+    val markStyle = evidenceMarkSpanStyle()
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
         Text(
             text = stringResource(
@@ -460,16 +759,22 @@ internal fun SourceFactSheetContent(
                     R.string.feature_tailor_impl_source_sheet_title
                 },
             ),
-            style = HhTheme.typography.labelM,
-            color = colors.onSurfaceVariant,
+            style = HhTheme.typography.titleL,
+            color = colors.onSurface,
         )
         sources.forEach { source ->
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.primaryContainer, HhTheme.shapes.statusRow)
+                    .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = source.displayId, style = HhTheme.typography.factId, color = colors.primary)
+                    HhFactId(id = source.displayId)
                     HhProvenanceChip(
                         kind = source.source.provenanceKind(),
                         label = stringResource(source.source.provenanceRes()),
@@ -477,13 +782,13 @@ internal fun SourceFactSheetContent(
                 }
                 Text(
                     text = sourceEntryLine(source),
-                    style = HhTheme.typography.titleM,
-                    color = colors.onSurface,
+                    style = HhTheme.typography.titleS,
+                    color = colors.onPrimaryContainer,
                 )
                 HhEvidenceText(
-                    text = markedFact(source.text, evidenceMarkSpanStyle()),
-                    style = HhTheme.typography.bodyL,
-                    color = colors.body,
+                    text = markedFact(source.text, markStyle),
+                    style = HhTheme.typography.bodyM,
+                    color = colors.onPrimaryContainer,
                 )
                 HhOutlineButton(
                     label = stringResource(R.string.feature_tailor_impl_source_sheet_edit_fact),
@@ -516,3 +821,5 @@ private fun sourceEntryLine(source: TailoredBulletSource): String = listOf(sourc
 
 private fun markedFact(text: String, style: SpanStyle): AnnotatedString =
     buildAnnotatedString { withStyle(style) { append(text) } }
+
+private val WHITESPACE = Regex("\\s+")

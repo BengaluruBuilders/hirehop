@@ -59,6 +59,7 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
             onNavigateBack = { navigator.goBack() },
             onSkipLetter = { navigator.goBack() },
             onPreviewExport = { navigator.navigate(ExportPreviewNavKey(applicationId = key.applicationId)) },
+            onPrepQuestions = { navigator.navigate(PrepQuestionsNavKey(applicationId = key.applicationId)) },
         )
     }
     entry<PrepQuestionsNavKey> { key ->

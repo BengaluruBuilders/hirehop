@@ -187,6 +187,7 @@ private fun noActions() = CoverLetterActions(
     onNavigateBack = {},
     onSkipLetter = {},
     onPreviewExport = {},
+    onPrepQuestions = {},
 )
 
 private fun CoverLetterUiState.positionOfParagraph(paragraph: CoverLetterParagraph): Int =
@@ -213,6 +214,7 @@ private fun offerState() = CoverLetterUiState(
     stage = CoverLetterStage.OFFER,
     jobTitle = "Associate Analyst",
     jobCompany = "Northwind GCC",
+    exportedFileName = "Priya_Sharma_Northwind_GCC_Associate_Analyst.pdf",
     reviewedCount = 7,
     totalCount = 7,
 )
