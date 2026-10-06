@@ -74,8 +74,9 @@ Hero chips are white in both themes, so their status marks keep the light values
 `titleL` 20/26 800, `titleM` 16/22 700, `titleS` 14/20 700, `bodyL` 15/22 400, `bodyM` 14/21 400,
 `button` 16/20 700, `labelL` 13/18 600, `labelM` 12/16 600, `bodyS` 12/16 400 (small meta lines),
 `numeralHero` 44/48 800, `numeralM` 18/24 700, `factId` 12/16 mono. Figures are tabular. Fonts are set in
-`HhFontFamilies.sans` and `HhFontFamilies.mono` (`theme/Type.kt`). Today they point to Anek Latin and
-JetBrains Mono. Plus Jakarta Sans and IBM Plex Mono replace them when the font files are added.
+`HhFontFamilies.sans` and `HhFontFamilies.mono` (`theme/Type.kt`). They point to Plus Jakarta Sans (one variable file, weights 400, 600, 700, 800) and IBM Plex Mono 500.
+Licences are in `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` (44 dp) is for buttons inside cards.
+`brandPressed` is #064D3A. `sheetItemBorder` is #E6E8EC in light and #3A404A in dark.
 
 ### Shape (`HhTheme.shapes`)
 `sheet` (28 top, the screen sheet and the dock), `modalSheet` (32 top, the bottom sheet), `heroCard` 28,
