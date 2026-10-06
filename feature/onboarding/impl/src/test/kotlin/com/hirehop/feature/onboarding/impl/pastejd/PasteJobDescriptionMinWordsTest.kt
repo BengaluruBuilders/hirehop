@@ -17,6 +17,14 @@ class PasteJobDescriptionMinWordsTest {
     }
 
     @Test
+    fun pasteJdProblem_withNineteenWords_isTooShort() {
+        val text = List(PASTE_JD_MIN_WORDS - 1) { "word" }.joinToString(" ")
+
+        assertThat(pasteJdWordCount(text)).isEqualTo(PASTE_JD_MIN_WORDS - 1)
+        assertThat(pasteJdProblem(text)).isEqualTo(PasteJobDescriptionProblem.TOO_SHORT)
+    }
+
+    @Test
     fun pasteJdProblem_atTheWordFloor_hasNoProblem() {
         val text = List(PASTE_JD_MIN_WORDS) { "word" }.joinToString(" ")
 
@@ -27,11 +35,6 @@ class PasteJobDescriptionMinWordsTest {
     @Test
     fun canAnalyse_withElevenWords_isFalse() {
         assertThat(PasteJobDescriptionUiState(text = ELEVEN_WORD_TEXT).canAnalyse).isFalse()
-    }
-
-    @Test
-    fun minWords_sitsAboveEighteen() {
-        assertThat(PASTE_JD_MIN_WORDS).isGreaterThan(18)
     }
 
     private companion object {
