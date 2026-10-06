@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,7 +30,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -429,7 +429,7 @@ private fun WelcomeCareerChoice(
             color = HhTheme.colors.onSurfaceVariant,
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         ) {
             CareerChoicePill(
@@ -466,8 +466,8 @@ private fun CareerChoicePill(
     Box(
         modifier = modifier
             .heightIn(min = CHOICE_HEIGHT)
-            .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(stage) }
             .clip(shape)
+            .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(stage) }
             .background(container, shape)
             .then(if (isSelected) Modifier else Modifier.border(CHOICE_BORDER, colors.outlineVariant, shape))
             .padding(horizontal = 8.dp, vertical = HhTheme.spacing.sm),
@@ -492,12 +492,10 @@ private fun CareerChoicePill(
 
 @Composable
 private fun CareerChoiceDisc(modifier: Modifier = Modifier) {
-    val description = stringResource(R.string.feature_onboarding_impl_welcome_career_selected_description)
     Box(
         modifier = modifier
             .size(CHOICE_DISC)
-            .background(HhTheme.colors.special, HhTheme.shapes.pill)
-            .semantics { contentDescription = description },
+            .background(HhTheme.colors.special, HhTheme.shapes.pill),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

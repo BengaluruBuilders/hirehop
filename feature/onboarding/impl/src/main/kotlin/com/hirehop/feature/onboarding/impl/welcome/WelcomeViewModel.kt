@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
-import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
@@ -53,8 +52,6 @@ class WelcomeViewModel @Inject constructor(
             is WelcomeAction.CareerStageSelected -> onCareerStageSelected(action.stage)
             WelcomeAction.HaveAccountTapped -> goTo(WelcomeDestination.SIGN_IN)
             WelcomeAction.PasteJobDescriptionTapped -> goTo(WelcomeDestination.PASTE_JOB_DESCRIPTION)
-            WelcomeAction.ImportResumeTapped -> onImportResume()
-            WelcomeAction.BuildProfileStepByStepTapped -> goTo(WelcomeDestination.BUILD_PROFILE_STEP_BY_STEP)
             WelcomeAction.RetryTapped -> mutableState.update { it.copy(message = null) }
             WelcomeAction.DismissMessageTapped -> mutableState.update { it.copy(message = null) }
             WelcomeAction.DestinationConsumed -> mutableState.update { it.copy(destination = null) }
@@ -63,18 +60,6 @@ class WelcomeViewModel @Inject constructor(
 
     private fun onCareerStageSelected(stage: CareerStage) {
         viewModelScope.launch { sessionRepository.saveCareerStage(stage) }
-    }
-
-    private fun onImportResume() {
-        if (!mutableState.value.isActionsEnabled) return
-        viewModelScope.launch {
-            val destination = when (nextOnboardingStep()) {
-                OnboardingStep.SignIn -> WelcomeDestination.SIGN_IN
-                OnboardingStep.Consent -> WelcomeDestination.CONSENT
-                else -> WelcomeDestination.IMPORT_RESUME
-            }
-            goTo(destination)
-        }
     }
 
     private fun goTo(destination: WelcomeDestination) {

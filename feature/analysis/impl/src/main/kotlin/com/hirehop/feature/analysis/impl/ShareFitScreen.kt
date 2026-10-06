@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -49,7 +51,8 @@ internal fun ShareFitScreen(
     modifier: Modifier = Modifier,
 ) {
     BackHandler(onBack = actions.onDismissOverlay)
-    val role = state.job.title.ifBlank { stringResource(R.string.feature_analysis_impl_role_not_set) }
+    val role = state.job.title.withoutCompany(state.job.company)
+        .ifBlank { stringResource(R.string.feature_analysis_impl_role_not_set) }
     val met = state.items.count { it.status == MatchStatus.MET }
     val partial = state.items.count { it.status == MatchStatus.PARTIAL }
     val gap = state.items.count { it.status == MatchStatus.GAP }
@@ -114,6 +117,17 @@ internal fun ShareFitScreen(
         }
     }
 }
+
+internal fun String.withoutCompany(company: String): String =
+    if (company.isBlank()) {
+        this
+    } else {
+        replace(company.trim(), "", ignoreCase = true)
+            .replace(Regex("\\s{2,}"), " ")
+            .trim(' ', '-', ',', '|', '@')
+            .replace(Regex("(^|\\s)at$", RegexOption.IGNORE_CASE), "")
+            .trim()
+    }
 
 @Composable
 private fun ShareFitTopRow(onBack: () -> Unit) {
@@ -186,7 +200,8 @@ private fun ShareFitCard(
     val description = stringResource(R.string.feature_analysis_impl_share_card_description, role, met, partial, gap)
     Column(
         modifier = modifier
-            .size(width = 216.dp, height = 384.dp)
+            .width(216.dp)
+            .heightIn(min = 384.dp)
             .clip(HhTheme.shapes.card)
             .background(colors.brand)
             .padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 16.dp)
@@ -252,7 +267,7 @@ private fun ShareFitCard(
 private fun ShareCountPill(kind: HhStatusKind, count: Int, unit: String) {
     Row(
         modifier = Modifier
-            .height(38.dp)
+            .heightIn(min = 38.dp)
             .fillMaxWidth()
             .clip(HhTheme.shapes.pill)
             .background(HhTheme.colors.surface)

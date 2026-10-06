@@ -1,10 +1,13 @@
 package com.hirehop.feature.onboarding.impl.signin
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.DiscardJobDraftsUseCase
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
+import com.hirehop.core.testing.repository.TestContentReportRepository
+import com.hirehop.core.testing.repository.TestPrepPlanRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
@@ -37,6 +40,8 @@ class SignInAgeNudgeTest {
         signInGateway = signInGateway,
         nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
         connectivityMonitor = connectivity,
+        sessionRepository = session,
+        discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
     )
 
     @Test

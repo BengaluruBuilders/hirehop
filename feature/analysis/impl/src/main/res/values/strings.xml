@@ -34,10 +34,7 @@
     <string name="feature_analysis_impl_offline_banner">You\'re offline. This is your last result. Tailoring needs a connection.</string>
     <string name="feature_analysis_impl_offline_caption">Tailor needs a connection.</string>
 
-    <string name="feature_analysis_impl_coverage_fraction">%1$d / %2$d</string>
-    <string name="feature_analysis_impl_coverage_caption">key terms</string>
     <string name="feature_analysis_impl_coverage_title">You cover %1$s of %2$s key terms</string>
-    <string name="feature_analysis_impl_coverage_note">Key terms from this JD that appear in your confirmed facts. It is not a score.</string>
     <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms in this JD. Go back and paste more of it.</string>
     <plurals name="feature_analysis_impl_gap_note">
         <item quantity="one">%d gap. Each one can become a prep task.</item>
@@ -79,7 +76,6 @@
     <string name="feature_analysis_impl_provenance_user_edited">User-edited</string>
     <string name="feature_analysis_impl_provenance_scanned">Scanned</string>
 
-    <string name="feature_analysis_impl_cancel">Cancel</string>
 
     <string name="feature_analysis_impl_toast_prep_added">%1$s added to your prep plan</string>
     <string name="feature_analysis_impl_toast_gap_closed">Saved as your own words. Gap closed.</string>
@@ -93,7 +89,6 @@
     <string name="feature_analysis_impl_credit_note">Free to tailor and preview. Downloading uses 1 credit. You have %1$s free.</string>
     <string name="feature_analysis_impl_tailor_limit">You\'ve used today\'s free tailoring. Your analysis is saved. You can tailor again tomorrow.</string>
     <string name="feature_analysis_impl_tailor_limit_cap">Free tailors today: %1$d</string>
-    <string name="feature_analysis_impl_share_card">Share JD fit card</string>
     <string name="feature_analysis_impl_tailor">Tailor my resume</string>
 
     <string name="feature_analysis_impl_share_chooser">Share JD fit</string>
@@ -111,13 +106,12 @@
     <string name="feature_analysis_impl_share_card_description">Share image preview: %1$s, %2$s met, %3$s partly met, %4$s to prepare</string>
     <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with HireHop.</string>
     <string name="feature_analysis_impl_question_title">Do you have this?</string>
-    <string name="feature_analysis_impl_question_body">Pick a confirmed fact that shows it, or add a new one. Nothing is used until you confirm it.</string>
+    <string name="feature_analysis_impl_question_body">Add a new fact that shows it. Nothing is used until you confirm it.</string>
     <string name="feature_analysis_impl_question_new_fact_id">New fact</string>
     <string name="feature_analysis_impl_question_new_fact_text">Add a new fact and confirm it</string>
     <string name="feature_analysis_impl_question_label">Where and how</string>
     <string name="feature_analysis_impl_question_write">Write the fact</string>
     <string name="feature_analysis_impl_question_close">Close</string>
-    <string name="feature_analysis_impl_step_chip">Step %1$d of %2$d</string>
     <string name="feature_analysis_impl_summary_met">%1$s met</string>
     <string name="feature_analysis_impl_summary_partial">%1$s partly met</string>
     <string name="feature_analysis_impl_summary_gap">%1$s to prepare</string>
@@ -126,5 +120,4 @@
     <string name="feature_analysis_impl_must_haves_first">Must-haves first</string>
     <string name="feature_analysis_impl_must_haves_count">%1$d of %2$d</string>
     <string name="feature_analysis_impl_share_my_fit">Share my fit</string>
-    <string name="feature_analysis_impl_company_location">%1$s · %2$s</string>
 </resources>

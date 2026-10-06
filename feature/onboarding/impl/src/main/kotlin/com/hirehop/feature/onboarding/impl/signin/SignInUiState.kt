@@ -12,7 +12,6 @@ data class SignInUiState(
     val isAdultConfirmed: Boolean = false,
     val isAdultNudged: Boolean = false,
     val isOffline: Boolean = false,
-    val referralCode: String = "",
     val failure: SignInFailureReason? = null,
     val displayName: String? = null,
     val nextStep: OnboardingStep? = null,

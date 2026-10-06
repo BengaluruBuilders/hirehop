@@ -4,10 +4,6 @@
     <string name="feature_onboarding_impl_welcome_headline">Your next move, better prepared</string>
     <string name="feature_onboarding_impl_welcome_subline">Tailored applications built only from facts you confirm.</string>
     <string name="feature_onboarding_impl_welcome_illustration_description">A young job seeker proudly holding up her resume</string>
-    <string name="feature_onboarding_impl_welcome_trust_never_invents">Never invents</string>
-    <string name="feature_onboarding_impl_welcome_action_paste_jd">Paste a job description</string>
-    <string name="feature_onboarding_impl_welcome_action_import_resume">Import my resume</string>
-    <string name="feature_onboarding_impl_welcome_action_build_step_by_step">No resume? Build your profile step by step.</string>
     <string name="feature_onboarding_impl_welcome_offline_message">You are offline</string>
     <string name="feature_onboarding_impl_welcome_offline_support">Everything on this screen works without a connection.</string>
     <string name="feature_onboarding_impl_welcome_loading">Reading what is already saved on this phone</string>
@@ -19,7 +15,6 @@
     <string name="feature_onboarding_impl_welcome_career_hint">We use this to pick which questions to ask about your projects and internships.</string>
     <string name="feature_onboarding_impl_welcome_career_starting">Just starting out</string>
     <string name="feature_onboarding_impl_welcome_career_one_two">1 to 2 years in</string>
-    <string name="feature_onboarding_impl_welcome_career_selected_description">Selected</string>
     <string name="feature_onboarding_impl_welcome_action_continue">Continue</string>
     <string name="feature_onboarding_impl_welcome_card1_monogram">NB</string>
     <string name="feature_onboarding_impl_welcome_card1_title">Operations Associate</string>

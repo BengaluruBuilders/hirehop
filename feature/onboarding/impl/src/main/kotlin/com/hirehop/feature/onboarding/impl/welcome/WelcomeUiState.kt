@@ -3,7 +3,7 @@ package com.hirehop.feature.onboarding.impl.welcome
 import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
 
-enum class WelcomeDestination { PASTE_JOB_DESCRIPTION, SIGN_IN, CONSENT, IMPORT_RESUME, BUILD_PROFILE_STEP_BY_STEP }
+enum class WelcomeDestination { PASTE_JOB_DESCRIPTION, SIGN_IN, CONSENT }
 
 enum class WelcomeMessage { LOAD_FAILED }
 

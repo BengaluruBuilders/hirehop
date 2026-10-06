@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_consent_title">Before anything leaves your phone</string>
-    <string name="feature_onboarding_impl_consent_subtitle">Nothing is uploaded yet</string>
-    <string name="feature_onboarding_impl_consent_subtitle_read_only">Read only</string>
     <string name="feature_onboarding_impl_consent_navigation_back_content_description">Go back</string>
 
-    <string name="feature_onboarding_impl_consent_we_do">We do</string>
-    <string name="feature_onboarding_impl_consent_we_keep">We keep</string>
-    <string name="feature_onboarding_impl_consent_understand">I understand</string>
     <string name="feature_onboarding_impl_consent_pending_tag">Copy pending</string>
 
     <string name="feature_onboarding_impl_consent_commitment_never_asks">We never ask for or keep your date of birth, photo, religion, caste, or marital status.</string>

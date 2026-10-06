@@ -304,12 +304,6 @@ internal fun analysisBottomBarNotice(uiState: AnalysisUiState): (@Composable () 
 @Composable
 private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
     HhBottomActionBar {
-        HhOutlineButton(
-            label = stringResource(R.string.feature_analysis_impl_share_card),
-            onClick = actions.onOpenShareCard,
-            modifier = Modifier.weight(1f),
-            trailingIcon = HhIcons.Share,
-        )
         HhPrimaryButton(
             label = stringResource(R.string.feature_analysis_impl_tailor),
             onClick = actions.onTailor,

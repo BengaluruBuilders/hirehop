@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_paste_jd_subtitle">Paste a job description</string>
     <string name="feature_onboarding_impl_paste_jd_navigation_back_description">Go back</string>
     <string name="feature_onboarding_impl_paste_jd_field_label">Job description</string>
     <string name="feature_onboarding_impl_paste_jd_field_placeholder">Paste the full post here: the role, what you\'ll do and what they\'re looking for.</string>

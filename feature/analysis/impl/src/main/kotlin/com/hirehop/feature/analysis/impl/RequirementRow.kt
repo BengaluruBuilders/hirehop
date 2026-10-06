@@ -180,7 +180,7 @@ private fun GapActions(item: RequirementItem, actions: AnalysisActions, modifier
         HhOutlineButton(
             label = stringResource(R.string.feature_analysis_impl_i_have_this),
             onClick = { actions.onIHaveThis(item.id) },
-            modifier = buttonModifier.height(GAP_BUTTON_HEIGHT),
+            modifier = buttonModifier.heightIn(min = GAP_BUTTON_HEIGHT),
             size = HhButtonSize.Compact,
         )
     }
@@ -189,7 +189,7 @@ private fun GapActions(item: RequirementItem, actions: AnalysisActions, modifier
             label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
             onClick = { actions.onTogglePrepPlan(item.id) },
             modifier = buttonModifier
-                .height(GAP_BUTTON_HEIGHT)
+                .heightIn(min = GAP_BUTTON_HEIGHT)
                 .semantics {
                     contentDescription = prepDescription
                     stateDescription = prepState

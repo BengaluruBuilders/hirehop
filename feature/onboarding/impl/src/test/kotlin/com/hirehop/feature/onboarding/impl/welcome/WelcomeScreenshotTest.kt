@@ -97,8 +97,6 @@ class WelcomeScreenshotTest {
 
     private val noOpActions = WelcomeActions(
         onPasteJobDescription = {},
-        onImportResume = {},
-        onBuildProfileStepByStep = {},
         onSelectCareerStage = {},
         onHaveAccount = {},
         onRetry = {},

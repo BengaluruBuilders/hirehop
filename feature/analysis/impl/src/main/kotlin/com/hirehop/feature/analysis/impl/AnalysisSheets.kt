@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -294,17 +291,10 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
                 color = HhTheme.colors.onSurface,
             )
         }
-        Column(
-            modifier = Modifier.selectableGroup(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            EvidenceOption(
-                id = stringResource(R.string.feature_analysis_impl_question_new_fact_id),
-                text = stringResource(R.string.feature_analysis_impl_question_new_fact_text),
-                selected = true,
-                onSelect = {},
-            )
-        }
+        NewFactRow(
+            id = stringResource(R.string.feature_analysis_impl_question_new_fact_id),
+            text = stringResource(R.string.feature_analysis_impl_question_new_fact_text),
+        )
         HhTextField(
             value = statement,
             onValueChange = { statement = it },
@@ -335,47 +325,26 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
 }
 
 @Composable
-private fun EvidenceOption(id: String, text: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
+private fun NewFactRow(id: String, text: String) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .background(
-                if (selected) HhTheme.colors.primaryContainer else HhTheme.colors.surface,
-                HhTheme.shapes.pill,
-            )
-            .border(
-                width = if (selected) 2.dp else 1.5.dp,
-                color = if (selected) HhTheme.colors.brand else HhTheme.colors.outlineVariant,
-                shape = HhTheme.shapes.pill,
-            )
-            .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
+            .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill)
+            .border(2.dp, HhTheme.colors.brand, HhTheme.shapes.pill)
             .padding(start = 14.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
     ) {
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .border(2.dp, if (selected) HhTheme.colors.brand else HhTheme.colors.outline, HhTheme.shapes.pill)
-                .padding(4.dp)
-                .background(if (selected) HhTheme.colors.brand else Color.Transparent, HhTheme.shapes.pill),
+        Text(
+            text = id,
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
         )
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = id,
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            Text(
-                text = text,
-                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-                color = if (selected) HhTheme.colors.onPrimaryContainer else HhTheme.colors.onSurface,
-            )
-        }
+        Text(
+            text = text,
+            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+            color = HhTheme.colors.onPrimaryContainer,
+        )
     }
 }
 

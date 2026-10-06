@@ -35,7 +35,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -45,6 +44,7 @@ import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhDecoration
 import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeaderIconButton
+import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
@@ -75,9 +75,6 @@ data class AnalysisActions(
     val onUndo: () -> Unit = {},
     val onToastDismiss: () -> Unit = {},
 )
-
-private const val STEP_INDEX = 5
-private const val STEP_TOTAL = 5
 
 private val HeaderTopPadding = 36.dp
 private val HeaderBottomPadding = 24.dp
@@ -328,34 +325,10 @@ private fun HeaderTopRow(
             onClick = onBack,
         )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm, Alignment.End),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm, Alignment.CenterVertically),
-            ) {
-                StepChip()
-                if (result != null) {
-                    ShareFitPill(onClick = onShare)
-                }
+            if (result != null) {
+                ShareFitPill(onClick = onShare)
             }
         }
-    }
-}
-
-@Composable
-private fun StepChip() {
-    Box(
-        modifier = Modifier
-            .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.brandPressed, HhTheme.shapes.pill),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_step_chip, STEP_INDEX, STEP_TOTAL),
-            modifier = Modifier
-                .defaultMinSize(minHeight = ChipHeight)
-                .padding(horizontal = 14.dp, vertical = HhTheme.spacing.xs),
-            style = HhTheme.typography.titleS,
-            color = HhTheme.colors.onHeader,
-        )
     }
 }
 
@@ -397,7 +370,7 @@ private fun JobIdentityRow(uiState: AnalysisUiState) {
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MonogramCircle(initials = initialsOf(uiState.job.company.ifBlank { title }), size = MonogramSize)
+        HhMonogram(text = uiState.job.company.ifBlank { title }, size = MonogramSize)
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -407,19 +380,6 @@ private fun JobIdentityRow(uiState: AnalysisUiState) {
                 Text(text = subtitle, style = HhTheme.typography.labelL, color = HhTheme.colors.onHeaderVariant)
             }
         }
-    }
-}
-
-@Composable
-private fun MonogramCircle(initials: String, size: Dp) {
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.onHeader),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = initials, style = HhTheme.typography.headlineM, color = HhTheme.colors.brand)
     }
 }
 
@@ -452,13 +412,3 @@ private fun ResultSummaryChips(result: AnalysisUiState.Result) {
 }
 
 private fun AnalysisUiState.Result.countOf(status: MatchStatus): Int = items.count { it.status == status }
-
-private fun initialsOf(source: String): String {
-    val words = source.split(' ', '.', ',', '-').filter { it.isNotBlank() }
-    val letters = when {
-        words.size >= 2 -> "${words[0].first()}${words[1].first()}"
-        words.size == 1 -> words[0].take(2)
-        else -> ""
-    }
-    return letters.uppercase()
-}

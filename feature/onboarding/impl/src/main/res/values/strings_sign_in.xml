@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_sign_in_title">Sign in</string>
-    <string name="feature_onboarding_impl_sign_in_subtitle">Before we read your JD</string>
     <string name="feature_onboarding_impl_sign_in_navigation_back_content_description">Go back</string>
     <string name="feature_onboarding_impl_sign_in_intro">Sign in so this job post and your facts stay with you.</string>
     <string name="feature_onboarding_impl_sign_in_age_label">I\'m 18 or older</string>
     <string name="feature_onboarding_impl_sign_in_age_nudge">Tick the box above to continue</string>
-    <string name="feature_onboarding_impl_sign_in_code_label">Group or referral code (optional)</string>
-    <string name="feature_onboarding_impl_sign_in_code_placeholder">If your group gave you one</string>
-    <string name="feature_onboarding_impl_sign_in_disclosure">Next, your JD and resume go to HireHop\'s server to be read. They stay private to your account.</string>
     <string name="feature_onboarding_impl_sign_in_action_continue">Continue with Google</string>
     <string name="feature_onboarding_impl_sign_in_action_under_18">I\'m under 18</string>
     <string name="feature_onboarding_impl_sign_in_reason_in_progress">Signing in with Google</string>
@@ -21,7 +16,6 @@
     <string name="feature_onboarding_impl_sign_in_under_18_body">We can\'t create an account for you right now.</string>
     <string name="feature_onboarding_impl_sign_in_under_18_action_back">Back to start</string>
     <string name="feature_onboarding_impl_sign_in_heading">Save your fit check</string>
-    <string name="feature_onboarding_impl_sign_in_ready">%1$s · ready to check</string>
     <string name="feature_onboarding_impl_sign_in_age_support">You need to be 18+ to use HireHop.</string>
     <string name="feature_onboarding_impl_sign_in_legal_prefix">We only use Google to sign you in. By continuing you agree to the\u0020</string>
     <string name="feature_onboarding_impl_sign_in_legal_terms">Terms</string>

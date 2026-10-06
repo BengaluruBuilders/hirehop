@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -106,7 +107,7 @@ fun ImportResumeScreen(
         sheet = false,
         header = {
             OnboardingStepBar(
-                modifier = Modifier.padding(horizontal = HhTheme.spacing.gutter),
+                modifier = Modifier.statusBarsPadding().padding(horizontal = HhTheme.spacing.gutter),
                 step = IMPORT_STEP,
                 onBack = if (uiState.stage == ImportStage.Parsing) null else actions.onBack,
                 backContentDescription = stringResource(R.string.feature_onboarding_impl_import_resume_back_description),

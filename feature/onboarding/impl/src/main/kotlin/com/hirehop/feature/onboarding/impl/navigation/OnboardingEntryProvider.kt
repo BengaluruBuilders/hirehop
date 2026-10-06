@@ -14,7 +14,6 @@ import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
 import com.hirehop.feature.onboarding.api.navigation.navigateToConfirmFacts
 import com.hirehop.feature.onboarding.api.navigation.navigateToConsent
-import com.hirehop.feature.onboarding.api.navigation.navigateToImportResume
 import com.hirehop.feature.onboarding.api.navigation.navigateToPasteJobDescription
 import com.hirehop.feature.onboarding.api.navigation.navigateToSignIn
 import com.hirehop.feature.onboarding.impl.confirmfacts.ConfirmFactsRoute
@@ -33,8 +32,6 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
             onNavigateToPasteJobDescription = { navigator.navigateToPasteJobDescription() },
             onNavigateToSignIn = { navigator.navigateToSignIn() },
             onNavigateToConsent = { navigator.navigateToConsent() },
-            onNavigateToImportResume = { navigator.navigateToImportResume() },
-            onNavigateToBuildProfileStepByStep = { navigator.navigateToGuidedProfileForm() },
         )
     }
     entry<PasteJobDescriptionNavKey> { key ->

@@ -94,10 +94,10 @@ class AnalysisInteractionTest {
     }
 
     @Test
-    fun bar_sharesAndTailors() {
+    fun header_sharesAndBar_tailors() {
         show(resultWith(met))
 
-        composeRule.onNodeWithText("Share JD fit card").performClick()
+        composeRule.onNodeWithText("Share my fit").performClick()
         composeRule.onNodeWithText("Tailor my resume").performClick()
 
         assertThat(calls).containsExactly("share", "tailor").inOrder()

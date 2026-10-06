@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_import_resume_title">Import your resume</string>
-    <string name="feature_onboarding_impl_import_resume_subtitle">PDF or DOCX</string>
     <string name="feature_onboarding_impl_import_resume_back_description">Back</string>
-    <string name="feature_onboarding_impl_import_resume_choose_title">Choose your resume (PDF or DOCX)</string>
-    <string name="feature_onboarding_impl_import_resume_choose_body">We read it, you confirm each fact, and only confirmed facts are used.</string>
     <string name="feature_onboarding_impl_import_resume_choose">Choose your resume</string>
     <string name="feature_onboarding_impl_import_resume_choose_another">Choose another file</string>
     <string name="feature_onboarding_impl_import_resume_try_again">Try again</string>
     <string name="feature_onboarding_impl_import_resume_review_facts">Review facts</string>
     <string name="feature_onboarding_impl_import_resume_start_guided_form">Start the guided form</string>
     <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission. Android\'s file picker opens, and only the one file you pick is shared with HireHop.</string>
-    <string name="feature_onboarding_impl_import_resume_guided_form_link">No resume? Build your profile step by step.</string>
 
     <string name="feature_onboarding_impl_import_resume_progress_description">Reading progress</string>
-    <string name="feature_onboarding_impl_import_resume_step_read">Reading your resume</string>
-    <string name="feature_onboarding_impl_import_resume_step_sections">Finding your sections</string>
-    <string name="feature_onboarding_impl_import_resume_step_strip">Removing details we never keep</string>
     <string name="feature_onboarding_impl_import_resume_reading_footnote">You can leave this screen. We keep reading.</string>
 
     <string name="feature_onboarding_impl_import_resume_queued_title">You are offline</string>
@@ -30,8 +22,6 @@
         <item quantity="other">%1$d facts ready to check</item>
     </plurals>
 
-    <string name="feature_onboarding_impl_import_resume_scanned_heading">This PDF is a scan</string>
-    <string name="feature_onboarding_impl_import_resume_scanned_body">This PDF is a scan, so we can\'t read its text. Build your profile step by step instead.</string>
     <string name="feature_onboarding_impl_import_resume_unsupported_heading">We can\'t open this file type</string>
     <string name="feature_onboarding_impl_import_resume_unsupported_body">%1$s is not a PDF or DOCX. Save it as one of those, or build your profile step by step.</string>
     <string name="feature_onboarding_impl_import_resume_no_facts_heading">We found no facts in this file</string>

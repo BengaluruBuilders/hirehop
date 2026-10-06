@@ -33,7 +33,6 @@ internal fun SignInRoute(
 
 private fun SignInViewModel.toActions(onBack: () -> Unit): SignInActions = SignInActions(
     onAdultConfirmationChange = { isConfirmed -> onAction(SignInAction.AdultConfirmationChanged(isConfirmed)) },
-    onReferralCodeChange = { value -> onAction(SignInAction.ReferralCodeChanged(value)) },
     onContinue = { onAction(SignInAction.Continue) },
     onUnderEighteen = { onAction(SignInAction.UnderEighteen) },
     onBackFromUnderEighteen = {

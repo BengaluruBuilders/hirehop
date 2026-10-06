@@ -9,10 +9,6 @@ sealed interface WelcomeAction {
 
     data object PasteJobDescriptionTapped : WelcomeAction
 
-    data object ImportResumeTapped : WelcomeAction
-
-    data object BuildProfileStepByStepTapped : WelcomeAction
-
     data object RetryTapped : WelcomeAction
 
     data object DismissMessageTapped : WelcomeAction
@@ -22,8 +18,6 @@ sealed interface WelcomeAction {
 
 data class WelcomeActions(
     val onPasteJobDescription: () -> Unit,
-    val onImportResume: () -> Unit,
-    val onBuildProfileStepByStep: () -> Unit,
     val onSelectCareerStage: (CareerStage) -> Unit,
     val onHaveAccount: () -> Unit,
     val onRetry: () -> Unit,
