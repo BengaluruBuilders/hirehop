@@ -39,6 +39,7 @@
     <string name="feature_tailor_impl_edit_sheet_note">Your own words. HireHop does not check hand edits. The line shows “User-edited”.</string>
     <string name="feature_tailor_impl_edit_sheet_cancel">Cancel</string>
     <string name="feature_tailor_impl_edit_sheet_save">Save my edit</string>
+    <string name="feature_tailor_impl_edit_sheet_error_required">Add this to save.</string>
     <string name="feature_tailor_impl_source_sheet_title">Source for this line</string>
     <string name="feature_tailor_impl_source_sheet_title_many">Sources for this line</string>
     <string name="feature_tailor_impl_source_sheet_entry">%1$s, %2$s · %3$s</string>
