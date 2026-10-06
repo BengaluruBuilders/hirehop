@@ -12,14 +12,5 @@ object MockPackCatalogue {
         creditsExpire = false,
     )
 
-    val singleApplication = ApplicationPack(
-        id = ApplicationPack.SINGLE_APPLICATION,
-        name = "Single application",
-        credits = 1,
-        priceInPaise = 4_900,
-        currencyCode = ApplicationPack.CURRENCY_INR,
-        creditsExpire = false,
-    )
-
-    val all = listOf(applicationPackFive, singleApplication)
+    val all = listOf(applicationPackFive)
 }

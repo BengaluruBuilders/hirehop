@@ -95,10 +95,10 @@ class CreditsViewModelTest {
         val subject = viewModel()
         subject.onEnter(key())
 
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
-        assertThat(subject.uiState.value.purchases.map { entry -> entry.credits }).containsExactly(5, 1).inOrder()
+        assertThat(subject.uiState.value.purchases.map { entry -> entry.credits }).containsExactly(5, 5).inOrder()
     }
 
     @Test

@@ -64,12 +64,9 @@ class PackPurchaseViewModelTest {
 
         val state = subject.uiState.value
         assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(state.packs.map(ApplicationPack::id)).containsExactly(
-            ApplicationPack.APPLICATION_PACK_FIVE,
-            ApplicationPack.SINGLE_APPLICATION,
-        ).inOrder()
+        assertThat(state.packs.map(ApplicationPack::id)).containsExactly(ApplicationPack.APPLICATION_PACK_FIVE)
         assertThat(state.selectedPack?.id).isEqualTo(ApplicationPack.APPLICATION_PACK_FIVE)
-        assertThat(state.otherPacks.map(ApplicationPack::id)).containsExactly(ApplicationPack.SINGLE_APPLICATION)
+        assertThat(state.otherPacks).isEmpty()
         assertThat(state.jobCompany).isEqualTo("Northwind GCC")
         assertThat(state.totalCredits).isEqualTo(1)
         assertThat(state.canBuy).isTrue()
@@ -84,9 +81,7 @@ class PackPurchaseViewModelTest {
         assertThat(subject.uiState.value.jobCompany).isEmpty()
         assertThat(subject.uiState.value.hasApplication).isFalse()
         assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
-            .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
-        assertThat(packHeadlineRes(subject.uiState.value, compact = true))
+        assertThat(packHeadlineRes(subject.uiState.value))
             .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
     }
 
@@ -97,7 +92,7 @@ class PackPurchaseViewModelTest {
 
         subject.onEnter(key())
 
-        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
+        assertThat(packHeadlineRes(subject.uiState.value))
             .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline)
     }
 
@@ -191,16 +186,6 @@ class PackPurchaseViewModelTest {
         connectivity.setOnline(true)
 
         assertThat(subject.uiState.value.canBuy).isTrue()
-    }
-
-    @Test
-    fun aRequestedSecondPackIsTheSelectedOne() = runTest {
-        applicationRepository.sendApplications(listOf(canonicalApplication))
-        val subject = viewModel()
-
-        subject.onEnter(key(packId = ApplicationPack.SINGLE_APPLICATION))
-
-        assertThat(subject.uiState.value.selectedPack?.id).isEqualTo(ApplicationPack.SINGLE_APPLICATION)
     }
 
     @Test

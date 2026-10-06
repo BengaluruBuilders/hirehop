@@ -16,7 +16,6 @@
     <string name="feature_tailor_impl_pack_purchase_headline">Your %1$s resume is ready. Download it with an application pack.</string>
     <string name="feature_tailor_impl_pack_purchase_headline_credits">Get an application pack</string>
     <string name="feature_tailor_impl_pack_purchase_headline_generic">Your resume is ready. Download it with an application pack.</string>
-    <string name="feature_tailor_impl_pack_purchase_headline_compact">Download it with an application pack.</string>
     <plurals name="feature_tailor_impl_pack_purchase_price_caption">
         <item quantity="one">for %1$d application</item>
         <item quantity="other">for %1$d applications</item>

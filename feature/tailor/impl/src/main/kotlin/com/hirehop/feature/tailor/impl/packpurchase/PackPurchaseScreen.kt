@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -55,8 +54,6 @@ import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.credits.CreditCounter
 import com.hirehop.feature.tailor.impl.credits.formattedPrice
 import com.hirehop.feature.tailor.impl.jobLine
-
-private const val LARGE_TEXT_SCALE = 1.5f
 
 @Composable
 internal fun PackPurchaseScreen(
@@ -214,15 +211,14 @@ private fun PackOffer(
     actions: PackPurchaseActions,
 ) {
     val pack = uiState.selectedPack ?: return
-    val compact = LocalDensity.current.fontScale >= LARGE_TEXT_SCALE
     val price = pack.formattedPrice()
     HhOfflineBanner(
         message = stringResource(R.string.feature_tailor_impl_pack_purchase_offline_banner),
         visible = uiState.isOffline,
     )
     Text(
-        text = packHeadline(uiState = uiState, compact = compact),
-        style = if (compact) HhTheme.typography.titleM else HhTheme.typography.titleL,
+        text = packHeadline(uiState),
+        style = HhTheme.typography.titleL,
         color = HhTheme.colors.onSurface,
     )
     HhSolidCard(
@@ -237,9 +233,7 @@ private fun PackOffer(
     )
     PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_one_time))
     PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_no_subscription))
-    if (!compact) {
-        PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_each_application))
-    }
+    PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_each_application))
     if (uiState.stage == PackPurchaseStage.PURCHASING) {
         PackWaiting()
     }
@@ -270,9 +264,7 @@ private fun PackOffer(
         label = stringResource(R.string.feature_tailor_impl_pack_purchase_not_now),
         onClick = actions.onNotNow,
     )
-    if (!compact) {
-        RefundsLink(onClick = actions.onOpenCredits)
-    }
+    RefundsLink(onClick = actions.onOpenCredits)
 }
 
 @Composable
@@ -524,12 +516,11 @@ private fun PackBody(text: String) {
 }
 
 @Composable
-private fun packHeadline(uiState: PackPurchaseUiState, compact: Boolean): String =
-    stringResource(packHeadlineRes(uiState, compact), uiState.jobCompany)
+private fun packHeadline(uiState: PackPurchaseUiState): String =
+    stringResource(packHeadlineRes(uiState), uiState.jobCompany)
 
-internal fun packHeadlineRes(uiState: PackPurchaseUiState, compact: Boolean): Int = when {
+internal fun packHeadlineRes(uiState: PackPurchaseUiState): Int = when {
     !uiState.hasApplication -> R.string.feature_tailor_impl_pack_purchase_headline_credits
-    compact -> R.string.feature_tailor_impl_pack_purchase_headline_compact
     uiState.jobCompany.isBlank() -> R.string.feature_tailor_impl_pack_purchase_headline_generic
     else -> R.string.feature_tailor_impl_pack_purchase_headline
 }

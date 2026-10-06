@@ -2,10 +2,12 @@ package com.hirehop.feature.tailor.impl.packpurchase
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -23,6 +25,9 @@ import org.robolectric.annotation.Config
 private val BUY_DESCRIPTION = hasContentDescription("Buy 5 applications", substring = true)
 
 private const val ONE_TIME_LINE = "One-time payment through Google Play. Price includes GST."
+private const val EACH_APPLICATION_LINE = "Each application: a tailored resume, its export, and prep questions."
+private const val REFUNDS_LINK = "Refunds and help"
+private const val HEADLINE = "Your Northwind GCC resume is ready"
 private const val NO_SUBSCRIPTION_LINE = "No subscription. Nothing renews."
 
 private fun readyState() = PackPurchaseUiState(
@@ -123,5 +128,8 @@ class PackPurchaseScreenTest {
         }
         composeRule.onNodeWithText(ONE_TIME_LINE).assertExists()
         composeRule.onNodeWithText(NO_SUBSCRIPTION_LINE).assertExists()
+        composeRule.onNodeWithText(EACH_APPLICATION_LINE).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(REFUNDS_LINK).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(HEADLINE, substring = true).assertExists()
     }
 }

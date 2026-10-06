@@ -21,15 +21,14 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
     override fun createPaymentGateway(): PaymentGateway = offlineGateway()
 
     @Test
-    fun theCatalogueHoldsTheTwoNonRenewingProducts() = runTest {
+    fun theCatalogueHoldsOnlyTheFiveApplicationPack() = runTest {
         val gateway = offlineGateway()
 
         val packs = gateway.packs()
 
-        assertThat(packs).containsExactly(
-            MockPackCatalogue.applicationPackFive,
-            MockPackCatalogue.singleApplication,
-        ).inOrder()
+        assertThat(packs).containsExactly(MockPackCatalogue.applicationPackFive)
+        assertThat(packs.single().credits).isEqualTo(5)
+        assertThat(packs.single().priceInPaise).isEqualTo(14_900)
     }
 
     @Test
@@ -67,17 +66,17 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
 
     @Test
     fun aConfirmedPurchaseClearsAPendingHoldOnTheSamePack() = runTest {
-        val gateway = scripted(ApplicationPack.SINGLE_APPLICATION, PurchaseOutcome.Pending)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        val gateway = scripted(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Pending)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         assertThat(gateway.entitlement().pendingPackIds).isNotEmpty()
 
-        gateway.withOutcome(ApplicationPack.SINGLE_APPLICATION, PurchaseOutcome.Success)
-        val result = gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Success)
+        val result = gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
         assertThat(result).isInstanceOf(PurchaseResult.Completed::class.java)
         val entitlement = gateway.entitlement()
         assertThat(entitlement.pendingPackIds).isEmpty()
-        assertThat(entitlement.purchasedCredits).isEqualTo(1)
+        assertThat(entitlement.purchasedCredits).isEqualTo(5)
     }
 
     @Test
@@ -126,35 +125,24 @@ class OfflinePaymentGatewayContractTest : PaymentGatewayContractTest() {
     }
 
     @Test
-    fun theOutcomeOfOnePackDoesNotChangeTheOther() = runTest {
-        val gateway = scripted(ApplicationPack.SINGLE_APPLICATION, PurchaseOutcome.Pending)
-
-        val result = gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
-
-        assertThat(result).isInstanceOf(PurchaseResult.Completed::class.java)
-        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(5)
-    }
-
-    @Test
     fun restoreReturnsWhatTheAccountAlreadyOwns() = runTest {
         val gateway = offlineGateway()
         gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
 
         val restored = gateway.restorePurchases()
 
         assertThat(restored).isEqualTo(gateway.entitlement())
-        assertThat(restored.purchasedCredits).isEqualTo(6)
+        assertThat(restored.purchasedCredits).isEqualTo(5)
     }
 
     @Test
     fun buyingTheSameConsumablePackTwiceGrantsItTwice() = runTest {
         val gateway = offlineGateway()
 
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
-        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(2)
+        assertThat(gateway.entitlement().purchasedCredits).isEqualTo(10)
     }
 
     private fun offlineGateway(): OfflinePaymentGateway =
