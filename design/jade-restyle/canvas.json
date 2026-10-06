@@ -1,0 +1,417 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Components-Dark.dc.html": {
+      "h": 2900,
+      "title": "Foundations · Components · Dark",
+      "w": 1440,
+      "x": 1520,
+      "y": 2440
+    },
+    "Components-Light.dc.html": {
+      "h": 2900,
+      "title": "Foundations · Components · Light",
+      "w": 1440,
+      "x": 0,
+      "y": 2440
+    },
+    "Main.dc.html": {
+      "h": 2320,
+      "title": "Foundations · Tokens · Light",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "S1-Welcome.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S1 Welcome",
+      "w": 360,
+      "x": 0,
+      "y": 5940
+    },
+    "S10a-Cover-Offer.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S10 Cover letter · Offer",
+      "w": 360,
+      "x": 5280,
+      "y": 8740
+    },
+    "S10b-Cover-Generating.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S10 Cover letter · Generating",
+      "w": 360,
+      "x": 5720,
+      "y": 8740
+    },
+    "S10c-Cover-Ready.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S10 Cover letter · Ready",
+      "w": 360,
+      "x": 6160,
+      "y": 8740
+    },
+    "S10d-Cover-FactSheet.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S10 Cover letter · Fact chip sheet",
+      "w": 360,
+      "x": 6600,
+      "y": 8740
+    },
+    "S10e-Cover-Editing.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S10 Cover letter · Editing in place",
+      "w": 360,
+      "x": 7040,
+      "y": 8740
+    },
+    "S11a-Prep-Generating.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S11 Prep questions · Generating",
+      "w": 360,
+      "x": 7480,
+      "y": 8740
+    },
+    "S11b-Prep-Ready.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S11 Prep questions · Ready",
+      "w": 360,
+      "x": 7920,
+      "y": 8740
+    },
+    "S11c-Prep-Gaps.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S11 Prep questions · Your gaps",
+      "w": 360,
+      "x": 8360,
+      "y": 8740
+    },
+    "S2a-Paste-Empty.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S2 Paste JD · Empty",
+      "w": 360,
+      "x": 440,
+      "y": 5940
+    },
+    "S2b-Paste-Pasted.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S2 Paste JD · Pasted",
+      "w": 360,
+      "x": 880,
+      "y": 5940
+    },
+    "S2c-Paste-TooShort.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S2 Paste JD · Too short",
+      "w": 360,
+      "x": 1320,
+      "y": 5940
+    },
+    "S3a-SignIn.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S3 Sign in · Default",
+      "w": 360,
+      "x": 1760,
+      "y": 5940
+    },
+    "S3b-SignIn-Under18.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S3 Sign in · Under 18 blocked",
+      "w": 360,
+      "x": 2200,
+      "y": 5940
+    },
+    "S4-Consent.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S4 Consent notice",
+      "w": 360,
+      "x": 2640,
+      "y": 5940
+    },
+    "S5a-Import-Choose.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S5 Import · Choose",
+      "w": 360,
+      "x": 3080,
+      "y": 5940
+    },
+    "S5b-Import-Reading.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S5 Import · Reading",
+      "w": 360,
+      "x": 3520,
+      "y": 5940
+    },
+    "S5c-Import-Scanned.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S5 Import · Scanned PDF",
+      "w": 360,
+      "x": 3960,
+      "y": 5940
+    },
+    "S6a-Facts-Pending.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S6 Confirm facts · All pending",
+      "w": 360,
+      "x": 0,
+      "y": 7340
+    },
+    "S6b-Facts-Partly.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S6 Confirm facts · Partly confirmed",
+      "w": 360,
+      "x": 440,
+      "y": 7340
+    },
+    "S6c-Facts-Confirmed.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S6 Confirm facts · All confirmed",
+      "w": 360,
+      "x": 880,
+      "y": 7340
+    },
+    "S7a-Gap-Waiting.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S7 Gap check · Waiting",
+      "w": 360,
+      "x": 1320,
+      "y": 7340
+    },
+    "S7b-Gap-Result.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S7 Gap check · Result",
+      "w": 360,
+      "x": 1760,
+      "y": 7340
+    },
+    "S7c-Gap-IHaveThis.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S7 Gap check · I have this sheet",
+      "w": 360,
+      "x": 2200,
+      "y": 7340
+    },
+    "S7d-Gap-ShareCard.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S7 Gap check · Share card preview",
+      "w": 360,
+      "x": 2640,
+      "y": 7340
+    },
+    "S8a-Resume-Loading.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · Loading",
+      "w": 360,
+      "x": 0,
+      "y": 8740
+    },
+    "S8b-Resume-Ready.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · Ready, 0 of 12",
+      "w": 360,
+      "x": 440,
+      "y": 8740
+    },
+    "S8c-Resume-Partly.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · 7 of 12",
+      "w": 360,
+      "x": 880,
+      "y": 8740
+    },
+    "S8d-Resume-AllReviewed.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · All reviewed",
+      "w": 360,
+      "x": 1320,
+      "y": 8740
+    },
+    "S8e-Resume-RegenConfirm.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · Regenerate confirm",
+      "w": 360,
+      "x": 1760,
+      "y": 8740
+    },
+    "S8f-Resume-RegenUsed.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · Regenerations used",
+      "w": 360,
+      "x": 2200,
+      "y": 8740
+    },
+    "S8g-Resume-Failed.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S8 Resume review · Job failed",
+      "w": 360,
+      "x": 2640,
+      "y": 8740
+    },
+    "S9a-Bullet-Resting.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S9 Bullet review · Resting",
+      "w": 360,
+      "x": 3080,
+      "y": 8740
+    },
+    "S9b-Bullet-Accepted.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S9 Bullet review · Accepted",
+      "w": 360,
+      "x": 3520,
+      "y": 8740
+    },
+    "S9c-Bullet-FlaggedVerb.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S9 Bullet review · Flagged verb",
+      "w": 360,
+      "x": 3960,
+      "y": 8740
+    },
+    "S9d-Bullet-EditByHand.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S9 Bullet review · Edit by hand",
+      "w": 360,
+      "x": 4400,
+      "y": 8740
+    },
+    "S9e-Bullet-UserEdited.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "S9 Bullet review · User edited",
+      "w": 360,
+      "x": 4840,
+      "y": 8740
+    },
+    "Tokens-Dark.dc.html": {
+      "h": 2320,
+      "title": "Foundations · Tokens · Dark",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-06T17:06:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "flow1a": {
+      "kind": "title1",
+      "maxW": 4320,
+      "text": "Step 2 · Flow 1 first run · S1 to S5",
+      "w": 240,
+      "x": 0,
+      "y": 5640
+    },
+    "flow1b": {
+      "kind": "title1",
+      "maxW": 3000,
+      "text": "Flow 1 first run · S6 Confirm facts and S7 Gap check",
+      "w": 240,
+      "x": 0,
+      "y": 7040
+    },
+    "flow2": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Flow 2 tailoring",
+      "w": 240,
+      "x": 0,
+      "y": 8440
+    },
+    "foundations": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Step 1 · Foundations (light and dark)",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Tokens-Dark.dc.html",
+    "Components-Light.dc.html",
+    "Components-Dark.dc.html",
+    "S1-Welcome.dc.html",
+    "S2a-Paste-Empty.dc.html",
+    "S2b-Paste-Pasted.dc.html",
+    "S2c-Paste-TooShort.dc.html",
+    "S3a-SignIn.dc.html",
+    "S3b-SignIn-Under18.dc.html",
+    "S4-Consent.dc.html",
+    "S5a-Import-Choose.dc.html",
+    "S5b-Import-Reading.dc.html",
+    "S5c-Import-Scanned.dc.html",
+    "S6a-Facts-Pending.dc.html",
+    "S6b-Facts-Partly.dc.html",
+    "S6c-Facts-Confirmed.dc.html",
+    "S7a-Gap-Waiting.dc.html",
+    "S7b-Gap-Result.dc.html",
+    "S7c-Gap-IHaveThis.dc.html",
+    "S7d-Gap-ShareCard.dc.html",
+    "S8a-Resume-Loading.dc.html",
+    "S8b-Resume-Ready.dc.html",
+    "S8c-Resume-Partly.dc.html",
+    "S8d-Resume-AllReviewed.dc.html",
+    "S8e-Resume-RegenConfirm.dc.html",
+    "S8f-Resume-RegenUsed.dc.html",
+    "S8g-Resume-Failed.dc.html",
+    "S9a-Bullet-Resting.dc.html",
+    "S9b-Bullet-Accepted.dc.html",
+    "S9c-Bullet-FlaggedVerb.dc.html",
+    "S9d-Bullet-EditByHand.dc.html",
+    "S9e-Bullet-UserEdited.dc.html",
+    "S10a-Cover-Offer.dc.html",
+    "S10b-Cover-Generating.dc.html",
+    "S10c-Cover-Ready.dc.html",
+    "S10d-Cover-FactSheet.dc.html",
+    "S10e-Cover-Editing.dc.html",
+    "S11a-Prep-Generating.dc.html",
+    "S11b-Prep-Ready.dc.html",
+    "S11c-Prep-Gaps.dc.html"
+  ],
+  "pages": [],
+  "title": "HireHop"
+}

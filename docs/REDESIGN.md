@@ -3,6 +3,23 @@
 This document binds every agent that works on the redesign. `docs/CONSTITUTION.md` wins a conflict.
 `docs/ARCHITECTURE.md` comes second. This document comes third.
 
+## 0. Restyle of 2026-10-06 (wins over sections 2 to 4)
+
+The user kept Jade and added the playful layout of a job-app reference. The source is
+`design/jade-restyle/` (read its `INDEX.md`). The build plan is `docs/MVP_PLAN.md`.
+
+| Topic | Rule |
+|---|---|
+| Source | `design/jade-restyle/` for foundations, Flows 1 and 2. `design/claude-design/flow3` to `flow5` for structure and states of S12 to S24, drawn with the restyle tokens and components |
+| Accents | Coral #B94C37 (white text) and marigold #FFC94D (ink text) beside Jade #0B7A5C. Blue #2B5FA8 only for "Partly met" |
+| Shapes | Cards 28 dp. Coloured hero header with 48 dp bottom corners. Pill buttons 60 dp tall. Round icon buttons 48 dp |
+| Colour cards | Solid coral, jade or marigold cards with a white round monogram, for applications and choices |
+| Pill rows | Full pill list rows, 72 dp tall, 36 dp radius, solid colour |
+| Bottom bar | A round 60 dp secondary button next to a 60 dp primary pill |
+| Dock | Full-width ink bar with 28 dp top corners, three icons, no labels. The active icon sits in a raised jade circle |
+| Decoration | Thin hand-drawn squiggles, rings and dots in coral, marigold and jade around illustrations and in headers |
+| Status | Unchanged: shape plus word plus colour. Met, Partly met, To prepare |
+
 ## 1. Goal
 
 1. Replace the Evidence-Editorial look with the "Friendly hero, Jade" design in every screen.

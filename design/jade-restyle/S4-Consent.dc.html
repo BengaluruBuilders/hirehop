@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>S4 Consent notice</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B7A5C}a:hover{color:#064D3A}
+button,input{font-family:inherit}
+</style>
+</helmet>
+<main style="width: 360px; height: 800px; position: relative; overflow: hidden; box-sizing: border-box; padding: 36px 16px 0; background: #FFFFFF; color: #16181D; font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column">
+
+<div style="height: 48px; display: flex; align-items: center; justify-content: space-between">
+<a href="S3a-SignIn.dc.html" aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; border: 1.5px solid #E6E8EC; box-sizing: border-box; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></a>
+<svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M7 12L3 6M15 9V2M23 12l4-6" stroke="#B94C37" stroke-width="3" stroke-linecap="round"/></svg>
+<span style="height: 32px; padding: 0 14px; border-radius: 999px; background: #DDF2EA; color: #064D3A; font-size: 13px; font-weight: 700; display: flex; align-items: center">Step 3 of 5</span>
+</div>
+
+<h1 style="margin: 16px 0 0; font-size: 28px; line-height: 34px; font-weight: 800; letter-spacing: -0.4px">How we use your data</h1>
+<p style="margin: 6px 0 0; font-size: 14px; line-height: 20px; color: #5F6672">Tick each one on its own. You can withdraw any of them later in Settings.</p>
+
+<div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px">
+
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #DDF2EA; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#064D3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 13h5M10 17h5"/></svg></span>
+<span style="flex: 1; font-size: 15px; font-weight: 700">Read your resume</span>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 700; color: {{w1}}; cursor: pointer">{{l1}}<input type="checkbox" aria-label="I understand: read your resume" checked="{{c1}}" onChange="{{t1}}" style="width: 26px; height: 26px; margin: 0; accent-color: #0B7A5C"></label>
+</div>
+<span style="font-size: 13px; line-height: 18px; color: #5F6672">We pull out jobs, skills and dates as suggestions. Nothing is used until you confirm it.</span>
+</div>
+
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #DDF2EA; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#064D3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>
+<span style="flex: 1; font-size: 15px; font-weight: 700">Keep your confirmed facts</span>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 700; color: {{w2}}; cursor: pointer">{{l2}}<input type="checkbox" aria-label="I understand: keep your confirmed facts" checked="{{c2}}" onChange="{{t2}}" style="width: 26px; height: 26px; margin: 0; accent-color: #0B7A5C"></label>
+</div>
+<span style="font-size: 13px; line-height: 18px; color: #5F6672">Saved to your account so you don't start over. Delete them anytime.</span>
+</div>
+
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #DDF2EA; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#064D3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
+<span style="flex: 1; font-size: 15px; font-weight: 700">Match facts to job posts</span>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 700; color: {{w3}}; cursor: pointer">{{l3}}<input type="checkbox" aria-label="I understand: match facts to job posts" checked="{{c3}}" onChange="{{t3}}" style="width: 26px; height: 26px; margin: 0; accent-color: #0B7A5C"></label>
+</div>
+<span style="font-size: 13px; line-height: 18px; color: #5F6672">OpenAI, our AI provider, compares your facts with posts you paste. It never adds anything you didn't confirm.</span>
+</div>
+
+<div style="border-radius: 28px; background: #FFFFFF; border: 1.5px dashed #E6E8EC; padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #F6F7F9; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">Help improve HireHop</span><span style="font-size: 12px; font-weight: 600; color: #5F6672">Optional</span></span>
+<button aria-pressed="{{opt}}" aria-label="Help improve HireHop" onClick="{{tOpt}}" style="min-height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: {{optWord}}; cursor: pointer">{{optLabel}}<span style="width: 48px; height: 28px; border-radius: 999px; background: {{optTrack}}; border: 1.5px solid {{optBorder}}; box-sizing: border-box; display: flex; align-items: center; justify-content: {{optJustify}}; padding: 0 3px"><span style="width: 20px; height: 20px; border-radius: 999px; background: {{optKnob}}"></span></span></button>
+</div>
+<span style="font-size: 13px; line-height: 18px; color: #5F6672">Anonymous counts, like which screens get used. Never your resume or facts.</span>
+</div>
+
+</div>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px">
+<sc-if value="{{allDone}}" hint-placeholder-val="{{ false }}">
+<a href="S5a-Import-Choose.dc.html" style="height: 60px; border-radius: 999px; background: #0B7A5C; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Agree and continue</a>
+</sc-if>
+<sc-if value="{{notDone}}" hint-placeholder-val="{{ true }}">
+<button disabled="disabled" style="height: 60px; border-radius: 999px; border: none; background: #E6E8EC; color: #5F6672; font-size: 16px; font-weight: 700">{{waitLabel}}</button>
+</sc-if>
+</div>
+
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { c1: true, c2: true, c3: false, opt: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const word = (on) => on ? '#0B7A5C' : '#5F6672';
+    const lab = (on) => on ? 'Got it' : 'Not yet';
+    const left = [s.c1, s.c2, s.c3].filter((x) => !x).length;
+    return {
+      c1: !!s.c1, c2: !!s.c2, c3: !!s.c3,
+      w1: word(s.c1), w2: word(s.c2), w3: word(s.c3),
+      l1: lab(s.c1), l2: lab(s.c2), l3: lab(s.c3),
+      t1: () => this.setState({ c1: !s.c1 }),
+      t2: () => this.setState({ c2: !s.c2 }),
+      t3: () => this.setState({ c3: !s.c3 }),
+      opt: s.opt ? 'true' : 'false',
+      optLabel: s.opt ? 'On' : 'Off',
+      optWord: s.opt ? '#0B7A5C' : '#5F6672',
+      optTrack: s.opt ? '#0B7A5C' : '#E6E8EC',
+      optBorder: s.opt ? '#0B7A5C' : '#5F6672',
+      optKnob: s.opt ? '#FFFFFF' : '#5F6672',
+      optJustify: s.opt ? 'flex-end' : 'flex-start',
+      tOpt: () => this.setState({ opt: !s.opt }),
+      allDone: left === 0,
+      notDone: left > 0,
+      waitLabel: left === 1 ? 'Tick 1 more to continue' : 'Tick ' + left + ' more to continue'
+    };
+  }
+}
+</script>
+</body>
+</html>

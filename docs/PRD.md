@@ -120,11 +120,31 @@ Priority: P0 = the release is blocked without it. P1 = ship in MVP if time allow
 | F3 | Truth-locked resume tailoring with per-bullet review | P0 | Strong |
 | F4 | Export to PDF and DOCX | P0 | Required for F3 to be useful |
 | F5 | Application workspace: saved documents, status, notes | P0 (light) | Tracker search demand in India is near zero. Keep it simple (R1). |
-| F6 | Preparation questions per application | P1 | Moderate |
-| F7 | Cover letter, optional and short | P1 | Weak India demand. Stronger US demand (R1). |
+| F6 | Preparation questions per application | P0 | Moderate |
+| F7 | Cover letter, optional and short | P0 | Weak India demand. Stronger US demand (R1). |
 | F8 | Packs and payment | P0 | Required to test willingness to pay |
 | F9 | Account, consent, and compliance screens | P0 | Legal and Play requirement (R5) |
-| F10 | Share card and referral credit | P1 | Distribution depends on referral (R6) |
+| F10 | Share card (P0). Referral credit and group code (P2). | P0 / P2 | Distribution depends on referral (R6) |
+
+### 6.1.1 MVP lock (2026-10-06)
+
+Reviewed by an external model (gpt-6-astra) on 2026-10-06 and checked against R1, R2 and R6. Nothing
+else enters the MVP without a new decision in this section.
+
+| In the MVP | Cut from the MVP |
+|---|---|
+| F1 import, guided form, evidence questions, fact confirmation | Templates 2 and 3. The MVP has 1 template. |
+| F2 JD paste or share, gap match, keyword coverage, "I have this", prep tasks | Referral credit and the group code |
+| F3 tailoring with the six guardrails, per-bullet review, 2 regenerations | The single-application product |
+| F4 PDF and DOCX export, 1 template, preview before the paywall, share sheet | Job listings and job discovery (section 4.2) |
+| F5 application list, status, notes, prep tasks | Reminders and a kanban board |
+| F6 prep questions. apna and ResumeGyani already offer prep in India (R2). | |
+| F7 cover letter, optional, offered after the resume | |
+| F8 free tier and the 5-application pack | |
+| F9 Google sign-in, 18+ check, consent, data access, export, and deletion | |
+| F10 JD-fit share card only, with no personal data (R6 section 7) | |
+
+Channel attribution for college groups uses Play Install Referrer links, not a sign-up code.
 
 ### 6.2 F1 — Resume import and profile
 
@@ -200,7 +220,7 @@ Requirements:
 
 1. Export as PDF and DOCX from one approved JSON document.
 2. Use a single column, real selectable text, and standard section headings (Education, Experience, Projects, Skills). Use no tables, text boxes, or images for body text.
-3. Offer 3 templates at launch.
+3. Offer 1 template at launch. Add more after the MVP.
 4. Show a full preview before the paywall. The paywall covers the download, not the preview (R2).
 5. Name files in the pattern `Name_Company_Role.pdf`.
 6. Share through the Android share sheet: email, WhatsApp, Drive, or Files.
@@ -222,21 +242,21 @@ Requirements:
 3. Show a simple list, sorted by last update. The MVP has no kanban board and no reminders.
 4. The workspace works offline for reading. The app stores it in Room as the local source of truth and syncs it to the backend.
 
-### 6.7 F6 — Preparation questions (P1)
+### 6.7 F6 — Preparation questions (P0)
 
 1. Generate 8 to 12 likely interview questions from the JD and the gap analysis.
 2. For each question, show why the interviewer may ask it, and which profile facts can support the answer.
 3. For each gap, show one honest way to address it in an interview.
 4. The MVP has no voice and no scoring.
 
-### 6.8 F7 — Cover letter (P1, optional)
+### 6.8 F7 — Cover letter (P0, optional)
 
 1. Generate a short letter of 150 to 220 words. Each paragraph cites source IDs.
 2. The same deterministic checks and model verifier apply as in F3.
 3. The user edits the letter in the app. Export follows F4.
 4. The app offers the letter after the resume. It does not push it.
 
-### 6.9 F10 — Share and referral (P1)
+### 6.9 F10 — Share and referral (share card P0, the rest P2)
 
 1. After a gap analysis, the user can share a "JD fit card" as an image. The card shows the role and the met/partial/gap counts. It shows no personal data.
 2. Each referral that leads to a first full application gives both users 1 free application credit.
@@ -266,7 +286,7 @@ Willingness to pay is **partial and not validated** (R3). The India/SEA median d
 |---|---|---|
 | Free | Profile import, unlimited profile edits, 3 gap analyses per day, 1 full application (tailored resume, export, prep questions) | ₹0 |
 | Application pack | 5 full applications. The credits never expire. | ₹149 (test ₹99 / ₹149 / ₹199) |
-| Single application | 1 full application | ₹49 (test only if pack conversion is low) |
+| Single application, after MVP | 1 full application | ₹49 (test only if pack conversion is low) |
 | Active search pass, after MVP | 30 days, prepaid, no auto-renew, up to 12 applications | ₹299 to ₹399 |
 
 Rules:
@@ -451,10 +471,10 @@ Effort: about 24 engineer-weeks for one experienced Android engineer (range 20 t
 |---|---|---|
 | R0 spikes (week 1) | PDF text spike, extraction on 10 real resumes, model cost measurement | Nov 2026 |
 | R1 closed beta | F1, F2, F3, F4 (PDF), F5 (light), F9 | Closed test by early Feb 2027 |
-| R2 public MVP | Add F4 (DOCX), F6, F7, F8, F10 | Before 13 May 2027 (DPDP date) |
-| R3 | Active search pass, reminders, Hindi UI (if data supports it) | Sep 2027 placement season |
+| R2 public MVP | Add F4 (DOCX), F6, F7, F8, F10 share card | Before 13 May 2027 (DPDP date) |
+| R3 | More templates, referral credit, group code, active search pass, reminders, Hindi UI (if data supports it) | Sep 2027 placement season |
 
-**Decision needed.** A Jan to Mar 2027 public launch does not fit 24 engineer-weeks for one engineer. The plan above launches a closed beta in the Jan to Mar peak and the public MVP by May 2027. The other options are a second engineer, or a smaller R1 that cuts DOCX and prep questions.
+**Scope decided 2026-10-06 (section 6.1.1); timeline still open.** A Jan to Mar 2027 public launch does not fit 24 engineer-weeks for one engineer. The plan above launches a closed beta in the Jan to Mar peak and the public MVP by May 2027. The other options are a second engineer, or a smaller R1 that cuts DOCX and prep questions.
 
 Put the Play developer account on the critical path now. The closed test needs 12 or more opted-in testers for 14 days. Recruit 20 to 25 testers. An organization account avoids the closed test, but its D-U-N-S number can take up to 30 days (R6).
 

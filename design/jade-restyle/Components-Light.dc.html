@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HireHop components, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B7A5C}a:hover{color:#064D3A}
+button,input,textarea{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1440px; height: 2900px; box-sizing: border-box; padding: 64px; background: #FFFFFF; color: #16181D; font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; gap: 56px">
+
+<header style="display: flex; justify-content: space-between; align-items: flex-end">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="height: 32px; width: max-content; padding: 0 14px; border-radius: 999px; background: #DDF2EA; color: #064D3A; font-size: 13px; font-weight: 700; display: flex; align-items: center">Light theme</span>
+<h1 style="margin: 0; font-size: 56px; line-height: 60px; font-weight: 800; letter-spacing: -1.2px">Components</h1>
+</div>
+<p style="margin: 0; max-width: 520px; font-size: 15px; line-height: 22px; color: #5F6672">Everything is round: 28 cards, 36 pill rows, full-pill buttons and circular icon buttons. Status always pairs a shape, a word and a colour.</p>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Buttons</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 700; color: #5F6672">Primary pill · 60</span>
+<button style="height: 60px; border-radius: 999px; border: none; background: #0B7A5C; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px">Tailor my resume</button>
+<button style="height: 60px; border-radius: 999px; border: none; background: #064D3A; color: #FFFFFF; font-size: 16px; font-weight: 700">Pressed</button>
+<button disabled="disabled" style="height: 60px; border-radius: 999px; border: none; background: #E6E8EC; color: #5F6672; font-size: 16px; font-weight: 700">Disabled</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 700; color: #5F6672">Dark, outline and soft</span>
+<button style="height: 60px; border-radius: 999px; border: none; background: #16181D; color: #FFFFFF; font-size: 16px; font-weight: 700">Continue</button>
+<button style="height: 60px; border-radius: 999px; border: 1.5px solid #16181D; background: #FFFFFF; color: #16181D; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share my fit</button>
+<div style="display: flex; gap: 8px">
+<button style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #FFFFFF; color: #16181D; font-size: 14px; font-weight: 700">I have this</button>
+<button style="height: 44px; padding: 0 18px; border-radius: 999px; border: none; background: #DDF2EA; color: #064D3A; font-size: 14px; font-weight: 700">Add to prep plan</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 700; color: #5F6672">Round icon · 48</span>
+<div style="display: flex; gap: 12px; align-items: center">
+<button aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></button>
+<button aria-label="Add a fact" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: #16181D; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button aria-label="Edit" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: #0B7A5C; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></button>
+<button aria-label="Remove" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: #F6F7F9; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg></button>
+</div>
+<div style="height: 76px; border-radius: 28px; background: #0B7A5C; display: flex; align-items: center; gap: 12px; padding: 0 14px">
+<button aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></button>
+<span style="font-size: 13px; font-weight: 600; color: #FFFFFF">White round on hero</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 700; color: #5F6672">Bottom bar · pill 60 + round 60</span>
+<div style="border-radius: 28px; border: 1px solid #E6E8EC; padding: 12px 16px 16px; display: flex; gap: 10px; align-items: center">
+<button aria-label="Prep plan, 2 items" style="position: relative; width: 60px; height: 60px; flex: none; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #F6F7F9; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l1.5 1.5L8 5"/><path d="M4 12l1.5 1.5L8 11"/><path d="M4 18l1.5 1.5L8 17"/><path d="M11 6h9M11 12h9M11 18h9"/></svg><span style="position: absolute; top: -2px; right: -2px; min-width: 22px; height: 22px; border-radius: 999px; background: #FFC94D; color: #16181D; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #FFFFFF">2</span></button>
+<button style="flex: 1; height: 60px; border-radius: 999px; border: none; background: #0B7A5C; color: #FFFFFF; font-size: 16px; font-weight: 700">Tailor my resume</button>
+</div>
+<div style="border-radius: 28px; border: 1px solid #E6E8EC; padding: 12px 16px 16px; display: flex; gap: 10px; align-items: center">
+<button aria-label="Add a fact" style="width: 60px; height: 60px; flex: none; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #F6F7F9; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button style="flex: 1; height: 60px; border-radius: 999px; border: none; background: #16181D; color: #FFFFFF; font-size: 16px; font-weight: 700">Continue</button>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Chips and status</h2>
+<div style="border-radius: 28px; background: #0B7A5C; padding: 14px; display: flex; flex-wrap: wrap; gap: 8px">
+<span style="height: 36px; padding: 0 14px 0 8px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>9 met</span>
+<span style="height: 36px; padding: 0 14px 0 8px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#2B5FA8" stroke-width="2.4"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="#2B5FA8"/></svg>3 partly met</span>
+<span style="height: 36px; padding: 0 14px 0 8px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#4A5263" stroke-width="2.2" stroke-dasharray="3.2 2.8"/></svg>2 to prepare</span>
+<span style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #FFFFFF; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center">Full time</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="height: 36px; padding: 0 14px; border-radius: 999px; background: #F6F7F9; border: 1px solid #E6E8EC; font-size: 13px; font-weight: 700; display: flex; align-items: center">Product Analyst</span>
+<span style="height: 36px; padding: 0 14px 0 10px; border-radius: 999px; background: #16181D; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Selected</span>
+<span style="height: 36px; padding: 0 14px; border-radius: 999px; background: #DDF2EA; color: #064D3A; font-size: 13px; font-weight: 700; display: flex; align-items: center">Detected</span>
+<span style="height: 28px; padding: 0 12px; border-radius: 999px; background: #FFC94D; color: #16181D; font-size: 12px; font-weight: 800; display: flex; align-items: center">New</span>
+<span style="height: 36px; padding: 0 14px 0 10px; border-radius: 999px; background: #B94C37; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.1"/></svg>Can't read</span>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E6E8EC">F-03</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button aria-pressed="false" style="flex: 1; height: 56px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #F6F7F9; color: #16181D; font-size: 15px; font-weight: 700">Just starting out</button>
+<button aria-pressed="true" style="flex: 1; height: 56px; border-radius: 999px; border: none; background: #16181D; color: #FFFFFF; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><span style="width: 22px; height: 22px; border-radius: 999px; background: #FFC94D; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>1 to 2 years in</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="min-height: 64px; border-radius: 24px; background: #F6F7F9; padding: 12px 14px; box-sizing: border-box; display: flex; align-items: center; gap: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">SQL for product reporting</span><span style="font-size: 12px; font-weight: 600; color: #0B7A5C">Met · backed by F-02, F-04</span></div>
+</div>
+<div style="min-height: 64px; border-radius: 24px; background: #F6F7F9; padding: 12px 14px; box-sizing: border-box; display: flex; align-items: center; gap: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#2B5FA8" stroke-width="2.4"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="#2B5FA8"/></svg>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">Product metrics: activation, retention</span><span style="font-size: 12px; font-weight: 600; color: #2B5FA8">Partly met · F-02 covers reporting only</span></div>
+</div>
+<div style="min-height: 64px; border-radius: 24px; background: #F6F7F9; padding: 12px 14px; box-sizing: border-box; display: flex; align-items: center; gap: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#4A5263" stroke-width="2.2" stroke-dasharray="3.2 2.8"/></svg>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">Design and read A/B tests</span><span style="font-size: 12px; font-weight: 600; color: #4A5263">To prepare · no matching fact yet</span></div>
+</div>
+</div>
+<div style="display: flex; gap: 16px; align-items: center">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #5F6672"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#5F6672" stroke-width="2"/></svg>Pending</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #0B7A5C"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Confirmed</span>
+<span style="font-size: 12px; color: #5F6672">Fact status uses the same grammar</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 20px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Inputs</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="c-in1" style="font-size: 13px; font-weight: 700">Job title</label>
+<input id="c-in1" placeholder="e.g. Data Analyst" style="height: 56px; border-radius: 20px; border: 1.5px solid #E6E8EC; background: #F6F7F9; padding: 0 16px; font-size: 15px; color: #16181D; box-sizing: border-box; outline: none">
+<span style="font-size: 12px; color: #5F6672">Default</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="c-in2" style="font-size: 13px; font-weight: 700">Job title</label>
+<input id="c-in2" value="Product Ana" style="height: 56px; border-radius: 20px; border: 2px solid #0B7A5C; background: #FFFFFF; padding: 0 16px; font-size: 15px; color: #16181D; box-sizing: border-box; outline: none">
+<span style="font-size: 12px; color: #5F6672">Focused · 2 px jade</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="c-in3" style="font-size: 13px; font-weight: 700">Company</label>
+<input id="c-in3" value="Kestrel Pay" style="height: 56px; border-radius: 20px; border: 1.5px solid #E6E8EC; background: #F6F7F9; padding: 0 16px; font-size: 15px; font-weight: 600; color: #16181D; box-sizing: border-box; outline: none">
+<span style="font-size: 12px; color: #5F6672">Filled</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="c-in4" style="font-size: 13px; font-weight: 700">Job description</label>
+<input id="c-in4" value="Analyst, SQL, 1 yr" style="height: 56px; border-radius: 20px; border: 2px solid #B94C37; background: #FFFFFF; padding: 0 16px; font-size: 15px; color: #16181D; box-sizing: border-box; outline: none">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #B94C37"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B94C37" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.1"/></svg>Too short · add at least 80 words</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="c-ta" style="font-size: 13px; font-weight: 700">Job description, multi-line</label>
+<div style="position: relative; height: 148px; border-radius: 28px; border: 1.5px solid #E6E8EC; background: #F6F7F9; box-sizing: border-box">
+<textarea id="c-ta" placeholder="Paste the full post: role, responsibilities and requirements." style="width: 100%; height: 100%; box-sizing: border-box; border: none; background: transparent; resize: none; padding: 16px 18px; font-size: 15px; line-height: 22px; color: #16181D; outline: none; border-radius: 28px"></textarea>
+<button style="position: absolute; left: 14px; bottom: 14px; height: 44px; padding: 0 16px 0 12px; border-radius: 999px; border: none; background: #DDF2EA; color: #064D3A; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#064D3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="3"/><path d="M9 4h6v3H9z"/></svg>Paste from clipboard</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<label style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-radius: 20px; background: #F6F7F9; padding: 0 14px; font-size: 15px; font-weight: 600"><input type="checkbox" style="width: 24px; height: 24px; margin: 0; accent-color: #0B7A5C">I'm 18 or older</label>
+<label style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-radius: 20px; background: #F6F7F9; padding: 0 14px; font-size: 15px; font-weight: 600"><input type="checkbox" checked="checked" style="width: 24px; height: 24px; margin: 0; accent-color: #0B7A5C">Got it</label>
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; border-radius: 20px; background: #F6F7F9; padding: 0 14px">
+<span style="font-size: 15px; font-weight: 600">Usage counts</span>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #5F6672">Off<span style="width: 48px; height: 28px; border-radius: 999px; background: #E6E8EC; border: 1.5px solid #5F6672; box-sizing: border-box; display: flex; align-items: center; padding: 0 3px"><span style="width: 20px; height: 20px; border-radius: 999px; background: #5F6672"></span></span></span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; border-radius: 20px; background: #F6F7F9; padding: 0 14px">
+<span style="font-size: 15px; font-weight: 600">Usage counts</span>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #0B7A5C">On<span style="width: 48px; height: 28px; border-radius: 999px; background: #0B7A5C; display: flex; align-items: center; justify-content: flex-end; padding: 0 4px; box-sizing: border-box"><span style="width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF"></span></span></span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Cards</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: stretch">
+<article style="border-radius: 28px; background: #B94C37; color: #FFFFFF; padding: 14px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden">
+<svg style="position: absolute; right: 64px; top: 18px" width="40" height="14" viewBox="0 0 40 14" aria-hidden="true"><circle cx="6" cy="7" r="3" fill="#FFC94D"/><circle cx="20" cy="7" r="3" fill="#FFC94D"/><circle cx="34" cy="7" r="3" fill="#FFC94D"/></svg>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="width: 52px; height: 52px; border-radius: 999px; background: #FFFFFF; color: #B94C37; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center">LH</div>
+<a href="#" aria-label="Open Data Analyst at Lumen Health" style="width: 48px; height: 48px; border-radius: 999px; background: #16181D; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 24px; line-height: 28px; font-weight: 800">Data Analyst</span><span style="font-size: 14px; font-weight: 600">Lumen Health · Pune</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 12px; font-weight: 700; display: flex; align-items: center">Resume ready</span><span style="height: 30px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center">11 met</span></div>
+</article>
+<article style="border-radius: 28px; background: #0B7A5C; color: #FFFFFF; padding: 14px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden">
+<svg style="position: absolute; right: 70px; top: 22px" width="48" height="14" viewBox="0 0 64 18" fill="none" aria-hidden="true"><path d="M2 11C7 3 12 3 16 9s9 7 13 1 9-7 13-1 9 7 13 1 6-5 7-4" stroke="#FFC94D" stroke-width="3" stroke-linecap="round"/></svg>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="width: 52px; height: 52px; border-radius: 999px; background: #FFFFFF; color: #0B7A5C; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center">KP</div>
+<a href="#" aria-label="Open Product Analyst at Kestrel Pay" style="width: 48px; height: 48px; border-radius: 999px; background: #16181D; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 24px; line-height: 28px; font-weight: 800">Product Analyst</span><span style="font-size: 14px; font-weight: 600">Kestrel Pay · Bengaluru</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 12px; font-weight: 700; display: flex; align-items: center">Gap check done</span><span style="height: 30px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center">2 to prepare</span></div>
+</article>
+<article style="border-radius: 28px; background: #FFC94D; color: #16181D; padding: 14px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden">
+<svg style="position: absolute; right: 66px; top: 16px" width="26" height="26" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M15 4c6.5 0 11 4.6 11 10.8S21.3 26 15.2 26 4 21.5 4 15.3C4 9.6 8 5.6 13 4.6" stroke="#B94C37" stroke-width="3" stroke-linecap="round"/></svg>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="width: 52px; height: 52px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center">NB</div>
+<a href="#" aria-label="Open Operations Associate at Northbay Logistics" style="width: 48px; height: 48px; border-radius: 999px; background: #16181D; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 24px; line-height: 28px; font-weight: 800">Operations Associate</span><span style="font-size: 14px; font-weight: 600">Northbay Logistics · Hyderabad</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #16181D; color: #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center">Draft</span></div>
+</article>
+<article style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E6E8EC">F-02</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #5F6672"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#5F6672" stroke-width="2"/></svg>Pending</span>
+</div>
+<span style="font-size: 15px; line-height: 21px; font-weight: 600">Built weekly SQL reports on clinic wait times for 6 city managers</span>
+<span style="font-size: 12px; font-weight: 600; color: #5F6672">Experience · from your resume, page 1</span>
+<div style="display: flex; gap: 8px; margin-top: auto">
+<button style="flex: 1; height: 44px; border-radius: 999px; border: none; background: #0B7A5C; color: #FFFFFF; font-size: 14px; font-weight: 700">Confirm</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #FFFFFF; color: #16181D; font-size: 14px; font-weight: 700">Edit</button>
+<button aria-label="Remove fact F-02" style="width: 44px; height: 44px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg></button>
+</div>
+</article>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: 360px 360px 360px; gap: 56px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Pill list rows</h2>
+<span style="font-size: 13px; color: #5F6672">72 tall, 36 radius, solid fills, white circle icon</span>
+<a href="#" style="height: 72px; border-radius: 36px; background: #B94C37; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; box-sizing: border-box">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B94C37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Choose a PDF</span><span style="font-size: 12px; font-weight: 600">Text PDFs read best</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="M9 6l6 6-6 6"/></svg>
+</a>
+<a href="#" style="height: 72px; border-radius: 36px; background: #0B7A5C; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; box-sizing: border-box">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B7A5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 13h5M10 17h5"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Choose a DOCX</span><span style="font-size: 12px; font-weight: 600">Word documents</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="M9 6l6 6-6 6"/></svg>
+</a>
+<a href="#" style="height: 72px; border-radius: 36px; background: #FFC94D; color: #16181D; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; box-sizing: border-box">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Start without a resume</span><span style="font-size: 12px; font-weight: 600">Add facts one by one</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="M9 6l6 6-6 6"/></svg>
+</a>
+<a href="#" style="height: 72px; border-radius: 36px; background: #16181D; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; box-sizing: border-box">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Your data and consent</span><span style="font-size: 12px; font-weight: 600; color: #C9CDD4">3 purposes acknowledged</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="M9 6l6 6-6 6"/></svg>
+</a>
+<a href="#" style="height: 72px; border-radius: 36px; background: #F6F7F9; border: 1px solid #E6E8EC; color: #16181D; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; box-sizing: border-box">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #0B7A5C; color: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800">KP</span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Product Analyst</span><span style="font-size: 12px; font-weight: 600; color: #5F6672">Kestrel Pay · Bengaluru</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="M9 6l6 6-6 6"/></svg>
+</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Hero header</h2>
+<span style="font-size: 13px; color: #5F6672">Jade, 48 bottom corners, white monogram, pill chips</span>
+<div style="width: 360px; border-radius: 0 0 48px 48px; background: #0B7A5C; color: #FFFFFF; padding: 24px 16px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden">
+<svg style="position: absolute; right: 22px; top: 86px" width="34" height="34" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M15 4c6.5 0 11 4.6 11 10.8S21.3 26 15.2 26 4 21.5 4 15.3C4 9.6 8 5.6 13 4.6" stroke="#FFC94D" stroke-width="2.6" stroke-linecap="round"/></svg>
+<svg style="position: absolute; right: 70px; top: 136px" width="54" height="16" viewBox="0 0 64 18" fill="none" aria-hidden="true"><path d="M2 11C7 3 12 3 16 9s9 7 13 1 9-7 13-1 9 7 13 1 6-5 7-4" stroke="#F3A08E" stroke-width="2.6" stroke-linecap="round"/></svg>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<button aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></button>
+<button style="height: 48px; padding: 0 16px 0 14px; border-radius: 999px; border: none; background: #064D3A; color: #FFFFFF; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share my fit</button>
+</div>
+<div style="width: 60px; height: 60px; border-radius: 999px; background: #FFFFFF; color: #0B7A5C; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center">KP</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 32px; line-height: 36px; font-weight: 800; letter-spacing: -0.5px">Product Analyst</span><span style="font-size: 15px; font-weight: 600; color: #DDF2EA">Kestrel Pay · Bengaluru</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="height: 34px; padding: 0 12px 0 7px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>9 met</span>
+<span style="height: 34px; padding: 0 12px 0 7px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#2B5FA8" stroke-width="2.4"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="#2B5FA8"/></svg>3 partly met</span>
+<span style="height: 34px; padding: 0 12px 0 7px; border-radius: 999px; background: #FFFFFF; color: #16181D; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#4A5263" stroke-width="2.2" stroke-dasharray="3.2 2.8"/></svg>2 to prepare</span>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Inner header</h2>
+<span style="font-size: 13px; color: #5F6672">Round back button, step chip, big title</span>
+<div style="width: 360px; border-radius: 28px; border: 1px solid #E6E8EC; padding: 20px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden">
+<svg style="position: absolute; right: 18px; top: 84px" width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M7 12L3 6M15 9V2M23 12l4-6" stroke="#B94C37" stroke-width="2.6" stroke-linecap="round"/></svg>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<button aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></button>
+<span style="height: 32px; padding: 0 14px; border-radius: 999px; background: #DDF2EA; color: #064D3A; font-size: 13px; font-weight: 700; display: flex; align-items: center">Step 4 of 5</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -0.5px">Confirm your facts</span><span style="font-size: 15px; line-height: 22px; color: #5F6672">We only use what you confirm.</span></div>
+</div>
+
+<h2 style="margin: 24px 0 0; font-size: 28px; line-height: 34px; font-weight: 800">Dock</h2>
+<span style="font-size: 13px; color: #5F6672">Ink bar, 28 top corners, soft shadow, no labels</span>
+<div style="width: 360px; height: 128px; position: relative; background: #FFFFFF; border-radius: 28px; border: 1px solid #E6E8EC; overflow: hidden">
+<nav aria-label="Main" style="position: absolute; left: 0; bottom: 0; width: 360px; height: 76px; background: #16181D; border-radius: 28px 28px 0 0; box-shadow: 0 -6px 24px rgba(22, 24, 29, 0.18); display: flex; justify-content: space-around; align-items: center">
+<a href="#" aria-label="Applications" aria-current="page" style="width: 64px; height: 64px; border-radius: 999px; background: #0B7A5C; border: 5px solid #FFFFFF; box-sizing: border-box; display: flex; align-items: center; justify-content: center; transform: translateY(-24px)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M9 7V5h6v2"/><path d="M3 12h18"/></svg></a>
+<a href="#" aria-label="Profile" style="width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A5ACB8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></a>
+<a href="#" aria-label="Settings" style="width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A5ACB8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></a>
+</nav>
+</div>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 56px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Bottom sheet</h2>
+<div style="width: 360px; height: 520px; position: relative; border-radius: 28px; overflow: hidden; background: #FFFFFF; border: 1px solid #E6E8EC">
+<div style="position: absolute; left: 0; top: 0; width: 360px; height: 150px; background: #0B7A5C; border-radius: 0 0 48px 48px"></div>
+<div style="position: absolute; inset: 0; background: rgba(22, 24, 29, 0.48)"></div>
+<div role="dialog" aria-label="Do you have this?" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 32px 32px 0 0; padding: 10px 16px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+<div style="width: 40px; height: 4px; border-radius: 999px; background: #E6E8EC; align-self: center"></div>
+<span style="font-size: 24px; line-height: 30px; font-weight: 800">Do you have this?</span>
+<span style="font-size: 14px; line-height: 21px; color: #5F6672">Point to a fact you've confirmed. We only use it after you say so.</span>
+<div style="height: 64px; border-radius: 32px; border: 2px solid #0B7A5C; background: #DDF2EA; display: flex; align-items: center; gap: 12px; padding: 0 14px">
+<span style="width: 22px; height: 22px; border-radius: 999px; border: 2px solid #0B7A5C; box-sizing: border-box; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #0B7A5C"></span></span>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">F-03</span>
+<span style="font-size: 14px; font-weight: 600; color: #064D3A">SMS reminder pilot</span>
+</div>
+<div style="height: 64px; border-radius: 32px; border: 1.5px solid #E6E8EC; display: flex; align-items: center; gap: 12px; padding: 0 14px">
+<span style="width: 22px; height: 22px; border-radius: 999px; border: 2px solid #5F6672; box-sizing: border-box"></span>
+<span style="font-size: 14px; font-weight: 600">Add a new fact</span>
+</div>
+<div style="display: flex; gap: 10px; align-items: center">
+<button aria-label="Close" style="width: 60px; height: 60px; flex: none; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #F6F7F9; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<button style="flex: 1; height: 60px; border-radius: 999px; border: none; background: #0B7A5C; color: #FFFFFF; font-size: 16px; font-weight: 700">Use this fact</button>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800">Status set</h2>
+<span style="font-size: 13px; color: #5F6672">Shape carries meaning on its own; the word confirms it; colour is the third cue</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 24px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<svg width="64" height="64" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span style="font-size: 20px; font-weight: 800; color: #0B7A5C">Met</span>
+<span style="font-size: 13px; line-height: 19px; color: #5F6672; text-align: center">Filled jade circle with a check. A confirmed fact covers it.</span>
+</div>
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 24px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<svg width="64" height="64" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#2B5FA8" stroke-width="2"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="#2B5FA8"/></svg>
+<span style="font-size: 20px; font-weight: 800; color: #2B5FA8">Partly met</span>
+<span style="font-size: 13px; line-height: 19px; color: #5F6672; text-align: center">Half-filled blue circle. A fact covers part of it.</span>
+</div>
+<div style="border-radius: 28px; background: #F6F7F9; border: 1px solid #E6E8EC; padding: 24px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<svg width="64" height="64" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#4A5263" stroke-width="1.8" stroke-dasharray="3.2 2.8"/></svg>
+<span style="font-size: 20px; font-weight: 800; color: #4A5263">To prepare</span>
+<span style="font-size: 13px; line-height: 19px; color: #5F6672; text-align: center">Dashed slate circle. No fact yet: prepare it or tell us you have it.</span>
+</div>
+</div>
+<div style="border-radius: 28px; background: #FFFFFF; border: 1.5px dashed #E6E8EC; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 700">Copy rules for every screen</span>
+<span style="font-size: 13px; line-height: 20px; color: #5F6672">Never say student, college, campus, fresher or graduate. No ATS score, no job listings, no job search. HireHop never writes a fact the person hasn't confirmed.</span>
+</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
