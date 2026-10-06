@@ -231,7 +231,7 @@ private fun StatusContent(padding: PaddingValues, title: String, body: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions, interaction: ReviewInteraction) {
+internal fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions, interaction: ReviewInteraction) {
     val closeSheet = {
         interaction.openBulletId = null
         actions.onBulletSheetClosed()
