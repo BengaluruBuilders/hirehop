@@ -1,7 +1,9 @@
 package com.hirehop.app.debug
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hirehop.app.R
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.connectivity.MockConnectivityControl
 import com.hirehop.core.domain.sample.SampleDataController
@@ -22,7 +24,11 @@ data class DebugMenuUiState(
     val online: Boolean = true,
     val busy: Boolean = false,
     val message: DebugDataMessage? = null,
-)
+) {
+    @get:StringRes
+    val connectivityLabel: Int
+        get() = if (online) R.string.debug_connectivity_online else R.string.debug_connectivity_offline
+}
 
 @HiltViewModel
 class DebugMenuViewModel @Inject constructor(
