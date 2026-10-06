@@ -21,11 +21,7 @@ internal class AndroidPdfResumeRenderer @Inject constructor(
             val pdf = PdfDocument()
             try {
                 val writer = PdfPageWriter(pdf)
-                ResumePdfComposer(
-                    writer = writer,
-                    style = PdfResumeStyle(document.template.textScale),
-                    spaceScale = document.template.spaceScale,
-                ).compose(document)
+                ResumePdfComposer(writer = writer, style = PdfResumeStyle()).compose(document)
                 val file = ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY)).write(fileName) { pdf.writeTo(it) }
                 RenderedResume(file = file, pageCount = writer.pageCount)
             } finally {

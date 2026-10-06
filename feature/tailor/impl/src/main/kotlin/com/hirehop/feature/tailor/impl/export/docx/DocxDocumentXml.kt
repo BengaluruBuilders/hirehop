@@ -1,40 +1,24 @@
 package com.hirehop.feature.tailor.impl.export.docx
 
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeEntry
 import com.hirehop.feature.tailor.impl.document.ResumeSection
-import kotlin.math.roundToInt
 
 internal object DocxDocumentXml {
 
     fun build(document: ResumeDocument): String = buildString {
         append(DocxXml.DECLARATION)
         append("<w:document xmlns:w=\"").append(DocxXml.WORD_NAMESPACE).append("\"><w:body>")
-        append(DocxLayout(document.template).body(document))
+        append(DocxLayout.body(document))
         append(SECTION_PROPERTIES)
         append("</w:body></w:document>")
     }
 
-    private class DocxLayout(template: ExportTemplate) {
-        private val textScale = template.textScale
-        private val tight = scaled(TIGHT, template)
-        private val bulletGap = scaled(BULLET_GAP, template)
-        private val ruleGap = scaled(RULE_GAP, template)
-        private val entryGap = scaled(ENTRY_GAP, template)
-        private val sectionGap = scaled(SECTION_GAP, template)
-        private val name = DocxTextStyle.NAME.scaled(textScale)
-        private val contact = DocxTextStyle.CONTACT.scaled(textScale)
-        private val headline = DocxTextStyle.HEADLINE.scaled(textScale)
-        private val sectionHeading = DocxTextStyle.SECTION_HEADING.scaled(textScale)
-        private val entryTitle = DocxTextStyle.ENTRY_TITLE.scaled(textScale)
-        private val entryDetail = DocxTextStyle.ENTRY_DETAIL.scaled(textScale)
-        private val bodyStyle = DocxTextStyle.BODY.scaled(textScale)
-
+    private object DocxLayout {
         fun body(document: ResumeDocument): String = buildString {
-            document.name.writeParagraph(this, name, after = tight)
-            document.contactLine.writeParagraph(this, contact, after = tight)
-            document.headline.writeParagraph(this, headline, after = sectionGap)
+            document.name.writeParagraph(this, DocxTextStyle.NAME, after = TIGHT)
+            document.contactLine.writeParagraph(this, DocxTextStyle.CONTACT, after = TIGHT)
+            document.headline.writeParagraph(this, DocxTextStyle.HEADLINE, after = SECTION_GAP)
             document.sections.forEach { section(out = this, section = it) }
             skills(out = this, document = document)
         }
@@ -42,9 +26,9 @@ internal object DocxDocumentXml {
         private fun section(out: StringBuilder, section: ResumeSection) {
             section.heading.writeParagraph(
                 out = out,
-                style = sectionHeading,
-                before = sectionGap,
-                after = ruleGap,
+                style = DocxTextStyle.SECTION_HEADING,
+                before = SECTION_GAP,
+                after = RULE_GAP,
                 rule = true,
             )
             section.entries.forEach { entry(out = out, entry = it) }
@@ -54,8 +38,8 @@ internal object DocxDocumentXml {
             val titleLine = listOf(entry.title, entry.organization)
                 .filter { it.isNotEmpty() }
                 .joinToString(", ")
-            titleLine.writeParagraph(out, entryTitle, after = tight)
-            entry.dateRange.writeParagraph(out, entryDetail, after = entryGap)
+            titleLine.writeParagraph(out, DocxTextStyle.ENTRY_TITLE, after = TIGHT)
+            entry.dateRange.writeParagraph(out, DocxTextStyle.ENTRY_DETAIL, after = ENTRY_GAP)
             entry.bullets.forEach { bullet(out = out, text = it) }
         }
 
@@ -63,18 +47,18 @@ internal object DocxDocumentXml {
             if (document.skills.isEmpty()) return
             document.skillsHeading.writeParagraph(
                 out = out,
-                style = sectionHeading,
-                before = sectionGap,
-                after = ruleGap,
+                style = DocxTextStyle.SECTION_HEADING,
+                before = SECTION_GAP,
+                after = RULE_GAP,
                 rule = true,
             )
-            document.skills.joinToString(", ").writeParagraph(out, bodyStyle, after = sectionGap)
+            document.skills.joinToString(", ").writeParagraph(out, DocxTextStyle.BODY, after = SECTION_GAP)
         }
 
         private fun bullet(out: StringBuilder, text: String) {
             if (text.isEmpty()) return
-            BULLET_MARKER.writeParagraph(out, bodyStyle, after = tight, hanging = true)
-            text.writeParagraph(out, bodyStyle, after = bulletGap, hanging = true)
+            BULLET_MARKER.writeParagraph(out, DocxTextStyle.BODY, after = TIGHT, hanging = true)
+            text.writeParagraph(out, DocxTextStyle.BODY, after = BULLET_GAP, hanging = true)
         }
     }
 
@@ -107,8 +91,6 @@ internal object DocxDocumentXml {
         DocxXml.appendRunWithBreaks(out, this)
         out.append("</w:r></w:p>")
     }
-
-    private fun scaled(points: Int, template: ExportTemplate): Int = (points * template.spaceScale).roundToInt()
 
     private const val BULLET_MARKER = "•"
     private const val BULLET_INDENT = 280

@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.em
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhPaperColors
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 
 private const val PAPER_NAME_SIZE = 13f
 private const val PAPER_BODY_SIZE = 7.6f
@@ -38,57 +37,59 @@ private const val DETAIL_SEPARATOR = " · "
 @Composable
 internal fun ExportPaper(
     sheet: ExportPreviewSheet,
-    template: ExportTemplate,
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
 ) {
-    val metrics = PaperMetrics(template = template)
     Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
-        Text(text = sheet.name, style = metrics.name(), color = HhPaperColors.Ink)
-        Spacer(Modifier.height(metrics.rowGap))
-        PaperLine(text = sheet.contactLine, metrics = metrics)
-        PaperLine(text = sheet.headline, metrics = metrics)
+        Text(text = sheet.name, style = PaperMetrics.name(), color = HhPaperColors.Ink)
+        Spacer(Modifier.height(PaperMetrics.rowGap))
+        PaperLine(text = sheet.contactLine)
+        PaperLine(text = sheet.headline)
         sheet.sections.forEach { section ->
-            PaperHeading(text = section.heading, metrics = metrics)
+            PaperHeading(text = section.heading)
             section.entries.forEach { entry ->
                 val title = listOf(entry.title, entry.organization, entry.dateRange)
                     .filter { part -> part.isNotBlank() }
                     .joinToString(DETAIL_SEPARATOR)
-                PaperLine(text = title, metrics = metrics, bold = true)
-                entry.bullets.forEach { bullet -> PaperLine(text = BULLET_PREFIX + bullet, metrics = metrics) }
+                PaperLine(text = title, bold = true)
+                entry.bullets.forEach { bullet -> PaperLine(text = BULLET_PREFIX + bullet) }
             }
         }
         if (sheet.skills.isNotEmpty()) {
-            PaperHeading(text = sheet.skillsHeading, metrics = metrics)
-            PaperLine(text = sheet.skills.joinToString(DETAIL_SEPARATOR), metrics = metrics)
+            PaperHeading(text = sheet.skillsHeading)
+            PaperLine(text = sheet.skills.joinToString(DETAIL_SEPARATOR))
         }
     }
 }
 
 @Composable
-private fun PaperLine(text: String, metrics: PaperMetrics, bold: Boolean = false) {
+private fun PaperLine(text: String, bold: Boolean = false) {
     if (text.isBlank()) return
     Text(
         text = text,
-        style = metrics.body(bold = bold),
+        style = PaperMetrics.body(bold = bold),
         color = if (bold) HhPaperColors.Ink else HhPaperColors.Body,
-        modifier = Modifier.padding(bottom = metrics.rowGap),
+        modifier = Modifier.padding(bottom = PaperMetrics.rowGap),
     )
 }
 
 @Composable
-private fun PaperHeading(text: String, metrics: PaperMetrics) {
-    Column(modifier = Modifier.padding(PaddingValues(top = metrics.headingTop, bottom = metrics.headingBottom))) {
-        Text(text = text.uppercase(), style = metrics.heading(), color = HhPaperColors.Ink)
+private fun PaperHeading(text: String) {
+    Column(
+        modifier =
+        Modifier.padding(
+            PaddingValues(top = PaperMetrics.headingTop, bottom = PaperMetrics.headingBottom),
+        ),
+    ) {
+        Text(text = text.uppercase(), style = PaperMetrics.heading(), color = HhPaperColors.Ink)
         HhDivider(thickness = PAPER_RULE_THICKNESS.dp, color = HhPaperColors.Rule)
     }
 }
 
-private class PaperMetrics(template: ExportTemplate) {
-    private val textScale = template.textScale
-    val rowGap: Dp = (PAPER_ROW_GAP * template.spaceScale).dp
-    val headingTop: Dp = (PAPER_HEADING_TOP * template.spaceScale).dp
-    val headingBottom: Dp = (PAPER_HEADING_BOTTOM * template.spaceScale).dp
+private object PaperMetrics {
+    val rowGap: Dp = PAPER_ROW_GAP.dp
+    val headingTop: Dp = PAPER_HEADING_TOP.dp
+    val headingBottom: Dp = PAPER_HEADING_BOTTOM.dp
 
     @Composable
     fun name(): TextStyle = style(size = PAPER_NAME_SIZE, weight = FontWeight.Bold)
@@ -104,8 +105,8 @@ private class PaperMetrics(template: ExportTemplate) {
     @Composable
     private fun style(size: Float, weight: FontWeight): TextStyle {
         val density = LocalDensity.current
-        val fontSize = with(density) { (size * textScale).dp.toSp() }
-        val lineHeight = with(density) { (size * textScale * PAPER_LINE_RATIO).dp.toSp() }
+        val fontSize = with(density) { size.dp.toSp() }
+        val lineHeight = with(density) { (size * PAPER_LINE_RATIO).dp.toSp() }
         return HhTheme.typography.bodyM.copy(fontSize = fontSize, lineHeight = lineHeight, fontWeight = weight)
     }
 }

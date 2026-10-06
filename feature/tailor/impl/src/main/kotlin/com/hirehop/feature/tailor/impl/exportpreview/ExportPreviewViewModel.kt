@@ -13,7 +13,6 @@ import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.model.ExportRecord
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.hirehop.feature.tailor.impl.export.RenderedResume
@@ -79,7 +78,6 @@ internal class ExportPreviewViewModel @Inject constructor(
     fun onAction(action: ExportPreviewAction) {
         when (action) {
             is ExportPreviewAction.SelectFormat -> onSelectFormat(action.format)
-            is ExportPreviewAction.SelectTemplate -> onSelectTemplate(action.template)
             ExportPreviewAction.Export -> export()
             ExportPreviewAction.RetryPreview -> onRetry()
             ExportPreviewAction.NavigationHandled -> mutableState.update { state -> state.copy(navigation = null) }
@@ -144,15 +142,14 @@ internal class ExportPreviewViewModel @Inject constructor(
             }
             return
         }
-        val localized = assembled.copy(template = mutableState.value.template)
-        document = localized
+        document = assembled
         mutableState.update { state ->
             state.copy(
                 stage = ExportPreviewStage.PREVIEW_READY,
                 jobTitle = application.job.title,
                 jobCompany = application.job.company,
-                sheet = exportPreviewSheetOf(localized),
-                fileName = fileNameFor(format = state.format, document = localized, state = state),
+                sheet = exportPreviewSheetOf(assembled),
+                fileName = fileNameFor(format = state.format, document = assembled, state = state),
             )
         }
     }
@@ -178,13 +175,6 @@ internal class ExportPreviewViewModel @Inject constructor(
         }
     }
 
-    private fun onSelectTemplate(template: ExportTemplate) {
-        val current = mutableState.value
-        if (current.template == template || current.stage == ExportPreviewStage.EXPORTING) return
-        document = document?.copy(template = template)
-        mutableState.update { state -> state.copy(template = template) }
-    }
-
     private fun export() {
         val state = mutableState.value
         val source = document
@@ -193,16 +183,15 @@ internal class ExportPreviewViewModel @Inject constructor(
             mutableState.update { current -> current.copy(navigation = ExportPreviewNavigation.BuyCredits) }
             return
         }
-        val exportedDocument = source.copy(template = state.template)
         val format = state.format
         val fileName = state.fileName
         mutableState.update { current -> current.copy(stage = ExportPreviewStage.EXPORTING) }
         viewModelScope.launch {
             val rendered = try {
                 when (format) {
-                    ExportFormat.PDF -> pdfRenderer.render(document = exportedDocument, fileName = fileName)
+                    ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
                     ExportFormat.DOCX -> RenderedResume(
-                        file = docxRenderer.render(document = exportedDocument, fileName = fileName),
+                        file = docxRenderer.render(document = source, fileName = fileName),
                         pageCount = null,
                     )
                 }
@@ -215,7 +204,6 @@ internal class ExportPreviewViewModel @Inject constructor(
                 finishExport(
                     format = format,
                     fileName = fileName,
-                    template = exportedDocument.template,
                     pageCount = rendered.pageCount,
                 )
             } else {
@@ -227,7 +215,6 @@ internal class ExportPreviewViewModel @Inject constructor(
     private suspend fun finishExport(
         format: ExportFormat,
         fileName: String,
-        template: ExportTemplate,
         pageCount: Int?,
     ) {
         when (val spend = runCatching { paymentGateway.consumeCredit() }.getOrNull()) {
@@ -240,7 +227,7 @@ internal class ExportPreviewViewModel @Inject constructor(
                         exportedAt = clock.now(),
                         creditKind = spend.kind,
                         pageCount = pageCount,
-                        templateName = template.recordName(),
+                        templateName = TEMPLATE_NAME,
                     ),
                 )
                 mutableState.update { state ->
@@ -283,4 +270,4 @@ internal class ExportPreviewViewModel @Inject constructor(
     }
 }
 
-private fun ExportTemplate.recordName(): String = name.lowercase().replaceFirstChar { it.uppercase() }
+private const val TEMPLATE_NAME = "Plain"
