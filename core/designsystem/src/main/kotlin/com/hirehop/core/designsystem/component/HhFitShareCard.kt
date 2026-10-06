@@ -88,7 +88,13 @@ private fun HhFitShareHeader(eyebrow: String, headline: String) {
             .clipToBounds()
             .drawBehind {
                 drawRect(colors.header)
-                drawCircle(colors.headerShape, 80.dp.toPx(), Offset(size.width - 40.dp.toPx(), 20.dp.toPx()))
+                drawDecoration(
+                    HhDecorationKind.Ring,
+                    colors.special,
+                    Offset(size.width - 56.dp.toPx(), 20.dp.toPx()),
+                    34.dp.toPx(),
+                    2.6.dp.toPx(),
+                )
             }
             .padding(18.dp),
     ) {

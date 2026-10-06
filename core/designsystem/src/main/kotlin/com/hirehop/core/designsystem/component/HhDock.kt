@@ -43,10 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -58,6 +62,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -69,10 +74,16 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 
-private val HhDockBallSize = HhHeightTouch
-private val HhDockNotchHalfWidth = 52.dp
-private val HhDockNotchDepth = 30.dp
+private val HhDockBallSize = 64.dp
+private val HhDockNotchHalfWidth = 56.dp
+private val HhDockNotchDepth = 37.dp
+private val HhDockShadowReaches = (1..8).map { (it * 6).dp }
+private const val SHADOW_PEAK_LIGHT = 0.18f
+private const val SHADOW_PEAK_DARK = 0.5f
 private val HhDockIconRise = HhDockDefaults.height / 2
 
 @Composable
@@ -83,7 +94,13 @@ fun HhDock(
     val colors = HhTheme.colors
     val motion = HhTheme.motion
     val barColor = colors.tool
-    val ballColor = colors.primary
+    val ballColor = colors.brand
+    val shadowPeak = if (HhTheme.isDark) SHADOW_PEAK_DARK else SHADOW_PEAK_LIGHT
+    val shadowBase = HhTheme.elevation.dock.spotColor
+    val shadowRings = HhDockShadowReaches.indices.reversed().map { index ->
+        val coverage = (HhDockShadowReaches.size - index).toFloat() / HhDockShadowReaches.size
+        HhDockShadowReaches[index] to shadowBase.copy(alpha = 1f - (1f - shadowPeak).pow(coverage))
+    }
     val edgeColor = if (HhTheme.isDark) colors.outlineSoft else null
     val state = remember { HhDockState() }
     val path = remember { Path() }
@@ -101,7 +118,7 @@ fun HhDock(
             modifier = modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
-                .drawBehind { drawNotchedBar(state, path, barColor, ballColor, edgeColor) },
+                .drawBehind { drawNotchedBar(state, path, shadowRings, barColor, ballColor, edgeColor) },
         ) {
             Spacer(
                 Modifier
@@ -163,6 +180,7 @@ private val LocalHhDockState = compositionLocalOf<HhDockState> {
 private fun DrawScope.drawNotchedBar(
     state: HhDockState,
     path: Path,
+    shadowRings: List<Pair<Dp, Color>>,
     barColor: Color,
     ballColor: Color,
     edgeColor: Color?,
@@ -172,6 +190,25 @@ private fun DrawScope.drawNotchedBar(
     val cx = state.notchX.value
     val lift = state.lift.value
     val depth = HhDockNotchDepth.toPx()
+    path.rewind()
+    val corner = HhRadiusSheet.toPx()
+    path.moveTo(0f, barTop + corner)
+    path.arcTo(Rect(0f, barTop, corner * 2, barTop + corner * 2), 180f, 90f, false)
+    if (placed) {
+        val w = HhDockNotchHalfWidth.toPx()
+        val d = depth * lerp(0.6f, 1f, lift)
+        val start = max(cx - w, corner)
+        val end = min(cx + w, size.width - corner)
+        path.lineTo(start, barTop)
+        path.cubicTo(start + (cx - start) * 0.5f, barTop, cx - w * 0.55f, barTop + d, cx, barTop + d)
+        path.cubicTo(cx + w * 0.55f, barTop + d, end - (end - cx) * 0.5f, barTop, end, barTop)
+    }
+    path.lineTo(size.width - corner, barTop)
+    path.arcTo(Rect(size.width - corner * 2, barTop, size.width, barTop + corner * 2), 270f, 90f, false)
+    path.lineTo(size.width, size.height)
+    path.lineTo(0f, size.height)
+    path.close()
+    drawShadowRings(path, shadowRings)
     if (placed) {
         drawCircle(
             color = ballColor,
@@ -179,22 +216,20 @@ private fun DrawScope.drawNotchedBar(
             center = Offset(cx, barTop + depth * (1f - lift)),
         )
     }
-    path.rewind()
-    path.moveTo(0f, barTop)
-    if (placed) {
-        val w = HhDockNotchHalfWidth.toPx()
-        val d = depth * lerp(0.6f, 1f, lift)
-        path.lineTo(cx - w, barTop)
-        path.cubicTo(cx - w * 0.5f, barTop, cx - w * 0.55f, barTop + d, cx, barTop + d)
-        path.cubicTo(cx + w * 0.55f, barTop + d, cx + w * 0.5f, barTop, cx + w, barTop)
-    }
-    path.lineTo(size.width, barTop)
-    path.lineTo(size.width, size.height)
-    path.lineTo(0f, size.height)
-    path.close()
     drawPath(path, barColor)
     if (edgeColor != null) {
         drawPath(path, edgeColor, style = Stroke(HhWidthHairline.toPx()))
+    }
+}
+
+private fun DrawScope.drawShadowRings(path: Path, rings: List<Pair<Dp, Color>>) {
+    val pad = HhDockShadowReaches.last().toPx()
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(Rect(-pad, -pad, size.width + pad, size.height + pad), Paint())
+        rings.forEach { (reach, color) ->
+            drawPath(path, color, style = Stroke(reach.toPx() * 2f), blendMode = BlendMode.Src)
+        }
+        canvas.restore()
     }
 }
 
@@ -219,7 +254,7 @@ fun HhDockItem(
     val overBall by remember(state, span, reach) {
         derivedStateOf { ((state.liftAt(span.centerX, reach) - 0.2f) / 0.3f).coerceIn(0f, 1f) }
     }
-    val tint = lerp(colors.onToolVariant, colors.onPrimary, overBall)
+    val tint = lerp(colors.onToolVariant, colors.onBrand, overBall)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(if (pressed) 0.92f else 1f, motion.spatialFast, label = "dockPress")

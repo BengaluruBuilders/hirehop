@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -57,6 +59,7 @@ fun HhFilterChip(
     val interactionSource = remember { MutableInteractionSource() }
     Surface(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .heightIn(min = HhFilterChipDefaults.height())
             .selectable(
                 selected = selected,
@@ -77,8 +80,8 @@ fun HhFilterChip(
             modifier = Modifier
                 .heightIn(min = HhFilterChipDefaults.SelectedContainerHeight)
                 .padding(
-                    horizontal = HhTheme.spacing.md,
-                    vertical = HhTheme.spacing.sm,
+                    horizontal = HhSpacingFourteen,
+                    vertical = HhTheme.spacing.xs,
                 ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
@@ -89,12 +92,12 @@ fun HhFilterChip(
                     imageVector = glyph,
                     contentDescription = null,
                     tint = contentColor,
-                    modifier = Modifier.size(HhSizeIcon),
+                    modifier = Modifier.size(HhSizeChipIcon),
                 )
             }
             Text(
                 text = label,
-                style = HhTheme.typography.labelL,
+                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
                 color = contentColor,
                 maxLines = 1,
             )
@@ -114,16 +117,16 @@ object HhFilterChipDefaults {
     val SelectedContainerHeight: Dp
         @Composable
         @ReadOnlyComposable
-        get() = HhTheme.spacing.md
+        get() = HhTheme.spacing.xs
 
     @Composable
     fun colors(
-        selectedContainer: Color = HhTheme.colors.primaryContainer,
-        onSelectedContainer: Color = HhTheme.colors.onPrimaryContainer,
+        selectedContainer: Color = HhTheme.colors.inverseSurface,
+        onSelectedContainer: Color = HhTheme.colors.inverseOnSurface,
         container: Color = HhTheme.colors.card,
         onContainer: Color = HhTheme.colors.onSurface,
-        border: Color = HhTheme.colors.outlineSoft,
-        selectedBorder: Color = HhTheme.colors.primary,
+        border: Color = HhTheme.colors.outlineVariant,
+        selectedBorder: Color = HhTheme.colors.inverseSurface,
     ): HhFilterChipColors = HhFilterChipColors(
         selectedContainer = selectedContainer,
         onSelectedContainer = onSelectedContainer,
@@ -135,7 +138,7 @@ object HhFilterChipDefaults {
 
     @Composable
     @ReadOnlyComposable
-    fun height(): Dp = HhTheme.spacing.d48
+    fun height(): Dp = HhHeightChipRow
 
     @Composable
     @ReadOnlyComposable

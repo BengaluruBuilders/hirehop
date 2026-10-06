@@ -3,6 +3,9 @@
 Module: `core:designsystem`. Package root: `com.hirehop.core.designsystem`.
 Board: `design/claude-design/foundations/`. Board names: Main (type), Colour, Surface, Motion,
 ComponentsLight, ComponentsDark.
+The C1 restyle follows four newer boards: Foundations (light), Foundations (dark), Components (light) and
+Components (dark). Jade stays the brand. The layout language is round: 28 cards, 36 pill rows, 60 dp buttons,
+48 dp hero corners, and small squiggle decorations. Where this file and the old boards differ, this file wins.
 
 Read tokens with `HhTheme.colors`, `HhTheme.typography`, `HhTheme.spacing`, `HhTheme.shapes`,
 `HhTheme.elevation`, `HhTheme.motion`, `HhTheme.isDark`. Dark mode follows the system.
@@ -52,18 +55,33 @@ New roles: `header`, `headerShape`, `onHeader`, `onHeaderVariant`, `onHeaderCont
 `gapContainer`), `evidence`,
 `evidenceLine`, `error`, `onError`, `errorContainer`, `onErrorContainer`, `special`, `onSpecial`,
 `scrim`.
-Rules: `gap` is never red. `special` appears only on the pack purchase button.
+New roles: `brand` and `onBrand` (the jade fill, #0B7A5C with white, the same in both themes), `coral` and
+`onCoral` (#B94C37 with white, the same in both themes), `sheet` (a bottom sheet and a dialog fill).
+`primary` is the jade for text, icons, links and focus: #0B7A5C in light, bright #5FD0A8 in dark. Fills
+use `brand`. `special` is marigold #FFC94D with ink text. `error` is coral text and marks: #B94C37 in light,
+#F08F79 in dark. `headerShape` is the tint of the header squiggle (#F3A08E).
+Values (light / dark): `background` and `ground` #FFFFFF / #0F1114, `card` #F6F7F9 / #1A1D22, `surface`
+#FFFFFF / #1A1D22, `sheet` and `tool` (the dock) #FFFFFF / #22262D for `sheet`, #16181D / #22262D for `tool`,
+`outlineVariant` and `outlineSoft` #E6E8EC / #2B3038, `onSurface` #16181D / #F1F2F4, `onSurfaceVariant`
+#5F6672 / #A5ACB8, `primaryContainer` #DDF2EA / #123B2F, `onPrimaryContainer` #064D3A / #9BE3C7, `partial`
+#2B5FA8 / #6C9BE6, `gap` #4A5263 / #8F98AB, `inverseSurface` #16181D / #F1F2F4. The header is jade in both
+themes.
+Rules: `gap` is never red. Marigold is an accent for the pack purchase button, solid cards and badges.
+Hero chips are white in both themes, so their status marks keep the light values.
 
 ### Type (`HhTheme.typography`)
-`displayL` 40/48 800, `displayM` 32/40 800, `headlineL` 26/32 800, `headlineM` 22/28 800,
-`titleL` 20/26 700, `titleM` 16/22 700, `titleS` 14/20 700, `bodyL` 16/24 400, `bodyM` 14/21 400,
-`labelL` 14/20 600, `labelM` 12/16 600, `bodyS` 12/16 400 (small meta lines, as the frames show them),
+`displayL` 36/40 800 (-0.6), `displayM` 32/38 800 (-0.5), `headlineL` 28/34 800 (-0.4), `headlineM` 22/28 800,
+`titleL` 20/26 800, `titleM` 16/22 700, `titleS` 14/20 700, `bodyL` 15/22 400, `bodyM` 14/21 400,
+`button` 16/20 700, `labelL` 13/18 600, `labelM` 12/16 600, `bodyS` 12/16 400 (small meta lines),
 `numeralHero` 44/48 800, `numeralM` 18/24 700, `factId` 12/16 mono. Figures are tabular. Fonts are set in
-`HhFontFamilies.sans` and `HhFontFamilies.mono` (`theme/Type.kt`). Today they point to Anek Latin and
-JetBrains Mono. Plus Jakarta Sans and IBM Plex Mono replace them when the font files are added.
+`HhFontFamilies.sans` and `HhFontFamilies.mono` (`theme/Type.kt`). They point to Plus Jakarta Sans (one variable file, weights 400, 600, 700, 800) and IBM Plex Mono 500.
+Licences are in `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` (44 dp) is for buttons inside cards.
+`brandPressed` is #064D3A. `sheetItemBorder` is #E6E8EC in light and #3A404A in dark.
 
 ### Shape (`HhTheme.shapes`)
-`sheet` (28 top), `heroCard` 24, `card` 20, `field` 12, `pill`, `tag` 8, `banner` 16.
+`sheet` (28 top, the screen sheet and the dock), `modalSheet` (32 top, the bottom sheet), `heroCard` 28,
+`card` 28, `field` 20 (a multi-line field uses `card`), `pill`, `tag` 8, `banner` 20, `pillRow` 36,
+`statusRow` 24, `heroBottom` (48 bottom corners).
 
 ### Spacing (`HhTheme.spacing`)
 `gutter` 16, `cardPadding` 14, `sectionGap` 24, `touch` 48, plus `xxs` 2, `xs` 4, `sm` 8, `md` 12,
@@ -209,7 +227,8 @@ fun HhDockItem(selected: Boolean, onClick: () -> Unit, contentDescription: Strin
 fun HhDockIcon(icon: ImageVector)
 ```
 Full-width `tool` bar on the bottom edge, for the three top-level tabs only. Icons only, no labels.
-The top edge has one notch. A `primary` ball sits in the notch and holds the selected icon.
+The top corners are 28 dp. The top edge has one notch. A 64 dp `brand` ball sits in the notch and holds the
+selected icon.
 `HhDock` draws the bar, the notch, and the ball, and it owns the motion of a tab change:
 the ball sinks behind the bar (`fade`), the notch moves (`travel`), the ball rises with the icon (`spatial`).
 The notch starts when the ball is half sunk. The rise starts when the notch is one notch half-width from the item.
@@ -222,8 +241,8 @@ Put each `HhDockItem` inside `HhDock`. An item outside `HhDock` throws an error.
 fun HhBottomActionBar(modifier, contentPadding: PaddingValues? = null,
     creditDisclosure: (@Composable () -> Unit)? = null, actions: @Composable RowScope.() -> Unit)
 ```
-Floating tool bar for 1 to 3 actions. Give each action `Modifier.weight(1f)`. Outline buttons
-inside it switch to the on-tool style. Board: Bottom action bar.
+Full-width bar on the page background with a hairline on top, for 1 to 3 actions, 10 dp between actions.
+Give each action `Modifier.weight(1f)`. Board: Bottom action bar.
 
 ```kotlin
 fun HhBottomActionBar(modifier, contentPadding: PaddingValues? = null,
@@ -237,12 +256,13 @@ a font scale of 1.5 or more. Pass `stacked = true` or `false` to force a mode. P
 the first action is the primary one (Welcome); the stack then keeps the order given.
 
 ```kotlin
-object HhDockDefaults { val height: Dp /* 64 */; val ballOverhang: Dp /* 24 */; val inset: Dp /* 96 */ }
+object HhDockDefaults { val height: Dp /* 64 */; val ballOverhang: Dp /* 32 */; val inset: Dp /* 104 */ }
 ```
 `inset` is `LocalHhBottomInset` for a tab screen. `:app` uses these values.
 
 ## Actions
-All buttons are 48 dp pills.
+All buttons are 60 dp pills with the `button` type style. A disabled filled button is grey (`outlineVariant`
+fill, `onSurfaceVariant` text). An outline button has an ink border.
 
 ```kotlin
 fun HhPrimaryButton(label: String, onClick: () -> Unit, modifier, enabled = true, leadingIcon: ImageVector? = null, trailingIcon: ImageVector? = null)
@@ -251,6 +271,7 @@ fun HhOutlineButton(...same...)
 fun HhTextButton(...same...)
 fun HhDestructiveButton(label, onClick, modifier, enabled = true, leadingIcon = null)
 fun HhHeaderButton(label: String, onClick: () -> Unit, modifier, trailingIcon: ImageVector? = null) // outline on jade
+fun HhInkButton(label: String, onClick: () -> Unit, modifier, enabled = true, leadingIcon = null, trailingIcon = null) // ink fill, light in dark
 fun HhButton(onClick, modifier, enabled, contentPadding, content: RowScope.() -> Unit)      // primary, slot form
 fun HhButton(onClick, modifier, enabled, text: @Composable () -> Unit, leadingIcon: ...)
 fun HhOutlinedButton(...same two forms...)
@@ -265,7 +286,7 @@ fun HhSpecialOffer(label, declineLabel, onAccept, onDecline, modifier, caption: 
 Marigold pack purchase. `HhSpecialOffer` pairs it with an equal-size "Not now" button. Board: Pack purchase.
 
 ```kotlin
-fun HhIconButton(icon: ImageVector, contentDescription: String, onClick, modifier, enabled = true, tint, containerColor, borderColor, shape)
+fun HhIconButton(icon: ImageVector, contentDescription: String, onClick, modifier, enabled = true, tint, containerColor, borderColor, shape, size: Dp = 48.dp)
 fun HhHeaderIconButton(icon, contentDescription, onClick, modifier)   // white 48 dp circle
 ```
 
@@ -276,13 +297,48 @@ fun HhHeroCard(modifier, contentPadding, onClick: (() -> Unit)? = null, content:
 fun HhSectionCard(modifier, contentPadding, trailingAction, content)
 fun HhMonogram(text: String, modifier, size: Dp = 40.dp)
 ```
-Card: card fill, 1 dp border, 20 dp. Hero card: document fill, 24 dp, hero shadow. Board: Application card, Bullet review card.
+Card: card fill, 1 dp border, 28 dp. Hero card: document fill, 28 dp, hero shadow. Board: Application card, Bullet review card.
+
+```kotlin
+enum class HhAccent { Coral, Jade, Marigold }
+enum class HhOnColorChipStyle { White, Outline, Ink }
+fun HhSolidCard(accent: HhAccent, monogram: String, title: String, subtitle: String, modifier,
+    onOpen: (() -> Unit)? = null, openContentDescription: String = "",
+    decoration: HhDecorationKind? = Squiggle, chips: (@Composable RowScope.() -> Unit)? = null)
+fun HhOnColorChip(label: String, modifier, style: HhOnColorChipStyle = White, accent: HhAccent = Coral)
+```
+A solid colour card: a white circular monogram, an ink round open button, a title, a subtitle, and chips.
+Put `HhOnColorChip` in `chips`. Marigold uses ink text, the others use white. Board: Cards.
+
+```kotlin
+enum class HhPillRowStyle { Coral, Jade, Marigold, Ink, Neutral }
+fun HhPillRow(title: String, onClick: () -> Unit, modifier, style = Coral, subtitle: String? = null,
+    icon: ImageVector? = null, monogram: String? = null, trailingIcon: ImageVector? = ArrowForward)
+```
+A pill list row: 72 dp tall, 36 dp radius, solid colour, a 48 dp white circle with an icon (or a jade circle with
+a monogram on `Neutral`). `Ink` inverts to light in dark. Board: Pill list rows.
+
+```kotlin
+enum class HhDecorationKind { Squiggle, Ring, Dots, Spark, Loop, Zigzag, Plus }
+fun HhDecoration(kind: HhDecorationKind, color: Color, modifier, strokeWidth: Dp = 2.6.dp)
+```
+The decoration set, drawn from the board paths. At most three per screen, never behind text.
+The hero header draws a marigold ring and a `headerShape` squiggle by itself.
+
+```kotlin
+fun HhIconActionBar(secondaryIcon: ImageVector, secondaryContentDescription: String, onSecondaryClick: () -> Unit,
+    primaryLabel: String, onPrimaryClick: () -> Unit, modifier, primaryEnabled = true,
+    primaryTrailingIcon: ImageVector? = null, secondaryBadge: String? = null, ink: Boolean = false)
+```
+The bottom action bar of the boards: a round 60 dp secondary icon button (with an optional marigold count
+badge) and a 60 dp primary pill. `ink = true` makes the primary an ink pill.
 
 ## Status, chips, tags
 ```kotlin
 enum HhStatusKind { Met, Partial, Gap }
 fun HhStatusDisc(kind, modifier, size: Dp = 18.dp, contentDescription: String? = null)
-fun HhStatusChip(kind, modifier, label: String? = null)          // disc and word
+fun HhStatusChip(kind, modifier, label: String? = null, onHero: Boolean = false)   // disc and word; onHero is a white pill
+fun HhStatusRow(kind: HhStatusKind, title: String, statusLine: String, modifier)   // 64 dp row, 24 dp radius, card fill
 fun HhApplicationStatusChip(kind: HhApplicationStatusKind, modifier, label: String? = null, dotSize: Dp)
 fun HhProvenanceChip(kind: HhProvenanceKind, modifier, label: String? = null)
 fun HhTrustChip(kind: HhTrustKind, modifier, label: String? = null)

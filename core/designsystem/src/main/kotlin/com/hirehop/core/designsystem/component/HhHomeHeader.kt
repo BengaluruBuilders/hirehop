@@ -86,7 +86,7 @@ fun HhCompactHomeHeader(
         modifier = modifier
             .fillMaxWidth()
             .layoutId(HhHeaderData(drawsAboveContent = false, overlap = HhOverlap.Sheet))
-            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + HOME_SMALL_CIRCLE_TOP, HhOverlap.Sheet)
+            .hhHeaderBackdrop(colors.header, colors.special, colors.headerShape, statusTop + HOME_DECORATION_TOP, HhOverlap.Sheet)
             .heightIn(min = HhHeightCompactHomeHeader + statusTop)
             .padding(
                 start = HhTheme.spacing.gutter,
@@ -144,7 +144,7 @@ fun HhCollapsingHomeHeader(
         modifier = modifier
             .fillMaxWidth()
             .layoutId(HhHeaderData(drawsAboveContent = true, overlap = HhOverlap.Sheet))
-            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + HOME_SMALL_CIRCLE_TOP, HhOverlap.Sheet),
+            .hhHeaderBackdrop(colors.header, colors.special, colors.headerShape, statusTop + HOME_DECORATION_TOP, HhOverlap.Sheet),
     ) { measurables, constraints ->
         val width = constraints.maxWidth
         val side = gutter.roundToPx()
@@ -201,7 +201,7 @@ private class HhTopRect(private val bottom: Float) : Shape {
         Outline.Rectangle(Rect(0f, 0f, size.width, bottom))
 }
 
-private val HOME_SMALL_CIRCLE_TOP = 170.dp
+private val HOME_DECORATION_TOP = 170.dp
 private val GREETING_TOP = 12.dp
 private val ILLUSTRATION_TOP = 86.dp
 private val ILLUSTRATION_WIDTH = 174.dp

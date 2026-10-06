@@ -1,5 +1,6 @@
 package com.hirehop.core.designsystem.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -46,8 +48,8 @@ fun HhBottomSheet(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         sheetState = sheetState,
-        shape = HhTheme.shapes.sheet,
-        containerColor = colors.surface,
+        shape = HhTheme.shapes.modalSheet,
+        containerColor = colors.sheet,
         contentColor = colors.onSurface,
         scrimColor = colors.scrim,
         tonalElevation = 0.dp,
@@ -55,7 +57,7 @@ fun HhBottomSheet(
     ) {
         Column(modifier = Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             if (title != null) {
-                Text(text = title, style = HhTheme.typography.titleL, color = colors.onSurface)
+                Text(text = title, style = HhTheme.typography.headlineM, color = colors.onSurface)
             }
             if (subtitle != null) {
                 Text(text = subtitle, style = HhTheme.typography.bodyM, color = colors.onSurfaceVariant)
@@ -72,7 +74,7 @@ private fun HhBottomSheetDragHandle() {
             .padding(vertical = HhTheme.spacing.md)
             .size(width = HhSizeSheetHandleWidth, height = HhSizeDragHandleHeight)
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.outline),
+            .background(HhTheme.colors.sheetItemBorder),
     )
 }
 
@@ -85,11 +87,17 @@ fun HhSheetActionRow(
     subtitle: String? = null,
 ) {
     val colors = HhTheme.colors
-    Surface(onClick = onClick, modifier = modifier.fillMaxWidth(), color = colors.surface) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(HhRadiusSheetRow),
+        color = colors.sheet,
+        border = BorderStroke(HhWidthStrokeSheetItem, colors.sheetItemBorder),
+    ) {
         Row(
             modifier = Modifier
                 .defaultMinSize(minHeight = HHHeightSheetRow)
-                .padding(horizontal = HhTheme.spacing.xs),
+                .padding(horizontal = HhTheme.spacing.md),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -109,7 +117,9 @@ fun HhSheetActionRow(
     }
 }
 
-private val HHHeightSheetRow = 56.dp
+private val HHHeightSheetRow = 64.dp
+private val HhRadiusSheetRow = 32.dp
+private val HhWidthStrokeSheetItem = 1.5.dp
 
 private const val HH_BOTTOM_SHEET_SAMPLE_TITLE = "Close the gap: Unit tests with JUnit"
 

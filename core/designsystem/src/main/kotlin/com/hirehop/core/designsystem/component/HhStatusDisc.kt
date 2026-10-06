@@ -39,8 +39,18 @@ fun HhStatusDisc(
     contentDescription: String? = null,
 ) {
     val colors = HhTheme.colors
-    val tint = colors.statusColor(kind)
-    val check = colors.surface
+    HhStatusMark(kind, colors.statusColor(kind), colors.surface, modifier, size, contentDescription)
+}
+
+@Composable
+internal fun HhStatusMark(
+    kind: HhStatusKind,
+    tint: Color,
+    check: Color,
+    modifier: Modifier,
+    size: Dp,
+    contentDescription: String? = null,
+) {
     val semanticsModifier = if (contentDescription == null) {
         Modifier.clearAndSetSemantics {}
     } else {
@@ -77,8 +87,6 @@ private fun DrawScope.drawPartial(tint: Color) {
 private fun DrawScope.drawGap(tint: Color) {
     val dashes = PathEffect.dashPathEffect(floatArrayOf(3.2f, 2.6f))
     drawArc(tint, 0f, 360f, false, Offset(2.5f, 2.5f), Size(19f, 19f), style = Stroke(width = 2f, pathEffect = dashes))
-    drawLine(tint, Offset(12f, 8f), Offset(12f, 16f), strokeWidth = 2f, cap = StrokeCap.Round)
-    drawLine(tint, Offset(8f, 12f), Offset(16f, 12f), strokeWidth = 2f, cap = StrokeCap.Round)
 }
 
 private const val STATUS_VIEWPORT = 24f

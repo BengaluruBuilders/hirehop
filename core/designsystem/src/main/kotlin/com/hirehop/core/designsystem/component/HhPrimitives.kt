@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.theme.HhTheme
 
-internal enum class HhButtonSurface { Default, Header, Tool }
+internal enum class HhButtonSurface { Default, Header }
 
 internal val LocalHhButtonSurface = staticCompositionLocalOf { HhButtonSurface.Default }
 

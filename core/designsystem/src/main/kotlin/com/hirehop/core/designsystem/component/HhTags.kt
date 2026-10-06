@@ -1,6 +1,8 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
@@ -86,7 +89,16 @@ fun HhFactId(
     id: String,
     modifier: Modifier = Modifier,
 ) {
-    Text(text = id, modifier = modifier, style = HhTheme.typography.factId, color = HhTheme.colors.primary)
+    val colors = HhTheme.colors
+    Text(
+        text = id,
+        modifier = modifier
+            .background(colors.ground, HhTheme.shapes.pill)
+            .border(HhWidthHairline, colors.outlineVariant, HhTheme.shapes.pill)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        style = HhTheme.typography.factId,
+        color = colors.onSurface,
+    )
 }
 
 @Preview(showBackground = true)

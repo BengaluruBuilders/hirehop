@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
@@ -18,15 +19,19 @@ internal data class HhHeaderData(val drawsAboveContent: Boolean, val overlap: Dp
 
 internal fun Modifier.hhHeaderBackdrop(
     fill: Color,
-    circles: Color,
-    smallCircleTop: Dp,
+    ring: Color,
+    squiggle: Color,
+    decorationTop: Dp,
     sheetCutout: Dp?,
+    bottomRadius: Dp = 0.dp,
 ): Modifier = drawBehind {
     val bounds = Path().apply { addRect(Rect(0f, 0f, size.width, size.height)) }
     val visible = if (sheetCutout == null) bounds else bounds.minus(sheetShape(sheetCutout.toPx()))
+    val radius = bottomRadius.toPx()
     clipPath(visible) {
-        drawRect(fill)
-        drawCircles(circles, smallCircleTop.toPx())
+        drawRoundRect(fill, size = size, cornerRadius = CornerRadius(radius))
+        drawRect(fill, size = Size(size.width, size.height - radius))
+        drawDecorations(ring, squiggle, decorationTop.toPx())
     }
 }
 
@@ -45,14 +50,29 @@ private fun DrawScope.sheetShape(radius: Float): Path {
 
 private fun Path.minus(other: Path): Path = Path.combine(PathOperation.Difference, this, other)
 
-private fun DrawScope.drawCircles(color: Color, smallTop: Float) {
-    val large = HhSizeCircleLarge.toPx()
-    val small = HhSizeCircleSmall.toPx()
-    val inset = CIRCLE_INSET.toPx()
-    drawCircle(color, large / 2f, Offset(size.width + inset - large / 2f, -CIRCLE_RISE.toPx() + large / 2f))
-    drawCircle(color, small / 2f, Offset(-CIRCLE_LEFT.toPx() + small / 2f, smallTop + small / 2f))
+private fun DrawScope.drawDecorations(ring: Color, squiggle: Color, top: Float) {
+    val stroke = DECORATION_STROKE.toPx()
+    val ringSize = RING_SIZE.toPx()
+    val squiggleWidth = SQUIGGLE_WIDTH.toPx()
+    drawDecoration(
+        HhDecorationKind.Ring,
+        ring,
+        Offset(size.width - RING_RIGHT.toPx() - ringSize, top),
+        ringSize,
+        stroke,
+    )
+    drawDecoration(
+        HhDecorationKind.Squiggle,
+        squiggle,
+        Offset(size.width - SQUIGGLE_RIGHT.toPx() - squiggleWidth, top + SQUIGGLE_DROP.toPx()),
+        squiggleWidth,
+        stroke,
+    )
 }
 
-private val CIRCLE_INSET = 70.dp
-private val CIRCLE_RISE = 90.dp
-private val CIRCLE_LEFT = 60.dp
+private val DECORATION_STROKE = 2.6.dp
+private val RING_SIZE = 34.dp
+private val RING_RIGHT = 22.dp
+private val SQUIGGLE_WIDTH = 54.dp
+private val SQUIGGLE_RIGHT = 70.dp
+private val SQUIGGLE_DROP = 50.dp
