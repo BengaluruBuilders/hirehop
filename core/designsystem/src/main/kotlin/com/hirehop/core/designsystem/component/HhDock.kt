@@ -44,10 +44,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,6 +62,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -92,7 +96,11 @@ fun HhDock(
     val barColor = colors.tool
     val ballColor = colors.brand
     val shadowPeak = if (HhTheme.isDark) SHADOW_PEAK_DARK else SHADOW_PEAK_LIGHT
-    val shadowStrokeColor = HhTheme.elevation.dock.spotColor.copy(alpha = 1f - (1f - shadowPeak).pow(1f / HhDockShadowReaches.size))
+    val shadowBase = HhTheme.elevation.dock.spotColor
+    val shadowRings = HhDockShadowReaches.indices.reversed().map { index ->
+        val coverage = (HhDockShadowReaches.size - index).toFloat() / HhDockShadowReaches.size
+        HhDockShadowReaches[index] to shadowBase.copy(alpha = 1f - (1f - shadowPeak).pow(coverage))
+    }
     val edgeColor = if (HhTheme.isDark) colors.outlineSoft else null
     val state = remember { HhDockState() }
     val path = remember { Path() }
@@ -110,7 +118,7 @@ fun HhDock(
             modifier = modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
-                .drawBehind { drawNotchedBar(state, path, shadowStrokeColor, barColor, ballColor, edgeColor) },
+                .drawBehind { drawNotchedBar(state, path, shadowRings, barColor, ballColor, edgeColor) },
         ) {
             Spacer(
                 Modifier
@@ -172,7 +180,7 @@ private val LocalHhDockState = compositionLocalOf<HhDockState> {
 private fun DrawScope.drawNotchedBar(
     state: HhDockState,
     path: Path,
-    shadowStrokeColor: Color?,
+    shadowRings: List<Pair<Dp, Color>>,
     barColor: Color,
     ballColor: Color,
     edgeColor: Color?,
@@ -200,11 +208,7 @@ private fun DrawScope.drawNotchedBar(
     path.lineTo(size.width, size.height)
     path.lineTo(0f, size.height)
     path.close()
-    shadowStrokeColor?.let { color ->
-        HhDockShadowReaches.forEach { reach ->
-            drawPath(path, color, style = Stroke(reach.toPx() * 2f))
-        }
-    }
+    drawShadowRings(path, shadowRings)
     if (placed) {
         drawCircle(
             color = ballColor,
@@ -215,6 +219,17 @@ private fun DrawScope.drawNotchedBar(
     drawPath(path, barColor)
     if (edgeColor != null) {
         drawPath(path, edgeColor, style = Stroke(HhWidthHairline.toPx()))
+    }
+}
+
+private fun DrawScope.drawShadowRings(path: Path, rings: List<Pair<Dp, Color>>) {
+    val pad = HhDockShadowReaches.last().toPx()
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(Rect(-pad, -pad, size.width + pad, size.height + pad), Paint())
+        rings.forEach { (reach, color) ->
+            drawPath(path, color, style = Stroke(reach.toPx() * 2f), blendMode = BlendMode.Src)
+        }
+        canvas.restore()
     }
 }
 
