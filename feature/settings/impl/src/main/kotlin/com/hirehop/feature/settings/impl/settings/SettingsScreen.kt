@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,8 @@ import com.hirehop.core.designsystem.component.HhCompactHomeHeader
 import com.hirehop.core.designsystem.component.HhConfirmDialog
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -141,26 +144,30 @@ private fun AccountGroup(content: SettingsUiState.Content, actions: SettingsActi
 
 @Composable
 private fun CreditsAndDataGroup(content: SettingsUiState.Content, actions: SettingsActions) {
-    SettingsGroup(label = stringResource(R.string.feature_settings_impl_settings_group_credits_data)) {
-        SettingsRow(
-            icon = HhIcons.Award,
-            title = stringResource(R.string.feature_settings_impl_settings_row_credits),
-            summary = pluralStringResource(
-                R.plurals.feature_settings_impl_settings_row_credits_summary,
-                content.creditsLeft,
-                content.creditsLeft,
-            ),
-            onClick = actions.onCreditsAndHelp,
-            showChevron = true,
-        )
-        SettingsRow(
-            icon = HhIcons.Facts,
-            title = stringResource(R.string.feature_settings_impl_settings_row_your_data),
-            summary = stringResource(R.string.feature_settings_impl_settings_row_your_data_summary),
-            onClick = actions.onYourData,
-            showChevron = true,
-            showDivider = false,
-        )
+    SettingsGroup(
+        label = stringResource(R.string.feature_settings_impl_settings_group_credits_data),
+        framed = false,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            HhPillRow(
+                title = stringResource(R.string.feature_settings_impl_settings_row_credits),
+                onClick = actions.onCreditsAndHelp,
+                style = HhPillRowStyle.Jade,
+                icon = HhIcons.Award,
+                subtitle = pluralStringResource(
+                    R.plurals.feature_settings_impl_settings_row_credits_summary,
+                    content.creditsLeft,
+                    content.creditsLeft,
+                ),
+            )
+            HhPillRow(
+                title = stringResource(R.string.feature_settings_impl_settings_row_your_data),
+                onClick = actions.onYourData,
+                style = HhPillRowStyle.Ink,
+                icon = HhIcons.Facts,
+                subtitle = stringResource(R.string.feature_settings_impl_settings_row_your_data_summary),
+            )
+        }
     }
 }
 
@@ -230,38 +237,42 @@ private fun AboutGroup(versionName: String?) {
 
 @Composable
 private fun DeleteAccountGroup(content: SettingsUiState.Content, actions: SettingsActions) {
-    HhCard(contentPadding = CARD_PADDING) {
-        Column {
-            SettingsRow(
-                icon = HhIcons.Delete,
-                title = stringResource(R.string.feature_settings_impl_settings_row_delete_account),
-                titleColor = HhTheme.colors.error,
-                onClick = actions.onDeleteAccount,
-                enabled = !content.isOffline,
-                showChevron = true,
-            )
-            Text(
-                text = stringResource(R.string.feature_settings_impl_settings_delete_web_lead),
-                style = HhTheme.typography.bodyS,
-                color = HhTheme.colors.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    start = HhTheme.spacing.xs,
-                    top = HhTheme.spacing.sm,
-                    bottom = HhTheme.spacing.xs,
-                ),
-            )
-            SettingsAddressSlot(
-                address = stringResource(R.string.feature_settings_impl_settings_delete_web_address),
-                pendingLabel = stringResource(R.string.feature_settings_impl_settings_address_pending),
-                modifier = Modifier.padding(start = HhTheme.spacing.xs, bottom = HhTheme.spacing.sm),
-            )
-        }
+    Column {
+        HhPillRow(
+            title = stringResource(R.string.feature_settings_impl_settings_row_delete_account),
+            onClick = if (content.isOffline) ({}) else actions.onDeleteAccount,
+            modifier = if (content.isOffline) {
+                Modifier
+                    .alpha(DISABLED_ALPHA)
+                    .semantics { disabled() }
+            } else {
+                Modifier
+            },
+            style = HhPillRowStyle.Coral,
+            icon = HhIcons.Delete,
+        )
+        Text(
+            text = stringResource(R.string.feature_settings_impl_settings_delete_web_lead),
+            style = HhTheme.typography.bodyS,
+            color = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.padding(
+                start = HhTheme.spacing.md,
+                top = HhTheme.spacing.sm,
+                bottom = HhTheme.spacing.xs,
+            ),
+        )
+        SettingsAddressSlot(
+            address = stringResource(R.string.feature_settings_impl_settings_delete_web_address),
+            pendingLabel = stringResource(R.string.feature_settings_impl_settings_address_pending),
+            modifier = Modifier.padding(start = HhTheme.spacing.md, bottom = HhTheme.spacing.sm),
+        )
     }
 }
 
 @Composable
 private fun SettingsGroup(
     label: String,
+    framed: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
@@ -272,7 +283,11 @@ private fun SettingsGroup(
             textAlign = TextAlign.Start,
             modifier = Modifier.padding(top = HhTheme.spacing.xs),
         )
-        HhCard(contentPadding = CARD_PADDING) {
+        if (framed) {
+            HhCard(contentPadding = CARD_PADDING) {
+                Column { content() }
+            }
+        } else {
             Column { content() }
         }
     }
