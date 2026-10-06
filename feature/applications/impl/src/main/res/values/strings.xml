@@ -20,6 +20,7 @@
     <string name="feature_applications_impl_company_not_set">Company not set</string>
     <string name="feature_applications_impl_monogram_not_set">–</string>
     <string name="feature_applications_impl_row_company_updated">%1$s · %2$s</string>
+    <string name="feature_applications_impl_pill_subtitle">%1$s · %2$s · %3$s</string>
     <string name="feature_applications_impl_row_description">%1$s at %2$s. %3$s. %4$s. %5$s.</string>
     <string name="feature_applications_impl_row_change_status">Change status</string>
     <string name="feature_applications_impl_coverage_fraction">%1$d / %2$d</string>
