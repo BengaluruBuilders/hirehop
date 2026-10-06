@@ -1,5 +1,6 @@
 package com.hirehop.core.designsystem.component
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -14,16 +15,20 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.designsystem.theme.LocalHhDark
 import kotlin.math.roundToInt
 
 val LocalHhBottomInset = compositionLocalOf { 0.dp }
@@ -36,6 +41,7 @@ private enum class HhScreenSlot { Header, Sheet, Content, Bottom, Notice, Snackb
 fun HhScreen(
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
+    lightTop: Boolean = header == null,
     sheet: Boolean = true,
     bottomBar: (@Composable () -> Unit)? = null,
     snackbarHost: @Composable () -> Unit = {},
@@ -50,6 +56,7 @@ fun HhScreen(
     val gutter = HhTheme.spacing.gutter
     val sheetTop = HhTheme.spacing.d24
     val collapse = rememberHhHeaderCollapseState()
+    HhStatusBarIcons(darkIcons = lightTop && !LocalHhDark.current)
     SubcomposeLayout(
         modifier = modifier
             .fillMaxSize()
@@ -118,6 +125,16 @@ fun HhScreen(
             snacks.forEach { it.place((width - it.width) / 2, height - lift - it.height) }
             actions.forEach { it.place(width - it.width, height - lift - it.height - snacks.heightSum()) }
         }
+    }
+}
+
+@Composable
+private fun HhStatusBarIcons(darkIcons: Boolean) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkIcons
     }
 }
 
