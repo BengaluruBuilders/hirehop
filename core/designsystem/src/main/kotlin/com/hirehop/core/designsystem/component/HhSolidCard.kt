@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,7 +72,8 @@ fun HhOnColorChip(
     }
 }
 
-class HhOpenAction(val contentDescription: String, val onClick: () -> Unit)
+@Immutable
+data class HhOpenAction(val contentDescription: String, val onClick: () -> Unit)
 
 @Composable
 fun HhSolidCard(

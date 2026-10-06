@@ -1,8 +1,10 @@
 package com.hirehop.core.designsystem.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +36,7 @@ class HhComponentsScreenshotTest {
         composeRule.setContent {
             HhTheme(darkTheme = darkTheme.value) {
                 Column(
-                    modifier = Modifier.padding(HhTheme.spacing.lg),
+                    modifier = Modifier.fillMaxSize().background(HhTheme.colors.background).padding(HhTheme.spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
                 ) { content() }
             }

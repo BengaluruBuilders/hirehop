@@ -72,12 +72,14 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 private val HhDockBallSize = 64.dp
 private val HhDockNotchHalfWidth = 56.dp
 private val HhDockNotchDepth = 37.dp
-private val HhDockShadowStrokes = listOf(36.dp, 24.dp, 12.dp)
-private val HhDockShadowColor = Color(0x1016181D)
+private val HhDockShadowReaches = (1..8).map { (it * 6).dp }
+private const val SHADOW_PEAK_LIGHT = 0.18f
+private const val SHADOW_PEAK_DARK = 0.5f
 private val HhDockIconRise = HhDockDefaults.height / 2
 
 @Composable
@@ -89,6 +91,8 @@ fun HhDock(
     val motion = HhTheme.motion
     val barColor = colors.tool
     val ballColor = colors.brand
+    val shadowPeak = if (HhTheme.isDark) SHADOW_PEAK_DARK else SHADOW_PEAK_LIGHT
+    val shadowStrokeColor = HhTheme.elevation.dock.spotColor.copy(alpha = 1f - (1f - shadowPeak).pow(1f / HhDockShadowReaches.size))
     val edgeColor = if (HhTheme.isDark) colors.outlineSoft else null
     val state = remember { HhDockState() }
     val path = remember { Path() }
@@ -106,7 +110,7 @@ fun HhDock(
             modifier = modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
-                .drawBehind { drawNotchedBar(state, path, barColor, ballColor, edgeColor) },
+                .drawBehind { drawNotchedBar(state, path, shadowStrokeColor, barColor, ballColor, edgeColor) },
         ) {
             Spacer(
                 Modifier
@@ -168,6 +172,7 @@ private val LocalHhDockState = compositionLocalOf<HhDockState> {
 private fun DrawScope.drawNotchedBar(
     state: HhDockState,
     path: Path,
+    shadowStrokeColor: Color?,
     barColor: Color,
     ballColor: Color,
     edgeColor: Color?,
@@ -195,8 +200,10 @@ private fun DrawScope.drawNotchedBar(
     path.lineTo(size.width, size.height)
     path.lineTo(0f, size.height)
     path.close()
-    HhDockShadowStrokes.forEach { width ->
-        drawPath(path, HhDockShadowColor, style = Stroke(width.toPx()))
+    shadowStrokeColor?.let { color ->
+        HhDockShadowReaches.forEach { reach ->
+            drawPath(path, color, style = Stroke(reach.toPx() * 2f))
+        }
     }
     if (placed) {
         drawCircle(
