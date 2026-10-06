@@ -3,6 +3,7 @@ package com.hirehop.core.data.repository
 import com.hirehop.core.data.mock.MockStateStore
 import com.hirehop.core.data.mock.observeValue
 import com.hirehop.core.data.mock.writeValue
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.KeptJobDescription
@@ -33,6 +34,17 @@ internal class StoredSessionRepository @Inject constructor(
     override fun observeKeptJobDescription(): Flow<KeptJobDescription?> =
         store.observeValue(KEPT_JOB_KEY, KeptJobDto.serializer()).map { dto -> dto?.toModel() }
 
+    override fun observeCareerStage(): Flow<CareerStage?> =
+        store.observe(CAREER_STAGE_KEY).map { value -> CareerStage.entries.find { it.name == value } }
+
+    override suspend fun saveCareerStage(stage: CareerStage) {
+        store.write(CAREER_STAGE_KEY, stage.name)
+    }
+
+    override suspend fun clearCareerStage() {
+        store.remove(CAREER_STAGE_KEY)
+    }
+
     override suspend fun saveAccount(account: SignInAccount) {
         store.writeValue(ACCOUNT_KEY, AccountDto.serializer(), AccountDto(account.id, account.displayName, account.email))
     }
@@ -60,7 +72,7 @@ internal class StoredSessionRepository @Inject constructor(
 
     override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY)
 
-    override suspend fun clear() = removeAll(ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY)
+    override suspend fun clear() = removeAll(ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 
     private suspend fun removeAll(vararg keys: String) = withContext(NonCancellable) {
         keys.forEach { key -> store.remove(key) }
@@ -71,6 +83,7 @@ internal class StoredSessionRepository @Inject constructor(
         const val CONSENT_KEY = "session.consent"
         const val ONBOARDING_KEY = "session.onboardingComplete"
         const val KEPT_JOB_KEY = "session.keptJobDescription"
+        const val CAREER_STAGE_KEY = "session.careerStage"
         const val COMPLETE = "true"
     }
 }

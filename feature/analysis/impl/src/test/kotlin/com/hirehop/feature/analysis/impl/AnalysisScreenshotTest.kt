@@ -57,9 +57,7 @@ class AnalysisScreenshotTest {
     }
 
     @Test
-    fun shareSheet() = capture("AnalysisShareSheet", resultState()) {
-        SheetOver { ShareSheetContent(resultState(), AnalysisActions()) }
-    }
+    fun shareScreen() = capture("AnalysisShareScreen", resultState(overlay = AnalysisOverlay.ShareCard))
 
     @Test
     fun questionNotClosed() = capture("AnalysisQuestionNotClosed", resultState()) {

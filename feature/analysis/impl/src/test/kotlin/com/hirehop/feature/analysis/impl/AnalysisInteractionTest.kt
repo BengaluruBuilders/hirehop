@@ -3,12 +3,15 @@ package com.hirehop.feature.analysis.impl
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -56,6 +59,9 @@ class AnalysisInteractionTest {
         freeCredits = 1,
     )
 
+    private val submitted = mutableListOf<String>()
+    private val shared = mutableListOf<String>()
+
     private val gap = resultItem("req-a", "Cloud data warehouse", MatchStatus.GAP)
     private val met = resultItem("req-b", "SQL", MatchStatus.MET, factId = "W-01")
 
@@ -64,16 +70,16 @@ class AnalysisInteractionTest {
         show(resultWith(gap, met))
 
         composeRule.onNodeWithText("I have this").performClick()
-        composeRule.onNodeWithText("Add to my prep plan").performClick()
+        composeRule.onNodeWithText("Add to prep plan").performClick()
 
         assertThat(calls).containsExactly("ihave:req-a", "prep:req-a").inOrder()
     }
 
     @Test
-    fun metRow_opensTheSourceFromItsChip() {
+    fun metRow_opensTheSourceFromTheRow() {
         show(resultWith(gap, met))
 
-        composeRule.onNodeWithText("W-01").performClick()
+        composeRule.onNodeWithText("Met · W-01").performScrollTo().performClick()
 
         assertThat(calls).containsExactly("source:req-b")
     }
@@ -88,10 +94,10 @@ class AnalysisInteractionTest {
     }
 
     @Test
-    fun bar_sharesAndTailors() {
+    fun header_sharesAndBar_tailors() {
         show(resultWith(met))
 
-        composeRule.onNodeWithText("Share JD fit card").performClick()
+        composeRule.onNodeWithText("Share my fit").performClick()
         composeRule.onNodeWithText("Tailor my resume").performClick()
 
         assertThat(calls).containsExactly("share", "tailor").inOrder()
@@ -177,6 +183,41 @@ class AnalysisInteractionTest {
         composeRule.onNodeWithContentDescription("Go back").performClick()
 
         assertThat(calls).containsExactly("back")
+    }
+
+    @Test
+    fun questionSheet_writeStaysOffUntilTheFactIsTypedThenSubmitsIt() {
+        composeRule.setContent {
+            HhTheme {
+                QuestionSheetContent(gap, AnalysisActions(onSubmitEvidence = { id, text -> submitted += "$id:$text" }))
+            }
+        }
+
+        composeRule.onNodeWithText("Do you have this?").assertExists()
+        composeRule.onNodeWithText("Write the fact").assertIsNotEnabled()
+        composeRule.onNode(hasSetTextAction()).performTextInput("Built a BigQuery warehouse")
+        composeRule.onNodeWithText("Write the fact").assertIsEnabled().performClick()
+
+        assertThat(submitted).containsExactly("req-a:Built a BigQuery warehouse")
+    }
+
+    @Test
+    fun shareScreen_sharesTheRoleAndCountsAndNeverTheCompany() {
+        composeRule.setContent {
+            HhTheme {
+                ShareFitScreen(
+                    state = resultWith(gap, met),
+                    actions = AnalysisActions(onShareText = { shared += it }),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Never included: your name, company or facts").assertExists()
+        composeRule.onNodeWithText("Share to WhatsApp").performClick()
+
+        assertThat(shared).containsExactly(
+            "My fit for Associate Analyst: 1 met, 0 partly met, 1 to prepare. Made with HireHop.",
+        )
     }
 }
 
