@@ -31,12 +31,12 @@ import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.theme.HhColors
 import com.hirehop.core.designsystem.theme.HhTheme
 
-enum class HhButtonKind { Primary, Secondary, Outline, Text, Destructive }
+enum class HhButtonKind { Primary, Secondary, Outline, Text, Destructive, Ink }
 
 object HhButtonDefaults {
-    val ContentPadding = PaddingValues(horizontal = 22.dp)
+    val ContentPadding = PaddingValues(horizontal = 24.dp)
     val TextContentPadding = PaddingValues(horizontal = 12.dp)
-    val IconSize = 18.dp
+    val IconSize = 20.dp
 }
 
 private class HhButtonPalette(val container: Color, val content: Color, val border: BorderStroke?)
@@ -45,7 +45,8 @@ private fun HhColors.buttonPalette(
     kind: HhButtonKind,
     surface: HhButtonSurface,
 ): HhButtonPalette = when (kind) {
-    HhButtonKind.Primary -> HhButtonPalette(primary, onPrimary, null)
+    HhButtonKind.Primary -> HhButtonPalette(brand, onBrand, null)
+    HhButtonKind.Ink -> HhButtonPalette(inverseSurface, inverseOnSurface, null)
     HhButtonKind.Secondary -> HhButtonPalette(primaryContainer, onPrimaryContainer, null)
     HhButtonKind.Destructive -> HhButtonPalette(error, onError, null)
     HhButtonKind.Outline -> outlinePalette(surface)
@@ -58,21 +59,19 @@ private fun HhColors.outlinePalette(surface: HhButtonSurface): HhButtonPalette =
         onHeader,
         BorderStroke(HhWidthStroke, onHeader.copy(alpha = 0.85f)),
     )
-    HhButtonSurface.Tool -> HhButtonPalette(
-        Color.Transparent,
-        onTool,
-        BorderStroke(HhWidthStroke, onTool.copy(alpha = 0.35f)),
-    )
     HhButtonSurface.Default -> HhButtonPalette(
         Color.Transparent,
         onSurface,
-        BorderStroke(HhWidthStroke, outlineSoft),
+        BorderStroke(HhWidthStroke, onSurface),
     )
 }
 
+private fun HhColors.disabledPalette(): HhButtonPalette = HhButtonPalette(outlineVariant, onSurfaceVariant, null)
+
+private fun HhButtonKind.isFilled(): Boolean = this != HhButtonKind.Outline && this != HhButtonKind.Text
+
 private fun HhColors.textPalette(surface: HhButtonSurface): HhButtonPalette = when (surface) {
     HhButtonSurface.Header -> HhButtonPalette(Color.Transparent, onHeader, null)
-    HhButtonSurface.Tool -> HhButtonPalette(Color.Transparent, inversePrimary, null)
     HhButtonSurface.Default -> HhButtonPalette(Color.Transparent, primary, null)
 }
 
@@ -85,7 +84,12 @@ internal fun HhButtonBase(
     contentPadding: PaddingValues,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val palette = HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current)
+    val filledDisabled = !enabled && kind.isFilled()
+    val palette = if (filledDisabled) {
+        HhTheme.colors.disabledPalette()
+    } else {
+        HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current)
+    }
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     Surface(
@@ -94,8 +98,8 @@ internal fun HhButtonBase(
         modifier = modifier
             .hhPressScale(source)
             .hhFocusRing(focused, HhTheme.colors.primary, 24.dp)
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
-            .defaultMinSize(minHeight = HhHeightTouch),
+            .alpha(if (enabled || filledDisabled) 1f else DISABLED_ALPHA)
+            .defaultMinSize(minHeight = HhHeightButtonLarge),
         shape = HhTheme.shapes.pill,
         color = palette.container,
         contentColor = palette.content,
@@ -103,10 +107,10 @@ internal fun HhButtonBase(
         interactionSource = source,
     ) {
         CompositionLocalProvider(LocalContentColor provides palette.content) {
-            ProvideTextStyle(HhTheme.typography.labelL) {
+            ProvideTextStyle(HhTheme.typography.button) {
                 Row(
                     modifier = Modifier
-                        .defaultMinSize(minHeight = HhHeightTouch)
+                        .defaultMinSize(minHeight = HhHeightButtonLarge)
                         .padding(contentPadding),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
@@ -142,7 +146,7 @@ internal fun HhButtonLabeled(
         var wrapped by remember { mutableStateOf(false) }
         Text(
             text = label,
-            style = HhTheme.typography.labelL,
+            style = HhTheme.typography.button,
             textAlign = if (wrapped) TextAlign.Center else TextAlign.Unspecified,
             onTextLayout = { wrapped = it.lineCount > 1 },
         )
@@ -270,6 +274,18 @@ fun HhTextButton(
     trailingIcon: ImageVector? = null,
 ) {
     HhButtonLabeled(HhButtonKind.Text, label, onClick, modifier, enabled, leadingIcon, trailingIcon)
+}
+
+@Composable
+fun HhInkButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+) {
+    HhButtonLabeled(HhButtonKind.Ink, label, onClick, modifier, enabled, leadingIcon, trailingIcon)
 }
 
 @Composable

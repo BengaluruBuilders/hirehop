@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -69,10 +70,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
-private val HhDockBallSize = HhHeightTouch
-private val HhDockNotchHalfWidth = 52.dp
-private val HhDockNotchDepth = 30.dp
+private val HhDockBallSize = 64.dp
+private val HhDockNotchHalfWidth = 56.dp
+private val HhDockNotchDepth = 37.dp
 private val HhDockIconRise = HhDockDefaults.height / 2
 
 @Composable
@@ -83,7 +86,7 @@ fun HhDock(
     val colors = HhTheme.colors
     val motion = HhTheme.motion
     val barColor = colors.tool
-    val ballColor = colors.primary
+    val ballColor = colors.brand
     val edgeColor = if (HhTheme.isDark) colors.outlineSoft else null
     val state = remember { HhDockState() }
     val path = remember { Path() }
@@ -180,15 +183,20 @@ private fun DrawScope.drawNotchedBar(
         )
     }
     path.rewind()
-    path.moveTo(0f, barTop)
+    val corner = HhRadiusSheet.toPx()
+    path.moveTo(0f, barTop + corner)
+    path.arcTo(Rect(0f, barTop, corner * 2, barTop + corner * 2), 180f, 90f, false)
     if (placed) {
         val w = HhDockNotchHalfWidth.toPx()
         val d = depth * lerp(0.6f, 1f, lift)
-        path.lineTo(cx - w, barTop)
-        path.cubicTo(cx - w * 0.5f, barTop, cx - w * 0.55f, barTop + d, cx, barTop + d)
-        path.cubicTo(cx + w * 0.55f, barTop + d, cx + w * 0.5f, barTop, cx + w, barTop)
+        val start = max(cx - w, corner)
+        val end = min(cx + w, size.width - corner)
+        path.lineTo(start, barTop)
+        path.cubicTo(start + (cx - start) * 0.5f, barTop, cx - w * 0.55f, barTop + d, cx, barTop + d)
+        path.cubicTo(cx + w * 0.55f, barTop + d, end - (end - cx) * 0.5f, barTop, end, barTop)
     }
-    path.lineTo(size.width, barTop)
+    path.lineTo(size.width - corner, barTop)
+    path.arcTo(Rect(size.width - corner * 2, barTop, size.width, barTop + corner * 2), 270f, 90f, false)
     path.lineTo(size.width, size.height)
     path.lineTo(0f, size.height)
     path.close()
@@ -219,7 +227,7 @@ fun HhDockItem(
     val overBall by remember(state, span, reach) {
         derivedStateOf { ((state.liftAt(span.centerX, reach) - 0.2f) / 0.3f).coerceIn(0f, 1f) }
     }
-    val tint = lerp(colors.onToolVariant, colors.onPrimary, overBall)
+    val tint = lerp(colors.onToolVariant, colors.onBrand, overBall)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(if (pressed) 0.92f else 1f, motion.spatialFast, label = "dockPress")

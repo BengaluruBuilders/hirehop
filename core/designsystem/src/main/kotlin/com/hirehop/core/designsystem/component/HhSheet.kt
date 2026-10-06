@@ -25,7 +25,7 @@ fun HhSheet(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = HhTheme.shapes.sheet,
-        color = HhTheme.colors.surface,
+        color = HhTheme.colors.background,
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
     }

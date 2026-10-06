@@ -46,7 +46,7 @@ fun HhInnerHeader(
         modifier = modifier
             .fillMaxWidth()
             .layoutId(HhHeaderData(drawsAboveContent = false, overlap = overlap))
-            .hhHeaderBackdrop(colors.header, colors.headerShape, statusTop + INNER_SMALL_CIRCLE_TOP, null)
+            .hhHeaderBackdrop(colors.header, colors.special, colors.headerShape, statusTop + INNER_DECORATION_TOP, null, if (extended) 0.dp else HhHeroBottomRadius)
             .heightIn(min = minHeight + statusTop),
     ) {
         Row(
@@ -113,7 +113,8 @@ private fun HhInnerHeaderTitle(
     }
 }
 
-private val INNER_SMALL_CIRCLE_TOP = 80.dp
+private val HhHeroBottomRadius = 48.dp
+private val INNER_DECORATION_TOP = 80.dp
 
 @Preview(showBackground = true)
 @Composable

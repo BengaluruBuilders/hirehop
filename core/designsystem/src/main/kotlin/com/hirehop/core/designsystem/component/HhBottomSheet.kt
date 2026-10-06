@@ -46,8 +46,8 @@ fun HhBottomSheet(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         sheetState = sheetState,
-        shape = HhTheme.shapes.sheet,
-        containerColor = colors.surface,
+        shape = HhTheme.shapes.modalSheet,
+        containerColor = colors.sheet,
         contentColor = colors.onSurface,
         scrimColor = colors.scrim,
         tonalElevation = 0.dp,
@@ -55,7 +55,7 @@ fun HhBottomSheet(
     ) {
         Column(modifier = Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             if (title != null) {
-                Text(text = title, style = HhTheme.typography.titleL, color = colors.onSurface)
+                Text(text = title, style = HhTheme.typography.headlineM, color = colors.onSurface)
             }
             if (subtitle != null) {
                 Text(text = subtitle, style = HhTheme.typography.bodyM, color = colors.onSurfaceVariant)
@@ -72,7 +72,7 @@ private fun HhBottomSheetDragHandle() {
             .padding(vertical = HhTheme.spacing.md)
             .size(width = HhSizeSheetHandleWidth, height = HhSizeDragHandleHeight)
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.outline),
+            .background(HhTheme.colors.outlineSoft),
     )
 }
 
@@ -85,7 +85,7 @@ fun HhSheetActionRow(
     subtitle: String? = null,
 ) {
     val colors = HhTheme.colors
-    Surface(onClick = onClick, modifier = modifier.fillMaxWidth(), color = colors.surface) {
+    Surface(onClick = onClick, modifier = modifier.fillMaxWidth(), color = colors.sheet) {
         Row(
             modifier = Modifier
                 .defaultMinSize(minHeight = HHHeightSheetRow)
@@ -109,7 +109,7 @@ fun HhSheetActionRow(
     }
 }
 
-private val HHHeightSheetRow = 56.dp
+private val HHHeightSheetRow = 64.dp
 
 private const val HH_BOTTOM_SHEET_SAMPLE_TITLE = "Close the gap: Unit tests with JUnit"
 

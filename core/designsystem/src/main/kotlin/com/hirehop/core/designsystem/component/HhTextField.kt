@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,14 +52,20 @@ fun HhTextField(
     val colors = HhTheme.colors
     var focused by remember { mutableStateOf(false) }
     val isError = errorText != null
+    val shape = if (singleLine) HhTheme.shapes.field else HhTheme.shapes.card
+    val fill = if (focused || isError) colors.background else colors.card
     val borderColor = when {
         isError -> colors.error
         focused -> colors.primary
-        else -> colors.outline
+        else -> colors.outlineSoft
     }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (label != null) {
-            Text(text = label, style = HhTheme.typography.labelL, color = colors.onSurface)
+            Text(
+                text = label,
+                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+                color = colors.onSurface,
+            )
         }
         BasicTextField(
             value = value,
@@ -67,8 +74,8 @@ fun HhTextField(
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = HhHeightField)
                 .onFocusChanged { focused = it.isFocused }
-                .background(colors.surface, HhTheme.shapes.field)
-                .border(if (focused || isError) 2.dp else HhWidthStroke, borderColor, HhTheme.shapes.field),
+                .background(fill, shape)
+                .border(if (focused || isError) 2.dp else HhWidthStroke, borderColor, shape),
             enabled = enabled,
             textStyle = HhTheme.typography.bodyL.copy(
                 color = if (enabled) colors.onSurface else colors.onSurfaceVariant,
@@ -96,7 +103,7 @@ private fun HhTextFieldDecoration(
     inner: @Composable () -> Unit,
 ) {
     Row(
-        modifier = Modifier.padding(horizontal = HhTheme.spacing.cardPadding, vertical = 14.dp),
+        modifier = Modifier.padding(horizontal = HhTheme.spacing.lg, vertical = HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.weight(1f)) {
@@ -120,7 +127,11 @@ private fun HhTextFieldFooter(errorText: String?, supportingText: (@Composable (
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(HhIcons.Error, contentDescription = null, tint = colors.error, modifier = Modifier.size(16.dp))
-            Text(text = errorText, style = HhTheme.typography.labelM, color = colors.error)
+            Text(
+                text = errorText,
+                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
+                color = colors.error,
+            )
         }
     } else if (supportingText != null) {
         androidx.compose.material3.ProvideTextStyle(HhTheme.typography.bodyS) {

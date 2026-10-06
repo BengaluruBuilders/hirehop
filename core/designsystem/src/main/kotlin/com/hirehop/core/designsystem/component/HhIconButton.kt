@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
@@ -32,19 +33,20 @@ fun HhIconButton(
     containerColor: Color = HhTheme.colors.surface,
     borderColor: Color = HhTheme.colors.outlineSoft,
     shape: Shape = HhTheme.shapes.pill,
+    size: Dp = HhHeightTouch,
 ) {
     Surface(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
-            .size(HhHeightTouch)
+            .size(size)
             .semantics(mergeDescendants = true) { this.contentDescription = contentDescription },
         shape = shape,
         color = containerColor,
         border = if (borderColor == Color.Transparent) null else BorderStroke(HhWidthStroke, borderColor),
     ) {
-        Box(modifier = Modifier.size(HhHeightTouch), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
