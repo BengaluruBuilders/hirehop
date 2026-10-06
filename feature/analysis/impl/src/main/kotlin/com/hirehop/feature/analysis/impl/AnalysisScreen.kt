@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -80,7 +79,6 @@ data class AnalysisActions(
 private const val STEP_INDEX = 5
 private const val STEP_TOTAL = 5
 
-private val HeaderBottomRadius = 48.dp
 private val HeaderTopPadding = 36.dp
 private val HeaderBottomPadding = 24.dp
 private val HeaderGap = 16.dp
@@ -265,7 +263,7 @@ private fun AnalysisHeader(
     onShare: () -> Unit,
 ) {
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val shape = RoundedCornerShape(bottomStart = HeaderBottomRadius, bottomEnd = HeaderBottomRadius)
+    val shape = HhTheme.shapes.heroBottom
     Box(
         modifier = Modifier
             .fillMaxWidth()

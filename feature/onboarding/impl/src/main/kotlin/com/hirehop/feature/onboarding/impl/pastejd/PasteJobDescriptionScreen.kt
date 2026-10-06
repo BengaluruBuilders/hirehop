@@ -58,13 +58,15 @@ import com.hirehop.feature.onboarding.impl.common.OnboardingStepBar
 import com.hirehop.feature.onboarding.impl.common.ReasonText
 
 private val PASTE_STEP = 1
-private val PASTE_FIELD_MIN_HEIGHT = 330.dp
+private val PASTE_FIELD_HEIGHT_EMPTY = 330.dp
+private val PASTE_FIELD_HEIGHT_PASTED = 282.dp
+private val PASTE_FIELD_HEIGHT_TOO_SHORT = 168.dp
 private val PASTE_FIELD_CORNER = 28.dp
 private val PASTE_FIELD_BORDER = 1.5.dp
 private val PASTE_FIELD_PADDING = 18.dp
 private val PASTE_FOOTER_RESERVE = 76.dp
 private val PASTE_RING_SIZE = 34.dp
-private val PASTE_INLINE_ICON = 18.dp
+private val PASTE_ERROR_ICON = 22.dp
 private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
 private val PASTE_ILLUSTRATION_WIDTH = 84.dp
@@ -143,11 +145,37 @@ private fun PasteJobDescriptionContent(
                     tone = com.hirehop.feature.onboarding.impl.common.NoticeTone.Error,
                 )
 
-            null -> SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
+            null ->
+                if (uiState.text.isEmpty()) {
+                    PasteJobDescriptionHint()
+                } else {
+                    SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
+                }
         }
         if (revealsRoleAndCompany) {
             RoleAndCompanyFields(actions = actions, uiState = uiState)
         }
+    }
+}
+
+@Composable
+private fun PasteJobDescriptionHint() {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Info,
+            contentDescription = null,
+            tint = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_paste_jd_hint, PASTE_JD_MIN_WORDS),
+            modifier = Modifier.weight(1f),
+            style = HhTheme.typography.bodyS,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
     }
 }
 
@@ -209,6 +237,11 @@ private fun PasteJobDescriptionField(
     val colors = HhTheme.colors
     val tooShort = uiState.problem == PasteJobDescriptionProblem.TOO_SHORT
     val border = if (tooShort) colors.coral else colors.outlineVariant
+    val fieldHeight = when {
+        tooShort -> PASTE_FIELD_HEIGHT_TOO_SHORT
+        uiState.text.isNotEmpty() -> PASTE_FIELD_HEIGHT_PASTED
+        else -> PASTE_FIELD_HEIGHT_EMPTY
+    }
     Column(
         modifier = Modifier.padding(top = HhTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
@@ -221,7 +254,7 @@ private fun PasteJobDescriptionField(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = PASTE_FIELD_MIN_HEIGHT)
+                .heightIn(min = fieldHeight)
                 .clip(HhTheme.shapes.card)
                 .background(if (tooShort) colors.surface else colors.card)
                 .border(PASTE_FIELD_BORDER, border, HhTheme.shapes.card),
@@ -427,7 +460,7 @@ private fun TooShortHelp() {
                 tint = HhTheme.colors.coral,
                 modifier = Modifier
                     .padding(top = HhTheme.spacing.xxs)
-                    .size(PASTE_RING_SIZE - PASTE_INLINE_ICON),
+                    .size(PASTE_ERROR_ICON),
             )
             Column(
                 modifier = Modifier.weight(1f),

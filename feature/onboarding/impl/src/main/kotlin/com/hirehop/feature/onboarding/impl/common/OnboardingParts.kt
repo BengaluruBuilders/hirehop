@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -216,6 +217,7 @@ internal fun OnboardingStepBar(
     onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
     backContentDescription: String = "",
+    onBrand: Boolean = false,
 ) {
     Row(
         modifier = modifier.fillMaxWidth().height(HhTheme.spacing.touch),
@@ -227,7 +229,8 @@ internal fun OnboardingStepBar(
                 icon = HhIcons.ArrowBack,
                 contentDescription = backContentDescription,
                 onClick = onBack,
-                borderColor = HhTheme.colors.outlineVariant,
+                containerColor = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.surface,
+                borderColor = if (onBrand) Color.Transparent else HhTheme.colors.outlineVariant,
             )
         } else {
             Box(modifier = Modifier.width(HhTheme.spacing.touch))
@@ -241,14 +244,17 @@ internal fun OnboardingStepBar(
             Box(
                 modifier = Modifier
                     .height(STEP_CHIP_HEIGHT)
-                    .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill)
+                    .background(
+                        if (onBrand) HhTheme.colors.brandPressed else HhTheme.colors.primaryContainer,
+                        HhTheme.shapes.pill,
+                    )
                     .padding(horizontal = HhTheme.spacing.d12 + HhTheme.spacing.xxs),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = stringResource(R.string.feature_onboarding_impl_step_chip, step, ONBOARDING_STEP_COUNT),
                     style = HhTheme.typography.labelL,
-                    color = HhTheme.colors.onPrimaryContainer,
+                    color = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.onPrimaryContainer,
                 )
             }
         }

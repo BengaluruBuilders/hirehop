@@ -34,8 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -104,8 +106,9 @@ fun ImportResumeScreen(
         sheet = false,
         header = {
             OnboardingStepBar(
+                modifier = Modifier.padding(horizontal = HhTheme.spacing.gutter),
                 step = IMPORT_STEP,
-                onBack = actions.onBack,
+                onBack = if (uiState.stage == ImportStage.Parsing) null else actions.onBack,
                 backContentDescription = stringResource(R.string.feature_onboarding_impl_import_resume_back_description),
             )
         },
@@ -314,23 +317,24 @@ private fun FileCard(uiState: ImportResumeUiState) {
 private fun ReadingProgress(readStepIndex: Int) {
     val colors = HhTheme.colors
     val fraction = readStepIndex.coerceIn(0, READ_STEP_COUNT).toFloat() / READ_STEP_COUNT
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    val percent = (fraction * 100).toInt()
+    val description = stringResource(R.string.feature_onboarding_impl_import_resume_progress_description)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+            },
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier.size(PROGRESS_RING_SIZE),
-            contentAlignment = Alignment.Center,
-        ) {
-            Canvas(modifier = Modifier.size(PROGRESS_RING_SIZE)) {
-                drawReadingRing(track = colors.primaryContainer, arc = colors.brand, fraction = fraction)
-            }
+        Canvas(modifier = Modifier.size(PROGRESS_RING_SIZE)) {
+            drawReadingRing(track = colors.primaryContainer, arc = colors.brand, fraction = fraction)
         }
         Text(
-            text = stringResource(R.string.feature_onboarding_impl_import_resume_reading_ordinal),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
+            text = stringResource(R.string.feature_onboarding_impl_import_resume_progress_percent, percent),
+            style = HhTheme.typography.displayL,
+            color = HhTheme.colors.onSurface,
         )
     }
 }
@@ -429,20 +433,34 @@ private fun LiftedFactChips(facts: List<ImportedFactUi>) {
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xs),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xs),
     ) {
-        facts.take(LIFTED_FACTS_SHOWN).forEach { fact -> LiftedFactChip(fact) }
+        facts.take(LIFTED_FACTS_SHOWN).forEach { fact -> LiftedFactChip(term = factTerm(fact)) }
+        val hidden = facts.size - LIFTED_FACTS_SHOWN
+        if (hidden > 0) {
+            LiftedFactChip(
+                term = stringResource(R.string.feature_onboarding_impl_import_resume_more_facts, hidden),
+                background = HhTheme.colors.special,
+                borderless = true,
+            )
+        }
     }
 }
 
+private fun factTerm(fact: ImportedFactUi): String = fact.line.substringBefore(',').substringBefore(" · ").trim()
+
 @Composable
-private fun LiftedFactChip(fact: ImportedFactUi) {
+private fun LiftedFactChip(
+    term: String,
+    background: Color = HhTheme.colors.card,
+    borderless: Boolean = false,
+) {
     Box(
         modifier = Modifier
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.card, HhTheme.shapes.pill)
-            .border(HAIRLINE, HhTheme.colors.outlineVariant, HhTheme.shapes.pill),
+            .background(background, HhTheme.shapes.pill)
+            .then(if (borderless) Modifier else Modifier.border(HAIRLINE, HhTheme.colors.outlineVariant, HhTheme.shapes.pill)),
     ) {
         Text(
-            text = fact.line,
+            text = term,
             modifier = Modifier.padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.xs + HhTheme.spacing.xs),
             style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
             color = HhTheme.colors.onSurface,

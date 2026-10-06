@@ -3,6 +3,7 @@ package com.hirehop.feature.analysis.impl
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,21 +36,18 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import com.hirehop.core.designsystem.component.HhCard
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhOutlineButton
-import com.hirehop.core.designsystem.component.HhProvenanceChip
-import com.hirehop.core.designsystem.component.HhProvenanceKind
-import com.hirehop.core.designsystem.component.HhRequirementTag
 import com.hirehop.core.designsystem.component.HhSecondaryButton
-import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusDisc
 import com.hirehop.core.designsystem.component.HhStatusKind
-import com.hirehop.core.designsystem.component.HhTermChip
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.MatchStatus
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun RequirementRow(
     item: RequirementItem,
@@ -69,6 +67,7 @@ internal fun RequirementRow(
     val statusLabel = stringResource(item.status.labelRes())
     val priorityLabel = stringResource(item.priorityLabelRes())
     val description = rowDescription(item, statusLabel, priorityLabel)
+    val isMet = item.status == MatchStatus.MET
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -78,24 +77,67 @@ internal fun RequirementRow(
             }
             .semantics { contentDescription = description },
     ) {
-        HhCard {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = HhTheme.spacing.touch - HhTheme.spacing.md),
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                HhStatusChip(kind = item.status.statusKind(), label = statusLabel)
-                HhRequirementTag(label = priorityLabel, mustHave = item.isMustHave)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(HhTheme.shapes.card)
+                .background(HhTheme.colors.card)
+                .then(
+                    if (isMet) {
+                        Modifier
+                    } else {
+                        Modifier.border(1.dp, HhTheme.colors.outlineVariant, HhTheme.shapes.card)
+                    },
+                )
+                .then(
+                    if (item.hasSource) {
+                        Modifier.clickable(role = Role.Button) { actions.onSeeSource(item.id) }
+                    } else {
+                        Modifier
+                    },
+                )
+                .then(
+                    if (isMet) {
+                        Modifier
+                            .heightIn(min = 64.dp)
+                            .padding(horizontal = 14.dp, vertical = 12.dp)
+                    } else {
+                        Modifier.padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp)
+                    },
+                ),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    HhStatusDisc(kind = item.status.statusKind(), size = 26.dp)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(if (item.hasMenu) Modifier.padding(end = 48.dp) else Modifier),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            text = item.requirement.text,
+                            style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
+                            color = HhTheme.colors.onSurface,
+                        )
+                        Text(
+                            text = statusLineText(item, statusLabel),
+                            style = HhTheme.typography.labelM,
+                            color = when (item.status) {
+                                MatchStatus.MET -> HhTheme.colors.met
+                                MatchStatus.PARTIAL -> HhTheme.colors.partial
+                                MatchStatus.GAP -> HhTheme.colors.body
+                            },
+                        )
+                    }
+                }
+                if (item.isGap && !item.hasSource) {
+                    GapActions(item, actions, Modifier.padding(start = 38.dp))
+                }
             }
-            Text(
-                text = item.requirement.text,
-                style = HhTheme.typography.titleM,
-                color = HhTheme.colors.onSurface,
-            )
-            RowFooter(item, actions)
         }
         if (item.hasMenu) {
             HhIconButton(
@@ -114,73 +156,62 @@ internal fun RequirementRow(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RowFooter(item: RequirementItem, actions: AnalysisActions) {
-    if (item.isGap && !item.hasSource) {
-        GapActions(item, actions)
-        return
-    }
-    if (!item.hasSource) return
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        item.factRefs.forEach { ref -> SourceFactChip(ref.displayId) { actions.onSeeSource(item.id) } }
-        item.skills.forEach { skill -> HhTermChip(label = skill) }
-        if (item.hasUserStatedFact) {
-            HhProvenanceChip(
-                kind = HhProvenanceKind.UserStated,
-                label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
-            )
-        }
-    }
+private fun statusLineText(item: RequirementItem, statusLabel: String): String = when {
+    item.factRefs.isNotEmpty() -> stringResource(
+        R.string.feature_analysis_impl_row_line,
+        statusLabel,
+        item.factRefs.joinToString(" ") { it.displayId },
+    )
+    item.status == MatchStatus.GAP ->
+        stringResource(R.string.feature_analysis_impl_row_line_no_fact, statusLabel)
+    else -> statusLabel
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GapActions(item: RequirementItem, actions: AnalysisActions) {
+private fun GapActions(item: RequirementItem, actions: AnalysisActions, modifier: Modifier = Modifier) {
     val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
     val prepDescription = stringResource(R.string.feature_analysis_impl_prep_description, item.requirement.text)
     val prepState = stringResource(
         if (item.isInPrepPlan) R.string.feature_analysis_impl_prep_added else R.string.feature_analysis_impl_prep_not_added,
     )
-    val iHaveThis: @Composable (Modifier) -> Unit = { modifier ->
+    val iHaveThis: @Composable (Modifier) -> Unit = { buttonModifier ->
         HhOutlineButton(
             label = stringResource(R.string.feature_analysis_impl_i_have_this),
             onClick = { actions.onIHaveThis(item.id) },
-            modifier = modifier,
+            modifier = buttonModifier.height(GAP_BUTTON_HEIGHT),
+            size = HhButtonSize.Compact,
         )
     }
-    val prepPlan: @Composable (Modifier) -> Unit = { modifier ->
-        val semantic = modifier.semantics {
-            contentDescription = prepDescription
-            stateDescription = prepState
-            role = Role.Switch
-        }
-        if (item.isInPrepPlan) {
-            HhSecondaryButton(
-                label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
-                onClick = { actions.onTogglePrepPlan(item.id) },
-                modifier = semantic,
-                leadingIcon = HhIcons.Check,
-            )
-        } else {
-            HhOutlineButton(
-                label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
-                onClick = { actions.onTogglePrepPlan(item.id) },
-                modifier = semantic,
-            )
-        }
+    val prepPlan: @Composable (Modifier) -> Unit = { buttonModifier ->
+        HhSecondaryButton(
+            label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
+            onClick = { actions.onTogglePrepPlan(item.id) },
+            modifier = buttonModifier
+                .height(GAP_BUTTON_HEIGHT)
+                .semantics {
+                    contentDescription = prepDescription
+                    stateDescription = prepState
+                    role = Role.Switch
+                },
+            leadingIcon = if (item.isInPrepPlan) HhIcons.Check else null,
+            size = HhButtonSize.Compact,
+        )
     }
     if (stacked) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             iHaveThis(Modifier.fillMaxWidth())
             prepPlan(Modifier.fillMaxWidth())
         }
     } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            iHaveThis(Modifier.weight(1f))
-            prepPlan(Modifier.weight(PREP_BUTTON_WEIGHT))
+        FlowRow(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            iHaveThis(Modifier)
+            prepPlan(Modifier)
         }
     }
 }
@@ -251,4 +282,4 @@ private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
 
 private const val STACK_FONT_SCALE = 1.3f
 private const val HOP_FROM_SCALE = 0.94f
-private const val PREP_BUTTON_WEIGHT = 1.2f
+private val GAP_BUTTON_HEIGHT = 44.dp

@@ -5,23 +5,22 @@
     <string name="feature_analysis_impl_company_not_set">Company not set</string>
     <string name="feature_analysis_impl_back">Go back</string>
 
-    <string name="feature_analysis_impl_waiting_limit">Up to 20 seconds</string>
-    <string name="feature_analysis_impl_step_read">Reading the JD</string>
+    <string name="feature_analysis_impl_waiting_heading">Checking your fit</string>
+    <string name="feature_analysis_impl_step_read">Reading the job description</string>
+    <plurals name="feature_analysis_impl_step_read_done">
+        <item quantity="one">Read %d requirement</item>
+        <item quantity="other">Read %d requirements</item>
+    </plurals>
     <string name="feature_analysis_impl_step_match">Matching your facts</string>
-    <string name="feature_analysis_impl_step_sort">Sorting must-haves first</string>
-    <plurals name="feature_analysis_impl_step_read_detail_terms">
-        <item quantity="one">%d key term</item>
-        <item quantity="other">%d key terms</item>
+    <plurals name="feature_analysis_impl_step_match_count">
+        <item quantity="one">Matching your %d fact</item>
+        <item quantity="other">Matching your %d facts</item>
     </plurals>
-    <plurals name="feature_analysis_impl_step_read_detail_requirements">
-        <item quantity="one">%d requirement</item>
-        <item quantity="other">%d requirements</item>
-    </plurals>
-    <plurals name="feature_analysis_impl_step_match_detail">
-        <item quantity="one">Checking %d confirmed fact</item>
-        <item quantity="other">Checking %d confirmed facts</item>
-    </plurals>
-    <string name="feature_analysis_impl_waiting_footnote">You can leave this screen. Your analysis will be here.</string>
+    <string name="feature_analysis_impl_step_sort">Putting must-haves first</string>
+    <string name="feature_analysis_impl_step_state_done">Done</string>
+    <string name="feature_analysis_impl_step_state_in_progress">In progress</string>
+    <string name="feature_analysis_impl_step_state_up_next">Up next</string>
+    <string name="feature_analysis_impl_waiting_footnote">We only match facts you confirmed. Nothing gets made up to fill a gap.</string>
 
     <string name="feature_analysis_impl_error_title">We couldn’t finish this analysis</string>
     <string name="feature_analysis_impl_error_body">Your JD and your facts are safe. This one did not count towards today’s free analyses.</string>
@@ -38,8 +37,6 @@
     <string name="feature_analysis_impl_coverage_fraction">%1$d / %2$d</string>
     <string name="feature_analysis_impl_coverage_caption">key terms</string>
     <string name="feature_analysis_impl_coverage_title">You cover %1$s of %2$s key terms</string>
-    <string name="feature_analysis_impl_coverage_met">%1$s Met</string>
-    <string name="feature_analysis_impl_coverage_gap">%1$s To prepare</string>
     <string name="feature_analysis_impl_coverage_note">Key terms from this JD that appear in your confirmed facts. It is not a score.</string>
     <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms in this JD. Go back and paste more of it.</string>
     <plurals name="feature_analysis_impl_gap_note">
@@ -58,12 +55,14 @@
     <string name="feature_analysis_impl_priority_must_have">Must-have</string>
     <string name="feature_analysis_impl_priority_nice_to_have">Nice to have</string>
     <string name="feature_analysis_impl_row_description">%1$s. %2$s. %3$s.</string>
+    <string name="feature_analysis_impl_row_line">%1$s · %2$s</string>
+    <string name="feature_analysis_impl_row_line_no_fact">%1$s · no matching fact yet</string>
     <string name="feature_analysis_impl_row_actions">Actions: I have this, Add to my prep plan.</string>
     <string name="feature_analysis_impl_row_sources">Sources: %1$s.</string>
     <string name="feature_analysis_impl_more_actions">More actions</string>
     <string name="feature_analysis_impl_source_fact">Source fact %1$s</string>
     <string name="feature_analysis_impl_i_have_this">I have this</string>
-    <string name="feature_analysis_impl_add_to_prep_plan">Add to my prep plan</string>
+    <string name="feature_analysis_impl_add_to_prep_plan">Add to prep plan</string>
     <string name="feature_analysis_impl_prep_description">Add to my prep plan: %1$s</string>
     <string name="feature_analysis_impl_prep_added">Added</string>
     <string name="feature_analysis_impl_prep_not_added">Not added</string>
@@ -80,11 +79,6 @@
     <string name="feature_analysis_impl_provenance_user_edited">User-edited</string>
     <string name="feature_analysis_impl_provenance_scanned">Scanned</string>
 
-    <string name="feature_analysis_impl_question_eyebrow">I have this · %1$s</string>
-    <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
-    <string name="feature_analysis_impl_question_body">Tell us in your own words. We save it as a user-stated fact, marked so, and use only what you write.</string>
-    <string name="feature_analysis_impl_question_label">Where and how</string>
-    <string name="feature_analysis_impl_save_fact">Save as my fact</string>
     <string name="feature_analysis_impl_cancel">Cancel</string>
 
     <string name="feature_analysis_impl_toast_prep_added">%1$s added to your prep plan</string>
@@ -102,13 +96,27 @@
     <string name="feature_analysis_impl_share_card">Share JD fit card</string>
     <string name="feature_analysis_impl_tailor">Tailor my resume</string>
 
-    <string name="feature_analysis_impl_share_eyebrow">JD fit</string>
-    <string name="feature_analysis_impl_share_headline">My fit, from confirmed facts</string>
-    <string name="feature_analysis_impl_share_caption">key terms covered</string>
-    <string name="feature_analysis_impl_share_footer">HireHop · We never invent anything about you.</string>
-    <string name="feature_analysis_impl_share_action">Share</string>
     <string name="feature_analysis_impl_share_chooser">Share JD fit</string>
-    <string name="feature_analysis_impl_share_text">My fit for %1$s at %2$s: my confirmed facts cover %3$s of %4$s key terms. Made with HireHop.</string>
+    <string name="feature_analysis_impl_share_brand">HireHop</string>
+    <string name="feature_analysis_impl_share_size_chip">Status size · 9:16</string>
+    <string name="feature_analysis_impl_share_intro">Just the role and your three counts. Made for WhatsApp Status.</string>
+    <string name="feature_analysis_impl_share_card_label">My fit for</string>
+    <string name="feature_analysis_impl_share_unit_met">met</string>
+    <string name="feature_analysis_impl_share_unit_partial">partly met</string>
+    <string name="feature_analysis_impl_share_unit_gap">to prepare</string>
+    <string name="feature_analysis_impl_share_card_footer">Built only from facts I confirmed</string>
+    <string name="feature_analysis_impl_share_included">Included: role and your three counts</string>
+    <string name="feature_analysis_impl_share_excluded">Never included: your name, company or facts</string>
+    <string name="feature_analysis_impl_share_whatsapp">Share to WhatsApp</string>
+    <string name="feature_analysis_impl_share_card_description">Share image preview: %1$s, %2$s met, %3$s partly met, %4$s to prepare</string>
+    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with HireHop.</string>
+    <string name="feature_analysis_impl_question_title">Do you have this?</string>
+    <string name="feature_analysis_impl_question_body">Pick a confirmed fact that shows it, or add a new one. Nothing is used until you confirm it.</string>
+    <string name="feature_analysis_impl_question_new_fact_id">New fact</string>
+    <string name="feature_analysis_impl_question_new_fact_text">Add a new fact and confirm it</string>
+    <string name="feature_analysis_impl_question_label">Where and how</string>
+    <string name="feature_analysis_impl_question_write">Write the fact</string>
+    <string name="feature_analysis_impl_question_close">Close</string>
     <string name="feature_analysis_impl_step_chip">Step %1$d of %2$d</string>
     <string name="feature_analysis_impl_summary_met">%1$s met</string>
     <string name="feature_analysis_impl_summary_partial">%1$s partly met</string>

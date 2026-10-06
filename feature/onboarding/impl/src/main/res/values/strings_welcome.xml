@@ -4,18 +4,6 @@
     <string name="feature_onboarding_impl_welcome_headline">Your next move, better prepared</string>
     <string name="feature_onboarding_impl_welcome_subline">Tailored applications built only from facts you confirm.</string>
     <string name="feature_onboarding_impl_welcome_illustration_description">A young job seeker proudly holding up her resume</string>
-    <string name="feature_onboarding_impl_welcome_hero_original_label">Your line</string>
-    <string name="feature_onboarding_impl_welcome_hero_original_line">Made sales reports every week</string>
-    <string name="feature_onboarding_impl_welcome_hero_rewritten_label">Rewritten from your facts</string>
-    <string name="feature_onboarding_impl_welcome_hero_rewritten_line">Built weekly sales reports in Excel for 40 stores</string>
-    <string-array name="feature_onboarding_impl_welcome_hero_rewritten_marks">
-        <item>Built</item>
-        <item>in Excel</item>
-        <item>40 stores</item>
-    </string-array>
-    <string name="feature_onboarding_impl_welcome_hero_fact_id">W-01</string>
-    <string name="feature_onboarding_impl_welcome_hero_fact_title">Data Operations Associate, Saffron Retail</string>
-    <string name="feature_onboarding_impl_welcome_hero_confirmed">Confirmed</string>
     <string name="feature_onboarding_impl_welcome_trust_never_invents">Never invents</string>
     <string name="feature_onboarding_impl_welcome_action_paste_jd">Paste a job description</string>
     <string name="feature_onboarding_impl_welcome_action_import_resume">Import my resume</string>

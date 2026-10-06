@@ -481,6 +481,7 @@ private fun FactActions(
                 HhPrimaryButton(
                     label = stringResource(R.string.feature_onboarding_impl_confirm_facts_confirm),
                     onClick = { actions.onConfirm(fact.id) },
+                    modifier = Modifier.fillMaxWidth(),
                     size = HhButtonSize.Compact,
                 )
             }
@@ -598,9 +599,9 @@ private fun ConfirmFactsBottomBar(
         else -> stringResource(R.string.feature_onboarding_impl_confirm_facts_left_to_review, uiState.openCount)
     }
     HhIconActionBar(
-        secondaryIcon = HhIcons.ArrowBack,
-        secondaryContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
-        onSecondaryClick = actions.onBack,
+        secondaryIcon = HhIcons.Add,
+        secondaryContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_add_description),
+        onSecondaryClick = { actions.onAddOne(ConfirmFactsSection.Experience) },
         primaryLabel = label,
         onPrimaryClick = actions.onContinue,
         primaryEnabled = uiState.canContinue,

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_paste_jd_title">New analysis</string>
     <string name="feature_onboarding_impl_paste_jd_subtitle">Paste a job description</string>
     <string name="feature_onboarding_impl_paste_jd_navigation_back_description">Go back</string>
     <string name="feature_onboarding_impl_paste_jd_field_label">Job description</string>
@@ -16,7 +15,6 @@
     </plurals>
     <string name="feature_onboarding_impl_paste_jd_action_paste">Paste from clipboard</string>
     <string name="feature_onboarding_impl_paste_jd_action_clear">Clear</string>
-    <string name="feature_onboarding_impl_paste_jd_action_analyse">Analyse this JD</string>
     <string name="feature_onboarding_impl_paste_jd_action_analyse_later">Analyse when I\'m back</string>
     <string name="feature_onboarding_impl_paste_jd_free_left">%1$d of %2$d</string>
     <string name="feature_onboarding_impl_paste_jd_disclosure">%1$s free analyses left today\nYour JD stays on this phone until you tap Analyse.</string>

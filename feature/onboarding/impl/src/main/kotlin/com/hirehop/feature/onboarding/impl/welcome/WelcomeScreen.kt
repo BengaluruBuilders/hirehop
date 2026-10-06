@@ -147,7 +147,7 @@ private fun WelcomeTopRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(TOP_ROW_HEIGHT),
+            .heightIn(min = TOP_ROW_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

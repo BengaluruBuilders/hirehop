@@ -13,7 +13,7 @@
     <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission. Android\'s file picker opens, and only the one file you pick is shared with HireHop.</string>
     <string name="feature_onboarding_impl_import_resume_guided_form_link">No resume? Build your profile step by step.</string>
 
-    <string name="feature_onboarding_impl_import_resume_reading_ordinal">Up to 30 seconds</string>
+    <string name="feature_onboarding_impl_import_resume_progress_description">Reading progress</string>
     <string name="feature_onboarding_impl_import_resume_step_read">Reading your resume</string>
     <string name="feature_onboarding_impl_import_resume_step_sections">Finding your sections</string>
     <string name="feature_onboarding_impl_import_resume_step_strip">Removing details we never keep</string>
@@ -39,7 +39,6 @@
     <string name="feature_onboarding_impl_import_resume_empty_heading">This file is empty</string>
     <string name="feature_onboarding_impl_import_resume_empty_body">There was nothing to read. Nothing was kept.</string>
     <string name="feature_onboarding_impl_import_resume_too_large_heading">This file is too large to read</string>
-    <string name="feature_onboarding_impl_import_resume_too_large_body">HireHop reads files up to %1$s. Nothing was kept.</string>
     <string name="feature_onboarding_impl_import_resume_failed_heading">That did not work</string>
     <string name="feature_onboarding_impl_import_resume_failed_body">We couldn\'t finish reading this file. Nothing from it was kept. Try again, or choose another file.</string>
 
@@ -71,4 +70,5 @@
     <string name="feature_onboarding_impl_import_resume_try_1">Save it again as PDF from Word or Google Docs</string>
     <string name="feature_onboarding_impl_import_resume_try_2">Upload the DOCX version instead</string>
     <string name="feature_onboarding_impl_import_resume_try_3">Add your facts by hand</string>
+    <string name="feature_onboarding_impl_import_resume_more_facts">+%1$d</string>
 </resources>

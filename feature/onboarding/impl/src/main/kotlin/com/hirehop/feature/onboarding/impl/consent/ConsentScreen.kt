@@ -81,6 +81,7 @@ internal fun ConsentScreen(
         sheet = false,
         header = {
             OnboardingStepBar(
+                modifier = Modifier.padding(horizontal = HhTheme.spacing.gutter),
                 step = CONSENT_STEP,
                 onBack = actions.onBack,
                 backContentDescription = stringResource(
@@ -387,16 +388,7 @@ private fun ConsentBottomBar(
 
 @Composable
 private fun agreeLabel(uiState: ConsentUiState): String = when {
-    uiState.canAgree -> stringResource(R.string.feature_onboarding_impl_consent_action_agree)
-    uiState.isEveryPurposeAcknowledged -> stringResource(
-        R.string.feature_onboarding_impl_consent_reason_incomplete,
-        uiState.entries.size,
-        stringResource(
-            R.string.feature_onboarding_impl_consent_reason_count,
-            uiState.acknowledgedCount,
-            uiState.entries.size,
-        ),
-    )
+    uiState.isEveryPurposeAcknowledged -> stringResource(R.string.feature_onboarding_impl_consent_action_agree)
     else -> stringResource(
         R.string.feature_onboarding_impl_consent_waiting,
         uiState.entries.size - uiState.acknowledgedCount,

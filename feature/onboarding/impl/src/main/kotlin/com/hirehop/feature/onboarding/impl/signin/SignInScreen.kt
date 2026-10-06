@@ -63,6 +63,11 @@ private val NOTE_ICON_SIZE = 40.dp
 private val NOTE_ICON_GLYPH = 22.dp
 private val ART_DISC = 180.dp
 private val ART_HEIGHT = 250.dp
+private val RING_CLEARANCE = 56.dp
+private val HEADER_RING_PADDING_END = 24.dp
+private val HEADER_RING_PADDING_BOTTOM = 24.dp
+private val LEGAL_LINE_CLEARANCE = 92.dp
+private val PINNED_ACTION_BOTTOM = 24.dp
 
 @Composable
 internal fun SignInScreen(
@@ -88,7 +93,16 @@ private fun SignInFormScreen(
         sheet = false,
         header = { SignInHeader(actions = actions) },
     ) { padding ->
-        SignInContent(uiState = uiState, actions = actions, modifier = Modifier.padding(padding))
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            SignInContent(uiState = uiState, actions = actions)
+            HhTextButton(
+                label = stringResource(R.string.feature_onboarding_impl_sign_in_action_under_18),
+                onClick = actions.onUnderEighteen,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = PINNED_ACTION_BOTTOM),
+            )
+        }
     }
 }
 
@@ -106,24 +120,23 @@ private fun SignInHeader(actions: SignInActions, modifier: Modifier = Modifier) 
         HhDecoration(
             kind = HhDecorationKind.Ring,
             color = HhTheme.colors.special,
-            modifier = Modifier.align(Alignment.TopEnd),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Dots,
-            color = HhTheme.colors.onBrand,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = HhTheme.spacing.md, bottom = HhTheme.spacing.md),
+                .padding(end = HEADER_RING_PADDING_END, bottom = HEADER_RING_PADDING_BOTTOM),
         )
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xl)) {
             OnboardingStepBar(
                 step = SIGN_IN_STEP,
                 onBack = actions.onBack,
+                onBrand = true,
                 backContentDescription = stringResource(
                     R.string.feature_onboarding_impl_sign_in_navigation_back_content_description,
                 ),
             )
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            Column(
+                modifier = Modifier.padding(end = RING_CLEARANCE),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
                 Text(
                     text = stringResource(R.string.feature_onboarding_impl_sign_in_heading),
                     style = HhTheme.typography.displayM,
@@ -150,7 +163,7 @@ private fun SignInContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = HhTheme.spacing.gutter)
-            .padding(top = HhTheme.spacing.sectionGap, bottom = HhTheme.spacing.gutter),
+            .padding(top = HhTheme.spacing.sectionGap, bottom = LEGAL_LINE_CLEARANCE),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
     ) {
         SignInNotices(uiState = uiState)
@@ -158,11 +171,6 @@ private fun SignInContent(
         GoogleSignInButton(uiState = uiState, onContinue = actions.onContinue)
         SignInReason(uiState = uiState)
         SignInLegalLine()
-        HhTextButton(
-            label = stringResource(R.string.feature_onboarding_impl_sign_in_action_under_18),
-            onClick = actions.onUnderEighteen,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-        )
     }
 }
 
@@ -305,7 +313,7 @@ private fun UnderEighteenContent(actions: SignInActions, modifier: Modifier = Mo
             HhIconButton(
                 icon = HhIcons.Close,
                 contentDescription = stringResource(
-                    R.string.feature_onboarding_impl_sign_in_navigation_back_content_description,
+                    R.string.feature_onboarding_impl_sign_in_under_18_close_description,
                 ),
                 onClick = actions.onBackFromUnderEighteen,
                 containerColor = HhTheme.colors.card,
@@ -363,7 +371,8 @@ private fun UnderEighteenArt(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(ART_DISC)
                 .clip(HhTheme.shapes.pill)
-                .background(HhTheme.colors.primaryContainer),
+                .background(HhTheme.colors.card)
+                .border(1.dp, HhTheme.colors.outlineVariant, HhTheme.shapes.pill),
             contentAlignment = Alignment.BottomCenter,
         ) {
             HhCharacterIllustration(

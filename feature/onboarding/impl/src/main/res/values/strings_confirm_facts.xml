@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_onboarding_impl_confirm_facts_title">Confirm your facts</string>
+    <string name="feature_onboarding_impl_confirm_facts_add_description">Add a fact</string>
     <string name="feature_onboarding_impl_confirm_facts_back_description">Back</string>
     <plurals name="feature_onboarding_impl_confirm_facts_counter">
         <item quantity="one">%1$d of %2$d confirmed</item>
@@ -63,6 +64,5 @@
     <string name="feature_onboarding_impl_confirm_facts_all_body">These are the only things HireHop will say about you. Add or change facts anytime in Profile.</string>
     <string name="feature_onboarding_impl_confirm_facts_review_list">Review the list</string>
     <string name="feature_onboarding_impl_confirm_facts_check_fit">Check my fit</string>
-    <string name="feature_onboarding_impl_confirm_facts_delete_description">Remove this fact</string>
     <string name="feature_onboarding_impl_confirm_facts_source_page">%1$s · page %2$d</string>
 </resources>

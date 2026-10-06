@@ -3,6 +3,7 @@ package com.hirehop.feature.analysis.impl
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +43,7 @@ internal fun ResultContent(
         contentPadding = PaddingValues(
             start = HhTheme.spacing.gutter,
             end = HhTheme.spacing.gutter,
+            top = HhTheme.spacing.lg,
             bottom = contentPadding.calculateBottomPadding(),
         ),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md + HhTheme.spacing.xxs),
@@ -65,10 +67,7 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
         coverage.covered.toString(),
         coverage.total.toString(),
     )
-    HhCard(
-        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = summary },
-        contentPadding = PaddingValues(HhTheme.spacing.cardPadding),
-    ) {
+    HhCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding)) {
         CoverageLabel()
         if (coverage.total == 0) {
             Text(
@@ -78,12 +77,17 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
             )
             return@HhCard
         }
-        Text(text = summary, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
-        HhCoverageBar(
-            met = coverage.covered,
-            partial = 0,
-            gap = coverage.total - coverage.covered,
-        )
+        Column(
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = summary },
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        ) {
+            Text(text = summary, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+            HhCoverageBar(
+                met = coverage.covered,
+                partial = 0,
+                gap = coverage.total - coverage.covered,
+            )
+        }
         MissingTermsLine(state.missingKeyTerms())
         if (state.gapCount >= GAP_NOTE_THRESHOLD) GapNote(state.gapCount)
     }
@@ -180,7 +184,9 @@ private fun LazyListScope.resultSections(
     onMenuAnchor: (String, Rect) -> Unit,
 ) {
     state.sections.forEach { section ->
-        item(key = "header-${section.group}") { GroupHeader(section.group) }
+        if (section.group != RequirementGroup.MustHaveGaps) {
+            item(key = "header-${section.group}") { GroupHeader(section.group) }
+        }
         items(section.items.size, key = { "requirement-${section.items[it].id}" }) { index ->
             val item = section.items[index]
             RequirementRow(

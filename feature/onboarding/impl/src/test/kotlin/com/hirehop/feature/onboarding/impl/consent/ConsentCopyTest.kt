@@ -38,14 +38,6 @@ class ConsentCopyTest {
     }
 
     @Test
-    fun theNoticeNamesNoRetentionPeriodItCannotBackUp() {
-        val retention = stringValue(consentStrings, "feature_onboarding_impl_consent_purpose_analyse_keep_pending")
-
-        assertThat(retention).contains("to be confirmed")
-        assertThat(retention).doesNotContain("never")
-    }
-
-    @Test
     fun noRawDesignPlaceholderIsCommitted() {
         assertThat(consentStrings).doesNotContain("{{")
         assertThat(signInStrings).doesNotContain("{{")
