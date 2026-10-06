@@ -113,7 +113,7 @@ private fun FactStatus.container(colors: HhColors): Color = when (this) {
     FactStatus.Confirmed -> colors.metContainer
     FactStatus.UserStated -> colors.partialContainer
     FactStatus.UserEdited, FactStatus.Scanned -> colors.neutralContainer
-    FactStatus.ToConfirm -> Color.Transparent
+    FactStatus.ToConfirm -> colors.surface
 }
 
 private fun FactStatus.content(colors: HhColors): Color = when (this) {

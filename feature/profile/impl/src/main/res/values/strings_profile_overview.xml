@@ -43,7 +43,15 @@
     <string name="feature_profile_impl_section_extras">Extras</string>
     <string name="feature_profile_impl_section_description">%1$s. %2$s. Open section.</string>
     <string name="feature_profile_impl_section_subtitle">%1$s · %2$s · %3$s</string>
-    <string name="feature_profile_impl_section_subtitle_to_confirm"> · %1$d to confirm</string>
+    <string name="feature_profile_impl_section_subtitle_to_confirm">" · %1$d to confirm"</string>
+
+    <string name="feature_profile_impl_monogram_education">Ed</string>
+    <string name="feature_profile_impl_monogram_experience">Ex</string>
+    <string name="feature_profile_impl_monogram_projects">Pr</string>
+    <string name="feature_profile_impl_monogram_skills">Sk</string>
+    <string name="feature_profile_impl_monogram_certifications">Ce</string>
+    <string name="feature_profile_impl_monogram_extras">Et</string>
+    <string name="feature_profile_impl_section_more_facts">+%1$d</string>
 
     <string name="feature_profile_impl_add_education">Add education</string>
     <string name="feature_profile_impl_add_experience">Add a job or internship</string>

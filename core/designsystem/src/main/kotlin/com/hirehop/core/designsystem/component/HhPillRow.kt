@@ -88,7 +88,7 @@ fun HhPillRow(
         interactionSource = source,
     ) {
         Row(
-            modifier = Modifier.defaultMinSize(minHeight = HhHeightPillRow).padding(horizontal = HhTheme.spacing.md),
+            modifier = Modifier.defaultMinSize(minHeight = HhHeightPillRow).padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
