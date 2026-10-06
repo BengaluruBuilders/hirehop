@@ -14,3 +14,6 @@ fun keywordsStatedIn(requirement: JobRequirement, statement: String): List<Strin
 
 private fun isStated(keyword: String, statedTerms: Set<String>, statedStems: Set<String>): Boolean =
     if (SkillLexicon.isKnown(keyword)) keyword in statedTerms else TextTokens.stem(keyword) in statedStems
+
+fun displayKeywords(requirement: JobRequirement): List<String> =
+    requirement.keywords.map(SkillLexicon::displayName)

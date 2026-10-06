@@ -62,7 +62,9 @@ class AnalysisScreenshotTest {
     }
 
     @Test
-    fun savedAsUserStated_f1s7_08() = capture("AnalysisSavedUserStated", savedState())
+    fun questionNotClosed_f1s7_08() = capture("AnalysisQuestionNotClosed", resultState()) {
+        SheetOver { QuestionSheetContent(resultState().item(SQL), AnalysisActions(), notClosed = true) }
+    }
 
     @Test
     fun gapClosed_f1s7_09() = capture("AnalysisGapClosed", closedState())
@@ -197,15 +199,6 @@ private fun resultState(overlay: AnalysisOverlay = AnalysisOverlay.None) = Analy
     freeCredits = 1,
     overlay = overlay,
 )
-
-private fun savedState(): AnalysisUiState.Result {
-    val saved = cloud.copy(factRefs = listOf(factRef("U-01", "Additional experience", "", emptyList(), FactSource.USER_STATED)))
-    return resultState().copy(
-        sections = resultState().sections.map { section ->
-            section.copy(items = section.items.map { if (it.id == CLOUD) saved else it })
-        },
-    )
-}
 
 private fun closedState(): AnalysisUiState.Result {
     val closed = cloud.copy(

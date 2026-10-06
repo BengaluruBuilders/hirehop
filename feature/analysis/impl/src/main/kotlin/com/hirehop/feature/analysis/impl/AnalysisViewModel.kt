@@ -77,6 +77,7 @@ class AnalysisViewModel @Inject constructor(
     private var undoProfile: CandidateProfile? = null
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
+    private var submitting = false
 
     val destinations: Flow<AnalysisDestination> = destinationChannel.receiveAsFlow()
 
@@ -206,33 +207,39 @@ class AnalysisViewModel @Inject constructor(
 
     fun onSubmitEvidence(requirementId: String, statement: String) {
         val ready = local.value.phase as? Phase.Ready ?: return
-        val requirement = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }?.requirement
-        if (requirement == null || statement.isBlank()) return
+        val match = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }
+        val requirement = match?.requirement
+        if (requirement == null || match.status == MatchStatus.MET || statement.isBlank() || submitting) return
+        submitting = true
         viewModelScope.launch {
-            attempt {
-                addUserStatedFact(requirement, statement)
-                val fresh = refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
-                val closed = fresh.analysis.gap.matches
-                    .firstOrNull { it.requirement.id == requirementId }
-                    ?.status != MatchStatus.GAP
-                if (closed) {
-                    fresh
-                } else {
-                    profileRepository.saveProfile(ready.profile)
-                    null
-                }
-            }.fold(
-                onSuccess = { fresh ->
-                    if (fresh != null) {
-                        applyEvidence(ready, fresh, requirementId)
+            try {
+                attempt {
+                    val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
+                    val previewed = refreshed(ready, preview)
+                    val closed = previewed.analysis.gap.matches
+                        .firstOrNull { it.requirement.id == requirementId }
+                        ?.status != MatchStatus.GAP
+                    if (closed) {
+                        addUserStatedFact(requirement, statement)
+                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
                     } else {
-                        local.update {
-                            it.copy(overlay = AnalysisOverlay.Question(requirementId, notClosed = true))
-                        }
+                        null
                     }
-                },
-                onFailure = { showToast(AnalysisToast.EvidenceFailed) },
-            )
+                }.fold(
+                    onSuccess = { fresh ->
+                        if (fresh != null) {
+                            applyEvidence(ready, fresh, requirementId)
+                        } else {
+                            local.update {
+                                it.copy(overlay = AnalysisOverlay.Question(requirementId, notClosed = true))
+                            }
+                        }
+                    },
+                    onFailure = { showToast(AnalysisToast.EvidenceFailed) },
+                )
+            } finally {
+                submitting = false
+            }
         }
     }
 

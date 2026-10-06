@@ -49,6 +49,7 @@ import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.designsystem.theme.hhShadow
+import com.hirehop.core.domain.displayKeywords
 import com.hirehop.core.domain.prep.RequirementPhrase
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.ui.FactSourceProvenance
@@ -264,11 +265,13 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             color = HhTheme.colors.body,
         )
         if (notClosed) {
+            val keywords = displayKeywords(item.requirement)
             Text(
-                text = stringResource(
-                    R.string.feature_analysis_impl_question_not_closed,
-                    item.requirement.keywords.joinToString(", "),
-                ),
+                text = if (keywords.isNotEmpty()) {
+                    stringResource(R.string.feature_analysis_impl_question_not_closed, keywords.joinToString(", "))
+                } else {
+                    stringResource(R.string.feature_analysis_impl_question_not_closed_generic)
+                },
                 style = HhTheme.typography.bodyM,
                 color = HhTheme.colors.onSurface,
             )

@@ -1,11 +1,14 @@
 package com.hirehop.core.domain
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.offline.OfflineGapMatcher
 import com.hirehop.core.domain.offline.entry
 import com.hirehop.core.domain.offline.profileOf
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
+import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
+import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
 import kotlinx.coroutines.test.runTest
@@ -143,5 +146,37 @@ class AddUserStatedFactUseCaseTest {
 
         assertThat(empty.saveCount).isEqualTo(0)
         assertThat(empty.current()).isNull()
+    }
+
+    @Test
+    fun previewIsExactlyWhatTheUseCaseSaves() = runTest {
+        val previewRepository = FakeProfileRepository(baseProfile)
+        val preview = AddUserStatedFactUseCase(previewRepository, SequentialIdGenerator("fact"))
+            .preview(requirement("docker", "sql"), "  Used Docker daily  ")
+        val savedRepository = FakeProfileRepository(baseProfile)
+
+        AddUserStatedFactUseCase(savedRepository, SequentialIdGenerator("fact"))(
+            requirement("docker", "sql"),
+            "  Used Docker daily  ",
+        )
+
+        assertThat(preview).isEqualTo(savedRepository.current())
+        assertThat(previewRepository.saveCount).isEqualTo(0)
+    }
+
+    @Test
+    fun aStatementCanCloseAGapThroughAnImpliedTermThatKeywordsStatedInDoesNotReturn() = runTest {
+        val requirement = requirement("sql")
+        val statement = "I ran PostgreSQL in production"
+        val repository = FakeProfileRepository(profileOf(emptyList()))
+        val preview = checkNotNull(
+            AddUserStatedFactUseCase(repository, SequentialIdGenerator("fact")).preview(requirement, statement),
+        )
+
+        assertThat(keywordsStatedIn(requirement, statement)).isEmpty()
+
+        val gap = OfflineGapMatcher().match(preview, JobDescription("Data Engineer", "Northwind", "raw", listOf(requirement)))
+
+        assertThat(gap.matches.single { it.requirement.id == requirement.id }.status).isNotEqualTo(MatchStatus.GAP)
     }
 }
