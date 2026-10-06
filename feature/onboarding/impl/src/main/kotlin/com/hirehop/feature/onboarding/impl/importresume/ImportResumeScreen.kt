@@ -105,6 +105,7 @@ fun ImportResumeScreen(
     HhScreen(
         modifier = modifier,
         sheet = false,
+        lightTop = true,
         header = {
             OnboardingStepBar(
                 modifier = Modifier.statusBarsPadding().padding(horizontal = HhTheme.spacing.gutter),
