@@ -5,6 +5,7 @@ import com.hirehop.core.domain.ApplicationPack
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseOutcome
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalApplication
 import com.hirehop.core.testing.gateway.TestPaymentGateway
@@ -43,11 +44,13 @@ class PackPurchaseViewModelTest {
         packId: String = ApplicationPack.APPLICATION_PACK_FIVE,
         applicationId: String = APPLICATION_ID,
         startExportOnReturn: Boolean = false,
+        format: String = "pdf",
     ) = PackPurchaseNavKey(
         applicationId = applicationId,
         packId = packId,
         scenario = scenario,
         startExportOnReturn = startExportOnReturn,
+        format = format,
     )
 
     private fun entered(scenario: DebugScenario = DebugScenario.DEFAULT): PackPurchaseViewModel {
@@ -61,12 +64,9 @@ class PackPurchaseViewModelTest {
 
         val state = subject.uiState.value
         assertThat(state.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(state.packs.map(ApplicationPack::id)).containsExactly(
-            ApplicationPack.APPLICATION_PACK_FIVE,
-            ApplicationPack.SINGLE_APPLICATION,
-        ).inOrder()
+        assertThat(state.packs.map(ApplicationPack::id)).containsExactly(ApplicationPack.APPLICATION_PACK_FIVE)
         assertThat(state.selectedPack?.id).isEqualTo(ApplicationPack.APPLICATION_PACK_FIVE)
-        assertThat(state.otherPacks.map(ApplicationPack::id)).containsExactly(ApplicationPack.SINGLE_APPLICATION)
+        assertThat(state.otherPacks).isEmpty()
         assertThat(state.jobCompany).isEqualTo("Northwind GCC")
         assertThat(state.totalCredits).isEqualTo(1)
         assertThat(state.canBuy).isTrue()
@@ -81,9 +81,7 @@ class PackPurchaseViewModelTest {
         assertThat(subject.uiState.value.jobCompany).isEmpty()
         assertThat(subject.uiState.value.hasApplication).isFalse()
         assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
-        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
-            .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
-        assertThat(packHeadlineRes(subject.uiState.value, compact = true))
+        assertThat(packHeadlineRes(subject.uiState.value))
             .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline_credits)
     }
 
@@ -94,7 +92,7 @@ class PackPurchaseViewModelTest {
 
         subject.onEnter(key())
 
-        assertThat(packHeadlineRes(subject.uiState.value, compact = false))
+        assertThat(packHeadlineRes(subject.uiState.value))
             .isEqualTo(R.string.feature_tailor_impl_pack_purchase_headline)
     }
 
@@ -191,16 +189,6 @@ class PackPurchaseViewModelTest {
     }
 
     @Test
-    fun aRequestedSecondPackIsTheSelectedOne() = runTest {
-        applicationRepository.sendApplications(listOf(canonicalApplication))
-        val subject = viewModel()
-
-        subject.onEnter(key(packId = ApplicationPack.SINGLE_APPLICATION))
-
-        assertThat(subject.uiState.value.selectedPack?.id).isEqualTo(ApplicationPack.SINGLE_APPLICATION)
-    }
-
-    @Test
     fun success_countsFromTheOldBalanceToTheNewOneAndKeepsAReceipt() = runTest {
         val subject = entered()
         gateway.consumeCredit()
@@ -262,5 +250,22 @@ class PackPurchaseViewModelTest {
         subject.onAction(PackPurchaseAction.Buy("no-such-pack"))
 
         assertThat(subject.uiState.value.stage).isEqualTo(PackPurchaseStage.READY)
+    }
+
+    @Test
+    fun format_defaultsToPdf() = runTest {
+        val subject = entered()
+
+        assertThat(subject.uiState.value.format).isEqualTo(ExportFormat.PDF)
+    }
+
+    @Test
+    fun format_followsTheKeyWhenDocxWasPicked() = runTest {
+        applicationRepository.sendApplications(listOf(canonicalApplication))
+        val subject = viewModel()
+
+        subject.onEnter(key(format = "docx"))
+
+        assertThat(subject.uiState.value.format).isEqualTo(ExportFormat.DOCX)
     }
 }

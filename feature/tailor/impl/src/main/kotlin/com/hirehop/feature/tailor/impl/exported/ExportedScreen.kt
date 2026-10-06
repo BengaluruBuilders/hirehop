@@ -1,7 +1,6 @@
 package com.hirehop.feature.tailor.impl.exported
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -10,27 +9,29 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhApplicationStatusChip
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
-import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.component.HhSpotIllustration
 import com.hirehop.core.designsystem.component.HhSpotKind
 import com.hirehop.core.designsystem.component.HhTextButton
@@ -80,24 +81,7 @@ internal fun ExportedScreen(
                 ),
             )
         },
-        bottomBar = {
-            HhBottomActionBar {
-                if (uiState.stage == ExportedStage.READY) {
-                    HhPrimaryButton(
-                        label = stringResource(R.string.feature_tailor_impl_exported_done),
-                        onClick = actions.onDone,
-                        modifier = Modifier.weight(1f),
-                        trailingIcon = HhIcons.Check,
-                    )
-                } else {
-                    HhPrimaryButton(
-                        label = stringResource(R.string.feature_tailor_impl_exported_error_back),
-                        onClick = actions.onNavigateBack,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        },
+        bottomBar = { ExportedBottomBar(uiState, actions) },
         snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
         Column(
@@ -119,6 +103,37 @@ internal fun ExportedScreen(
     }
     if (uiState.statusSheetOpen) {
         ExportedStatusSheet(uiState = uiState, actions = actions)
+    }
+}
+
+@Composable
+private fun ExportedBottomBar(uiState: ExportedUiState, actions: ExportedActions) {
+    if (uiState.stage == ExportedStage.READY && uiState.canUseFile) {
+        HhIconActionBar(
+            secondaryIcon = HhIcons.Share,
+            secondaryContentDescription = stringResource(R.string.feature_tailor_impl_exported_share_action),
+            onSecondaryClick = actions.onShare,
+            primaryLabel = stringResource(R.string.feature_tailor_impl_exported_done),
+            onPrimaryClick = actions.onDone,
+            primaryTrailingIcon = HhIcons.Check,
+        )
+        return
+    }
+    HhBottomActionBar {
+        if (uiState.stage == ExportedStage.READY) {
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_tailor_impl_exported_done),
+                onClick = actions.onDone,
+                modifier = Modifier.weight(1f),
+                trailingIcon = HhIcons.Check,
+            )
+        } else {
+            HhPrimaryButton(
+                label = stringResource(R.string.feature_tailor_impl_exported_error_back),
+                onClick = actions.onNavigateBack,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -161,147 +176,127 @@ private fun ExportedReady(
     uiState: ExportedUiState,
     actions: ExportedActions,
 ) {
-    ExportedCreditCard(uiState = uiState)
-    ExportedFileCard(uiState = uiState, actions = actions)
-    ExportedSavedLine(uiState = uiState)
-    ExportedStatusCard(uiState = uiState, actions = actions)
-    Column {
-        HhTextButton(
-            label = stringResource(R.string.feature_tailor_impl_exported_next_prep_questions),
-            onClick = actions.onGetPrepQuestions,
-            trailingIcon = HhIcons.ArrowForward,
-        )
-        HhTextButton(
-            label = stringResource(R.string.feature_tailor_impl_exported_next_cover_letter),
-            onClick = actions.onWriteCoverLetter,
-            trailingIcon = HhIcons.ArrowForward,
-        )
-    }
+    ExportedHeadlineCard(uiState)
+    ExportedCreditCard(uiState)
+    ExportedFileCard(uiState, actions)
+    ExportedStatusCard(uiState, actions)
+    ExportedNextSteps(actions)
+}
+
+@Composable
+private fun ExportedHeadlineCard(uiState: ExportedUiState) {
+    val headline = stringResource(R.string.feature_tailor_impl_exported_headline)
+    val savedLine = jobLine(uiState.jobTitle, uiState.jobCompany)
+    HhSolidCard(
+        accent = HhAccent.Marigold,
+        monogram = "✓",
+        title = headline,
+        subtitle = if (savedLine == null) {
+            stringResource(R.string.feature_tailor_impl_exported_saved_line_bare)
+        } else {
+            stringResource(R.string.feature_tailor_impl_exported_saved_line, savedLine)
+        },
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ExportedCreditCard(uiState: ExportedUiState) {
+    if (!uiState.creditsKnown) return
+    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
+    val left = uiState.creditsLeft
     HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.cardPadding),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(modifier = Modifier.size(HhTheme.spacing.d64 + HhTheme.spacing.d48)) {
-                    HhSpotIllustration(kind = HhSpotKind.Done)
-                }
+        if (uiState.usesFreeCredit) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
                 Text(
-                    text = stringResource(R.string.feature_tailor_impl_exported_headline),
-                    style = HhTheme.typography.titleL,
+                    text = stringResource(R.string.feature_tailor_impl_exported_credit_free_title),
+                    style = HhTheme.typography.titleM,
                     color = HhTheme.colors.onSurface,
                 )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_tailor_impl_exported_credit_free_detail,
+                        left,
+                        left,
+                    ),
+                    style = HhTheme.typography.labelM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
             }
-            if (!uiState.creditsKnown) return@Column
-            val left = uiState.creditsLeft
-            if (uiState.usesFreeCredit) {
-                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-                    Text(
-                        text = stringResource(R.string.feature_tailor_impl_exported_credit_free_title),
-                        style = HhTheme.typography.titleM,
-                        color = HhTheme.colors.onSurface,
-                    )
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.feature_tailor_impl_exported_credit_free_detail,
-                            left,
-                            left,
-                        ),
-                        style = HhTheme.typography.labelM,
-                        color = HhTheme.colors.onSurfaceVariant,
-                    )
-                }
-            } else {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
-                    itemVerticalAlignment = Alignment.Bottom,
-                ) {
-                    CreditCounter(
-                        credits = left,
-                        previousCredits = uiState.creditsBefore,
-                        suffix = stringResource(R.string.feature_tailor_impl_exported_credit_left),
-                        contentDescription = pluralStringResource(
-                            R.plurals.feature_tailor_impl_exported_credit_left_description,
-                            left,
-                            left,
-                        ),
-                    )
-                    Text(
-                        text = stringResource(
-                            if (uiState.creditsNeverExpire) {
-                                R.string.feature_tailor_impl_exported_credit_paid_detail_never_expire
-                            } else {
-                                R.string.feature_tailor_impl_exported_credit_paid_detail
-                            },
-                            uiState.creditsBefore,
-                        ),
-                        style = HhTheme.typography.labelM,
-                        color = HhTheme.colors.onSurfaceVariant,
-                    )
-                }
+        } else if (largeFont) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                ExportedCreditCounter(left, uiState.creditsBefore)
+                ExportedPaidCreditDetail(uiState)
+            }
+        } else {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                itemVerticalAlignment = Alignment.Bottom,
+            ) {
+                ExportedCreditCounter(left, uiState.creditsBefore)
+                ExportedPaidCreditDetail(uiState)
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExportedCreditCounter(left: Int, previous: Int) {
+    CreditCounter(
+        credits = left,
+        previousCredits = previous,
+        suffix = stringResource(R.string.feature_tailor_impl_exported_credit_left),
+        contentDescription = pluralStringResource(
+            R.plurals.feature_tailor_impl_exported_credit_left_description,
+            left,
+            left,
+        ),
+    )
+}
+
+@Composable
+private fun ExportedPaidCreditDetail(uiState: ExportedUiState) {
+    Text(
+        text = stringResource(
+            if (uiState.creditsNeverExpire) {
+                R.string.feature_tailor_impl_exported_credit_paid_detail_never_expire
+            } else {
+                R.string.feature_tailor_impl_exported_credit_paid_detail
+            },
+            uiState.creditsBefore,
+        ),
+        style = HhTheme.typography.labelM,
+        color = HhTheme.colors.onSurfaceVariant,
+    )
+}
+
 @Composable
 private fun ExportedFileCard(
     uiState: ExportedUiState,
     actions: ExportedActions,
 ) {
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-                Icon(
-                    imageVector = HhIcons.Description,
-                    contentDescription = null,
-                    tint = HhTheme.colors.primary,
-                    modifier = Modifier.size(HhTheme.spacing.xxl),
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-                    Text(
-                        text = uiState.fileName,
-                        style = HhTheme.typography.factId,
-                        color = HhTheme.colors.onSurface,
-                    )
-                    Text(
-                        text = fileDetail(uiState),
-                        style = HhTheme.typography.labelM,
-                        color = HhTheme.colors.onSurfaceVariant,
-                    )
-                }
-            }
-            if (!uiState.canUseFile) {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_exported_share_missing),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                )
-            }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
-                HhSecondaryButton(
-                    label = stringResource(R.string.feature_tailor_impl_exported_share_action),
-                    onClick = actions.onShare,
-                    enabled = uiState.canUseFile,
-                    trailingIcon = HhIcons.Share,
-                )
-                HhOutlineButton(
-                    label = stringResource(R.string.feature_tailor_impl_exported_open_action),
-                    onClick = actions.onOpen,
-                    enabled = uiState.canUseFile,
-                    trailingIcon = HhIcons.OpenInNew,
-                )
-            }
-        }
+    if (uiState.canUseFile) {
+        HhPillRow(
+            title = uiState.fileName,
+            onClick = actions.onOpen,
+            style = HhPillRowStyle.Neutral,
+            subtitle = fileDetail(uiState),
+            icon = HhIcons.Description,
+            trailingIcon = HhIcons.OpenInNew,
+        )
+        return
+    }
+    HhCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = uiState.fileName,
+            style = HhTheme.typography.factId,
+            color = HhTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_exported_share_missing),
+            style = HhTheme.typography.bodyM,
+            color = HhTheme.colors.body,
+        )
     }
 }
 
@@ -320,75 +315,60 @@ private fun fileDetail(uiState: ExportedUiState): String {
 }
 
 @Composable
-private fun ExportedSavedLine(uiState: ExportedUiState) {
-    val line = jobLine(uiState.jobTitle, uiState.jobCompany)
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = HhIcons.CheckCircle,
-            contentDescription = null,
-            tint = HhTheme.colors.primary,
-            modifier = Modifier.size(HhTheme.spacing.lg + HhTheme.spacing.xs),
-        )
-        Text(
-            text = if (line == null) {
-                stringResource(R.string.feature_tailor_impl_exported_saved_line_bare)
-            } else {
-                stringResource(R.string.feature_tailor_impl_exported_saved_line, line)
-            },
-            style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.onSurface,
-        )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
 private fun ExportedStatusCard(
     uiState: ExportedUiState,
     actions: ExportedActions,
 ) {
+    if (uiState.asksForStatus) {
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_exported_status_apply_action),
+            onClick = actions.onOpenStatusSheet,
+            style = HhPillRowStyle.Marigold,
+            subtitle = stringResource(R.string.feature_tailor_impl_exported_status_question),
+            icon = HhIcons.Check,
+        )
+        return
+    }
     HhCard(modifier = Modifier.fillMaxWidth()) {
-        if (uiState.asksForStatus) {
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhApplicationStatusChip(
+                kind = ApplicationStatusKindMapper().kindOf(uiState.status),
+                label = uiState.status.label(),
+            )
+            uiState.markedOn?.let { date ->
                 Text(
-                    text = stringResource(R.string.feature_tailor_impl_exported_status_question),
-                    style = HhTheme.typography.titleS,
+                    text = stringResource(R.string.feature_tailor_impl_exported_marked_on, date),
+                    style = HhTheme.typography.bodyM,
                     color = HhTheme.colors.onSurface,
-                )
-                HhOutlineButton(
-                    label = stringResource(R.string.feature_tailor_impl_exported_status_apply_action),
-                    onClick = actions.onOpenStatusSheet,
-                    trailingIcon = HhIcons.Check,
-                )
-            }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    HhApplicationStatusChip(
-                        kind = ApplicationStatusKindMapper().kindOf(uiState.status),
-                        label = uiState.status.label(),
-                    )
-                    uiState.markedOn?.let { date ->
-                        Text(
-                            text = stringResource(R.string.feature_tailor_impl_exported_marked_on, date),
-                            style = HhTheme.typography.bodyM,
-                            color = HhTheme.colors.onSurface,
-                        )
-                    }
-                }
-                HhTextButton(
-                    label = stringResource(R.string.feature_tailor_impl_exported_status_change_action),
-                    onClick = actions.onOpenStatusSheet,
                 )
             }
         }
+        HhTextButton(
+            label = stringResource(R.string.feature_tailor_impl_exported_status_change_action),
+            onClick = actions.onOpenStatusSheet,
+        )
+    }
+}
+
+@Composable
+private fun ExportedNextSteps(actions: ExportedActions) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_exported_next_prep_questions),
+            onClick = actions.onGetPrepQuestions,
+            style = HhPillRowStyle.Jade,
+            icon = HhIcons.Description,
+        )
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_exported_next_cover_letter),
+            onClick = actions.onWriteCoverLetter,
+            style = HhPillRowStyle.Neutral,
+            icon = HhIcons.Description,
+        )
     }
 }
 
@@ -424,3 +404,5 @@ private fun ApplicationStatus.label(): String = stringResource(
         ApplicationStatus.NO_RESPONSE -> R.string.feature_tailor_impl_exported_status_no_response
     },
 )
+
+private const val LARGE_FONT_SCALE = 1.5f

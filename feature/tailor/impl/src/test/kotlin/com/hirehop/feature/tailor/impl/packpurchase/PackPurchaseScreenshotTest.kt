@@ -114,18 +114,13 @@ class PackPurchaseScreenshotTest {
     }
 
     @Test
-    fun secondPack_showsAsAnOutlineButton() {
-        capture("PackPurchaseSecondPack", readyState(packs = MockPackCatalogue.all))
-    }
-
-    @Test
     fun catalogueUnavailable_offersARetry() {
         capture("PackPurchaseCatalogueUnavailable", PackPurchaseUiState(stage = PackPurchaseStage.FAILED))
     }
 
     @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun default_atLargeTextShowsOnlyThePriceAndTheButtons() {
+    fun default_atLargeTextShowsEveryLineAndScrolls() {
         capture("PackPurchaseDefaultFont200", readyState(), device = HhTestDevices.boardLargeFont)
     }
 

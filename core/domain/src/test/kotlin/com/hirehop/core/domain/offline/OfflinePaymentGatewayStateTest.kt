@@ -54,10 +54,10 @@ class OfflinePaymentGatewayStateTest {
     fun aPurchaseIsRecordedWithTheOrderIdAndTime() = runTest {
         val gateway = gateway()
 
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
         val record = gateway.purchaseHistory().single()
-        assertThat(record.packId).isEqualTo(ApplicationPack.SINGLE_APPLICATION)
+        assertThat(record.packId).isEqualTo(ApplicationPack.APPLICATION_PACK_FIVE)
         assertThat(record.orderId).isEqualTo("mock-order-order-1")
         assertThat(record.purchasedAt).isEqualTo(clock.instant)
         assertThat(record.state).isEqualTo(PurchaseState.COMPLETED)
@@ -65,13 +65,13 @@ class OfflinePaymentGatewayStateTest {
 
     @Test
     fun aPendingPurchaseIsRecordedOnceAndBecomesCompletedWhenItSettles() = runTest {
-        val gateway = gateway().withOutcome(ApplicationPack.SINGLE_APPLICATION, PurchaseOutcome.Pending)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        val gateway = gateway().withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Pending)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         assertThat(gateway.purchaseHistory().map { it.state }).containsExactly(PurchaseState.PENDING)
 
-        gateway.withOutcome(ApplicationPack.SINGLE_APPLICATION, PurchaseOutcome.Success)
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.withOutcome(ApplicationPack.APPLICATION_PACK_FIVE, PurchaseOutcome.Success)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
         assertThat(gateway.purchaseHistory().map { it.state }).containsExactly(PurchaseState.COMPLETED)
     }
@@ -79,15 +79,16 @@ class OfflinePaymentGatewayStateTest {
     @Test
     fun spendingUsesTheFreeCreditFirstThenThePurchasedCredits() = runTest {
         val gateway = gateway()
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
         val first = gateway.consumeCredit() as CreditSpend.Spent
         val second = gateway.consumeCredit() as CreditSpend.Spent
-        val third = gateway.consumeCredit()
+        repeat(4) { gateway.consumeCredit() }
+        val last = gateway.consumeCredit()
 
         assertThat(first.kind).isEqualTo(CreditKind.FREE)
         assertThat(second.kind).isEqualTo(CreditKind.PURCHASED)
-        assertThat(third).isEqualTo(CreditSpend.NoCreditLeft)
+        assertThat(last).isEqualTo(CreditSpend.NoCreditLeft)
     }
 
     @Test
@@ -130,7 +131,7 @@ class OfflinePaymentGatewayStateTest {
         val gateway = gateway(latency)
 
         gateway.packs()
-        gateway.purchase(ApplicationPack.SINGLE_APPLICATION)
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         gateway.restorePurchases()
 
         assertThat(awaited).containsExactly(

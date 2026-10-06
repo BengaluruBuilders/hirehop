@@ -13,6 +13,7 @@ import com.hirehop.feature.tailor.api.navigation.PackPurchaseNavKey
 import com.hirehop.feature.tailor.impl.credits.formattedDate
 import com.hirehop.feature.tailor.impl.credits.formattedPrice
 import com.hirehop.feature.tailor.impl.exportpreview.PendingExportStart
+import com.hirehop.feature.tailor.impl.exportpreview.exportFormatFromWire
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +59,7 @@ internal class PackPurchaseViewModel @Inject constructor(
             selectedPackId = key.packId,
             isOffline = packPurchaseIsOffline(key.scenario),
             hasApplication = key.applicationId.isNotBlank(),
+            format = exportFormatFromWire(key.format),
         )
         if (packPurchaseIsStatic(key.scenario)) return
         observeCredits()

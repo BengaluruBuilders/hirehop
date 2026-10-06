@@ -29,7 +29,7 @@ class CollectAccountDataUseCaseTest {
     fun theSnapshotHoldsEverythingTheAccountOwns() = runTest {
         session.saveAccount(SignInAccount.localAccount)
         applications.upsertApplication(sampleApplication)
-        payments.purchase(ApplicationPack.SINGLE_APPLICATION)
+        payments.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
 
         val data = collect()
 
@@ -37,7 +37,7 @@ class CollectAccountDataUseCaseTest {
         assertThat(data.account).isEqualTo(SignInAccount.localAccount)
         assertThat(data.profile).isEqualTo(canonicalCandidateProfile)
         assertThat(data.applications).containsExactly(sampleApplication)
-        assertThat(data.entitlement.purchasedCredits).isEqualTo(1)
+        assertThat(data.entitlement.purchasedCredits).isEqualTo(5)
         assertThat(data.purchases).hasSize(1)
     }
 
