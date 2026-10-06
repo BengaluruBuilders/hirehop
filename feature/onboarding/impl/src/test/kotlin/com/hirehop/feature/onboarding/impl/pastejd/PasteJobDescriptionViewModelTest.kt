@@ -494,7 +494,7 @@ class PasteJobDescriptionViewModelTest {
 
     @Test
     fun pasteJdProblem_flagsAJdInsideALongSentenceAsRead() {
-        val longSentence = "SQL and Power BI are required for this role in Bengaluru across three teams"
+        val longSentence = "SQL and Power BI are required for this role in Bengaluru across three teams that build weekly finance dashboards for our stores"
 
         assertThat(pasteJdProblem(longSentence)).isNull()
     }

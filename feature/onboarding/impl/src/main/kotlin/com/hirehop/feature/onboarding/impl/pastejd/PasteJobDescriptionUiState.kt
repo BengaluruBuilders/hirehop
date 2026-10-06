@@ -6,7 +6,7 @@ import com.hirehop.core.model.DebugScenario
 
 const val FREE_ANALYSES_PER_DAY: Int = UsageAllowance.DAILY_ANALYSES
 
-const val PASTE_JD_MIN_WORDS: Int = 10
+const val PASTE_JD_MIN_WORDS: Int = 20
 
 const val PASTE_JD_MAX_CHARACTERS: Int = 12000
 
