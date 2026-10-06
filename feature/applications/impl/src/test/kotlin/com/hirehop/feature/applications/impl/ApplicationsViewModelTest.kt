@@ -3,11 +3,15 @@ package com.hirehop.feature.applications.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
 import com.hirehop.core.model.SignInAccount
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestApplicationRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestSessionRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.runCurrent
@@ -26,12 +30,14 @@ class ApplicationsViewModelTest {
     private val sessionRepository = TestSessionRepository()
     private val paymentGateway = TestPaymentGateway().withFreeCredits(1)
     private val connectivityMonitor = TestConnectivityMonitor()
+    private val exportHistoryRepository = TestExportHistoryRepository()
     private lateinit var viewModel: ApplicationsViewModel
 
     @Before
     fun setUp() {
         viewModel = ApplicationsViewModel(
             applicationRepository = applicationRepository,
+            exportHistoryRepository = exportHistoryRepository,
             sessionRepository = sessionRepository,
             paymentGateway = paymentGateway,
             connectivityMonitor = connectivityMonitor,
@@ -244,6 +250,35 @@ class ApplicationsViewModelTest {
             runCurrent()
 
             assertThat(current().isOffline()).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_whenOneApplicationHasExports_marksOnlyThatRowExported() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(
+                listOf(
+                    testApplication(id = "exported", updatedAtEpochSeconds = 200),
+                    testApplication(id = "draft", updatedAtEpochSeconds = 100),
+                ),
+            )
+            exportHistoryRepository.sendExports(
+                listOf(
+                    ExportRecord(
+                        applicationId = "exported",
+                        format = ExportFormat.PDF,
+                        fileName = "cv.pdf",
+                        exportedAt = Instant.fromEpochSeconds(300),
+                        creditKind = CreditKind.FREE,
+                    ),
+                ),
+            )
+            runCurrent()
+
+            val rows = current().rows()
+            assertThat(rows.single { row -> row.id == "exported" }.isExported).isTrue()
+            assertThat(rows.single { row -> row.id == "draft" }.isExported).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
     }

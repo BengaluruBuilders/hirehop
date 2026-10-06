@@ -20,6 +20,7 @@ data class ApplicationListRow(
     val coverage: KeywordCoverage,
     val updatedAt: Instant,
     val isSyncPending: Boolean,
+    val isExported: Boolean = false,
 )
 
 @Immutable
