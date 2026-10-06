@@ -109,4 +109,14 @@
     <string name="feature_analysis_impl_share_action">Share</string>
     <string name="feature_analysis_impl_share_chooser">Share JD fit</string>
     <string name="feature_analysis_impl_share_text">My fit for %1$s at %2$s: my confirmed facts cover %3$s of %4$s key terms. Made with HireHop.</string>
+    <string name="feature_analysis_impl_step_chip">Step %1$d of %2$d</string>
+    <string name="feature_analysis_impl_summary_met">%1$s met</string>
+    <string name="feature_analysis_impl_summary_partial">%1$s partly met</string>
+    <string name="feature_analysis_impl_summary_gap">%1$s to prepare</string>
+    <string name="feature_analysis_impl_keyword_coverage">Keyword coverage</string>
+    <string name="feature_analysis_impl_missing_terms_label">Not in your facts yet:</string>
+    <string name="feature_analysis_impl_must_haves_first">Must-haves first</string>
+    <string name="feature_analysis_impl_must_haves_count">%1$d of %2$d</string>
+    <string name="feature_analysis_impl_share_my_fit">Share my fit</string>
+    <string name="feature_analysis_impl_company_location">%1$s · %2$s</string>
 </resources>

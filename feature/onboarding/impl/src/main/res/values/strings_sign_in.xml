@@ -3,8 +3,8 @@
     <string name="feature_onboarding_impl_sign_in_title">Sign in</string>
     <string name="feature_onboarding_impl_sign_in_subtitle">Before we read your JD</string>
     <string name="feature_onboarding_impl_sign_in_navigation_back_content_description">Go back</string>
-    <string name="feature_onboarding_impl_sign_in_intro">Continue with your Google account. One account keeps your JDs, facts and analyses together.</string>
-    <string name="feature_onboarding_impl_sign_in_age_label">I am 18 or older</string>
+    <string name="feature_onboarding_impl_sign_in_intro">Sign in so this job post and your facts stay with you.</string>
+    <string name="feature_onboarding_impl_sign_in_age_label">I\'m 18 or older</string>
     <string name="feature_onboarding_impl_sign_in_age_nudge">Tick this box to continue. We ask because HireHop is for people 18 and over.</string>
     <string name="feature_onboarding_impl_sign_in_code_label">Group or referral code (optional)</string>
     <string name="feature_onboarding_impl_sign_in_code_placeholder">If your group gave you one</string>
@@ -16,7 +16,18 @@
     <string name="feature_onboarding_impl_sign_in_offline_message">You\'re offline. Sign in needs a connection. Nothing was sent.</string>
     <string name="feature_onboarding_impl_sign_in_failure_message">Google sign-in didn’t finish. Nothing was sent. Try again.</string>
     <string name="feature_onboarding_impl_sign_in_cancelled_message">Sign-in was cancelled. Nothing was sent.</string>
-    <string name="feature_onboarding_impl_sign_in_under_18_title">HireHop is for people 18 and over.</string>
-    <string name="feature_onboarding_impl_sign_in_under_18_body">Nothing from this phone was sent.</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_title">HireHop is for people 18 and over</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_body">We can\'t create an account for you right now.</string>
     <string name="feature_onboarding_impl_sign_in_under_18_action_back">Back to start</string>
+    <string name="feature_onboarding_impl_sign_in_heading">Save your fit check</string>
+    <string name="feature_onboarding_impl_sign_in_ready">%1$s · ready to check</string>
+    <string name="feature_onboarding_impl_sign_in_age_support">You need to be 18+ to use HireHop.</string>
+    <string name="feature_onboarding_impl_sign_in_legal_prefix">We only use Google to sign you in. By continuing you agree to the </string>
+    <string name="feature_onboarding_impl_sign_in_legal_terms">Terms</string>
+    <string name="feature_onboarding_impl_sign_in_legal_and"> and </string>
+    <string name="feature_onboarding_impl_sign_in_legal_privacy">Privacy Notice</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_badge">Not available yet</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_note_strong">Nothing was kept.</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_note"> The job post you pasted has been cleared.</string>
+    <string name="feature_onboarding_impl_sign_in_google_mark">G</string>
 </resources>

@@ -33,4 +33,15 @@
     <string name="feature_onboarding_impl_consent_declined_action_read_again">Review the notice again</string>
 
     <string name="feature_onboarding_impl_consent_agreed_on">You agreed on %1$s</string>
+    <string name="feature_onboarding_impl_consent_heading">How we use your data</string>
+    <string name="feature_onboarding_impl_consent_intro">Tick each one on its own. You can withdraw any of them later in Settings.</string>
+    <string name="feature_onboarding_impl_consent_read_title">Read your resume</string>
+    <string name="feature_onboarding_impl_consent_read_body">We pull out jobs, skills and dates as suggestions. Nothing is used until you confirm it.</string>
+    <string name="feature_onboarding_impl_consent_keep_title">Keep your confirmed facts</string>
+    <string name="feature_onboarding_impl_consent_keep_body">Saved to your account so you don\'t start over. Delete them anytime.</string>
+    <string name="feature_onboarding_impl_consent_match_title">Match facts to job posts</string>
+    <string name="feature_onboarding_impl_consent_match_body">OpenAI, our AI provider, compares your facts with posts you paste. It never adds anything you didn\'t confirm.</string>
+    <string name="feature_onboarding_impl_consent_row_ticked">Ticked</string>
+    <string name="feature_onboarding_impl_consent_row_not_ticked">Not ticked</string>
+    <string name="feature_onboarding_impl_consent_waiting">Tick all %1$s to continue</string>
 </resources>

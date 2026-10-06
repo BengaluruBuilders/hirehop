@@ -2,6 +2,7 @@ package com.hirehop.feature.onboarding.impl.welcome
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
@@ -29,26 +30,32 @@ class WelcomeViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = WelcomeViewModel(NextOnboardingStepUseCase(session, profile), connectivity)
+        viewModel = WelcomeViewModel(NextOnboardingStepUseCase(session, profile), connectivity, session)
     }
 
     @Test
     fun onEnter_beforeAnyEntry_showsTheSettledFirstRunState() {
-        assertThat(viewModel.uiState.value.heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
         assertThat(viewModel.uiState.value.isActionsEnabled).isTrue()
         assertThat(viewModel.uiState.value.isLoading).isFalse()
     }
 
     @Test
-    fun onEnter_default_settlesTheHero() = runTest {
+    fun onAction_careerStageSelected_storesTheChoiceAndShowsIt() = runTest {
         viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
 
-        val state = viewModel.uiState.first()
-        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
-        assertThat(state.showsRewrittenLine).isTrue()
-        assertThat(state.showsProvenanceThread).isTrue()
-        assertThat(state.showsNeverInventsChip).isTrue()
-        assertThat(state.isActionsEnabled).isTrue()
+        viewModel.onAction(WelcomeAction.CareerStageSelected(CareerStage.ONE_TO_TWO_YEARS_IN))
+
+        assertThat(session.observeCareerStage().first()).isEqualTo(CareerStage.ONE_TO_TWO_YEARS_IN)
+        assertThat(viewModel.uiState.value.careerStage).isEqualTo(CareerStage.ONE_TO_TWO_YEARS_IN)
+    }
+
+    @Test
+    fun onAction_haveAccountTapped_goesToSignIn() = runTest {
+        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(WelcomeAction.HaveAccountTapped)
+
+        assertThat(viewModel.uiState.value.destination).isEqualTo(WelcomeDestination.SIGN_IN)
     }
 
     @Test
@@ -70,18 +77,7 @@ class WelcomeViewModelTest {
     }
 
     @Test
-    fun onEnter_empty_stopsTheHeroAtTheOriginalLine() = runTest {
-        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.EMPTY))
-
-        val state = viewModel.uiState.first()
-        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.ORIGINAL)
-        assertThat(state.showsRewrittenLine).isFalse()
-        assertThat(state.showsNeverInventsChip).isFalse()
-        assertThat(state.showsProvenanceThread).isFalse()
-    }
-
-    @Test
-    fun onEnter_offline_keepsTheHeroAndFlagsOffline() = runTest {
+    fun onEnter_offline_flagsOffline() = runTest {
         viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.OFFLINE))
 
         val state = viewModel.uiState.first()
@@ -113,22 +109,6 @@ class WelcomeViewModelTest {
         viewModel.onAction(WelcomeAction.DismissMessageTapped)
 
         assertThat(viewModel.uiState.value.message).isNull()
-    }
-
-    @Test
-    fun onEnter_partial_drawsTheThreadButNotTheSettledChip() = runTest {
-        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.PARTIAL))
-
-        val state = viewModel.uiState.first()
-        assertThat(state.heroStage).isEqualTo(WelcomeHeroStage.THREAD_DRAWN)
-        assertThat(state.showsProvenanceThread).isTrue()
-    }
-
-    @Test
-    fun onEnter_success_settlesTheHero() = runTest {
-        viewModel.onEnter(WelcomeNavKey(scenario = DebugScenario.SUCCESS))
-
-        assertThat(viewModel.uiState.first().heroStage).isEqualTo(WelcomeHeroStage.SETTLED)
     }
 
     @Test

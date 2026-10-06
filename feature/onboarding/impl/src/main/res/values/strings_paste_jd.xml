@@ -3,8 +3,8 @@
     <string name="feature_onboarding_impl_paste_jd_title">New analysis</string>
     <string name="feature_onboarding_impl_paste_jd_subtitle">Paste a job description</string>
     <string name="feature_onboarding_impl_paste_jd_navigation_back_description">Go back</string>
-    <string name="feature_onboarding_impl_paste_jd_field_label">Paste the job description text</string>
-    <string name="feature_onboarding_impl_paste_jd_field_placeholder">Copy the full job post from the job site or WhatsApp, then tap Paste.</string>
+    <string name="feature_onboarding_impl_paste_jd_field_label">Job description</string>
+    <string name="feature_onboarding_impl_paste_jd_field_placeholder">Paste the full post here: the role, what you\'ll do and what they\'re looking for.</string>
     <string name="feature_onboarding_impl_paste_jd_company_label">Company</string>
     <string name="feature_onboarding_impl_paste_jd_company_placeholder">Type the company</string>
     <string name="feature_onboarding_impl_paste_jd_role_label">Role</string>
@@ -14,7 +14,7 @@
         <item quantity="one">word</item>
         <item quantity="other">words</item>
     </plurals>
-    <string name="feature_onboarding_impl_paste_jd_action_paste">Paste</string>
+    <string name="feature_onboarding_impl_paste_jd_action_paste">Paste from clipboard</string>
     <string name="feature_onboarding_impl_paste_jd_action_clear">Clear</string>
     <string name="feature_onboarding_impl_paste_jd_action_analyse">Analyse this JD</string>
     <string name="feature_onboarding_impl_paste_jd_action_analyse_later">Analyse when I\'m back</string>
@@ -37,4 +37,16 @@
     <string name="feature_onboarding_impl_paste_jd_message_partial">We could only read part of that share. Paste the full text here.</string>
     <string name="feature_onboarding_impl_paste_jd_arrival_shared_in">Shared from another app</string>
     <string name="feature_onboarding_impl_paste_jd_try_again">Try again</string>
+    <string name="feature_onboarding_impl_paste_jd_heading">Paste the job description</string>
+    <string name="feature_onboarding_impl_paste_jd_intro">Copy it from any job site, email or WhatsApp forward. We\'ll pick out what they\'re asking for.</string>
+    <string name="feature_onboarding_impl_paste_jd_hint">Paste the whole post. We need at least %1$s words to tailor well.</string>
+    <string name="feature_onboarding_impl_paste_jd_enough">%1$s words · enough to work with</string>
+    <string name="feature_onboarding_impl_paste_jd_short_progress">%1$s of %2$s words</string>
+    <string name="feature_onboarding_impl_paste_jd_spotted">We spotted</string>
+    <string name="feature_onboarding_impl_paste_jd_edit_description">Edit role and company</string>
+    <string name="feature_onboarding_impl_paste_jd_short_title">Too short to tailor from</string>
+    <string name="feature_onboarding_impl_paste_jd_short_body">This reads like a post title. Paste the full description, including what they\'re looking for.</string>
+    <string name="feature_onboarding_impl_paste_jd_help_title">Only have a short forward?</string>
+    <string name="feature_onboarding_impl_paste_jd_help_body">Ask the recruiter for the full JD, or open the original post and copy from there.</string>
+    <string name="feature_onboarding_impl_paste_jd_action_check">Check my fit</string>
 </resources>

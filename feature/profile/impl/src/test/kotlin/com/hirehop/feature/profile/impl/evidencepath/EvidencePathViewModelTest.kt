@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.AddUserStatedFactsUseCase
 import com.hirehop.core.domain.fact.FactDraftValidator
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
@@ -33,6 +34,7 @@ class EvidencePathViewModelTest {
         addUserStatedFacts = AddUserStatedFactsUseCase(repository, TestIdGenerator()),
         exitResolver = ProfileExitResolver(NextOnboardingStepUseCase(session, repository), session),
         connectivityMonitor = connectivity,
+        sessionRepository = session,
     )
 
     private val dashboardAnswer =
@@ -43,6 +45,37 @@ class EvidencePathViewModelTest {
     private fun act(action: EvidencePathAction) = viewModel.onAction(action)
 
     private fun answer(text: String) = act(EvidencePathAction.AnswerChanged(text))
+
+    @Test
+    fun onEnter_forSomeoneJustStartingOut_asksAboutProjectsAndInternshipsFirst() = runTest {
+        session.saveCareerStage(CareerStage.JUST_STARTING_OUT)
+
+        enter()
+
+        val order = viewModel.uiState.first().categoryOrder
+        assertThat(order.take(2)).containsExactly(EvidenceCategory.PROJECTS, EvidenceCategory.INTERNSHIPS).inOrder()
+        assertThat(order.last()).isEqualTo(EvidenceCategory.WORK)
+    }
+
+    @Test
+    fun onEnter_forSomeoneOneToTwoYearsIn_asksAboutWorkFirst() = runTest {
+        session.saveCareerStage(CareerStage.ONE_TO_TWO_YEARS_IN)
+
+        enter()
+
+        assertThat(viewModel.uiState.first().categoryOrder.first()).isEqualTo(EvidenceCategory.WORK)
+    }
+
+    @Test
+    fun skippingTheLastQuestionOfACategory_movesToTheNextOneInTheStoredOrder() = runTest {
+        session.saveCareerStage(CareerStage.JUST_STARTING_OUT)
+        enter()
+
+        act(EvidencePathAction.CategoryChosen(EvidenceCategory.INTERNSHIPS))
+        act(EvidencePathAction.Skip)
+
+        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.PROJECTS)
+    }
 
     @Test
     fun splitAnswer_usesTheFirstSentenceAsTheTitleAndKeepsTheRestAsDetail() {

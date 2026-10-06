@@ -3,6 +3,7 @@ package com.hirehop.feature.profile.impl.evidencepath
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.AddUserStatedFactsUseCase
 import com.hirehop.core.domain.fact.AddFactsOutcome
 import com.hirehop.core.domain.fact.FactDraft
@@ -15,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -26,6 +28,7 @@ class EvidencePathViewModel @Inject internal constructor(
     private val addUserStatedFacts: AddUserStatedFactsUseCase,
     private val exitResolver: ProfileExitResolver,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(EvidencePathUiState())
@@ -40,6 +43,10 @@ class EvidencePathViewModel @Inject internal constructor(
         hasEntered = true
         forcedOffline = key.scenario == DebugScenario.OFFLINE
         mutableState.value = evidencePathStateFor(scenario = key.scenario, category = key.category)
+        viewModelScope.launch {
+            val order = evidenceCategoriesFor(sessionRepository.observeCareerStage().first())
+            mutableState.update { it.copy(categoryOrder = order) }
+        }
         connectivityMonitor.isOnline
             .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
             .launchIn(viewModelScope)
@@ -144,7 +151,7 @@ class EvidencePathViewModel @Inject internal constructor(
             return copy(questionIndex = questionIndex + 1, answer = "", problem = null, skipNote = skipNote)
         }
         val seen = visited + current
-        val next = EVIDENCE_CATEGORIES.firstOrNull { it !in seen }
+        val next = categoryOrder.firstOrNull { it !in seen }
         return if (next == null) {
             copy(
                 category = null,

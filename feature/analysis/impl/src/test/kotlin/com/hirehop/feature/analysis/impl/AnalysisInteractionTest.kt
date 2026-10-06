@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -73,7 +74,7 @@ class AnalysisInteractionTest {
     fun metRow_opensTheSourceFromItsChip() {
         show(resultWith(gap, met))
 
-        composeRule.onNodeWithText("W-01").performClick()
+        composeRule.onNodeWithText("W-01").performScrollTo().performClick()
 
         assertThat(calls).containsExactly("source:req-b")
     }

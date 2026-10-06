@@ -3,8 +3,10 @@ package com.hirehop.feature.onboarding.impl.welcome
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.onboarding.api.navigation.WelcomeNavKey
 import com.hirehop.feature.onboarding.impl.common.observeOffline
@@ -20,6 +22,7 @@ import javax.inject.Inject
 class WelcomeViewModel @Inject constructor(
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(WelcomeUiState())
@@ -34,6 +37,11 @@ class WelcomeViewModel @Inject constructor(
         mutableState.value = welcomeStateFor(scenario = key.scenario)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
         viewModelScope.launch {
+            sessionRepository.observeCareerStage().collect { stage ->
+                mutableState.update { it.copy(careerStage = stage) }
+            }
+        }
+        viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
                 mutableState.update { it.copy(isOffline = offline) }
             }
@@ -42,6 +50,8 @@ class WelcomeViewModel @Inject constructor(
 
     fun onAction(action: WelcomeAction) {
         when (action) {
+            is WelcomeAction.CareerStageSelected -> onCareerStageSelected(action.stage)
+            WelcomeAction.HaveAccountTapped -> goTo(WelcomeDestination.SIGN_IN)
             WelcomeAction.PasteJobDescriptionTapped -> goTo(WelcomeDestination.PASTE_JOB_DESCRIPTION)
             WelcomeAction.ImportResumeTapped -> onImportResume()
             WelcomeAction.BuildProfileStepByStepTapped -> goTo(WelcomeDestination.BUILD_PROFILE_STEP_BY_STEP)
@@ -49,6 +59,10 @@ class WelcomeViewModel @Inject constructor(
             WelcomeAction.DismissMessageTapped -> mutableState.update { it.copy(message = null) }
             WelcomeAction.DestinationConsumed -> mutableState.update { it.copy(destination = null) }
         }
+    }
+
+    private fun onCareerStageSelected(stage: CareerStage) {
+        viewModelScope.launch { sessionRepository.saveCareerStage(stage) }
     }
 
     private fun onImportResume() {

@@ -2,18 +2,29 @@ package com.hirehop.feature.onboarding.impl.confirmfacts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,21 +35,26 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import com.hirehop.core.designsystem.component.HhBottomActionBar
+import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhCard
+import com.hirehop.core.designsystem.component.HhDecoration
+import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhErrorCallout
+import com.hirehop.core.designsystem.component.HhExpandable
 import com.hirehop.core.designsystem.component.HhFactId
-import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
-import com.hirehop.core.designsystem.component.HhProvenanceChip
-import com.hirehop.core.designsystem.component.HhProvenanceKind
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
+import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.EntryCategory
@@ -46,6 +62,7 @@ import com.hirehop.feature.onboarding.impl.R
 import com.hirehop.feature.onboarding.impl.common.DisclosureCard
 import com.hirehop.feature.onboarding.impl.common.NoticeTone
 import com.hirehop.feature.onboarding.impl.common.OnboardingNotice
+import com.hirehop.feature.onboarding.impl.common.OnboardingStepBar
 import com.hirehop.feature.onboarding.impl.common.ReasonText
 import com.hirehop.feature.onboarding.impl.common.StateCard
 
@@ -68,21 +85,12 @@ fun ConfirmFactsScreen(
     HhScreen(
         modifier = modifier,
         sheet = false,
-        header = {
-            HhInnerHeader(
-                title = stringResource(R.string.feature_onboarding_impl_confirm_facts_title),
-                subtitle = pluralStringResource(
-                    R.plurals.feature_onboarding_impl_confirm_facts_counter,
-                    uiState.totalCount,
-                    uiState.confirmedCount,
-                    uiState.totalCount,
-                ),
-                onBack = actions.onBack,
-                backContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
-            )
+        bottomBar = if (uiState.isLoading || uiState.isEmpty) {
+            null
+        } else {
+            ({ ConfirmFactsBottomBar(uiState = uiState, actions = actions) })
         },
-        bottomBar = if (uiState.isLoading || uiState.isEmpty) null else ({ ConfirmFactsBottomBar(uiState, actions) }),
-        bottomBarNotice = if (uiState.isLoading || uiState.isEmpty || (uiState.openCount == 0 && uiState.canContinue)) {
+        bottomBarNotice = if (uiState.isLoading || uiState.isEmpty || uiState.isFullyConfirmed) {
             null
         } else {
             ({ ConfirmFactsNotice(uiState) })
@@ -94,51 +102,125 @@ fun ConfirmFactsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = HhTheme.spacing.gutter),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.xxs),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 + HhTheme.spacing.xxs),
         ) {
+            OnboardingStepBar(
+                step = CONFIRM_FACTS_STEP,
+                onBack = actions.onBack,
+                backContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
+            )
             when {
                 uiState.isLoading -> ConfirmFactsLoading()
                 uiState.isEmpty -> ConfirmFactsEmpty(actions)
-                else -> ConfirmFactsContent(uiState = uiState, actions = actions)
+                uiState.isFullyConfirmed -> ConfirmedFactsBody(uiState = uiState, actions = actions)
+                else -> FactsToReviewBody(uiState = uiState, actions = actions)
             }
         }
     }
 }
 
 @Composable
-private fun ConfirmFactsLoading() {
-    val message = stringResource(R.string.feature_onboarding_impl_confirm_facts_loading)
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(HhTheme.spacing.gutter),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        HhLoadingWheel(contentDesc = message)
-        Text(text = message, style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurfaceVariant)
+private fun FactsToReviewBody(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
+    FactsHeading(totalCount = uiState.totalCount)
+    FactsProgress(uiState = uiState, met = false)
+    ConfirmFactsStatus(uiState)
+    if (uiState.facts.any(ConfirmFactUi::isConfirmed)) {
+        ConfirmedFactsGroup(uiState = uiState, actions = actions)
+    }
+    val pending = uiState.facts.filterNot(ConfirmFactUi::isConfirmed)
+    if (pending.isNotEmpty()) {
+        ToReviewHeading(openCount = uiState.openCount)
+        pending.forEach { fact ->
+            FactCard(
+                fact = fact,
+                category = fact.section.categoryOf(),
+                page = pageOf(uiState = uiState, fact = fact),
+                actions = actions,
+            )
+        }
+    }
+    uiState.visibleSections.forEach { section ->
+        if (section.section == ConfirmFactsSection.Skills && section.skills.isNotEmpty()) {
+            SectionHeading(section.section)
+            SkillsCard(section.skills)
+        } else if (section.isEmpty) {
+            SectionHeading(section.section)
+            EmptySectionCard(section = section.section, actions = actions)
+        }
     }
 }
 
 @Composable
-private fun ConfirmFactsEmpty(actions: ConfirmFactsActions) {
-    StateCard(
-        illustration = HhIllustration.Empty,
-        illustrationDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_spot_empty_description),
-        title = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_title),
-        body = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_body),
-        extra = {
-            HhOutlineButton(
-                label = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_import),
-                onClick = actions.onImportResume,
-            )
-        },
-    )
+private fun FactsHeading(totalCount: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_title),
+            style = HhTheme.typography.headlineL,
+            color = HhTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_intro, totalCount),
+            style = HhTheme.typography.bodyL,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
-private fun ConfirmFactsContent(
+private fun FactsProgress(
     uiState: ConfirmFactsUiState,
-    actions: ConfirmFactsActions,
+    met: Boolean,
 ) {
+    val counter = pluralStringResource(
+        R.plurals.feature_onboarding_impl_confirm_facts_counter,
+        uiState.confirmedCount,
+        uiState.confirmedCount,
+        uiState.totalCount,
+    )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    ) {
+        if (met) {
+            HhStatusChip(kind = HhStatusKind.Met, label = counter)
+        } else {
+            Text(
+                text = counter,
+                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+                color = HhTheme.colors.onSurface,
+            )
+        }
+        ProgressSegments(confirmed = uiState.confirmedCount, total = uiState.totalCount)
+    }
+}
+
+@Composable
+private fun ProgressSegments(
+    confirmed: Int,
+    total: Int,
+) {
+    val colors = HhTheme.colors
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(PROGRESS_GAP),
+    ) {
+        repeat(total) { position ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(PROGRESS_HEIGHT)
+                    .clip(HhTheme.shapes.pill)
+                    .background(if (position < confirmed) colors.brand else colors.outlineVariant),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
     HhOfflineBanner(
         message = stringResource(R.string.feature_onboarding_impl_confirm_facts_offline_message),
         visible = uiState.isOffline,
@@ -146,30 +228,156 @@ private fun ConfirmFactsContent(
     if (uiState.hasSaveFailed) {
         HhErrorCallout(title = stringResource(R.string.feature_onboarding_impl_confirm_facts_error_title))
     }
-    if (uiState.isFullyConfirmed) {
-        OnboardingNotice(
-            text = pluralStringResource(
-                R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed,
-                uiState.totalCount,
-                uiState.totalCount,
-            ),
-            icon = HhIcons.CheckCircle,
-            tone = NoticeTone.Success,
+    OnboardingNotice(
+        text = stringResource(R.string.feature_onboarding_impl_confirm_facts_removed_banner),
+        icon = HhIcons.CheckCircle,
+        tone = NoticeTone.Success,
+    )
+}
+
+@Composable
+private fun ConfirmedFactsGroup(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
+    val confirmed = uiState.facts.filter(ConfirmFactUi::isConfirmed)
+    var expanded by remember { mutableStateOf(false) }
+    HhPillRow(
+        title = stringResource(
+            R.string.feature_onboarding_impl_confirm_facts_confirmed_group_title,
+            confirmed.size,
+        ),
+        onClick = { expanded = !expanded },
+        style = HhPillRowStyle.Jade,
+        subtitle = confirmed.take(CONFIRMED_IDS_SHOWN).joinToString(" ") { it.displayId },
+        icon = HhIcons.CheckCircle,
+        trailingIcon = if (expanded) HhIcons.ExpandLess else HhIcons.ExpandMore,
+    )
+    HhExpandable(expanded = expanded) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            confirmed.forEach { fact ->
+                FactCard(
+                    fact = fact,
+                    category = fact.section.categoryOf(),
+                    page = pageOf(uiState = uiState, fact = fact),
+                    actions = actions,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToReviewHeading(openCount: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_to_review),
+            modifier = Modifier.weight(1f),
+            style = HhTheme.typography.titleM.copy(fontWeight = FontWeight.ExtraBold),
+            color = HhTheme.colors.onSurface,
         )
-    } else {
-        OnboardingNotice(
-            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_removed_banner),
-            icon = HhIcons.CheckCircle,
-            tone = NoticeTone.Success,
+        Box(
+            modifier = Modifier
+                .defaultMinSize(minWidth = BADGE_SIZE, minHeight = BADGE_SIZE)
+                .clip(HhTheme.shapes.pill)
+                .background(HhTheme.colors.special)
+                .padding(horizontal = HhTheme.spacing.sm),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = openCount.toString(),
+                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+                color = HhTheme.colors.onSpecial,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfirmedFactsBody(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
+    ConfirmedFactsHero()
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_all_title, uiState.totalCount),
+            style = HhTheme.typography.headlineL,
+            color = HhTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_all_body),
+            style = HhTheme.typography.bodyL,
+            color = HhTheme.colors.onSurfaceVariant,
         )
     }
-    uiState.visibleSections.forEach { section ->
-        SectionHeading(section.section)
-        when {
-            section.section == ConfirmFactsSection.Skills && section.skills.isNotEmpty() -> SkillsCard(section.skills)
-            section.isEmpty -> EmptySectionCard(section = section.section, actions = actions)
-            else -> section.facts.forEach { fact ->
-                FactCard(fact = fact, category = section.section.categoryOf(), actions = actions)
+    FactsProgress(uiState = uiState, met = true)
+    ReviewTheList(uiState = uiState, actions = actions)
+}
+
+@Composable
+private fun ConfirmedFactsHero() {
+    Box(
+        modifier = Modifier.fillMaxWidth().height(HERO_HEIGHT),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = HERO_DISC_TOP)
+                .size(HERO_DISC)
+                .clip(CircleShape)
+                .background(HhTheme.colors.special),
+        )
+        HhDecoration(
+            kind = HhDecorationKind.Spark,
+            color = HhTheme.colors.coral,
+            modifier = Modifier.align(Alignment.TopEnd).offset(x = HERO_SPARK_X, y = HERO_SPARK_Y),
+        )
+        HhDecoration(
+            kind = HhDecorationKind.Dots,
+            color = HhTheme.colors.coral,
+            modifier = Modifier.align(Alignment.BottomEnd).offset(x = HERO_DOTS_X, y = HERO_DOTS_Y),
+        )
+        HhCharacterIllustration(
+            illustration = HhIllustration.Hero,
+            contentDescription = null,
+            modifier = Modifier.size(width = HERO_FIGURE_WIDTH, height = HERO_FIGURE_HEIGHT),
+        )
+    }
+}
+
+@Composable
+private fun ReviewTheList(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val filled = uiState.visibleSections.filter { !it.isEmpty }.map { stringResource(sectionTitle(it.section)) }
+    HhPillRow(
+        title = stringResource(R.string.feature_onboarding_impl_confirm_facts_review_list),
+        onClick = { expanded = !expanded },
+        style = HhPillRowStyle.Neutral,
+        subtitle = filled.joinToString(LIST_SEPARATOR),
+        icon = HhIcons.Description,
+        trailingIcon = if (expanded) HhIcons.ExpandLess else HhIcons.ExpandMore,
+    )
+    HhExpandable(expanded = expanded) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+            uiState.facts.forEach { fact ->
+                FactCard(
+                    fact = fact,
+                    category = fact.section.categoryOf(),
+                    page = pageOf(uiState = uiState, fact = fact),
+                    actions = actions,
+                )
+            }
+            if (uiState.skills.isNotEmpty()) {
+                SkillsCard(uiState.skills)
             }
         }
     }
@@ -189,6 +397,7 @@ private fun SectionHeading(section: ConfirmFactsSection) {
 private fun FactCard(
     fact: ConfirmFactUi,
     category: EntryCategory,
+    page: Int,
     actions: ConfirmFactsActions,
 ) {
     val state = stringResource(
@@ -213,45 +422,78 @@ private fun FactCard(
             modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HhFactId(id = fact.displayId)
-                if (fact.isConfirmed) {
-                    HhProvenanceChip(
-                        kind = HhProvenanceKind.Confirmed,
-                        label = stringResource(R.string.feature_onboarding_impl_confirm_facts_status_confirmed),
-                    )
-                }
-            }
+            FactHeader(fact = fact, page = page)
             Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = HhTheme.colors.onSurface)) {
-                        append(fact.title)
-                    }
-                    if (fact.detail.isNotBlank()) {
-                        append(" · ")
-                        append(fact.detail)
-                    }
-                },
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.body,
+                text = factLine(fact),
+                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+                color = HhTheme.colors.onSurface,
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        FactActions(fact = fact, category = category, actions = actions)
+    }
+}
+
+@Composable
+private fun FactHeader(
+    fact: ConfirmFactUi,
+    page: Int,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HhFactId(id = fact.displayId)
+        Text(
+            text = stringResource(
+                R.string.feature_onboarding_impl_confirm_facts_source_page,
+                stringResource(sectionTitle(fact.section)),
+                page,
+            ),
+            modifier = Modifier.weight(1f),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+        HhStatusChip(
+            kind = if (fact.isConfirmed) HhStatusKind.Met else HhStatusKind.Gap,
+            label = stringResource(
+                if (fact.isConfirmed) {
+                    R.string.feature_onboarding_impl_confirm_facts_status_confirmed
+                } else {
+                    R.string.feature_onboarding_impl_confirm_facts_pending
+                },
+            ),
+        )
+    }
+}
+
+@Composable
+private fun FactActions(
+    fact: ConfirmFactUi,
+    category: EntryCategory,
+    actions: ConfirmFactsActions,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        if (!fact.isConfirmed) {
+            Box(
+                modifier = Modifier.weight(1f).heightIn(min = HhTheme.spacing.touch),
+                contentAlignment = Alignment.Center,
+            ) {
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_onboarding_impl_confirm_facts_confirm),
+                    onClick = { actions.onConfirm(fact.id) },
+                    size = HhButtonSize.Compact,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier.heightIn(min = HhTheme.spacing.touch),
+            contentAlignment = Alignment.Center,
+        ) {
             HhOutlineButton(
                 label = stringResource(R.string.feature_onboarding_impl_confirm_facts_edit),
                 onClick = { actions.onEdit(fact.id, category) },
-                leadingIcon = HhIcons.Edit,
+                size = HhButtonSize.Compact,
             )
-            if (!fact.isConfirmed) {
-                HhSecondaryButton(
-                    label = stringResource(R.string.feature_onboarding_impl_confirm_facts_confirm),
-                    onClick = { actions.onConfirm(fact.id) },
-                    leadingIcon = HhIcons.Check,
-                )
-            }
         }
     }
 }
@@ -279,7 +521,7 @@ private fun SkillChip(skill: String) {
         modifier = Modifier
             .clip(HhTheme.shapes.pill)
             .background(HhTheme.colors.neutralContainer)
-            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.xs + HhTheme.spacing.xxs),
+            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm),
         style = HhTheme.typography.labelM,
         color = HhTheme.colors.onNeutralContainer,
     )
@@ -316,19 +558,54 @@ private fun EmptySectionCard(
 }
 
 @Composable
+private fun ConfirmFactsLoading() {
+    val message = stringResource(R.string.feature_onboarding_impl_confirm_facts_loading)
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(HhTheme.spacing.gutter),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+    ) {
+        HhLoadingWheel(contentDesc = message)
+        Text(text = message, style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun ConfirmFactsEmpty(actions: ConfirmFactsActions) {
+    StateCard(
+        illustration = HhIllustration.Empty,
+        illustrationDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_spot_empty_description),
+        title = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_title),
+        body = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_body),
+        extra = {
+            HhOutlineButton(
+                label = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_import),
+                onClick = actions.onImportResume,
+            )
+        },
+    )
+}
+
+@Composable
 private fun ConfirmFactsBottomBar(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
 ) {
-    HhBottomActionBar {
-        HhPrimaryButton(
-            label = stringResource(R.string.feature_onboarding_impl_confirm_facts_continue),
-            onClick = actions.onContinue,
-            enabled = uiState.canContinue,
-            trailingIcon = HhIcons.ArrowForward,
-            modifier = Modifier.weight(1f),
-        )
+    val fullyConfirmed = uiState.isFullyConfirmed
+    val label = when {
+        fullyConfirmed -> stringResource(R.string.feature_onboarding_impl_confirm_facts_check_fit)
+        uiState.canContinue -> stringResource(R.string.feature_onboarding_impl_confirm_facts_continue)
+        else -> stringResource(R.string.feature_onboarding_impl_confirm_facts_left_to_review, uiState.openCount)
     }
+    HhIconActionBar(
+        secondaryIcon = HhIcons.ArrowBack,
+        secondaryContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
+        onSecondaryClick = actions.onBack,
+        primaryLabel = label,
+        onPrimaryClick = actions.onContinue,
+        primaryEnabled = uiState.canContinue,
+        primaryTrailingIcon = HhIcons.ArrowForward.takeIf { uiState.canContinue },
+    )
 }
 
 @Composable
@@ -360,6 +637,14 @@ private fun OpenFactsDisclosure(openCount: Int) {
     )
 }
 
+private fun pageOf(
+    uiState: ConfirmFactsUiState,
+    fact: ConfirmFactUi,
+): Int = uiState.facts.indexOf(fact) / FACTS_PER_PAGE + 1
+
+private fun factLine(fact: ConfirmFactUi): String =
+    if (fact.detail.isBlank()) fact.title else fact.title + DETAIL_SEPARATOR + fact.detail
+
 private fun sectionTitle(section: ConfirmFactsSection): Int = when (section) {
     ConfirmFactsSection.Education -> R.string.feature_onboarding_impl_confirm_facts_section_education
     ConfirmFactsSection.Experience -> R.string.feature_onboarding_impl_confirm_facts_section_experience
@@ -377,3 +662,21 @@ private fun sectionEmpty(section: ConfirmFactsSection): Int = when (section) {
     ConfirmFactsSection.Certifications -> R.string.feature_onboarding_impl_confirm_facts_empty_certifications
     ConfirmFactsSection.Extras -> R.string.feature_onboarding_impl_confirm_facts_empty_extras
 }
+
+private const val CONFIRM_FACTS_STEP = 4
+private const val FACTS_PER_PAGE = 4
+private const val CONFIRMED_IDS_SHOWN = 6
+private val PROGRESS_HEIGHT = 8.dp
+private val PROGRESS_GAP = 4.dp
+private val BADGE_SIZE = 26.dp
+private val HERO_HEIGHT = 222.dp
+private val HERO_DISC = 170.dp
+private val HERO_DISC_TOP = 34.dp
+private val HERO_FIGURE_WIDTH = 166.dp
+private val HERO_FIGURE_HEIGHT = 222.dp
+private val HERO_SPARK_X = -8.dp
+private val HERO_SPARK_Y = 22.dp
+private val HERO_DOTS_X = -6.dp
+private val HERO_DOTS_Y = -18.dp
+private const val DETAIL_SEPARATOR = " · "
+private const val LIST_SEPARATOR = " · "

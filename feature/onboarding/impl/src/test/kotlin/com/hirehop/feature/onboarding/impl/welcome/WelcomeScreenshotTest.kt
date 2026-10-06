@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.theme.HhTheme
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
@@ -27,6 +28,14 @@ class WelcomeScreenshotTest {
     @Test
     fun firstRun_readsInLightAndDark() {
         captureBothThemes(screenName = "WelcomeFirstRun", uiState = WelcomeUiState())
+    }
+
+    @Test
+    fun careerStageChosen_readsInLightAndDark() {
+        captureBothThemes(
+            screenName = "WelcomeCareerStageChosen",
+            uiState = WelcomeUiState(careerStage = CareerStage.ONE_TO_TWO_YEARS_IN),
+        )
     }
 
     @Test
@@ -54,40 +63,8 @@ class WelcomeScreenshotTest {
     }
 
     @Test
-    fun heroBeforeAnyFact_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "WelcomeHeroOriginal",
-            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.ORIGINAL),
-        )
-    }
-
-    @Test
-    fun heroRewritten_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "WelcomeHeroRewritten",
-            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.REWRITTEN),
-        )
-    }
-
-    @Test
-    fun heroThreadDrawn_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "WelcomeHeroThreadDrawn",
-            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.THREAD_DRAWN),
-        )
-    }
-
-    @Test
-    fun heroSettled_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "WelcomeHeroSettled",
-            uiState = WelcomeUiState(heroStage = WelcomeHeroStage.SETTLED),
-        )
-    }
-
-    @Test
     @Config(fontScale = HhTestDevices.LARGE_FONT_SCALE)
-    fun firstRun_atLargeTextWrapsTheChips() {
+    fun firstRun_atLargeTextWrapsTheChoices() {
         captureBothThemes(
             screenName = "WelcomeFirstRunFont200",
             uiState = WelcomeUiState(),
@@ -122,6 +99,8 @@ class WelcomeScreenshotTest {
         onPasteJobDescription = {},
         onImportResume = {},
         onBuildProfileStepByStep = {},
+        onSelectCareerStage = {},
+        onHaveAccount = {},
         onRetry = {},
         onDismissMessage = {},
     )

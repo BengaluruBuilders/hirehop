@@ -59,6 +59,8 @@ internal fun WelcomeRoute(
 private fun WelcomeViewModel.toActions(): WelcomeActions = WelcomeActions(
     onPasteJobDescription = { onAction(WelcomeAction.PasteJobDescriptionTapped) },
     onImportResume = { onAction(WelcomeAction.ImportResumeTapped) },
+    onSelectCareerStage = { onAction(WelcomeAction.CareerStageSelected(it)) },
+    onHaveAccount = { onAction(WelcomeAction.HaveAccountTapped) },
     onBuildProfileStepByStep = { onAction(WelcomeAction.BuildProfileStepByStepTapped) },
     onRetry = { onAction(WelcomeAction.RetryTapped) },
     onDismissMessage = { onAction(WelcomeAction.DismissMessageTapped) },

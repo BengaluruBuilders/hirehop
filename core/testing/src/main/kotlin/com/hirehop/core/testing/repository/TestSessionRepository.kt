@@ -1,6 +1,7 @@
 package com.hirehop.core.testing.repository
 
 import com.hirehop.core.data.repository.SessionRepository
+import com.hirehop.core.model.CareerStage
 import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.model.SignInAccount
@@ -13,6 +14,7 @@ class TestSessionRepository : SessionRepository {
     private val consent = MutableStateFlow<ConsentRecord?>(null)
     private val onboardingComplete = MutableStateFlow(false)
     private val keptJob = MutableStateFlow<KeptJobDescription?>(null)
+    private val careerStage = MutableStateFlow<CareerStage?>(null)
 
     override fun observeAccount(): Flow<SignInAccount?> = account
 
@@ -21,6 +23,12 @@ class TestSessionRepository : SessionRepository {
     override fun observeOnboardingComplete(): Flow<Boolean> = onboardingComplete
 
     override fun observeKeptJobDescription(): Flow<KeptJobDescription?> = keptJob
+
+    override fun observeCareerStage(): Flow<CareerStage?> = careerStage
+
+    override suspend fun saveCareerStage(stage: CareerStage) {
+        careerStage.value = stage
+    }
 
     override suspend fun saveAccount(account: SignInAccount) {
         this.account.value = account
@@ -52,6 +60,7 @@ class TestSessionRepository : SessionRepository {
         consent.value = null
         onboardingComplete.value = false
         keptJob.value = null
+        careerStage.value = null
     }
 
     fun sendAccount(account: SignInAccount?) {
