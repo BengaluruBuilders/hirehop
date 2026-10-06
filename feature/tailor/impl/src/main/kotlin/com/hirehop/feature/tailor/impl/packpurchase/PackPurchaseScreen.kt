@@ -38,7 +38,6 @@ import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOnColorChip
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
@@ -235,13 +234,6 @@ private fun PackOffer(
             pack.credits,
             pack.credits,
         ),
-        chips = {
-            if (uiState.creditsNeverExpire) {
-                HhOnColorChip(
-                    label = stringResource(R.string.feature_tailor_impl_pack_purchase_credits_never_expire),
-                )
-            }
-        },
     )
     PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_one_time))
     PackLine(text = stringResource(R.string.feature_tailor_impl_pack_purchase_line_no_subscription))

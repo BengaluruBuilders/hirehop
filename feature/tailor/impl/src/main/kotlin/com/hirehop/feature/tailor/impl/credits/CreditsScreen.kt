@@ -121,7 +121,7 @@ private fun CreditsReady(
             Modifier
         } else {
             Modifier
-                .alpha(0.38f)
+                .alpha(DISABLED_ALPHA)
                 .semantics { disabled() }
         },
     )
@@ -134,7 +134,19 @@ private fun CreditsReady(
 @Composable
 private fun CreditsHero(uiState: CreditsUiState) {
     val left = uiState.totalCredits
-    val description = pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left)
+    val expiry = stringResource(
+        if (uiState.creditsNeverExpire) {
+            R.string.feature_tailor_impl_credits_never_expire
+        } else {
+            R.string.feature_tailor_impl_credits_may_expire
+        },
+    )
+    val freeNote = if (uiState.showsFreeNote) stringResource(R.string.feature_tailor_impl_credits_free_note) else null
+    val description = listOfNotNull(
+        pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left),
+        expiry,
+        freeNote,
+    ).joinToString(" ")
     val chips: (@Composable RowScope.() -> Unit)? = if (uiState.showsFreeNote) {
         { HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_credits_free_note)) }
     } else {
@@ -144,13 +156,7 @@ private fun CreditsHero(uiState: CreditsUiState) {
         accent = HhAccent.Marigold,
         monogram = left.toString(),
         title = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
-        subtitle = stringResource(
-            if (uiState.creditsNeverExpire) {
-                R.string.feature_tailor_impl_credits_never_expire
-            } else {
-                R.string.feature_tailor_impl_credits_may_expire
-            },
-        ),
+        subtitle = expiry,
         modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
         chips = chips,
     )
@@ -304,3 +310,4 @@ private fun CreditsHelp(actions: CreditsActions) {
 }
 
 private const val LARGE_FONT_SCALE = 1.5f
+private const val DISABLED_ALPHA = 0.38f
