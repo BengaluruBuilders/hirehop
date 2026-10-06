@@ -154,7 +154,12 @@ private fun ProfileHeaderBlock(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = HhTheme.spacing.gutter, end = HhTheme.spacing.gutter, top = statusTop + HeaderTop),
+                .padding(
+                    start = HhTheme.spacing.gutter,
+                    end = HhTheme.spacing.gutter,
+                    top = statusTop + HeaderTop,
+                    bottom = SheetOverlap + DecorationBottom + RingSize,
+                ),
             verticalArrangement = Arrangement.spacedBy(RowGap),
         ) {
             NameLine(headerLine = state.headerLine, onEditContact = onEditContact)

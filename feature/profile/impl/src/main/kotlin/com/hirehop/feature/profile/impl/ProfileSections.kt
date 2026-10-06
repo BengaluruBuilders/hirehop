@@ -15,11 +15,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhButtonSize
@@ -43,6 +46,8 @@ import com.hirehop.feature.profile.impl.common.FactStatus
 private val ListGap = 10.dp
 
 private const val SECTION_CHIP_LIMIT = 3
+private const val LARGE_TEXT_CHIP_LIMIT = 2
+private const val LARGE_TEXT_SCALE = 1.3f
 
 internal fun sectionAccent(kind: ProfileSectionKind): HhAccent = when (kind) {
     ProfileSectionKind.Education -> HhAccent.Coral
@@ -93,6 +98,7 @@ internal fun SectionCard(
     val title = stringResource(section.kind.titleRes())
     val subtitle = sectionSubtitle(section)
     val description = stringResource(R.string.feature_profile_impl_section_description, title, subtitle)
+    val chipLimit = if (LocalDensity.current.fontScale > LARGE_TEXT_SCALE) LARGE_TEXT_CHIP_LIMIT else SECTION_CHIP_LIMIT
     HhSolidCard(
         accent = accent,
         monogram = stringResource(section.kind.monogramRes()),
@@ -101,15 +107,22 @@ internal fun SectionCard(
         modifier = modifier
             .clip(HhTheme.shapes.card)
             .clickable(role = Role.Button, onClick = onOpen)
-            .semantics(mergeDescendants = true) { contentDescription = description },
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                onClick {
+                    onOpen()
+                    true
+                }
+            },
         openAction = HhOpenAction(contentDescription = description, onClick = onOpen),
         chips = {
-            section.facts.take(SECTION_CHIP_LIMIT).forEach { fact ->
+            section.facts.take(chipLimit).forEach { fact ->
                 FactIdChip(id = fact.displayId, status = fact.status)
             }
-            if (section.count > SECTION_CHIP_LIMIT) {
+            if (section.count > chipLimit) {
                 HhOnColorChip(
-                    label = stringResource(R.string.feature_profile_impl_section_more_facts, section.count - SECTION_CHIP_LIMIT),
+                    label = stringResource(R.string.feature_profile_impl_section_more_facts, section.count - chipLimit),
                     style = HhOnColorChipStyle.White,
                     accent = accent,
                 )
