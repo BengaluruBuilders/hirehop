@@ -14,12 +14,13 @@ import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 internal fun SignInRoute(
     key: SignInNavKey,
     onBack: () -> Unit,
+    onBackToStart: () -> Unit,
     onNavigateToStep: (OnboardingStep) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onBack) { viewModel.toActions(onBack) }
+    val actions = remember(viewModel, onBack, onBackToStart) { viewModel.toActions(onBack, onBackToStart) }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     LaunchedEffect(uiState.nextStep) {
         val step = uiState.nextStep
@@ -31,13 +32,13 @@ internal fun SignInRoute(
     SignInScreen(uiState = uiState, actions = actions, modifier = modifier)
 }
 
-private fun SignInViewModel.toActions(onBack: () -> Unit): SignInActions = SignInActions(
+private fun SignInViewModel.toActions(onBack: () -> Unit, onBackToStart: () -> Unit): SignInActions = SignInActions(
     onAdultConfirmationChange = { isConfirmed -> onAction(SignInAction.AdultConfirmationChanged(isConfirmed)) },
     onContinue = { onAction(SignInAction.Continue) },
     onUnderEighteen = { onAction(SignInAction.UnderEighteen) },
     onBackFromUnderEighteen = {
         onAction(SignInAction.BackFromUnderEighteen)
-        onBack()
+        onBackToStart()
     },
     onBack = onBack,
 )

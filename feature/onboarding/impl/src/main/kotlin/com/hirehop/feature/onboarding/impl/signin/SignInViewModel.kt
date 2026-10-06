@@ -12,12 +12,14 @@ import com.hirehop.core.model.DebugScenario
 import com.hirehop.feature.onboarding.api.navigation.SignInNavKey
 import com.hirehop.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,10 +63,12 @@ class SignInViewModel @Inject constructor(
     }
 
     private fun onUnderEighteen() {
-        mutableState.update { it.copy(stage = SignInStage.UNDER_18) }
         viewModelScope.launch {
-            sessionRepository.observeKeptJobDescription().first()?.let { discardJobDrafts(it) }
-            sessionRepository.clearKeptJobDescription()
+            withContext(NonCancellable) {
+                sessionRepository.observeKeptJobDescription().first()?.let { discardJobDrafts(it) }
+                sessionRepository.clearKeptJobDescription()
+            }
+            mutableState.update { it.copy(stage = SignInStage.UNDER_18) }
         }
     }
 

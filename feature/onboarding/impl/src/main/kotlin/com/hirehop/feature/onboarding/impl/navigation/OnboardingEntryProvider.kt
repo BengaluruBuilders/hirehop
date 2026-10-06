@@ -16,6 +16,7 @@ import com.hirehop.feature.onboarding.api.navigation.navigateToConfirmFacts
 import com.hirehop.feature.onboarding.api.navigation.navigateToConsent
 import com.hirehop.feature.onboarding.api.navigation.navigateToPasteJobDescription
 import com.hirehop.feature.onboarding.api.navigation.navigateToSignIn
+import com.hirehop.feature.onboarding.api.navigation.navigateToWelcome
 import com.hirehop.feature.onboarding.impl.confirmfacts.ConfirmFactsRoute
 import com.hirehop.feature.onboarding.impl.consent.ConsentRoute
 import com.hirehop.feature.onboarding.impl.importresume.ImportResumeRoute
@@ -45,6 +46,7 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
         SignInRoute(
             key = key,
             onBack = { navigator.goBack() },
+            onBackToStart = { navigator.navigateToWelcome() },
             onNavigateToStep = { step -> navigator.replaceWithStep(step) },
         )
     }

@@ -44,7 +44,6 @@ import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhDecoration
 import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeaderIconButton
-import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
@@ -370,7 +369,7 @@ private fun JobIdentityRow(uiState: AnalysisUiState) {
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhMonogram(text = uiState.job.company.ifBlank { title }, size = MonogramSize)
+        HeaderMonogram(name = uiState.job.company.ifBlank { title })
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -382,6 +381,22 @@ private fun JobIdentityRow(uiState: AnalysisUiState) {
         }
     }
 }
+
+@Composable
+private fun HeaderMonogram(name: String) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(MonogramSize, MonogramSize)
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.onHeader),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = name.initials(), style = HhTheme.typography.titleM, color = HhTheme.colors.brand)
+    }
+}
+
+private fun String.initials(): String =
+    trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.take(2).joinToString("") { it.take(1) }.uppercase()
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

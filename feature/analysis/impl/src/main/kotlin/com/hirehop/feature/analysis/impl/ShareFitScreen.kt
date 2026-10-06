@@ -118,16 +118,18 @@ internal fun ShareFitScreen(
     }
 }
 
-internal fun String.withoutCompany(company: String): String =
-    if (company.isBlank()) {
-        this
-    } else {
-        replace(company.trim(), "", ignoreCase = true)
-            .replace(Regex("\\s{2,}"), " ")
-            .trim(' ', '-', ',', '|', '@')
-            .replace(Regex("(^|\\s)at$", RegexOption.IGNORE_CASE), "")
-            .trim()
-    }
+internal fun String.withoutCompany(company: String): String {
+    val name = Regex.escape(company.trim())
+    if (company.isBlank()) return this
+    val option = RegexOption.IGNORE_CASE
+    val atEnd = Regex("""(?:\s+at\s+|\s*[@\-\u2013|,(]\s*)$name\)?\s*$""", option)
+    val atStart = Regex("""^\s*$name\s*[\-|:]\s*""", option)
+    return when {
+        atEnd.containsMatchIn(this) -> replace(atEnd, "")
+        atStart.containsMatchIn(this) -> replace(atStart, "")
+        else -> this
+    }.trim()
+}
 
 @Composable
 private fun ShareFitTopRow(onBack: () -> Unit) {
