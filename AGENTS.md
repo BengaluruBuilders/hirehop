@@ -11,6 +11,11 @@ tailored application. It never invents facts about the candidate.
 4. `docs/REDESIGN.md` — the rules and the procedure for the "Friendly hero, Jade" design.
 5. `docs/DESIGN_SYSTEM.md` — the tokens and the `Hh*` components in `core:designsystem`.
 6. `docs/MOCK_BACKEND.md` — the interfaces and the on-device state behind every screen.
+7. `docs/MVP_PLAN.md` — the MVP build plan, chunk state, and the orchestrator runbook. Start here
+   if you are asked to continue the MVP build.
+
+The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle/`. They win over
+`design/claude-design/` where both show the same screen.
 
 ## Design source
 
@@ -18,7 +23,8 @@ If a task changes UI, read the frames for that flow before you write code.
 
 | Need | File |
 |---|---|
-| Tokens: type, colour, surface, shape, spacing | `design/claude-design/foundations/Main.dc.html`, `Colour.dc.html`, `Surface.dc.html` |
+| **Current look (restyle, wins first)** | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
+| Tokens: type, colour, surface, shape, spacing (older Jade board) | `design/claude-design/foundations/Main.dc.html`, `Colour.dc.html`, `Surface.dc.html` |
 | Motion registers `proof` and `hop` | `design/claude-design/foundations/Motion.dc.html` |
 | Characters and spot poses | `design/claude-design/foundations/Illustration.dc.html` |
 | Components, light and dark | `design/claude-design/foundations/ComponentsLight.dc.html`, `ComponentsDark.dc.html` |

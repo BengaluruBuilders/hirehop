@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>S7 Gap check, waiting</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B7A5C}a:hover{color:#064D3A}
+button{font-family:inherit}
+</style>
+</helmet>
+<main style="width: 360px; height: 800px; position: relative; overflow: hidden; box-sizing: border-box; background: #FFFFFF; color: #16181D; font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column">
+
+<header style="position: relative; background: #0B7A5C; color: #FFFFFF; border-radius: 0 0 48px 48px; padding: 36px 16px 28px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+<svg style="position: absolute; right: 26px; top: 108px" width="38" height="38" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M15 4c6.5 0 11 4.6 11 10.8S21.3 26 15.2 26 4 21.5 4 15.3C4 9.6 8 5.6 13 4.6" stroke="#FFC94D" stroke-width="2.6" stroke-linecap="round"/></svg>
+<svg style="position: absolute; right: 86px; top: 150px" width="56" height="16" viewBox="0 0 64 18" fill="none" aria-hidden="true"><path d="M2 11C7 3 12 3 16 9s9 7 13 1 9-7 13-1 9 7 13 1 6-5 7-4" stroke="#F3A08E" stroke-width="2.6" stroke-linecap="round"/></svg>
+<div style="height: 48px; display: flex; align-items: center; justify-content: space-between">
+<a href="S6c-Facts-Confirmed.dc.html" aria-label="Back" style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></a>
+<span style="height: 32px; padding: 0 14px; border-radius: 999px; background: #064D3A; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center">Step 5 of 5</span>
+</div>
+<div style="width: 60px; height: 60px; border-radius: 999px; background: #FFFFFF; color: #0B7A5C; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center">KP</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><h1 style="margin: 0; font-size: 32px; line-height: 36px; font-weight: 800; letter-spacing: -0.5px">Product Analyst</h1><span style="font-size: 15px; font-weight: 600; color: #DDF2EA">Kestrel Pay · Bengaluru</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap" aria-hidden="true">
+<span style="height: 34px; width: 74px; border-radius: 999px; background: #3C9579"></span>
+<span style="height: 34px; width: 112px; border-radius: 999px; background: #3C9579"></span>
+<span style="height: 34px; width: 112px; border-radius: 999px; background: #3C9579"></span>
+</div>
+</header>
+
+<div style="padding: 24px 16px 0; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0 0 4px; font-size: 20px; line-height: 26px; font-weight: 800">Checking your fit</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<li style="height: 72px; border-radius: 36px; background: #0B7A5C; color: #FFFFFF; display: flex; align-items: center; gap: 12px; padding: 0 12px">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0B7A5C"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">Read 14 requirements</span><span style="font-size: 12px; font-weight: 600; color: #DDF2EA">Done</span></span>
+</li>
+<li style="height: 72px; border-radius: 36px; background: #FFC94D; color: #16181D; display: flex; align-items: center; gap: 12px; padding: 0 12px">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#F6E2AE" stroke-width="3"/><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#16181D" stroke-width="3" stroke-linecap="round"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">Matching your 7 facts</span><span style="font-size: 12px; font-weight: 600">In progress</span></span>
+</li>
+<li style="height: 72px; border-radius: 36px; background: #F6F7F9; border: 1px solid #E6E8EC; box-sizing: border-box; color: #16181D; display: flex; align-items: center; gap: 12px; padding: 0 12px">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #FFFFFF; flex: none; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#E6E8EC" stroke-width="2.4"/></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">Putting must-haves first</span><span style="font-size: 12px; font-weight: 600; color: #5F6672">Up next</span></span>
+</li>
+</ol>
+<p style="margin: 6px 0 0; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 19px; color: #5F6672"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B7A5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>We only match facts you confirmed. Nothing gets made up to fill a gap.</p>
+</div>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px; background: #FFFFFF; display: flex; gap: 10px; align-items: center">
+<button aria-label="Prep plan" disabled="disabled" style="width: 60px; height: 60px; flex: none; border-radius: 999px; border: 1.5px solid #E6E8EC; background: #F6F7F9; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l1.5 1.5L8 5"/><path d="M4 12l1.5 1.5L8 11"/><path d="M4 18l1.5 1.5L8 17"/><path d="M11 6h9M11 12h9M11 18h9"/></svg></button>
+<a href="S7b-Gap-Result.dc.html" aria-disabled="true" style="flex: 1; height: 60px; border-radius: 999px; background: #E6E8EC; color: #5F6672; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Tailor my resume</a>
+</div>
+
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
