@@ -14,11 +14,9 @@
     <string name="feature_tailor_impl_prep_questions_intro">Likely questions for this JD, each tied to your facts. Practise out loud; nothing here is recorded or scored.</string>
     <string name="feature_tailor_impl_prep_questions_group_facts">From your facts</string>
     <string name="feature_tailor_impl_prep_questions_group_gaps">Your gaps</string>
-    <string name="feature_tailor_impl_prep_questions_ordinal">Question %1$d</string>
     <string name="feature_tailor_impl_prep_questions_why">Why they may ask: the post asks for %1$s.</string>
     <string name="feature_tailor_impl_prep_questions_facts_label">Your facts</string>
     <string name="feature_tailor_impl_prep_questions_fact_description">Source fact %1$s</string>
-    <string name="feature_tailor_impl_prep_questions_to_prepare">To prepare</string>
     <string name="feature_tailor_impl_prep_questions_report">Report inaccurate content</string>
     <string name="feature_tailor_impl_prep_questions_report_description">Report inaccurate content in question %1$d</string>
     <string name="feature_tailor_impl_prep_questions_report_gap_description">Report inaccurate content for %1$s</string>
@@ -39,5 +37,5 @@
     <string name="feature_tailor_impl_prep_questions_gaps_intro">Say them straight in the interview. They never appear in your resume or cover letter.</string>
     <string name="feature_tailor_impl_prep_questions_gap_label">To prepare</string>
     <string name="feature_tailor_impl_prep_questions_honest_way">One honest way to say it</string>
-    <string name="feature_tailor_impl_prep_questions_add_to_plan">Add to prep plan</string>
+    <string name="feature_tailor_impl_prep_questions_open_prep_plan">Open prep plan</string>
 </resources>

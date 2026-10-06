@@ -6,6 +6,7 @@ import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.data.repository.ContentReportRepository
 import com.hirehop.core.data.repository.CoverLetterRepository
+import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.coverletter.CoverLetterSource
@@ -38,6 +39,7 @@ class CoverLetterViewModel @Inject constructor(
     private val connectivityMonitor: ConnectivityMonitor,
     private val contentReportRepository: ContentReportRepository,
     private val coverLetterRepository: CoverLetterRepository,
+    private val exportHistoryRepository: ExportHistoryRepository,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -62,6 +64,7 @@ class CoverLetterViewModel @Inject constructor(
         )
         viewModelScope.launch { observeConnectivity() }
         viewModelScope.launch { observeReports() }
+        viewModelScope.launch { observeExportedFile() }
         viewModelScope.launch { loadOffer() }
     }
 
@@ -92,6 +95,12 @@ class CoverLetterViewModel @Inject constructor(
         }
     }
 
+    private suspend fun observeExportedFile() {
+        exportHistoryRepository.observeExports(applicationId).collect { records ->
+            mutableState.update { state -> state.copy(exportedFileName = records.lastOrNull()?.fileName) }
+        }
+    }
+
     private suspend fun loadOffer() {
         val application = applicationRepository.observeApplication(applicationId).first() ?: return
         val profile = profileRepository.observeProfile().first()
@@ -100,7 +109,6 @@ class CoverLetterViewModel @Inject constructor(
             state.copy(
                 jobTitle = application.job.title,
                 jobCompany = application.job.company,
-                candidateName = profile?.fullName.orEmpty(),
                 reviewedCount = reviewed,
                 totalCount = total,
             )
@@ -121,6 +129,7 @@ class CoverLetterViewModel @Inject constructor(
                     reviewedCount = state.reviewedCount,
                     totalCount = state.totalCount,
                     reportedIds = state.reportedIds,
+                    exportedFileName = state.exportedFileName,
                 )
             }
         }
@@ -159,6 +168,7 @@ class CoverLetterViewModel @Inject constructor(
                 reviewedCount = state.reviewedCount,
                 totalCount = state.totalCount,
                 reportedIds = state.reportedIds,
+                exportedFileName = state.exportedFileName,
             )
         }
     }

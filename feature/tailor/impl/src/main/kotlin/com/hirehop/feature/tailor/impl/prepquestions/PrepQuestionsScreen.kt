@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -57,6 +58,7 @@ import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhSpotKind
 import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusDisc
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhToastHost
@@ -315,28 +317,37 @@ private fun LazyListScope.prepItems(
 @Composable
 private fun GeneratingSteps() {
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2)) {
+        val readTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_read)
+        val readSubtitle = stringResource(R.string.feature_tailor_impl_status_done)
         HhPillRow(
-            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_read),
-            subtitle = stringResource(R.string.feature_tailor_impl_status_done),
+            title = readTitle,
+            subtitle = readSubtitle,
             onClick = {},
             style = HhPillRowStyle.Jade,
             icon = HhIcons.Check,
             trailingIcon = null,
+            modifier = Modifier.clearAndSetSemantics { contentDescription = "$readTitle. $readSubtitle" },
         )
+        val matchTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_match)
+        val matchSubtitle = stringResource(R.string.feature_tailor_impl_status_in_progress)
         HhPillRow(
-            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_match),
-            subtitle = stringResource(R.string.feature_tailor_impl_status_in_progress),
+            title = matchTitle,
+            subtitle = matchSubtitle,
             onClick = {},
             style = HhPillRowStyle.Marigold,
             icon = HhIcons.Clock,
             trailingIcon = null,
+            modifier = Modifier.clearAndSetSemantics { contentDescription = "$matchTitle. $matchSubtitle" },
         )
+        val gapsTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps)
+        val gapsSubtitle = stringResource(R.string.feature_tailor_impl_status_up_next)
         HhPillRow(
-            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps),
-            subtitle = stringResource(R.string.feature_tailor_impl_status_up_next),
+            title = gapsTitle,
+            subtitle = gapsSubtitle,
             onClick = {},
             style = HhPillRowStyle.Neutral,
             trailingIcon = null,
+            modifier = Modifier.clearAndSetSemantics { contentDescription = "$gapsTitle. $gapsSubtitle" },
         )
     }
 }
@@ -357,6 +368,7 @@ private fun LazyListScope.readyItems(
                 onClick = { scope.launch { listState.animateScrollToItem(uiState.gapsListIndex(showOffline)) } },
                 style = HhPillRowStyle.Marigold,
                 trailingIcon = HhIcons.ArrowForward,
+                leading = { HhStatusDisc(kind = HhStatusKind.Gap) },
             )
         }
     }
@@ -486,7 +498,7 @@ private fun GapCard(
             .padding(HhTheme.spacing.cardPadding),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
     ) {
-        HhStatusChip(kind = HhStatusKind.Gap, label = gapLabel(card))
+        HhStatusChip(kind = HhStatusKind.Gap, label = gapLabel())
         Text(
             text = card.requirementText,
             style = HhTheme.typography.titleL,
@@ -512,7 +524,7 @@ private fun GapCard(
             )
         }
         HhInkButton(
-            label = stringResource(R.string.feature_tailor_impl_prep_questions_add_to_plan),
+            label = stringResource(R.string.feature_tailor_impl_prep_questions_open_prep_plan),
             onClick = actions.onOpenPrepPlan,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -528,7 +540,7 @@ private fun GapCard(
 }
 
 @Composable
-private fun gapLabel(card: PrepQuestionCard): String =
+private fun gapLabel(): String =
     stringResource(R.string.feature_tailor_impl_prep_questions_gap_label)
 
 @Composable

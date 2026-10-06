@@ -75,6 +75,7 @@ fun HhPillRow(
     icon: ImageVector? = null,
     monogram: String? = null,
     trailingIcon: ImageVector? = HhIcons.ArrowForward,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     val palette = pillRowPalette(style)
     val source = remember { MutableInteractionSource() }
@@ -99,7 +100,9 @@ fun HhPillRow(
                     .clearAndSetSemantics {},
                 contentAlignment = Alignment.Center,
             ) {
-                if (icon != null) {
+                if (leading != null) {
+                    leading()
+                } else if (icon != null) {
                     Icon(icon, contentDescription = null, tint = palette.onCircle, modifier = Modifier.size(22.dp))
                 } else if (monogram != null) {
                     Text(

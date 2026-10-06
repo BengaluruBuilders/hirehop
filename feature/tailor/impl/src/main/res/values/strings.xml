@@ -8,15 +8,8 @@
     <string name="feature_tailor_impl_back">Back</string>
     <string name="feature_tailor_impl_not_found_title">We could not find this resume</string>
     <string name="feature_tailor_impl_not_found">We could not find this application or your profile.</string>
-    <string name="feature_tailor_impl_progress_value" tools:ignore="PluralsCandidate">%1$d of %2$d</string>
     <string name="feature_tailor_impl_no_changes">No lines changed. Every line comes from your facts.</string>
-    <string name="feature_tailor_impl_changes_reviewed">changes reviewed</string>
     <string name="feature_tailor_impl_progress_description" tools:ignore="PluralsCandidate">%1$d of %2$d changes reviewed</string>
-    <plurals name="feature_tailor_impl_flagged">
-        <item quantity="one">%1$d flagged</item>
-        <item quantity="other">%1$d flagged</item>
-    </plurals>
-    <string name="feature_tailor_impl_all_reviewed" tools:ignore="PluralsCandidate">%1$d of %2$d reviewed. Every line in this resume traces to your facts.</string>
     <string name="feature_tailor_impl_skills_heading">Skills</string>
     <string name="feature_tailor_impl_section_experience">Experience</string>
     <string name="feature_tailor_impl_section_projects">Projects</string>
@@ -29,7 +22,6 @@
         <item quantity="one">%1$d JD need has no evidence in your profile, so we left it out: %2$s. You can add it to your prep plan from the gap analysis.</item>
         <item quantity="other">%1$d JD needs have no evidence in your profile, so we left them out: %2$s. You can add them to your prep plan from the gap analysis.</item>
     </plurals>
-    <string name="feature_tailor_impl_to_prepare">To prepare</string>
     <string name="feature_tailor_impl_state_to_review">To review</string>
     <string name="feature_tailor_impl_state_flagged">Flagged · to review</string>
     <string name="feature_tailor_impl_state_accepted">Accepted</string>

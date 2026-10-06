@@ -338,31 +338,29 @@ private fun InkChip(label: String) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BackedByRow(sources: List<TailoredBulletSource>, onClick: () -> Unit) {
     val colors = HhTheme.colors
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.Top,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = HhIcons.CheckCircle,
             contentDescription = null,
             tint = colors.primary,
-            modifier = Modifier
-                .padding(top = HhTheme.spacing.xxs)
-                .size(HhTheme.spacing.lg),
+            modifier = Modifier.size(HhTheme.spacing.lg),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_bullet_backed_by),
-                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-                color = colors.primary,
-            )
-            sources.distinctBy { it.displayId }.forEach { source ->
-                FactChip(source, onClick)
-            }
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_bullet_backed_by),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
+            color = colors.primary,
+        )
+        sources.distinctBy { it.displayId }.forEach { source ->
+            FactChip(source, onClick)
         }
     }
 }

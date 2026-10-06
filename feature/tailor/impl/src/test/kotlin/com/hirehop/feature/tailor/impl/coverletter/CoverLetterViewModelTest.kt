@@ -4,7 +4,10 @@ import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.coverletter.CoverLetterComposer
 import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
+import com.hirehop.core.model.ExportFormat
+import com.hirehop.core.model.ExportRecord
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.ReportedItemKind
@@ -15,6 +18,7 @@ import com.hirehop.core.testing.data.canonicalProfileWithoutEntries
 import com.hirehop.core.testing.repository.TestApplicationRepository
 import com.hirehop.core.testing.repository.TestContentReportRepository
 import com.hirehop.core.testing.repository.TestCoverLetterRepository
+import com.hirehop.core.testing.repository.TestExportHistoryRepository
 import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.core.testing.util.TestClock
@@ -35,6 +39,7 @@ class CoverLetterViewModelTest {
     private val connectivity = TestConnectivityMonitor()
     private val reports = TestContentReportRepository()
     private val coverLetters = TestCoverLetterRepository()
+    private val exportHistory = TestExportHistoryRepository()
     private val clock = TestClock()
 
     private lateinit var viewModel: CoverLetterViewModel
@@ -51,12 +56,57 @@ class CoverLetterViewModelTest {
         connectivityMonitor = connectivity,
         contentReportRepository = reports,
         coverLetterRepository = coverLetters,
+        exportHistoryRepository = exportHistory,
         clock = clock,
     )
 
     private fun CoverLetterViewModel.enterAndWrite(key: CoverLetterNavKey) {
         onEnter(key)
         onAction(CoverLetterAction.WriteOne)
+    }
+
+    @Test
+    fun enter_withoutAnExport_hasNoFileName() = runTest {
+        given()
+        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(viewModel.uiState.value.exportedFileName).isNull()
+    }
+
+    @Test
+    fun enter_withExports_showsTheLatestRecordedFileName() = runTest {
+        given()
+        listOf("First.pdf", "Latest.docx").forEach { name ->
+            exportHistory.record(
+                ExportRecord(
+                    applicationId = APPLICATION_ID,
+                    format = ExportFormat.PDF,
+                    fileName = name,
+                    exportedAt = clock.now(),
+                    creditKind = CreditKind.FREE,
+                ),
+            )
+        }
+        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(viewModel.uiState.value.exportedFileName).isEqualTo("Latest.docx")
+    }
+
+    @Test
+    fun writeOne_keepsTheExportedFileName() = runTest {
+        given()
+        exportHistory.record(
+            ExportRecord(
+                applicationId = APPLICATION_ID,
+                format = ExportFormat.PDF,
+                fileName = "Kept.pdf",
+                exportedAt = clock.now(),
+                creditKind = CreditKind.FREE,
+            ),
+        )
+        viewModel.enterAndWrite(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+
+        assertThat(viewModel.uiState.value.exportedFileName).isEqualTo("Kept.pdf")
     }
 
     @Test

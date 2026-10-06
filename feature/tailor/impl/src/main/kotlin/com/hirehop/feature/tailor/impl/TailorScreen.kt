@@ -416,8 +416,7 @@ private fun FailedContent(padding: PaddingValues, title: String, body: String) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = HhTheme.spacing.md)
-                    .semanticsGroup(),
+                    .padding(top = HhTheme.spacing.md),
                 verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
             ) {
                 Box(
@@ -805,7 +804,5 @@ private fun SuccessBottomBar(state: TailorUiState.Success, actions: TailorAction
         primaryTrailingIcon = HhIcons.ArrowForward,
     )
 }
-
-private fun Modifier.semanticsGroup(): Modifier = this
 
 private const val LARGE_FONT_SCALE = 1.5f

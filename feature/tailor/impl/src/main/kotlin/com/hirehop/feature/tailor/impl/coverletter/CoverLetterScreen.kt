@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -37,6 +39,7 @@ import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhHeaderButton
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhInkButton
 import com.hirehop.core.designsystem.component.HhInnerHeader
@@ -62,7 +65,6 @@ import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.NoticeStrip
 import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.StatusCard
-import com.hirehop.feature.tailor.impl.export.ExportFileName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +87,7 @@ internal fun CoverLetterScreen(
         modifier = modifier,
         sheet = false,
         header = { CoverLetterHeader(uiState, actions) },
-        bottomBar = { CoverLetterBottomBar(uiState, actions) },
+        bottomBar = { if (uiState.stage != CoverLetterStage.OFFER) CoverLetterBottomBar(uiState, actions) },
         snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
         LazyColumn(
@@ -229,21 +231,38 @@ private fun LazyListScope.coverLetterItems(
 @Composable
 private fun OfferCard(uiState: CoverLetterUiState, actions: CoverLetterActions) {
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+        uiState.exportedFileName?.let { fileName ->
+            HhPillRow(
+                title = fileName,
+                onClick = {},
+                style = HhPillRowStyle.Neutral,
+                icon = HhIcons.Description,
+                trailingIcon = null,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = fileName },
+            )
+        }
         HhSolidCard(
             accent = HhAccent.Coral,
             monogram = uiState.jobCompany,
             title = stringResource(R.string.feature_tailor_impl_cover_letter_offer_title),
             subtitle = stringResource(R.string.feature_tailor_impl_cover_letter_offer_body),
             chips = {
-                HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_cover_letter_optional))
+                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                    HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_cover_letter_optional))
+                    Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                        HhHeaderButton(
+                            label = stringResource(R.string.feature_tailor_impl_cover_letter_no_thanks),
+                            onClick = actions.onSkipLetter,
+                            modifier = Modifier.weight(1f),
+                        )
+                        HhHeaderButton(
+                            label = stringResource(R.string.feature_tailor_impl_cover_letter_write_one),
+                            onClick = actions.onWriteOne,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
             },
-        )
-        HhOnColorChip(
-            label = ExportFileName.build(
-                name = uiState.candidateName,
-                company = uiState.jobCompany,
-                role = uiState.jobTitle,
-            ),
         )
         HhPillRow(
             title = stringResource(R.string.feature_tailor_impl_cover_letter_prep_title),
@@ -559,18 +578,7 @@ internal fun ParagraphSources(position: Int, paragraph: CoverLetterParagraph, on
 private fun CoverLetterBottomBar(uiState: CoverLetterUiState, actions: CoverLetterActions) {
     HhBottomActionBar {
         when (uiState.stage) {
-            CoverLetterStage.OFFER -> {
-                HhOutlineButton(
-                    label = stringResource(R.string.feature_tailor_impl_cover_letter_no_thanks),
-                    onClick = actions.onSkipLetter,
-                    modifier = Modifier.weight(1f),
-                )
-                HhPrimaryButton(
-                    label = stringResource(R.string.feature_tailor_impl_cover_letter_write_one),
-                    onClick = actions.onWriteOne,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            CoverLetterStage.OFFER -> Unit
             CoverLetterStage.GENERATING -> HhInkButton(
                 label = stringResource(R.string.feature_tailor_impl_cover_letter_leave),
                 onClick = actions.onNavigateBack,
