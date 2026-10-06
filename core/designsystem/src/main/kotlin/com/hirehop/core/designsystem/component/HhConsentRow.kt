@@ -32,7 +32,7 @@ fun HhConsentRow(
         modifier = modifier.fillMaxWidth(),
         shape = HhTheme.shapes.card,
         color = colors.card,
-        border = BorderStroke(HhWidthHairline, colors.outlineVariant),
+        border = BorderStroke(HhWidthHairline, colors.sheetItemBorder),
     ) {
         Row(
             modifier = Modifier

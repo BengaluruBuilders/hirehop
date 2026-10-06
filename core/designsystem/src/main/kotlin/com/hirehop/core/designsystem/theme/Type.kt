@@ -4,9 +4,11 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.TextUnit
@@ -14,16 +16,24 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.hirehop.core.designsystem.R
 
+@OptIn(ExperimentalTextApi::class)
+private fun jakarta(weight: FontWeight) = Font(
+    R.font.core_designsystem_plus_jakarta_sans,
+    weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+)
+
+@OptIn(ExperimentalTextApi::class)
 object HhFontFamilies {
     val sans = FontFamily(
-        Font(R.font.core_designsystem_anek_latin_regular, FontWeight.Normal),
-        Font(R.font.core_designsystem_anek_latin_semibold, FontWeight.SemiBold),
-        Font(R.font.core_designsystem_anek_latin_semibold, FontWeight.Bold),
-        Font(R.font.core_designsystem_anek_latin_semibold, FontWeight.ExtraBold),
+        jakarta(FontWeight.Normal),
+        jakarta(FontWeight.SemiBold),
+        jakarta(FontWeight.Bold),
+        jakarta(FontWeight.ExtraBold),
     )
 
     val mono = FontFamily(
-        Font(R.font.core_designsystem_jetbrains_mono_regular, FontWeight.Medium),
+        Font(R.font.core_designsystem_ibm_plex_mono_medium, FontWeight.Medium),
     )
 }
 

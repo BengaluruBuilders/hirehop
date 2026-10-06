@@ -56,7 +56,7 @@ fun HhFitShareCard(
                 .hhShadow(HhTheme.elevation.hero, shape),
             shape = shape,
             color = colors.document,
-            border = BorderStroke(HhWidthHairline, colors.outlineVariant),
+            border = BorderStroke(HhWidthHairline, colors.sheetItemBorder),
         ) {
             Column {
                 HhFitShareHeader(eyebrow, headline)

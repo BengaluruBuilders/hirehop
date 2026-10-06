@@ -50,6 +50,8 @@ class HhColors(
     val errorContainer: Color,
     val onErrorContainer: Color,
     val brand: Color,
+    val brandPressed: Color,
+    val sheetItemBorder: Color,
     val onBrand: Color,
     val coral: Color,
     val onCoral: Color,

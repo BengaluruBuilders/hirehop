@@ -16,6 +16,7 @@ object HhOverlap {
 
 internal val HhHeightTouch: Dp = 48.dp
 internal val HhHeightButtonLarge: Dp = 60.dp
+internal val HhHeightButtonCompact: Dp = 44.dp
 internal val HhHeightField: Dp = 56.dp
 internal val HhHeightDock: Dp = HhDockDefaults.height
 internal val HhHeightHomeHeader: Dp = 290.dp
