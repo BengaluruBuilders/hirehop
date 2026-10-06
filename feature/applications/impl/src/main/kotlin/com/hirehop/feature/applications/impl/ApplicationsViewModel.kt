@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.model.ApplicationStatus
@@ -23,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ApplicationsViewModel @Inject constructor(
     private val applicationRepository: ApplicationRepository,
+    private val exportHistoryRepository: ExportHistoryRepository,
     sessionRepository: SessionRepository,
     paymentGateway: PaymentGateway,
     connectivityMonitor: ConnectivityMonitor,
@@ -49,14 +51,18 @@ class ApplicationsViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<ApplicationsUiState> = combine(
-        applicationRepository.observeApplications().onEach { latest -> applications.value = latest },
+        combine(
+            applicationRepository.observeApplications().onEach { latest -> applications.value = latest },
+            exportHistoryRepository.observeExports(),
+        ) { latest, exports -> latest to exports.map { record -> record.applicationId }.toSet() },
         header,
         isOffline,
         scenario,
         presentation,
-    ) { latest, headerState, offline, activeScenario, presentationState ->
+    ) { data, headerState, offline, activeScenario, presentationState ->
         toUiState(
-            applications = latest,
+            applications = data.first,
+            exportedIds = data.second,
             header = headerState,
             isOffline = offline,
             scenario = activeScenario,
@@ -119,6 +125,7 @@ class ApplicationsViewModel @Inject constructor(
 
     private fun toUiState(
         applications: List<JobApplication>,
+        exportedIds: Set<String>,
         header: ApplicationsHeader,
         isOffline: Boolean,
         scenario: DebugScenario,
@@ -131,7 +138,10 @@ class ApplicationsViewModel @Inject constructor(
             ?.id
         val rows = applications
             .map { application ->
-                application.toListRow(isSyncPending = application.id == pendingId)
+                application.toListRow(
+                    isSyncPending = application.id == pendingId,
+                    isExported = application.id in exportedIds,
+                )
             }
             .sortedWith(
                 compareByDescending<ApplicationListRow> { row -> row.isSyncPending }
@@ -146,15 +156,17 @@ class ApplicationsViewModel @Inject constructor(
         )
     }
 
-    private fun JobApplication.toListRow(isSyncPending: Boolean): ApplicationListRow = ApplicationListRow(
-        id = id,
-        role = job.title,
-        company = job.company,
-        status = status,
-        coverage = gapAnalysis?.keywordCoverage ?: EMPTY_COVERAGE,
-        updatedAt = updatedAt,
-        isSyncPending = isSyncPending,
-    )
+    private fun JobApplication.toListRow(isSyncPending: Boolean, isExported: Boolean): ApplicationListRow =
+        ApplicationListRow(
+            id = id,
+            role = job.title,
+            company = job.company,
+            status = status,
+            coverage = gapAnalysis?.keywordCoverage ?: EMPTY_COVERAGE,
+            updatedAt = updatedAt,
+            isSyncPending = isSyncPending,
+            isExported = isExported,
+        )
 
     private companion object {
         val EMPTY_COVERAGE = KeywordCoverage(covered = 0, total = 0)
