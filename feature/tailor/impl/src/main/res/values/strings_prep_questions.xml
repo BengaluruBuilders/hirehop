@@ -7,7 +7,10 @@
     <string name="feature_tailor_impl_prep_questions_step_match">Matching questions to your facts</string>
     <string name="feature_tailor_impl_prep_questions_step_gaps">Writing honest answers for your gaps</string>
     <string name="feature_tailor_impl_prep_questions_footnote">You can leave this screen. Your questions will be here.</string>
-    <string name="feature_tailor_impl_prep_questions_count_label">questions</string>
+    <plurals name="feature_tailor_impl_prep_questions_count_label">
+        <item quantity="one">question</item>
+        <item quantity="other">questions</item>
+    </plurals>
     <string name="feature_tailor_impl_prep_questions_intro">Likely questions for this JD, each tied to your facts. Practise out loud; nothing here is recorded or scored.</string>
     <string name="feature_tailor_impl_prep_questions_group_facts">From your facts</string>
     <string name="feature_tailor_impl_prep_questions_group_gaps">Your gaps</string>

@@ -118,6 +118,18 @@ class BulletReviewScreenshotTest {
     }
 
     @Test
+    fun editByHand_blankShowsTheRequiredMessage() = captureSheet("BulletReviewEditByHandBlank", ReviewFixtures.state()) {
+        EditByHandContent(
+            position = 1,
+            text = "",
+            onTextChange = {},
+            onCancel = {},
+            onSave = {},
+            showsError = true,
+        )
+    }
+
+    @Test
     fun sourceFact_showsTheFactBehindTheLine() = captureSheet("BulletReviewSourceFact", ReviewFixtures.partlyReviewed()) {
         SourceFactSheetContent(
             sources = ReviewFixtures.change(ReviewFixtures.partlyReviewed(), ReviewFixtures.ORDERS).sources,

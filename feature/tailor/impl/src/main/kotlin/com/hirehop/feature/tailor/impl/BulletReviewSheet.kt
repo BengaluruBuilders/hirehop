@@ -409,6 +409,7 @@ internal fun EditByHandContent(
     onCancel: () -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
+    showsError: Boolean = false,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
         Text(
@@ -422,6 +423,7 @@ internal fun EditByHandContent(
             label = stringResource(R.string.feature_tailor_impl_edit_sheet_label),
             singleLine = false,
             minLines = 3,
+            errorText = if (showsError) stringResource(R.string.feature_tailor_impl_edit_sheet_error_required) else null,
             modifier = Modifier.fillMaxWidth(),
         )
         NoticeStrip(text = stringResource(R.string.feature_tailor_impl_edit_sheet_note), icon = HhIcons.Verified)
@@ -434,7 +436,6 @@ internal fun EditByHandContent(
             HhPrimaryButton(
                 label = stringResource(R.string.feature_tailor_impl_edit_sheet_save),
                 onClick = onSave,
-                enabled = text.isNotBlank(),
                 modifier = Modifier.weight(1f),
             )
         }
