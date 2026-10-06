@@ -1,35 +1,32 @@
 package com.hirehop.feature.tailor.impl.export.docx
 
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeEntry
 import com.hirehop.feature.tailor.impl.document.ResumeSection
-import kotlin.math.roundToInt
 
 internal object DocxDocumentXml {
 
     fun build(document: ResumeDocument): String = buildString {
         append(DocxXml.DECLARATION)
         append("<w:document xmlns:w=\"").append(DocxXml.WORD_NAMESPACE).append("\"><w:body>")
-        append(DocxLayout(document.template).body(document))
+        append(DocxLayout().body(document))
         append(SECTION_PROPERTIES)
         append("</w:body></w:document>")
     }
 
-    private class DocxLayout(template: ExportTemplate) {
-        private val textScale = template.textScale
-        private val tight = scaled(TIGHT, template)
-        private val bulletGap = scaled(BULLET_GAP, template)
-        private val ruleGap = scaled(RULE_GAP, template)
-        private val entryGap = scaled(ENTRY_GAP, template)
-        private val sectionGap = scaled(SECTION_GAP, template)
-        private val name = DocxTextStyle.NAME.scaled(textScale)
-        private val contact = DocxTextStyle.CONTACT.scaled(textScale)
-        private val headline = DocxTextStyle.HEADLINE.scaled(textScale)
-        private val sectionHeading = DocxTextStyle.SECTION_HEADING.scaled(textScale)
-        private val entryTitle = DocxTextStyle.ENTRY_TITLE.scaled(textScale)
-        private val entryDetail = DocxTextStyle.ENTRY_DETAIL.scaled(textScale)
-        private val bodyStyle = DocxTextStyle.BODY.scaled(textScale)
+    private class DocxLayout {
+        private val tight = TIGHT
+        private val bulletGap = BULLET_GAP
+        private val ruleGap = RULE_GAP
+        private val entryGap = ENTRY_GAP
+        private val sectionGap = SECTION_GAP
+        private val name = DocxTextStyle.NAME
+        private val contact = DocxTextStyle.CONTACT
+        private val headline = DocxTextStyle.HEADLINE
+        private val sectionHeading = DocxTextStyle.SECTION_HEADING
+        private val entryTitle = DocxTextStyle.ENTRY_TITLE
+        private val entryDetail = DocxTextStyle.ENTRY_DETAIL
+        private val bodyStyle = DocxTextStyle.BODY
 
         fun body(document: ResumeDocument): String = buildString {
             document.name.writeParagraph(this, name, after = tight)
@@ -107,8 +104,6 @@ internal object DocxDocumentXml {
         DocxXml.appendRunWithBreaks(out, this)
         out.append("</w:r></w:p>")
     }
-
-    private fun scaled(points: Int, template: ExportTemplate): Int = (points * template.spaceScale).roundToInt()
 
     private const val BULLET_MARKER = "•"
     private const val BULLET_INDENT = 280

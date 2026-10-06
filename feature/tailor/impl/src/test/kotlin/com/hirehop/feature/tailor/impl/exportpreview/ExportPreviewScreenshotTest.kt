@@ -9,7 +9,6 @@ import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.HhTestDevices
 import com.hirehop.core.screenshot.captureMultiTheme
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -118,11 +117,6 @@ class ExportPreviewScreenshotTest {
     }
 
     @Test
-    fun compactTemplate_keepsTheWordsAndTightensTheSpace() {
-        capture("ExportPreviewCompact", readyState().copy(template = ExportTemplate.COMPACT))
-    }
-
-    @Test
     fun docxSelected_namesTheDocxFile() {
         capture(
             "ExportPreviewDocx",
@@ -195,7 +189,6 @@ private fun ExportPreviewHost(
             uiState = uiState,
             actions = ExportPreviewActions(
                 onSelectFormat = {},
-                onSelectTemplate = {},
                 onExport = {},
                 onRetry = {},
                 onNavigateBack = {},

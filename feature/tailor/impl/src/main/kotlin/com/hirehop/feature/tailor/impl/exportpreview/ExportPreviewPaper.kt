@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.em
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhPaperColors
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 
 private const val PAPER_NAME_SIZE = 13f
 private const val PAPER_BODY_SIZE = 7.6f
@@ -38,11 +37,10 @@ private const val DETAIL_SEPARATOR = " · "
 @Composable
 internal fun ExportPaper(
     sheet: ExportPreviewSheet,
-    template: ExportTemplate,
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
 ) {
-    val metrics = PaperMetrics(template = template)
+    val metrics = PaperMetrics()
     Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
         Text(text = sheet.name, style = metrics.name(), color = HhPaperColors.Ink)
         Spacer(Modifier.height(metrics.rowGap))
@@ -84,11 +82,10 @@ private fun PaperHeading(text: String, metrics: PaperMetrics) {
     }
 }
 
-private class PaperMetrics(template: ExportTemplate) {
-    private val textScale = template.textScale
-    val rowGap: Dp = (PAPER_ROW_GAP * template.spaceScale).dp
-    val headingTop: Dp = (PAPER_HEADING_TOP * template.spaceScale).dp
-    val headingBottom: Dp = (PAPER_HEADING_BOTTOM * template.spaceScale).dp
+private class PaperMetrics {
+    val rowGap: Dp = PAPER_ROW_GAP.dp
+    val headingTop: Dp = PAPER_HEADING_TOP.dp
+    val headingBottom: Dp = PAPER_HEADING_BOTTOM.dp
 
     @Composable
     fun name(): TextStyle = style(size = PAPER_NAME_SIZE, weight = FontWeight.Bold)
@@ -104,8 +101,8 @@ private class PaperMetrics(template: ExportTemplate) {
     @Composable
     private fun style(size: Float, weight: FontWeight): TextStyle {
         val density = LocalDensity.current
-        val fontSize = with(density) { (size * textScale).dp.toSp() }
-        val lineHeight = with(density) { (size * textScale * PAPER_LINE_RATIO).dp.toSp() }
+        val fontSize = with(density) { size.dp.toSp() }
+        val lineHeight = with(density) { (size * PAPER_LINE_RATIO).dp.toSp() }
         return HhTheme.typography.bodyM.copy(fontSize = fontSize, lineHeight = lineHeight, fontWeight = weight)
     }
 }

@@ -2,7 +2,6 @@ package com.hirehop.feature.tailor.impl.exportpreview
 
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.ExportFormat
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 
 internal enum class ExportPreviewStage {
@@ -44,7 +43,6 @@ internal sealed interface ExportPreviewNavigation {
 internal data class ExportPreviewUiState(
     val stage: ExportPreviewStage = ExportPreviewStage.RENDERING,
     val format: ExportFormat = ExportFormat.PDF,
-    val template: ExportTemplate = ExportTemplate.PLAIN,
     val jobTitle: String = "",
     val jobCompany: String = "",
     val sheet: ExportPreviewSheet? = null,

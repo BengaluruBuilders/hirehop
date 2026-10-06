@@ -16,7 +16,6 @@ import com.hirehop.core.testing.repository.TestProfileRepository
 import com.hirehop.core.testing.util.MainDispatcherRule
 import com.hirehop.core.testing.util.TestClock
 import com.hirehop.feature.tailor.api.navigation.ExportPreviewNavKey
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.document.ResumeDocument
 import com.hirehop.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.hirehop.feature.tailor.impl.document.TestResumeHeadings
@@ -211,17 +210,10 @@ class ExportPreviewViewModelTest {
     }
 
     @Test
-    fun selectTemplate_keepsTheWordsAndPassesTheTemplateToTheRenderer() = runTest {
-        given()
-        enter()
-        val before = viewModel.uiState.value.sheet
+    fun theActionsOfferNoTemplateChoice() {
+        val actionNames = ExportPreviewAction::class.java.declaredClasses.map { it.simpleName }
 
-        viewModel.onAction(ExportPreviewAction.SelectTemplate(ExportTemplate.COMPACT))
-        viewModel.onAction(ExportPreviewAction.Export)
-
-        assertThat(viewModel.uiState.value.template).isEqualTo(ExportTemplate.COMPACT)
-        assertThat(viewModel.uiState.value.sheet).isEqualTo(before)
-        assertThat(pdfRenderer.lastDocument?.template).isEqualTo(ExportTemplate.COMPACT)
+        assertThat(actionNames).containsExactly("SelectFormat", "Export", "RetryPreview", "NavigationHandled")
     }
 
     @Test
@@ -257,13 +249,11 @@ class ExportPreviewViewModelTest {
         given()
         pdfRenderer.pageCount = 2
         enter()
-        viewModel.onAction(ExportPreviewAction.SelectTemplate(ExportTemplate.COMPACT))
-
         viewModel.onAction(ExportPreviewAction.Export)
 
         val record = exportHistory.observeExports(APPLICATION_ID).first().single()
         assertThat(record.pageCount).isEqualTo(2)
-        assertThat(record.templateName).isEqualTo("Compact")
+        assertThat(record.templateName).isEqualTo("Plain")
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,7 +32,6 @@ import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ExportFormat
 import com.hirehop.feature.tailor.impl.R
-import com.hirehop.feature.tailor.impl.document.ExportTemplate
 import com.hirehop.feature.tailor.impl.jobLine
 
 @Composable
@@ -101,12 +99,11 @@ private fun ExportPreviewBody(
     uiState: ExportPreviewUiState,
     actions: ExportPreviewActions,
 ) {
-    val templateLabel = uiState.template.label()
     when (uiState.stage) {
         ExportPreviewStage.RENDERING -> HhStepProgress(
             modifier = Modifier.fillMaxWidth(),
             stepNames = listOf(
-                stringResource(R.string.feature_tailor_impl_export_preview_step_setting, templateLabel),
+                stringResource(R.string.feature_tailor_impl_export_preview_step_setting),
                 stringResource(R.string.feature_tailor_impl_export_preview_step_checking),
             ),
             currentStepIndex = 0,
@@ -118,7 +115,7 @@ private fun ExportPreviewBody(
         ExportPreviewStage.EXPORTING -> HhStepProgress(
             modifier = Modifier.fillMaxWidth(),
             stepNames = listOf(
-                stringResource(R.string.feature_tailor_impl_export_preview_step_setting, templateLabel),
+                stringResource(R.string.feature_tailor_impl_export_preview_step_setting),
                 stringResource(R.string.feature_tailor_impl_export_preview_step_making, uiState.format.label()),
                 stringResource(R.string.feature_tailor_impl_export_preview_step_saving),
             ),
@@ -140,7 +137,7 @@ private fun ExportPreviewBody(
         -> ExportPreviewMessage(
             kind = HhSpotKind.Error,
             title = stringResource(R.string.feature_tailor_impl_export_preview_error_title),
-            body = stringResource(R.string.feature_tailor_impl_export_preview_error_body, templateLabel),
+            body = stringResource(R.string.feature_tailor_impl_export_preview_error_body),
         )
 
         ExportPreviewStage.NO_DOCUMENT -> ExportPreviewMessage(
@@ -160,22 +157,12 @@ private fun ExportPreviewReady(
         message = stringResource(R.string.feature_tailor_impl_export_preview_offline_banner),
         visible = uiState.isOffline,
     )
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.xs + HhTheme.spacing.xxs)) {
-        ExportOptionRow(
-            options = ExportTemplate.entries,
-            selected = uiState.template,
-            labelOf = { template -> template.label() },
-            onSelect = actions.onSelectTemplate,
-            groupDescription = stringResource(R.string.feature_tailor_impl_export_preview_template_group),
-        )
-    }
     val sheet = uiState.sheet
     if (sheet != null) {
         val paperScroll = rememberScrollState()
         HhExportPreviewFrame(
             meta = stringResource(
                 R.string.feature_tailor_impl_export_preview_paper_meta,
-                uiState.template.label(),
                 uiState.format.label(),
             ),
             caption = stringResource(
@@ -186,13 +173,7 @@ private fun ExportPreviewReady(
                 },
             ),
         ) {
-            Crossfade(
-                targetState = uiState.template,
-                animationSpec = HhTheme.motion.proofSpecs.fade,
-                label = "exportPreviewTemplate",
-            ) { template ->
-                ExportPaper(sheet = sheet, template = template, scrollState = paperScroll)
-            }
+            ExportPaper(sheet = sheet, scrollState = paperScroll)
         }
     }
     HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.gutter)) {
@@ -330,15 +311,6 @@ private fun exportPreviewCreditLine(uiState: ExportPreviewUiState): String = whe
         uiState.purchasedCredits,
     )
 }
-
-@Composable
-private fun ExportTemplate.label(): String = stringResource(
-    when (this) {
-        ExportTemplate.PLAIN -> R.string.feature_tailor_impl_export_preview_template_plain
-        ExportTemplate.COMPACT -> R.string.feature_tailor_impl_export_preview_template_compact
-        ExportTemplate.SPACIOUS -> R.string.feature_tailor_impl_export_preview_template_spacious
-    },
-)
 
 @Composable
 private fun ExportFormat.label(): String = stringResource(

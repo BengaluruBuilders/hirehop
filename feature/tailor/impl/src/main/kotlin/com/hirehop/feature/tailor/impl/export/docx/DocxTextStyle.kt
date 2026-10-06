@@ -1,14 +1,10 @@
 package com.hirehop.feature.tailor.impl.export.docx
 
-import kotlin.math.roundToInt
-
 internal data class DocxTextStyle(
     val sizeHalfPoints: Int,
     val bold: Boolean = false,
     val color: String = INK,
 ) {
-    fun scaled(factor: Float): DocxTextStyle = copy(sizeHalfPoints = (sizeHalfPoints * factor).roundToInt())
-
     fun runProperties(): String = buildString {
         append(RUN_PROPERTIES_OPEN)
         if (bold) append(BOLD)

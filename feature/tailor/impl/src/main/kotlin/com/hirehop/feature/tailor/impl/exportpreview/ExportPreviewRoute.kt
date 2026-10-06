@@ -40,7 +40,6 @@ private fun ExportPreviewViewModel.toActions(
     onBuyCredits: () -> Unit,
 ): ExportPreviewActions = ExportPreviewActions(
     onSelectFormat = { format -> onAction(ExportPreviewAction.SelectFormat(format)) },
-    onSelectTemplate = { template -> onAction(ExportPreviewAction.SelectTemplate(template)) },
     onExport = { onAction(ExportPreviewAction.Export) },
     onRetry = { onAction(ExportPreviewAction.RetryPreview) },
     onNavigateBack = onNavigateBack,
