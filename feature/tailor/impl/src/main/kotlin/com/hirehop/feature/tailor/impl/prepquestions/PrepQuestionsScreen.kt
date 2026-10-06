@@ -11,20 +11,26 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -34,18 +40,25 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhEvidenceText
-import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhInkButton
 import com.hirehop.core.designsystem.component.HhInnerHeader
+import com.hirehop.core.designsystem.component.HhMonogram
+import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOnColorChip
+import com.hirehop.core.designsystem.component.HhOnColorChipStyle
+import com.hirehop.core.designsystem.component.HhPillRow
+import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhSpotKind
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
-import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhToastHost
 import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
@@ -53,13 +66,13 @@ import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.FactSource
-import com.hirehop.feature.tailor.impl.NoticeStrip
 import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.SourceFactSheetContent
 import com.hirehop.feature.tailor.impl.StatusCard
 import com.hirehop.feature.tailor.impl.TailoredBulletSource
 import com.hirehop.feature.tailor.impl.coverletter.CoverLetterFactRef
 import com.hirehop.feature.tailor.impl.jobLine
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +82,8 @@ internal fun PrepQuestionsScreen(
     modifier: Modifier = Modifier,
 ) {
     var openCard by remember { mutableStateOf<PrepQuestionCard?>(null) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     val toastState = rememberHhToastState()
     val message = uiState.message
     val messageText = message?.let { stringResource(R.string.feature_tailor_impl_report_thanks) }
@@ -80,18 +95,12 @@ internal fun PrepQuestionsScreen(
     HhScreen(
         modifier = modifier,
         sheet = false,
-        header = {
-            HhInnerHeader(
-                title = stringResource(R.string.feature_tailor_impl_prep_questions_title),
-                subtitle = uiState.subtitle(),
-                onBack = actions.onNavigateBack,
-                backContentDescription = stringResource(R.string.feature_tailor_impl_prep_questions_back),
-            )
-        },
+        header = { PrepQuestionsHeader(uiState, actions) },
         bottomBar = prepQuestionsBottomBar(uiState, actions),
         snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = HhTheme.spacing.gutter,
@@ -101,7 +110,7 @@ internal fun PrepQuestionsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
         ) {
-            prepItems(uiState, actions) { openCard = it }
+            prepItems(uiState, actions, listState, scope) { openCard = it }
         }
     }
     openCard?.let { card ->
@@ -125,10 +134,91 @@ internal fun PrepQuestionsScreen(
     }
 }
 
+@Composable
+private fun PrepQuestionsHeader(
+    uiState: PrepQuestionsUiState,
+    actions: PrepQuestionsActions,
+) {
+    HhInnerHeader(
+        title = uiState.jobTitle.ifBlank {
+            stringResource(R.string.feature_tailor_impl_role_not_set)
+        },
+        subtitle = uiState.subtitle(),
+        onBack = actions.onNavigateBack,
+        backContentDescription = stringResource(R.string.feature_tailor_impl_prep_questions_back),
+        trailing = {
+            Row(
+                modifier = Modifier
+                    .clip(HhTheme.shapes.pill)
+                    .background(HhTheme.colors.inverseSurface)
+                    .defaultMinSize(minHeight = HhTheme.spacing.d32)
+                    .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_tailor_impl_prep_questions_title),
+                    style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+                    color = HhTheme.colors.inverseOnSurface,
+                )
+            }
+        },
+        belowTitle = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            ) {
+                HhMonogram(
+                    text = uiState.jobCompany.ifBlank {
+                        stringResource(R.string.feature_tailor_impl_company_not_set)
+                    },
+                )
+                if (uiState.stage == PrepQuestionsStage.READY) {
+                    ReadyHeaderChips(uiState)
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun ReadyHeaderChips(uiState: PrepQuestionsUiState) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        HhOnColorChip(
+            label = stringResource(R.string.feature_tailor_impl_prep_questions_count_header, uiState.questionCount),
+            style = HhOnColorChipStyle.White,
+            accent = HhAccent.Jade,
+        )
+        if (uiState.gapCards.isNotEmpty()) {
+            HhOnColorChip(
+                label = stringResource(
+                    R.string.feature_tailor_impl_prep_questions_gaps_header,
+                    uiState.gapCards.size,
+                ),
+                style = HhOnColorChipStyle.White,
+                accent = HhAccent.Jade,
+            )
+        }
+    }
+}
+
 private fun prepQuestionsBottomBar(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
 ): (@Composable () -> Unit)? = when (uiState.stage) {
+    PrepQuestionsStage.GENERATING -> {
+        {
+            HhBottomActionBar {
+                HhInkButton(
+                    label = stringResource(R.string.feature_tailor_impl_prep_questions_notify),
+                    onClick = actions.onNavigateBack,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
     PrepQuestionsStage.ERROR -> {
         {
             HhBottomActionBar {
@@ -170,30 +260,34 @@ private fun CoverLetterFactRef.asSource(): TailoredBulletSource = TailoredBullet
 @Composable
 private fun PrepQuestionsUiState.subtitle(): String? = jobLine(jobTitle, jobCompany)
 
+private fun PrepQuestionsUiState.gapsListIndex(showOffline: Boolean): Int =
+    (if (showOffline) 1 else 0) + (if (gapCards.isEmpty()) 0 else 1) + factCards.size
+
 private fun LazyListScope.prepItems(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    scope: kotlinx.coroutines.CoroutineScope,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
-    if (uiState.isOffline && uiState.stage != PrepQuestionsStage.GENERATING) {
+    val showOffline = uiState.isOffline && uiState.stage != PrepQuestionsStage.GENERATING
+    if (showOffline) {
         item(key = "offline") {
-            NoticeStrip(text = stringResource(R.string.feature_tailor_impl_prep_questions_offline), icon = HhIcons.Offline)
+            HhOfflineBanner(message = stringResource(R.string.feature_tailor_impl_prep_questions_offline))
         }
     }
     when (uiState.stage) {
-        PrepQuestionsStage.GENERATING -> item(key = "generating") {
-            HhStepProgress(
-                stepNames = listOf(
-                    stringResource(R.string.feature_tailor_impl_prep_questions_step_read),
-                    stringResource(R.string.feature_tailor_impl_prep_questions_step_match),
-                    stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps),
-                ),
-                currentStepIndex = 1,
-                ordinalLabel = stringResource(R.string.feature_tailor_impl_prep_questions_caption),
-                footnote = stringResource(R.string.feature_tailor_impl_prep_questions_footnote),
-            )
+        PrepQuestionsStage.GENERATING -> {
+            item(key = "loading-title") {
+                Text(
+                    text = stringResource(R.string.feature_tailor_impl_prep_questions_loading_title),
+                    style = HhTheme.typography.headlineM,
+                    color = HhTheme.colors.onSurface,
+                )
+            }
+            item(key = "loading-steps") { GeneratingSteps() }
         }
-        PrepQuestionsStage.READY -> readyItems(uiState, actions, onFact)
+        PrepQuestionsStage.READY -> readyItems(uiState, actions, showOffline, listState, scope, onFact)
         PrepQuestionsStage.EMPTY_ANALYSIS -> item(key = "empty-analysis") {
             StatusCard(
                 kind = HhSpotKind.Empty,
@@ -218,66 +312,73 @@ private fun LazyListScope.prepItems(
     }
 }
 
+@Composable
+private fun GeneratingSteps() {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2)) {
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_read),
+            subtitle = stringResource(R.string.feature_tailor_impl_status_done),
+            onClick = {},
+            style = HhPillRowStyle.Jade,
+            icon = HhIcons.Check,
+            trailingIcon = null,
+        )
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_match),
+            subtitle = stringResource(R.string.feature_tailor_impl_status_in_progress),
+            onClick = {},
+            style = HhPillRowStyle.Marigold,
+            icon = HhIcons.Clock,
+            trailingIcon = null,
+        )
+        HhPillRow(
+            title = stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps),
+            subtitle = stringResource(R.string.feature_tailor_impl_status_up_next),
+            onClick = {},
+            style = HhPillRowStyle.Neutral,
+            trailingIcon = null,
+        )
+    }
+}
+
 private fun LazyListScope.readyItems(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
+    showOffline: Boolean,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    scope: kotlinx.coroutines.CoroutineScope,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
-    item(key = "summary") { SummaryCard(uiState.questionCount) }
-    if (uiState.factCards.isNotEmpty()) {
-        item(key = "facts-heading") {
-            GroupHeading(stringResource(R.string.feature_tailor_impl_prep_questions_group_facts))
-        }
-        items(uiState.factCards.size, key = { uiState.factCards[it].id }) { index ->
-            val card = uiState.factCards[index]
-            QuestionCard(card, marked = !uiState.isOffline, isReported = card.id in uiState.reportedIds, actions = actions, onFact = onFact)
-        }
-    }
     if (uiState.gapCards.isNotEmpty()) {
-        item(key = "gaps-heading") {
-            GroupHeading(stringResource(R.string.feature_tailor_impl_prep_questions_group_gaps))
-        }
-        items(uiState.gapCards.size, key = { uiState.gapCards[it].id }) { index ->
-            GapCard(uiState.gapCards[index], isReported = uiState.gapCards[index].id in uiState.reportedIds, actions = actions, onFact = onFact)
-        }
-    }
-}
-
-@Composable
-private fun SummaryCard(count: Int) {
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding)) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-            Row(
-                modifier = Modifier.semantics(mergeDescendants = true) {
-                    contentDescription = ""
-                },
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Text(text = count.toString(), style = HhTheme.typography.numeralM, color = HhTheme.colors.onSurface)
-                Text(
-                    text = pluralStringResource(R.plurals.feature_tailor_impl_prep_questions_count_label, count),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.onSurfaceVariant,
-                )
-            }
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_prep_questions_intro),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
+        item(key = "gaps-row") {
+            HhPillRow(
+                title = stringResource(R.string.feature_tailor_impl_prep_questions_group_gaps),
+                subtitle = stringResource(R.string.feature_tailor_impl_prep_questions_gaps_subtitle),
+                onClick = { scope.launch { listState.animateScrollToItem(uiState.gapsListIndex(showOffline)) } },
+                style = HhPillRowStyle.Marigold,
+                trailingIcon = HhIcons.ArrowForward,
             )
         }
     }
-}
-
-@Composable
-private fun GroupHeading(text: String) {
-    Text(
-        text = text,
-        style = HhTheme.typography.titleS,
-        color = HhTheme.colors.onSurfaceVariant,
-        modifier = Modifier.padding(top = HhTheme.spacing.sm),
-    )
+    items(uiState.factCards.size, key = { uiState.factCards[it].id }) { index ->
+        val card = uiState.factCards[index]
+        QuestionCard(
+            card = card,
+            marked = !uiState.isOffline,
+            isReported = card.id in uiState.reportedIds,
+            actions = actions,
+            onFact = onFact,
+        )
+    }
+    items(uiState.gapCards.size, key = { uiState.gapCards[it].id }) { index ->
+        val card = uiState.gapCards[index]
+        GapCard(
+            card = card,
+            isReported = card.id in uiState.reportedIds,
+            actions = actions,
+            onFact = onFact,
+        )
+    }
 }
 
 @Composable
@@ -289,25 +390,40 @@ private fun QuestionCard(
     onFact: (PrepQuestionCard) -> Unit,
 ) {
     HhCard {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_prep_questions_ordinal, card.ordinal),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            Text(text = card.prompt, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
-            HhEvidenceText(
-                text = whyText(card.requirementText, marked, evidenceMarkSpanStyle()),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.body,
-            )
-            FactsRow(card, onFact)
-            ReportButton(
-                description = stringResource(R.string.feature_tailor_impl_prep_questions_report_description, card.ordinal),
-                isReported = isReported,
-                onClick = { actions.onReportInaccurate(card.id) },
-            )
-        }
+        QuestionNumber(card.ordinal)
+        Text(text = card.prompt, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+        HhEvidenceText(
+            text = whyText(card.requirementText, marked, evidenceMarkSpanStyle()),
+            style = HhTheme.typography.bodyM,
+            color = HhTheme.colors.body,
+        )
+        FactsRow(card, onFact)
+        ReportButton(
+            description = stringResource(R.string.feature_tailor_impl_prep_questions_report_description, card.ordinal),
+            isReported = isReported,
+            onClick = { actions.onReportInaccurate(card.id) },
+        )
+    }
+}
+
+@Composable
+private fun QuestionNumber(ordinal: Int) {
+    val colors = HhTheme.colors
+    val fill = when (ordinal % 3) {
+        1 -> colors.brand
+        2 -> colors.coral
+        else -> colors.special
+    }
+    val content = if (ordinal % 3 == 0) colors.onSpecial else colors.onBrand
+    Box(
+        modifier = Modifier.size(HhTheme.spacing.d32).background(fill, HhTheme.shapes.pill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = ordinal.toString(),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+            color = content,
+        )
     }
 }
 
@@ -329,31 +445,46 @@ private fun whyText(requirement: String, marked: Boolean, style: SpanStyle): Ann
 private fun FactsRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
     val fact = card.fact ?: return
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(R.string.feature_tailor_impl_prep_questions_facts_label),
             style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
+            color = HhTheme.colors.brand,
         )
-        val description = stringResource(R.string.feature_tailor_impl_prep_questions_fact_description, fact.displayId)
-        Box(
-            modifier = Modifier
-                .defaultMinSize(minHeight = HhTheme.spacing.touch)
-                .clickable(role = Role.Button) { onFact(card) }
-                .semantics { contentDescription = description },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = fact.displayId,
-                style = HhTheme.typography.factId,
-                color = HhTheme.colors.onSurface,
-                modifier = Modifier
-                    .background(HhTheme.colors.evidence, HhTheme.shapes.pill)
-                    .padding(horizontal = HhTheme.spacing.md - HhTheme.spacing.d2, vertical = HhTheme.spacing.xs + HhTheme.spacing.xxs),
-            )
-        }
+        FactChip(id = fact.displayId, card = card, onFact = onFact)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GapBridgeRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
+    val fact = card.fact ?: return
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_prep_questions_bridge),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.brand,
+        )
+        FactChip(id = fact.displayId, card = card, onFact = onFact)
+    }
+}
+
+@Composable
+private fun FactChip(id: String, card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
+    val description = stringResource(R.string.feature_tailor_impl_prep_questions_fact_description, id)
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = HhTheme.spacing.touch)
+            .clickable(role = Role.Button) { onFact(card) }
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        HhFactId(id = id)
     }
 }
 
@@ -364,29 +495,89 @@ private fun GapCard(
     actions: PrepQuestionsActions,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
-    HhCard {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HhStatusChip(
-                    kind = HhStatusKind.Gap,
-                    label = stringResource(R.string.feature_tailor_impl_prep_questions_to_prepare),
-                )
-                Text(text = card.requirementText, style = HhTheme.typography.titleS, color = HhTheme.colors.onSurface)
-            }
-            Text(text = card.prompt, style = HhTheme.typography.bodyM, color = HhTheme.colors.body)
-            FactsRow(card, onFact)
-            ReportButton(
-                description = stringResource(
-                    R.string.feature_tailor_impl_prep_questions_report_gap_description,
-                    card.requirementText,
-                ),
-                isReported = isReported,
-                onClick = { actions.onReportInaccurate(card.id) },
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(HhTheme.shapes.card)
+            .background(HhTheme.colors.special)
+            .padding(HhTheme.spacing.cardPadding),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
+    ) {
+        HhStatusChip(kind = HhStatusKind.Gap, label = gapLabel(card))
+        Text(
+            text = card.requirementText,
+            style = HhTheme.typography.titleL,
+            color = HhTheme.colors.onSpecial,
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(HhTheme.shapes.field)
+                .background(HhTheme.colors.card)
+                .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2, vertical = HhTheme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+        ) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_prep_questions_honest_way),
+                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+            Text(
+                text = card.prompt,
+                style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
+                color = HhTheme.colors.onSurface,
+            )
+            GapBridgeRow(card, onFact)
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = HhIcons.Check,
+                contentDescription = null,
+                tint = HhTheme.colors.onSpecial,
+                modifier = Modifier.size(HhTheme.spacing.lg),
+            )
+            Text(
+                text = beforeInterviewText(card.requirementText),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSpecial,
             )
         }
+        HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_prep_questions_in_prep_plan), style = HhOnColorChipStyle.Ink)
+        HhInkButton(
+            label = stringResource(R.string.feature_tailor_impl_prep_questions_add_to_plan),
+            onClick = actions.onOpenPrepPlan,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ReportButton(
+            description = stringResource(
+                R.string.feature_tailor_impl_prep_questions_report_gap_description,
+                card.requirementText,
+            ),
+            isReported = isReported,
+            onClick = { actions.onReportInaccurate(card.id) },
+        )
+    }
+}
+
+@Composable
+private fun gapLabel(card: PrepQuestionCard): String = stringResource(
+    if (card.fact == null) {
+        R.string.feature_tailor_impl_prep_questions_gap_must_have
+    } else {
+        R.string.feature_tailor_impl_prep_questions_gap_nice_to_have
+    },
+)
+
+@Composable
+private fun beforeInterviewText(plan: String): AnnotatedString {
+    val prefix = stringResource(R.string.feature_tailor_impl_prep_questions_before_interview)
+    return buildAnnotatedString {
+        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) { append(prefix) }
+        append(" ")
+        append(plan)
     }
 }
 
@@ -399,6 +590,8 @@ private fun ReportButton(description: String, isReported: Boolean, onClick: () -
         onClick = onClick,
         enabled = !isReported,
         leadingIcon = HhIcons.Flag,
-        modifier = Modifier.semantics { contentDescription = description },
+        modifier = Modifier
+            .heightIn(min = HhTheme.spacing.touch)
+            .semantics { contentDescription = description },
     )
 }

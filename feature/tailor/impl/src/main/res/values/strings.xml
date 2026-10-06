@@ -7,7 +7,7 @@
     <string name="feature_tailor_impl_back">Back</string>
     <string name="feature_tailor_impl_not_found_title">We could not find this resume</string>
     <string name="feature_tailor_impl_not_found">We could not find this application or your profile.</string>
-    <string name="feature_tailor_impl_progress_value">%1$d of %2$d</string>
+    <string name="feature_tailor_impl_progress_value" tools:ignore="PluralsCandidate">%1$d of %2$d</string>
     <string name="feature_tailor_impl_no_changes">No lines changed. Every line comes from your facts.</string>
     <string name="feature_tailor_impl_changes_reviewed">changes reviewed</string>
     <string name="feature_tailor_impl_progress_description" tools:ignore="PluralsCandidate">%1$d of %2$d changes reviewed</string>
@@ -33,7 +33,7 @@
     <string name="feature_tailor_impl_state_flagged">Flagged · to review</string>
     <string name="feature_tailor_impl_state_accepted">Accepted</string>
     <string name="feature_tailor_impl_state_original_kept">Original kept</string>
-    <string name="feature_tailor_impl_state_user_edited">User-edited</string>
+    <string name="feature_tailor_impl_state_user_edited">Edited by you</string>
     <string name="feature_tailor_impl_state_source_changed">Source changed</string>
     <string name="feature_tailor_impl_line_description">%1$s. %2$s. Source %3$s. Opens the change.</string>
     <string name="feature_tailor_impl_source_description">Source %1$s</string>
@@ -44,7 +44,7 @@
     </plurals>
     <string name="feature_tailor_impl_preview_export">Preview export</string>
     <string name="feature_tailor_impl_offline_message">You\'re offline. You can review this saved result. Your decisions sync when you\'re back.</string>
-    <string name="feature_tailor_impl_regenerations_used">You\'ve used both included regenerations for this application. You can still edit any line by hand.</string>
+    <string name="feature_tailor_impl_regenerations_used">You\'ve used both free regenerations for this application. You can still accept, keep the original or edit any line by hand.</string>
     <string name="feature_tailor_impl_section_options">%1$s section options</string>
     <string name="feature_tailor_impl_menu_regenerate">Regenerate this section</string>
     <string name="feature_tailor_impl_menu_regenerate_left" tools:ignore="PluralsCandidate">%1$d of %2$d included left</string>
@@ -56,21 +56,51 @@
         <item quantity="one">This uses %2$d of your %3$d included regenerations for this application. The %1$d line in this section goes back to “To review”. Your facts don’t change.</item>
         <item quantity="other">This uses %2$d of your %3$d included regenerations for this application. The %1$d lines in this section go back to “To review”. Your facts don’t change.</item>
     </plurals>
-    <string name="feature_tailor_impl_regenerate_confirm">Regenerate · uses %1$d of %2$d</string>
+    <string name="feature_tailor_impl_regenerate_confirm" tools:ignore="PluralsCandidate">Regenerate, use %1$d of %2$d</string>
     <string name="feature_tailor_impl_regenerate_cancel">Keep this section</string>
     <string name="feature_tailor_impl_report_thanks">Thanks. We will check this.</string>
     <string name="feature_tailor_impl_loading_caption">Up to 60 seconds · runs in the background</string>
-    <string name="feature_tailor_impl_loading_step_pick">Picking your facts for this JD</string>
+    <string name="feature_tailor_impl_loading_step_pick">Matching facts to must-haves</string>
     <string name="feature_tailor_impl_loading_step_pick_detail" tools:ignore="PluralsCandidate">%1$d facts match this JD</string>
-    <string name="feature_tailor_impl_loading_step_write">Rewriting for this JD</string>
+    <string name="feature_tailor_impl_loading_step_write">Rewriting lines from your facts</string>
     <string name="feature_tailor_impl_loading_step_write_detail" tools:ignore="PluralsCandidate">%1$d lines so far</string>
-    <string name="feature_tailor_impl_loading_step_check">Checking every line</string>
+    <string name="feature_tailor_impl_loading_step_check">Checking each line against its fact</string>
     <string name="feature_tailor_impl_loading_footnote">You can leave. Your result will be here when you come back.</string>
-    <string name="feature_tailor_impl_loading_leave">Leave · I\'ll come back</string>
-    <string name="feature_tailor_impl_failed_title">That did not work</string>
-    <string name="feature_tailor_impl_failed_body">We couldn’t finish. Your profile and analysis are safe. Try again.</string>
+    <string name="feature_tailor_impl_loading_leave">Back to Applications</string>
+    <string name="feature_tailor_impl_failed_title">Tailoring stopped partway</string>
+    <string name="feature_tailor_impl_failed_body">Something went wrong on our side. Your facts and job post are safe, and this didn\'t use one of your regenerations.</string>
     <string name="feature_tailor_impl_failed_back">Back to analysis</string>
     <string name="feature_tailor_impl_failed_retry">Try again</string>
     <string name="feature_tailor_impl_toast_accepted" tools:ignore="PluralsCandidate">Change %1$d accepted and filed</string>
     <string name="feature_tailor_impl_toast_undo">Undo</string>
+    <string name="feature_tailor_impl_loading_title">Tailoring your resume</string>
+    <string name="feature_tailor_impl_status_done">Done</string>
+    <string name="feature_tailor_impl_status_in_progress">In progress</string>
+    <string name="feature_tailor_impl_status_up_next">Up next</string>
+    <string name="feature_tailor_impl_loading_notice_title">You don\'t have to wait here</string>
+    <string name="feature_tailor_impl_loading_notice_body">This runs in the background. We\'ll notify you when your resume is ready to review.</string>
+    <string name="feature_tailor_impl_title_review_draft_2nd">Tailored resume · 2nd draft</string>
+    <string name="feature_tailor_impl_title_review_draft_3rd">Tailored resume · 3rd draft</string>
+    <string name="feature_tailor_impl_failed_chip">Couldn\'t finish</string>
+    <string name="feature_tailor_impl_ready_hint">Tap a changed line to see what changed and the fact behind it.</string>
+    <string name="feature_tailor_impl_left_out_label">Left out on purpose:</string>
+    <string name="feature_tailor_impl_left_out_body">%1$s. Gaps go in your prep plan, never in your resume.</string>
+    <plurals name="feature_tailor_impl_section_changes">
+        <item quantity="one">%1$d change</item>
+        <item quantity="other">%1$d changes</item>
+    </plurals>
+    <string name="feature_tailor_impl_section_left" tools:ignore="PluralsCandidate">%1$d left</string>
+    <string name="feature_tailor_impl_section_reviewed">Reviewed</string>
+    <string name="feature_tailor_impl_chip_changed">Changed</string>
+    <string name="feature_tailor_impl_chip_verb_kept">Verb kept</string>
+    <string name="feature_tailor_impl_all_reviewed_title" tools:ignore="PluralsCandidate">All %1$d changes reviewed</string>
+    <string name="feature_tailor_impl_all_reviewed_summary" tools:ignore="PluralsCandidate">%1$d accepted · %2$d original kept · %3$d edited by you</string>
+    <string name="feature_tailor_impl_all_reviewed_done">Done</string>
+    <string name="feature_tailor_impl_regen_left_title" tools:ignore="PluralsCandidate">%1$d free regenerations left</string>
+    <string name="feature_tailor_impl_regen_left_one">1 free regeneration left</string>
+    <string name="feature_tailor_impl_regen_left_subtitle">For this application only</string>
+    <string name="feature_tailor_impl_regen_cancel_description">Cancel</string>
+    <string name="feature_tailor_impl_regen_open_description" tools:ignore="PluralsCandidate">Regenerate, %1$d free left</string>
+    <string name="feature_tailor_impl_regen_used_title">No regenerations left</string>
+    <string name="feature_tailor_impl_preview_and_export">Preview and export</string>
 </resources>
