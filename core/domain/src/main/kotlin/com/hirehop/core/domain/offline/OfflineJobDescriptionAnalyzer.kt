@@ -4,7 +4,7 @@ import com.hirehop.core.domain.JobDescriptionAnalyzer
 import com.hirehop.core.model.JobDescription
 import javax.inject.Inject
 
-internal class OfflineJobDescriptionAnalyzer @Inject constructor() : JobDescriptionAnalyzer {
+class OfflineJobDescriptionAnalyzer @Inject constructor() : JobDescriptionAnalyzer {
     override suspend fun analyze(rawText: String): JobDescription {
         val lines = JdLineReader.nonEmptyLines(rawText)
         val titleCompany = TitleCompanyExtractor.extract(lines)

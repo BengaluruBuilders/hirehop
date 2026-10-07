@@ -5,7 +5,7 @@ import javax.inject.Inject
 data class JobLabelProposal(val role: String, val company: String)
 
 class ProposeJobLabelUseCase @Inject constructor(
-    private val analyzer: JobDescriptionAnalyzer,
+    @LocalAnalyzer private val analyzer: JobDescriptionAnalyzer,
 ) {
     suspend operator fun invoke(rawText: String): JobLabelProposal {
         if (rawText.isBlank()) return JobLabelProposal(role = "", company = "")

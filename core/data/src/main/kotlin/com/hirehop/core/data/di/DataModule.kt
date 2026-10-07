@@ -16,7 +16,6 @@ import com.hirehop.core.data.mock.MockLatency
 import com.hirehop.core.data.mock.MockStateStore
 import com.hirehop.core.data.repository.ApplicationCleanup
 import com.hirehop.core.data.repository.ApplicationRepository
-import com.hirehop.core.data.repository.ContentReportRepository
 import com.hirehop.core.data.repository.CoverLetterRepository
 import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.OfflineFirstApplicationRepository
@@ -25,7 +24,6 @@ import com.hirehop.core.data.repository.PrepPlanRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.data.repository.StoredApplicationCleanup
-import com.hirehop.core.data.repository.StoredContentReportRepository
 import com.hirehop.core.data.repository.StoredCoverLetterRepository
 import com.hirehop.core.data.repository.StoredExportHistoryRepository
 import com.hirehop.core.data.repository.StoredPrepPlanRepository
@@ -73,11 +71,6 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindsPrepPlanRepository(repository: StoredPrepPlanRepository): PrepPlanRepository
-
-    @Binds
-    internal abstract fun bindsContentReportRepository(
-        repository: StoredContentReportRepository,
-    ): ContentReportRepository
 
     @Binds
     internal abstract fun bindsTailoringReviewStateRepository(

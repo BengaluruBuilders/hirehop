@@ -17,7 +17,7 @@ import javax.inject.Singleton
 import kotlin.time.Instant
 
 @Singleton
-internal class StoredContentReportRepository @Inject constructor(
+class StoredContentReportRepository @Inject constructor(
     private val store: MockStateStore,
 ) : ContentReportRepository {
 
