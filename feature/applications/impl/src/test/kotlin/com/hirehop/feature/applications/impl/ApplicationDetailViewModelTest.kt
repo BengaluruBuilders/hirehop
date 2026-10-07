@@ -6,19 +6,23 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.hirehop.core.domain.AiException
-import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.model.ExportRecord
+import com.hirehop.core.model.GapAnalysis
+import com.hirehop.core.model.KeywordCoverage
+import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.PrepPlanItem
 import com.hirehop.core.model.ReportedItemKind
+import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.WrittenCoverLetter
 import com.hirehop.core.model.WrittenParagraph
 import com.hirehop.core.testing.connectivity.TestConnectivityMonitor
 import com.hirehop.core.testing.data.canonicalCandidateProfile
+import com.hirehop.core.testing.data.canonicalComposeRequirement
+import com.hirehop.core.testing.data.canonicalKotlinRequirement
 import com.hirehop.core.testing.gateway.TestPaymentGateway
 import com.hirehop.core.testing.repository.TestContentReportRepository
 import com.hirehop.core.testing.repository.TestCoverLetterRepository
@@ -54,11 +58,6 @@ class ApplicationDetailViewModelTest {
     private val prepPlanRepository = TestPrepPlanRepository()
     private val contentReportRepository = TestContentReportRepository()
     private val coverLetterRepository = TestCoverLetterRepository()
-    private var prepQuestionFailure: AiFailure? = null
-    private val prepQuestionSource = TestPrepQuestionSource(gapQuestions = 1) { _, _ ->
-        prepQuestionFailure?.let { throw AiException(it) }
-        PREP_QUESTION_COUNT
-    }
     private val application = testApplication(
         id = APPLICATION_ID,
         notes = "Saved notes",
@@ -83,7 +82,6 @@ class ApplicationDetailViewModelTest {
                         applicationRepository = applicationRepository,
                         profileRepository = profileRepository,
                         exportHistoryRepository = exportHistoryRepository,
-                        prepQuestionSource = prepQuestionSource,
                         prepPlanRepository = prepPlanRepository,
                         contentReportRepository = contentReportRepository,
                         coverLetterRepository = coverLetterRepository,
@@ -197,13 +195,18 @@ class ApplicationDetailViewModelTest {
     }
 
     @Test
-    fun uiState_whenTheProfileExists_countsOnlyTheQuestionsTiedToFacts() = runTest {
+    fun uiState_whenTheProfileExists_countsLocallyOnlyTheQuestionsTiedToFacts() = runTest {
+        val bulletId = canonicalCandidateProfile.entries.filter { it.isConfirmed }
+            .flatMap { it.bullets }.first { "Kotlin" in it.text }.id
+        val supported = RequirementMatch(canonicalKotlinRequirement, MatchStatus.MET, listOf(bulletId))
+        val gap = RequirementMatch(canonicalComposeRequirement, MatchStatus.GAP, emptyList())
+        val withEvidence = application.copy(gapAnalysis = GapAnalysis(listOf(supported, gap), KeywordCoverage(1, 2)))
         viewModel.uiState.test {
-            applicationRepository.sendApplications(listOf(application))
+            applicationRepository.sendApplications(listOf(withEvidence))
             profileRepository.sendProfile(canonicalCandidateProfile)
             runCurrent()
 
-            assertThat(current().ready().prepQuestionCount).isEqualTo(PREP_QUESTION_COUNT)
+            assertThat(current().ready().prepQuestionCount).isEqualTo(1)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -698,20 +701,6 @@ class ApplicationDetailViewModelTest {
     }
 
     @Test
-    fun uiState_whenThePrepQuestionServiceFails_showsNoPrepQuestions() = runTest {
-        prepQuestionFailure = AiFailure.Unavailable
-        viewModel.uiState.test {
-            applicationRepository.sendApplications(listOf(application))
-            runCurrent()
-            profileRepository.sendProfile(canonicalCandidateProfile)
-            runCurrent()
-
-            assertThat(current().ready().prepQuestionCount).isEqualTo(0)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
     fun uiState_whenNoProfileExists_countsNoProfileFactsAndGeneratesNoPrepQuestions() = runTest {
         viewModel.uiState.test {
             applicationRepository.sendApplications(listOf(application))
@@ -747,7 +736,6 @@ class ApplicationDetailViewModelTest {
 
     private companion object {
         const val APPLICATION_ID = "application-1"
-        const val PREP_QUESTION_COUNT = 6
         const val EXPECTED_PROFILE_FACTS = 27
     }
 }

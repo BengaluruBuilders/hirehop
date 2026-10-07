@@ -7,6 +7,7 @@ import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.TailoredBullet
+import com.hirehop.core.model.confirmedWithinLimits
 import com.hirehop.core.network.dto.BulletDto
 import com.hirehop.core.network.dto.ContentReportRequest
 import com.hirehop.core.network.dto.FactEntryDto
@@ -16,21 +17,24 @@ import com.hirehop.core.network.dto.ProfileFactsDto
 import com.hirehop.core.network.dto.RequirementDto
 import com.hirehop.core.network.dto.TailoredBulletDto
 
-fun CandidateProfile.toFactsDto(): ProfileFactsDto = ProfileFactsDto(
-    skills = skills,
-    entries = entries.filter { it.isConfirmed }.map { entry ->
-        FactEntryDto(
-            id = entry.id,
-            category = entry.category,
-            title = entry.title,
-            organization = entry.organization,
-            startDate = entry.startDate,
-            endDate = entry.endDate,
-            source = entry.source,
-            bullets = entry.bullets.map { BulletDto(it.id, it.text) },
-        )
-    },
-)
+fun CandidateProfile.toFactsDto(): ProfileFactsDto {
+    val sent = confirmedWithinLimits()
+    return ProfileFactsDto(
+        skills = sent.skills,
+        entries = sent.entries.map { entry ->
+            FactEntryDto(
+                id = entry.id,
+                category = entry.category,
+                title = entry.title,
+                organization = entry.organization,
+                startDate = entry.startDate,
+                endDate = entry.endDate,
+                source = entry.source,
+                bullets = entry.bullets.map { BulletDto(it.id, it.text) },
+            )
+        },
+    )
+}
 
 fun JobDescription.toDto(): JobDto = JobDto(
     title = title,

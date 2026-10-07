@@ -28,12 +28,12 @@ class RemotePrepQuestionSource @Inject constructor(private val api: HirehopApi) 
         )
         val response = remoteAi { api.prepQuestions(request) }
         val requirementText = analysis.job.requirements.associate { it.id to it.text.trim() }
-        val factIds = facts.entries.flatMap { entry -> entry.bullets.map { it.id } }.toSet()
+        val bulletIds = facts.entries.flatMap { entry -> entry.bullets.map { it.id } }.toSet()
         return response.questions.mapNotNull { dto ->
             val text = requirementText[dto.requirementId] ?: return@mapNotNull null
             val kind = PrepQuestionKind.valueOf(dto.kind.name)
-            val fact = dto.backingFactIds.firstOrNull()
-            if (kind != PrepQuestionKind.GAP && (fact == null || fact !in factIds)) return@mapNotNull null
+            val fact = dto.backingFactIds.firstOrNull { it in bulletIds }
+            if (kind != PrepQuestionKind.GAP && fact == null) return@mapNotNull null
             dto.toQuestion(kind, text, fact.takeIf { kind != PrepQuestionKind.GAP }, response.generationId)
         }
     }

@@ -86,6 +86,15 @@ class CreateApplicationUseCaseTest {
     }
 
     @Test
+    fun aCallWithTheSameApplicationIdReplacesInsteadOfCreatingASecondApplication() = runTest {
+        val first = useCase(sampleProfile, analysis, applicationId = "draft-1")
+        val second = useCase(sampleProfile, analysis, applicationId = "draft-1")
+
+        assertThat(first).isEqualTo("draft-1")
+        assertThat(second).isEqualTo(first)
+    }
+
+    @Test
     fun keptCompanyAndRoleOverrideWhatTheAnalyzerFound() = runTest {
         val id = useCase(sampleProfile, analysis, KeptJobDescription("text", company = "Kestrel Labs", role = "Android Developer"))
 

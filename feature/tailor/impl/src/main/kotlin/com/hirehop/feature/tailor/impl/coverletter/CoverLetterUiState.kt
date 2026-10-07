@@ -9,6 +9,8 @@ import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.WrittenCoverLetter
 import com.hirehop.core.model.WrittenParagraph
+import com.hirehop.core.model.confirmedWithinLimits
+import com.hirehop.core.model.evidenceIds
 import kotlin.time.Instant
 
 enum class CoverLetterStage {
@@ -135,7 +137,7 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
         }
     val hasQuotedFact = paragraphs.any { paragraph -> paragraph.basis == CoverLetterBasis.CONFIRMED_FACT }
     return CoverLetterUiState(
-        stage = if (hasQuotedFact || inputs.draft.citesOnlyConfirmedFacts(facts)) CoverLetterStage.READY else CoverLetterStage.NO_MATCHING_EVIDENCE,
+        stage = if (hasQuotedFact || inputs.draft.citesOnlyConfirmedEvidence(inputs.profile)) CoverLetterStage.READY else CoverLetterStage.NO_MATCHING_EVIDENCE,
         jobTitle = analysis.job.title,
         jobCompany = analysis.job.company,
         paragraphs = paragraphs,
@@ -146,10 +148,10 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
     )
 }
 
-private fun CoverLetterDraft.citesOnlyConfirmedFacts(facts: List<CoverLetterFactRef>): Boolean {
-    val confirmedIds = facts.map { it.factId }.toSet()
+private fun CoverLetterDraft.citesOnlyConfirmedEvidence(profile: CandidateProfile?): Boolean {
+    val evidenceIds = profile?.confirmedWithinLimits()?.evidenceIds().orEmpty()
     val cited = citedFactIds.orEmpty()
-    return cited.isNotEmpty() && confirmedIds.containsAll(cited)
+    return cited.isNotEmpty() && evidenceIds.containsAll(cited)
 }
 
 fun CoverLetterUiState.toWrittenLetter(writtenAt: Instant): WrittenCoverLetter = WrittenCoverLetter(

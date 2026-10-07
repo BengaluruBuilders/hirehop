@@ -14,18 +14,18 @@ data class ParsedEntryDto(
     val ref: String,
     val category: EntryCategory,
     val title: String,
-    val organization: String,
-    val startDate: String,
-    val endDate: String,
+    val organization: String?,
+    val startDate: String?,
+    val endDate: String?,
     val bullets: List<ParsedBulletDto>,
 )
 
 @Serializable
 data class ParsedProfileDto(
-    val fullName: String,
-    val email: String,
-    val phone: String,
-    val headline: String,
+    val fullName: String?,
+    val email: String?,
+    val phone: String?,
+    val headline: String?,
     val skills: List<String>,
     val entries: List<ParsedEntryDto>,
 )

@@ -26,8 +26,9 @@ data class PasteJobDescriptionUiState(
     val message: PasteJobDescriptionMessage? = null,
     val freeAnalysesLeft: Int = FREE_ANALYSES_PER_DAY,
     val nextStep: OnboardingStep? = null,
+    val isLimitCountedOnDevice: Boolean = true,
 ) {
-    val isDailyLimitReached: Boolean get() = freeAnalysesLeft <= 0
+    val isDailyLimitReached: Boolean get() = isLimitCountedOnDevice && freeAnalysesLeft <= 0
     val wordCount: Int get() = pasteJdWordCount(text)
     val problem: PasteJobDescriptionProblem? get() = pasteJdProblem(text = text, wordCount = wordCount)
     val canClear: Boolean get() = text.isNotEmpty()

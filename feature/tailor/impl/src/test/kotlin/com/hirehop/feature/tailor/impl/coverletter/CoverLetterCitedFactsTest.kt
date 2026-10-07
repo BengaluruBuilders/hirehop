@@ -38,6 +38,13 @@ class CoverLetterCitedFactsTest {
     }
 
     @Test
+    fun serverLetterCitingAConfirmedEntryOrSkill_isReady() {
+        val entryId = canonicalCandidateProfile.entries.first { it.isConfirmed }.id
+        val skill = "skill:${canonicalCandidateProfile.skills.first()}"
+        assertThat(stageOf(listOf(entryId, skill))).isEqualTo(CoverLetterStage.READY)
+    }
+
+    @Test
     fun serverLetterCitingAnUnknownFact_isNotReady() {
         assertThat(stageOf(listOf(confirmedFactId, "not-a-fact"))).isEqualTo(CoverLetterStage.NO_MATCHING_EVIDENCE)
     }

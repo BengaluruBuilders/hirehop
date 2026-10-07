@@ -9,6 +9,7 @@ import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.MatchStatus
+import com.hirehop.core.model.ProfileLimits
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
 import kotlinx.coroutines.test.runTest
@@ -65,6 +66,15 @@ class AddUserStatedFactUseCaseTest {
         assertThat(entries.single().bullets.map { it.text })
             .containsExactly("Used Docker in a hackathon", "Deployed a demo to AWS").inOrder()
         assertThat(entries.single().bullets.map { it.id }).containsExactly("fact-1", "fact-2").inOrder()
+    }
+
+    @Test
+    fun aFullStatedEntryStartsANewOneInsteadOfGrowingPastTheBulletLimit() = runTest {
+        repeat(ProfileLimits.MAX_BULLETS_PER_ENTRY + 1) { useCase(requirement("docker"), "Used Docker $it") }
+
+        val entries = checkNotNull(repository.current()).entries
+        assertThat(entries.map { it.id }).containsExactly("U-01", "U-02").inOrder()
+        assertThat(entries.map { it.bullets.size }).containsExactly(ProfileLimits.MAX_BULLETS_PER_ENTRY, 1).inOrder()
     }
 
     @Test

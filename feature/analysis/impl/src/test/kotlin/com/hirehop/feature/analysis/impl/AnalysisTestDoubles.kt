@@ -149,8 +149,10 @@ class FlakyApplicationRepository(
     private val delegate: ApplicationRepository,
 ) : ApplicationRepository by delegate {
     var failOnUpsert = false
+    val attemptedIds = mutableListOf<String>()
 
     override suspend fun upsertApplication(application: JobApplication) {
+        attemptedIds += application.id
         check(!failOnUpsert) { "application save failure" }
         delegate.upsertApplication(application)
     }

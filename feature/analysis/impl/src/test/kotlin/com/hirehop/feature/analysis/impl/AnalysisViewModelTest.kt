@@ -1,5 +1,6 @@
 package com.hirehop.feature.analysis.impl
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.repository.UsageAllowance
@@ -7,6 +8,8 @@ import com.hirehop.core.domain.AddUserStatedFactUseCase
 import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.CreateApplicationUseCase
+import com.hirehop.core.domain.JobAnalysisResult
+import com.hirehop.core.domain.JobAnalysisSource
 import com.hirehop.core.domain.TailorResumeUseCase
 import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
@@ -67,6 +70,22 @@ class AnalysisViewModelTest {
     private val tailor = EmptyResumeTailor()
     private val matcher = KeywordGapMatcher()
     private var nextId = 0
+    private var renumberAfterFirstCall = false
+    private var analysisCalls = 0
+    private val renumberingSource = object : JobAnalysisSource {
+        override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
+            val result = OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
+            return if (!renumberAfterFirstCall || analysisCalls++ == 0) {
+                result
+            } else {
+                val renumbered = result.gap.matches.map { it.copy(requirement = it.requirement.copy(id = "n-${it.requirement.id}")) }
+                JobAnalysisResult(
+                    job = result.job.copy(requirements = renumbered.map { it.requirement }),
+                    gap = result.gap.copy(matches = renumbered),
+                )
+            }
+        }
+    }
 
     private lateinit var viewModel: AnalysisViewModel
 
@@ -98,7 +117,7 @@ class AnalysisViewModelTest {
         sessionRepository = sessionRepository,
         profileRepository = profileRepository,
         nextOnboardingStep = NextOnboardingStepUseCase(sessionRepository, profileRepository),
-        analyzeJob = AnalyzeJobUseCase(OfflineJobAnalysisSource(analyzer, matcher)),
+        analyzeJob = AnalyzeJobUseCase(renumberingSource),
         addUserStatedFact = AddUserStatedFactUseCase(profileRepository, ::newId),
         createApplication = CreateApplicationUseCase(
             applicationRepository = flakyApplicationRepository,
@@ -111,6 +130,8 @@ class AnalysisViewModelTest {
         usageAllowance = usageAllowance,
         paymentGateway = paymentGateway,
         clock = FixedClock,
+        idGenerator = ::newId,
+        savedState = SavedStateHandle(),
         connectivityMonitor = connectivity,
         computeDispatcher = compute,
         applicationScope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
@@ -401,6 +422,18 @@ class AnalysisViewModelTest {
     }
 
     @Test
+    fun iHaveThis_whenTheServerRenumbersRequirements_keepsTheIdsOfTheShownJob() = runTest {
+        renumberAfterFirstCall = true
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "  I wrote SQL queries during my internship.  ")
+
+        val result = result()
+        assertThat(result.item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(result.closedRequirementId).isEqualTo("req-sql")
+    }
+
+    @Test
     fun iHaveThis_whenTheWordsCloseTheGapWithoutNamingTheKeyword_stillSaves() = runTest {
         start()
 
@@ -591,6 +624,7 @@ class AnalysisViewModelTest {
         flakyApplicationRepository.failOnUpsert = false
         viewModel.onTailor()
         assertThat(applicationRepository.observeApplications().first()).hasSize(1)
+        assertThat(flakyApplicationRepository.attemptedIds.distinct()).hasSize(1)
     }
 
     @Test

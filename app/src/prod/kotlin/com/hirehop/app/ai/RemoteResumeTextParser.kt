@@ -23,10 +23,10 @@ class RemoteResumeTextParser @Inject constructor(
         removalNotice.record(response.droppedSensitive.any { it == SensitiveField.DATE_OF_BIRTH || it == SensitiveField.PHOTO })
         val parsed = response.profile
         return CandidateProfile(
-            fullName = parsed.fullName,
-            email = parsed.email,
-            phone = parsed.phone,
-            headline = parsed.headline,
+            fullName = parsed.fullName.orEmpty(),
+            email = parsed.email.orEmpty(),
+            phone = parsed.phone.orEmpty(),
+            headline = parsed.headline.orEmpty(),
             skills = parsed.skills,
             entries = entriesOf(parsed.entries),
         )
@@ -40,9 +40,9 @@ class RemoteResumeTextParser @Inject constructor(
                 id = id,
                 category = entry.category,
                 title = entry.title,
-                organization = entry.organization,
-                startDate = entry.startDate,
-                endDate = entry.endDate,
+                organization = entry.organization.orEmpty(),
+                startDate = entry.startDate.orEmpty(),
+                endDate = entry.endDate.orEmpty(),
                 bullets = entry.bullets.filter { it.text.isNotBlank() }
                     .mapIndexed { index, bullet -> EvidenceBullet("$id-b${index + 1}", bullet.text) },
                 source = FactSource.IMPORTED,

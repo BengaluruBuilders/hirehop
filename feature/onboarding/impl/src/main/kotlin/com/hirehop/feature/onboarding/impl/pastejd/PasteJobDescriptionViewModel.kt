@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hirehop.core.common.network.Dispatcher
 import com.hirehop.core.common.network.HhDispatchers
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.data.repository.AnalysisLimitPolicy
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.data.repository.UsageAllowance
 import com.hirehop.core.domain.AiException
@@ -35,6 +36,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val connectivityMonitor: ConnectivityMonitor,
     private val usageAllowance: UsageAllowance,
+    private val limitPolicy: AnalysisLimitPolicy,
     private val proposeJobLabel: ProposeJobLabelUseCase,
     private val discardJobDrafts: DiscardJobDraftsUseCase,
     @param:Dispatcher(HhDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
@@ -63,7 +65,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
         mutableState.value = pasteJobDescriptionStateFor(
             scenario = key.scenario,
             sharedText = sharedText,
-        )
+        ).copy(isLimitCountedOnDevice = limitPolicy.isCountedOnDevice)
         schedulePrefill()
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
         viewModelScope.launch {
@@ -151,7 +153,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
         if (!state.canAnalyse || isSubmitting) return
         isSubmitting = true
         viewModelScope.launch {
-            if (usageAllowance.observeAnalysesLeft().first() <= 0) {
+            if (limitPolicy.isCountedOnDevice && usageAllowance.observeAnalysesLeft().first() <= 0) {
                 isSubmitting = false
                 return@launch
             }
