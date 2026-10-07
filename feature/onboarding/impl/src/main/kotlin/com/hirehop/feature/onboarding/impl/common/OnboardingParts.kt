@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.designsystem.component.HhDecoration
 import com.hirehop.core.designsystem.component.HhDecorationKind
+import com.hirehop.core.designsystem.component.HhHeaderIconButton
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -225,13 +225,21 @@ internal fun OnboardingStepBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            HhIconButton(
-                icon = HhIcons.ArrowBack,
-                contentDescription = backContentDescription,
-                onClick = onBack,
-                containerColor = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.surface,
-                borderColor = if (onBrand) Color.Transparent else HhTheme.colors.outlineVariant,
-            )
+            if (onBrand) {
+                HhHeaderIconButton(
+                    icon = HhIcons.ArrowBack,
+                    contentDescription = backContentDescription,
+                    onClick = onBack,
+                )
+            } else {
+                HhIconButton(
+                    icon = HhIcons.ArrowBack,
+                    contentDescription = backContentDescription,
+                    onClick = onBack,
+                    containerColor = HhTheme.colors.surface,
+                    borderColor = HhTheme.colors.outlineVariant,
+                )
+            }
         } else {
             Box(modifier = Modifier.width(HhTheme.spacing.touch))
         }
