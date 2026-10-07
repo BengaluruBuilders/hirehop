@@ -12,7 +12,6 @@ class HhMotionReducedTest {
     fun everySpatialSpecSnaps() {
         assertEquals(snap(), reduced.proofSpecs.spatial)
         assertEquals(snap(), reduced.proofSpecs.spatialFast)
-        assertEquals(snap(), reduced.proofSpecs.travel)
         assertEquals(snap(), reduced.proofSpecs.offset)
         assertEquals(snap(), reduced.proofSpecs.size)
         assertEquals(snap(), reduced.hopSpecs.spatial)

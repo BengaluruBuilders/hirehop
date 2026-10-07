@@ -16,7 +16,7 @@ The user kept Jade and added the playful layout of a job-app reference. The sour
 | Colour cards | Solid coral, jade or marigold cards with a white round monogram, for applications and choices |
 | Pill rows | Full pill list rows, 72 dp tall, 36 dp radius, solid colour |
 | Bottom bar | A round 60 dp secondary button next to a 60 dp primary pill |
-| Dock | Full-width ink bar with 28 dp top corners, three icons, no labels. The active icon sits in a raised jade circle |
+| Dock | Floating ink pill inset from the screen edges, three icons with labels. The active item is bright jade |
 | Decoration | Thin hand-drawn squiggles, rings and dots in coral, marigold and jade around illustrations and in headers |
 | Status | Unchanged: shape plus word plus colour. Met, Partly met, To prepare |
 
@@ -50,7 +50,7 @@ new components.
 | Home header | Welcome and the three top-level tabs | Jade header, two soft circles, greeting, credits pill, bold headline, outline pill button. The woman hero pose stands in front of the sheet |
 | Sheet | Below a home header | Surface with 28 dp top corners that overlaps the header |
 | Inner header | Every pushed screen | Shorter jade header, 48 dp tinted circular back button with a white chevron (`HhBackButton`), centred title and subtitle. Hero cards (24 dp radius) overlap it |
-| Dock | The three top-level tabs only | Full-width `tool` bar on the bottom edge, with a notch. The active item is an icon in a primary ball in the notch. No labels. Never on onboarding or pushed screens |
+| Dock | The three top-level tabs only | Floating `tool` pill, inset from the screen edges. Each item is an icon above a label; the active item is `onToolSelected`. Never on onboarding or pushed screens |
 | Bottom action bar | Screens with 1 to 3 main actions | `tool` bar. Content has an inset, so the bar never covers content |
 | Status | Met, partly met, to prepare | Shape plus word plus colour. The gap word in the UI is "To prepare" |
 

@@ -138,7 +138,7 @@ private fun HhMainDock(
             HhDockItem(
                 selected = selected,
                 onClick = { navigator.navigate(navKey) },
-                contentDescription = stringResource(navItem.labelRes),
+                label = stringResource(navItem.labelRes),
                 icon = { HhDockIcon(if (selected) navItem.selectedIcon else navItem.unselectedIcon) },
             )
         }

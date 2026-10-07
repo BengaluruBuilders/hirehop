@@ -126,9 +126,9 @@ class HhComponentsScreenshotTest {
     @Test
     fun dock() = capture("HhDock") {
         HhDock {
-            HhDockItem(selected = true, onClick = {}, contentDescription = "Applications") { HhDockIcon(HhIcons.Applications) }
-            HhDockItem(selected = false, onClick = {}, contentDescription = "Profile") { HhDockIcon(HhIcons.Profile) }
-            HhDockItem(selected = false, onClick = {}, contentDescription = "Facts") { HhDockIcon(HhIcons.Facts) }
+            HhDockItem(selected = true, onClick = {}, label = "Applications") { HhDockIcon(HhIcons.Applications) }
+            HhDockItem(selected = false, onClick = {}, label = "Profile") { HhDockIcon(HhIcons.Profile) }
+            HhDockItem(selected = false, onClick = {}, label = "Settings") { HhDockIcon(HhIcons.Settings) }
         }
     }
 }

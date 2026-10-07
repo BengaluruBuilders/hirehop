@@ -38,7 +38,7 @@ A feature must change these things when it adopts the integration changes.
 7. Home header. Settings uses `HhCompactHomeHeader`. A home screen with a list uses
    `HhCollapsingHomeHeader`. Do not swap two headers on a scroll position. The swap moves the list by
    the height difference in one frame, and the list flickers.
-8. Dock constants. Use `HhDockDefaults.height`, `ballOverhang`, and `inset`. Do not repeat the arithmetic.
+8. Dock constants. Use `HhDockDefaults.height` and `inset`. Do not repeat the arithmetic.
 9. Motion. `HhTheme.motion` has `proofSpecs`, `hopSpecs`, and `reduced`. The old Int durations and easings are gone.
 10. Fact ids. Show `FactDisplayIds` (module `core:domain`) values, not raw bullet ids. See
     `docs/MOCK_BACKEND.md`.
@@ -55,7 +55,7 @@ New roles: `header`, `headerShape`, `onHeader`, `onHeaderVariant`, `onHeaderCont
 `gapContainer`), `evidence`,
 `evidenceLine`, `error`, `onError`, `errorContainer`, `onErrorContainer`, `special`, `onSpecial`,
 `scrim`.
-New roles: `brand` and `onBrand` (the jade fill, #0B7A5C with white, the same in both themes), `coral` and
+New roles: `onToolSelected` (the selected dock item, bright jade #5ED3AA / #5FD0A8). `brand` and `onBrand` (the jade fill, #0B7A5C with white, the same in both themes), `coral` and
 `onCoral` (#B94C37 with white, the same in both themes), `sheet` (a bottom sheet and a dialog fill).
 `primary` is the jade for text, icons, links and focus: #0B7A5C in light, bright #5FD0A8 in dark. Fills
 use `brand`. `special` is marigold #FFC94D with ink text. `error` is coral text and marks: #B94C37 in light,
@@ -93,13 +93,11 @@ Licences are in `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` (44 
 Apply with `Modifier.hhShadow(shadow, shape)`.
 
 ### Motion (`HhTheme.motion`)
-`proofSpecs`: `spatial`, `spatialFast`, `travel`, `offset`, `size`, `fade`, `color`, `staggerMs`, `staggerMax`.
+`proofSpecs`: `spatial`, `spatialFast`, `offset`, `size`, `fade`, `color`, `staggerMs`, `staggerMax`.
 `hopSpecs`: `spatial`, `scale`. Use `hopSpecs` only for gap closed, exported, pack purchased,
 first fact confirmed. `reduced` is true when animations are off; the spatial specs then use `snap()`.
 There are no duration fields and no easing fields. `size` and `color` repeat the board values of
 `spatial` and `fade` for the `IntSize` and `Color` value types.
-`travel` is a 240 ms eased tween for the dock notch. Only the dock uses it.
-A spring ends with a long tail, so the notch did not hand over to the ball rise at a clear moment.
 
 The primitives are in `component/HhMotion.kt`. A feature calls a primitive. A feature never calls
 `tween(`, `spring(`, or a numeric duration.
@@ -117,7 +115,7 @@ The primitives are in `component/HhMotion.kt`. A feature calls a primitive. A fe
 | Dock tab switch: the new screen fades in and shifts 24 dp from the side of the tapped tab | `tab(scope, direction, pop)`. `direction` is the sign of the tab index change | `fade`, `offset` |
 | A tab screen reached from a pushed screen: fade only | `forward(scope, hierarchical = false)` and `back(hierarchical = false)` | `fade` |
 | Selected colour of a chip or a checkbox | Built into `HhFilterChip`, `HhCheckbox` | `color` |
-| Dock selection: the ball sinks into the bar, the notch moves to the selected item, the ball rises with the icon | Built into `HhDock` and `HhDockItem` | `fade`, `travel`, `spatial`, `spatialFast` |
+| Dock selection: the icon and label of the selected item change tint | Built into `HhDockItem` | `color`, `spatialFast` |
 | Progress moment | `Animatable` with a `hopSpecs` value | `hopSpecs.scale`, `hopSpecs.spatial` |
 
 Rules of the primitives:
@@ -127,7 +125,7 @@ Rules of the primitives:
 - The 48 dp rise is the sheet rise of the board. It moves the whole pushed screen, because a pushed
   screen has no sheet surface and its content can load after the first frame.
 - Give `HhContentSwitch` a `contentKey` for a state that carries data. Without it, each data change fades.
-- Every spec is a spring, a 150 ms fade, or the 240 ms `travel`, so a new target interrupts the old one. Input never waits.
+- Every spec is a spring or a 150 ms fade, so a new target interrupts the old one. Input never waits.
 - A settled frame is the same as the frame without motion. Screenshot baselines do not change.
 
 Do not animate:
@@ -165,7 +163,7 @@ background still fill the area behind the zone.
 | Header and `sheet = false` | 0 dp | see below |
 | `bottomBar` or `bottomBarNotice` set | as above | 16 dp (`spacing.gutter`), the gap above the last item |
 | Neither set, no dock | as above | navigation bar inset |
-| Neither set, dock inset provided (`LocalHhBottomInset`) | as above | navigation bar inset plus `HhDockDefaults.inset` (96 dp) |
+| Neither set, dock inset provided (`LocalHhBottomInset`) | as above | navigation bar inset plus `HhDockDefaults.inset` (88 dp) |
 
 The old bottom padding was the bar height plus 16 dp. It is now 16 dp, because the content area
 no longer reaches under the bar. A feature that passed the `PaddingValues` to its list needs no
@@ -175,8 +173,8 @@ change. A feature that added its own bar clearance must remove it, or the cleara
 bar. Put a notice card or a reason line in it. Without a bar, it sits above the dock inset. The
 `snackbarHost` and `floatingAction` lift above the notice.
 
-The dock path keeps content running under the dock ball and behind the notch. It is not clipped. The bottom padding
-above lets the last item scroll clear of the dock.
+Content runs behind the floating dock. It is not clipped. The bottom padding above lets the last item scroll
+clear of the dock.
 
 ```kotlin
 fun HhHomeHeader(greeting: String, headline: String, modifier, trailing: @Composable RowScope.() -> Unit = {},
@@ -223,20 +221,15 @@ Surface with 28 dp top corners. Board: Sheet.
 
 ```kotlin
 fun HhDock(modifier, content: @Composable RowScope.() -> Unit)
-fun HhDockItem(selected: Boolean, onClick: () -> Unit, contentDescription: String, modifier,
+fun RowScope.HhDockItem(selected: Boolean, onClick: () -> Unit, label: String, modifier,
     icon: @Composable () -> Unit)
 fun HhDockIcon(icon: ImageVector)
 ```
-Full-width `tool` bar on the bottom edge, for the three top-level tabs only. Icons only, no labels.
-The top corners are 28 dp. The top edge has one notch. A 64 dp `brand` ball sits in the notch and holds the
-selected icon.
-`HhDock` draws the bar, the notch, and the ball, and it owns the motion of a tab change:
-the ball sinks behind the bar (`fade`), the notch moves (`travel`), the ball rises with the icon (`spatial`).
-The notch starts when the ball is half sunk. The rise starts when the notch is one notch half-width from the item.
-A new tap cancels the sequence and starts it again from the current values.
+Floating 64 dp `tool` pill, inset by the gutter at the sides and 8 dp below, for the three top-level tabs only.
+Each item is an icon above a `labelM` label and takes an equal share of the width. The selected item is
+`onToolSelected` (bright jade), the others `onToolVariant`. In dark the pill has an `outlineSoft` hairline.
 `HhDock` applies the navigation bar inset. Do not add it in `:app`.
-The frames in `design/claude-design` still show the floating pill. Export them again to match.
-Put each `HhDockItem` inside `HhDock`. An item outside `HhDock` throws an error.
+Put each `HhDockItem` inside `HhDock`; it is a `RowScope` extension.
 
 ```kotlin
 fun HhBottomActionBar(modifier, contentPadding: PaddingValues? = null,
@@ -257,7 +250,7 @@ a font scale of 1.5 or more. Pass `stacked = true` or `false` to force a mode. P
 the first action is the primary one (Welcome); the stack then keeps the order given.
 
 ```kotlin
-object HhDockDefaults { val height: Dp /* 64 */; val ballOverhang: Dp /* 32 */; val inset: Dp /* 104 */ }
+object HhDockDefaults { val height: Dp /* 64 */; val inset: Dp /* 88 */ }
 ```
 `inset` is `LocalHhBottomInset` for a tab screen. `:app` uses these values.
 

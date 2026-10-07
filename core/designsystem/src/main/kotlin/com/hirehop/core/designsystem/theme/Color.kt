@@ -26,6 +26,7 @@ class HhColors(
     val tool: Color,
     val onTool: Color,
     val onToolVariant: Color,
+    val onToolSelected: Color,
     val outline: Color,
     val outlineVariant: Color,
     val outlineSoft: Color,
