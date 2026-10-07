@@ -49,8 +49,13 @@ class RemotePaymentGateway @Inject constructor(
     override suspend fun entitlement(): PurchaseEntitlement = wallet.refresh().toEntitlement(pending.value)
 
     override fun observeEntitlement(): Flow<PurchaseEntitlement> =
-        combine(wallet.wallet, pending) { current, held -> current.toEntitlement(held) }
-            .onStart { wallet.refreshOrCached() }
+        combine(wallet.wallet, pending) { current, held ->
+            current?.toEntitlement(held) ?: NO_CREDITS.copy(pendingPackIds = held)
+        }
+            .onStart {
+                emit(current())
+                wallet.refreshOrCached()
+            }
 
     override suspend fun purchaseHistory(): List<PurchaseRecord> =
         apiResult { api.purchases().purchases }.getOrThrow().map { purchase ->

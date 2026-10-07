@@ -34,6 +34,24 @@ class RemotePaymentGatewayTest {
     }
 
     @Test
+    fun observedEntitlementEmitsNoCreditsWhenTheWalletCannotBeFetched() = runTest {
+        server.shutdown()
+
+        val entitlement = gateway().observeEntitlement().first()
+
+        assertThat(entitlement.totalCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun allowanceFallsBackToTheContractDefaultsWhenTheWalletCannotBeFetched() = runTest {
+        server.shutdown()
+        val allowance = WalletUsageAllowance(source)
+
+        assertThat(allowance.observeAnalysesLeft().first()).isEqualTo(3)
+        assertThat(allowance.observeFreeTailoringsLeft().first()).isEqualTo(1)
+    }
+
+    @Test
     fun entitlementComesFromTheWallet() = runTest {
         reply(200, """{"wallet":${walletJson(free = 0, purchased = 4, unlocked = "\"a1\"")}}""")
 

@@ -11,10 +11,10 @@ import javax.inject.Singleton
 @Singleton
 class WalletUsageAllowance @Inject constructor(private val source: WalletSource) : UsageAllowance {
     override fun observeAnalysesLeft(): Flow<Int> =
-        observed().map { it.analysesLeftToday.coerceAtLeast(0) }.distinctUntilChanged()
+        observed().map { (it?.analysesLeftToday ?: CONTRACT_DAILY_ANALYSES).coerceAtLeast(0) }.distinctUntilChanged()
 
     override fun observeFreeTailoringsLeft(): Flow<Int> =
-        observed().map { it.freeTailoringsLeftToday.coerceAtLeast(0) }.distinctUntilChanged()
+        observed().map { (it?.freeTailoringsLeftToday ?: CONTRACT_DAILY_FREE_TAILORINGS).coerceAtLeast(0) }.distinctUntilChanged()
 
     override suspend fun consumeAnalysis(): Boolean {
         source.refreshOrCached()
@@ -25,5 +25,11 @@ class WalletUsageAllowance @Inject constructor(private val source: WalletSource)
 
     override suspend fun clear() = source.clear()
 
-    private fun observed() = source.wallet.onStart { source.refreshOrCached() }
+    private fun observed() = source.wallet.onStart {
+        emit(source.cached)
+        source.refreshOrCached()
+    }
 }
+
+private const val CONTRACT_DAILY_ANALYSES = 3
+private const val CONTRACT_DAILY_FREE_TAILORINGS = 1
