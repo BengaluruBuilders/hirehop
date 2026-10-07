@@ -102,9 +102,9 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
     "testProdImplementation"(libs.okhttp.mockwebserver)
     "testProdImplementation"(libs.robolectric)
-    "testProdImplementation"(libs.kotlinx.coroutines.test)
 }
 
 dependencyGuard {

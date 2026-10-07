@@ -338,9 +338,9 @@ Retention: job search is episodic. Users leave when they get a job. Do not use D
 ### 10.1 Architecture (R5)
 
 - **App.** Kotlin, Jetpack Compose, Room as the local source of truth, and WorkManager for queued jobs and sync.
-- **Sign-in.** Google through Credential Manager. The ID token goes to Supabase Auth.
-- **Backend.** Supabase: Auth, Postgres with row-level security, and Edge Functions as the model gateway. The OpenAI key stays on the server.
-- **Model calls.** OpenAI Responses API with Structured Outputs and `store: false`. Run each pipeline step as a separate asynchronous job, because Edge Functions time out at 150 s (Free) or 400 s (paid).
+- **Sign-in.** Google through Credential Manager. Firebase Auth turns it into the ID token that the backend checks.
+- **Backend.** `apps-backend` on Fly.io with Neon Postgres and Firebase Auth. The HireHop routes are the model gateway (`docs/BACKEND_CONTRACT.md`). The OpenAI key stays on the server.
+- **Model calls.** OpenAI Responses API with Structured Outputs and `store: false`. Short steps are synchronous routes that the server stops after 45 s. Tailoring is an asynchronous job that the app polls (`docs/BACKEND_CONTRACT.md` section 4.4).
 - **Model tiers.** Use a small, low-cost model for extraction, JD analysis, gap match, and prep questions. Use a mid-tier model for tailoring and the cover letter. Use a different model for the verifier. Keep model IDs in config. The research reports disagree on the current OpenAI model names and prices (R3 against R5). Confirm them on the official pricing page before the build.
 - **Abuse control.** Per-user and per-device rate limits, the Play Integrity API, and a daily cap on free model calls.
 

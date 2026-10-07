@@ -168,11 +168,12 @@ class AnalysisViewModel @Inject constructor(
 
     fun onReport(requirementId: String) {
         val ready = local.value.phase as? Phase.Ready ?: return
+        val itemText = (uiState.value as? AnalysisUiState.Result)?.itemOrNull(requirementId)?.requirement?.text ?: return
         setOverlay(AnalysisOverlay.None)
         viewModelScope.launch {
             attempt {
                 contentReportRepository.report(
-                    ContentReport(ready.draftKey, ReportedItemKind.REQUIREMENT, requirementId, clock.now()),
+                    ContentReport(ready.draftKey, ReportedItemKind.REQUIREMENT, requirementId, itemText, clock.now()),
                 )
             }.onSuccess { showToast(AnalysisToast.Reported) }
         }

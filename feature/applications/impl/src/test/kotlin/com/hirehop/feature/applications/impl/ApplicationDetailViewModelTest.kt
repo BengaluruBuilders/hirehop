@@ -467,10 +467,15 @@ class ApplicationDetailViewModelTest {
 
     @Test
     fun onAction_prepTaskInaccuracyReported_sendsOneThankYouEvent() = runTest {
-        viewModel.events.test {
-            viewModel.onAction(ApplicationWorkspaceAction.PrepTaskInaccuracyReported("d"))
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(application))
+            runCurrent()
+            viewModel.events.test {
+                viewModel.onAction(ApplicationWorkspaceAction.PrepTaskInaccuracyReported("d"))
 
-            assertThat(awaitItem()).isEqualTo(ApplicationDetailEvent.ReportRecorded)
+                assertThat(awaitItem()).isEqualTo(ApplicationDetailEvent.ReportRecorded)
+                cancelAndIgnoreRemainingEvents()
+            }
             cancelAndIgnoreRemainingEvents()
         }
     }

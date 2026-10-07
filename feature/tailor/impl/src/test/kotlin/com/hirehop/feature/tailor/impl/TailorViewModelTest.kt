@@ -303,7 +303,9 @@ class TailorViewModelTest {
     @Test
     fun reportedBullet_staysReportedForANewViewModel() = runTest {
         sendData(listOf(reviewable))
-        viewModel().onReportBullet("r1")
+        val first = viewModel()
+        collectUiState(first)
+        first.onReportBullet("r1")
         val reopened = viewModel()
         collectUiState(reopened)
 

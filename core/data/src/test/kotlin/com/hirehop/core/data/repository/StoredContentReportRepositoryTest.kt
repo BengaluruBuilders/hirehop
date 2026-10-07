@@ -18,7 +18,7 @@ class StoredContentReportRepositoryTest : ContentReportRepositoryContractTest() 
     @Test
     fun reportsSurviveARestartOfTheRepository() = runTest {
         val store = TestMockStateStore()
-        val report = ContentReport("app-1", ReportedItemKind.PREP_QUESTION, "q1", Instant.fromEpochMilliseconds(5))
+        val report = ContentReport("app-1", ReportedItemKind.PREP_QUESTION, "q1", "text", Instant.fromEpochMilliseconds(5))
         StoredContentReportRepository(store).report(report)
 
         assertThat(StoredContentReportRepository(store).observeReports("app-1").first()).containsExactly(report)

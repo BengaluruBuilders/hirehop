@@ -213,9 +213,9 @@ Each item is its own PR, in this order. All stay in-harness with a security revi
 
 1. Amendment PR: change I.5 to allow network access to the HireHop backend only, name the
    consent screen S4, keep backups off and analytics off unless the optional switch is on.
-2. Google sign-in with Credential Manager; the ID token goes to Supabase Auth.
-3. Supabase schema with row-level security on every table. Commit migrations.
-4. Edge Functions as the model gateway, one async job per step: extract resume, analyse JD,
+2. Google sign-in with Credential Manager; Firebase Auth turns it into the ID token for the backend.
+3. Neon Postgres schema in `apps-backend`, with migrations committed there.
+4. HireHop routes in `apps-backend` as the model gateway, one route per step: extract resume, analyse JD,
    tailor, verify, prep questions, cover letter. `store: false`. Model IDs and prices in config.
 5. Guardrails: the deterministic checks of PRD 6.4 item 4.3 on the server, a verifier on a
    different model, one repair pass, fall back to the original bullet.
@@ -223,6 +223,12 @@ Each item is its own PR, in this order. All stay in-harness with a security revi
    II.6), WorkManager for queued jobs and sync, Room stays the local source of truth.
 7. Evaluation set of PRD 10.3 and its release gate (0 critical fabrications).
 8. Server-side data export and deletion, the web deletion link, security logs for 1 year.
+
+C8 status, 2026-10-08. App side: the I.5 amendment, the `demo` and `prod` flavours, `core:network`,
+content reports posted to the backend (retry on the next app start), and `server.json` in the data
+export are built and tested against a fake server. Not yet verified against a live server.
+Backend: the HireHop routes are open PRs #41 to #50 in `BengaluruBuilders/apps-backend` and are not
+deployed. Purchase verification (#33) is not started, so C9 stays blocked.
 
 ### C9 · Play Billing
 
@@ -358,6 +364,6 @@ All are low severity. They come from reviews and walk-throughs.
 ### 9.5 Next actions for C7 to C10 (need the user)
 
 - C7, R0 spikes: the user gives 10 real resumes and agrees to their use.
-- C8: the user decides the I.5 amendment. The user gives the Supabase project, the OpenAI keys (backend only) and the Google sign-in client.
+- C8: the user decides the I.5 amendment. The user gives the Firebase project and the Fly.io and Neon accounts, the OpenAI keys (backend only) and the Google sign-in client.
 - C9: the user opens a Play developer account and makes the 5-pack product in Play Console.
 - C10: the user gives the support email, the privacy policy URL and the delete-account URL. The user also fills the data safety form, runs the closed test (12 or more testers, 14 days) and orders a legal check of the consent copy.

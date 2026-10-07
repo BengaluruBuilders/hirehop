@@ -210,7 +210,7 @@ class CoverLetterViewModel @Inject constructor(
     }
 
     private fun onReportInaccurate(ordinal: Int) {
-        if (mutableState.value.paragraphs.none { paragraph -> paragraph.ordinal == ordinal }) return
+        val paragraph = mutableState.value.paragraphs.firstOrNull { it.ordinal == ordinal } ?: return
         mutableState.update { state -> state.copy(message = CoverLetterMessage.REPORTED) }
         viewModelScope.launch {
             contentReportRepository.report(
@@ -218,6 +218,7 @@ class CoverLetterViewModel @Inject constructor(
                     applicationId = applicationId,
                     itemKind = ReportedItemKind.COVER_LETTER,
                     itemId = ordinal.toString(),
+                    itemText = paragraph.text,
                     reportedAt = clock.now(),
                 ),
             )

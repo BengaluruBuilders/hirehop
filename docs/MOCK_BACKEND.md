@@ -1,8 +1,15 @@
 # Mock backend
 
-The app has no network code (Constitution I.5). The mock backend is a set of interfaces with
-on-device implementations. A real backend replaces an implementation through one Hilt binding.
-No UI code changes.
+The mock backend is a set of interfaces with on-device implementations. The `demo` flavour binds them and
+has no network code. The `prod` flavour binds remote implementations through one Hilt binding each
+(`app/src/prod/kotlin/.../di`, Constitution I.5 as amended, `docs/BACKEND_CONTRACT.md`). No UI code changes.
+
+Remote in `prod`: `SignInGateway`, `ResumeTextParser`, `AnalyzeJobUseCase`, `ResumeTailor`,
+`PrepQuestionSource`, `CoverLetterSource`, `PaymentGateway`, `UsageAllowance`, `ContentReportRepository`,
+`AccountDataExporter`, and account deletion. `RemoteContentReportRepository` saves the report locally, then
+posts it; a post that fails with a retryable error stays in `PendingReportQueue` and is sent on the next
+app start. `RemoteAccountDataExporter` adds `server.json`, or a placeholder when the fetch fails. Everything
+else, including the sample data controller, stays on-device.
 
 Read this file before you use a gateway, a repository, or a use case from the core modules.
 

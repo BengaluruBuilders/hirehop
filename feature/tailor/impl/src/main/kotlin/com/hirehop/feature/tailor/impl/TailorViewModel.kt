@@ -96,12 +96,15 @@ internal class TailorViewModel @AssistedInject constructor(
     }
 
     private fun report(kind: ReportedItemKind, itemId: String) {
+        val success = uiState.value as? TailorUiState.Success ?: return
+        val itemText = success.reportedText(kind, itemId) ?: return
         viewModelScope.launch {
             contentReportRepository.report(
                 ContentReport(
                     applicationId = applicationId,
                     itemKind = kind,
                     itemId = itemId,
+                    itemText = itemText,
                     reportedAt = clock.now(),
                 ),
             )

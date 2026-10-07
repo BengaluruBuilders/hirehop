@@ -8,5 +8,7 @@ data class ContentReport(
     val applicationId: String,
     val itemKind: ReportedItemKind,
     val itemId: String,
+    val itemText: String,
     val reportedAt: Instant,
+    val generationId: String? = null,
 )
