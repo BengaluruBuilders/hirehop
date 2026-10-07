@@ -101,7 +101,7 @@ forbid I.5 "Network libraries in :app must use prodImplementation." \
 forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual time." \
   'Thread\.sleep' '*.kt'
 forbid III.3 "Production code must not reference a test double or a fake." \
-  '^import .*\.Fake[A-Za-z0-9_]+' '*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!core/testing/*'
+  '^import .*\.Fake[A-Za-z0-9_]+' "${production_kotlin[@]}"
 design_system_consumers=('feature/' 'app/' 'core/ui/')
 forbid_new_violations II.5 "A feature must build its UI from the shared Hh* components, not from raw Material components. core:designsystem is the one place raw Material is allowed, because wrapping it is its job." \
   '^import androidx\.compose\.material3\.(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|TextField|OutlinedTextField|Card|ElevatedCard|OutlinedCard|Surface|Scaffold|Snackbar|SnackbarHost|AlertDialog|BasicAlertDialog|TopAppBar|CenterAlignedTopAppBar|LargeTopAppBar|MediumTopAppBar|TopAppBarDefaults|ListItem|Checkbox|TriStateCheckbox|RadioButton|Switch|ModalBottomSheet|BottomSheetScaffold|Chip|AssistChip|FilterChip|InputChip|SuggestionChip|Badge|Divider|HorizontalDivider|VerticalDivider|LinearProgressIndicator|CircularProgressIndicator|MaterialTheme)' \
