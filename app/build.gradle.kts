@@ -94,6 +94,7 @@ dependencies {
     "prodImplementation"(libs.androidx.credentials)
     "prodImplementation"(libs.androidx.credentials.playServicesAuth)
     "prodImplementation"(libs.google.googleid)
+    "prodImplementation"(libs.play.billing)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)

@@ -106,7 +106,7 @@ class CreditsViewModelTest {
         val subject = viewModel()
         subject.onEnter(key())
 
-        gateway.consumeCredit()
+        gateway.unlock("application-1")
 
         assertThat(subject.uiState.value.totalCredits).isEqualTo(0)
     }

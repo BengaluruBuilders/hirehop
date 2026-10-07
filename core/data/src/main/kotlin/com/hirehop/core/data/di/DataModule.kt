@@ -29,9 +29,7 @@ import com.hirehop.core.data.repository.StoredExportHistoryRepository
 import com.hirehop.core.data.repository.StoredPrepPlanRepository
 import com.hirehop.core.data.repository.StoredSessionRepository
 import com.hirehop.core.data.repository.StoredTailoringReviewStateRepository
-import com.hirehop.core.data.repository.StoredUsageAllowance
 import com.hirehop.core.data.repository.TailoringReviewStateRepository
-import com.hirehop.core.data.repository.UsageAllowance
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -76,9 +74,6 @@ abstract class DataModule {
     internal abstract fun bindsTailoringReviewStateRepository(
         repository: StoredTailoringReviewStateRepository,
     ): TailoringReviewStateRepository
-
-    @Binds
-    internal abstract fun bindsUsageAllowance(allowance: StoredUsageAllowance): UsageAllowance
 
     @Binds
     internal abstract fun bindsCoverLetterRepository(repository: StoredCoverLetterRepository): CoverLetterRepository

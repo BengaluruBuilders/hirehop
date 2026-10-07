@@ -379,7 +379,7 @@ interface PaymentGateway {
     suspend fun purchaseHistory(): List<PurchaseRecord>
     fun observePurchaseHistory(): Flow<List<PurchaseRecord>>
     suspend fun restorePurchases(): PurchaseEntitlement
-    suspend fun consumeCredit(): CreditSpend
+    suspend fun unlock(applicationId: String): CreditSpend
     suspend fun clearCredits(): PurchaseEntitlement
 }
 ```
@@ -399,9 +399,9 @@ Rules:
 
 - `observeEntitlement()` is the one source for the credits pill. Use it on every screen that shows credits.
 - `purchaseHistory()` lists the newest purchase first. Only completed and pending purchases are listed.
-- `consumeCredit()` spends a free credit first. `Spent.kind` tells which kind paid. Pass it to `ExportRecord.creditKind`.
+- `unlock(applicationId)` spends a free credit first, once per application. `Spent.kind` tells which kind paid, and is `null` for a repeat. Pass it to `ExportRecord.creditKind`.
 - `clearCredits()` closes the credit account: zero credits, no pending pack, no history. A fresh install has one free credit. `clearCredits()` marks the account as closed. The next `SignInGateway.signIn()` after a closed account starts again with the free credit. `signOut()` alone keeps the credits.
-- The pack ids are `ApplicationPack.APPLICATION_PACK_FIVE` and `ApplicationPack.SINGLE_APPLICATION`. Never read prices or names from constants. Call `packs()`.
+- The pack ids are `ApplicationPack.APPLICATION_PACK_FIVE`. Never read prices or names from constants. Call `packs()`.
 - The new members have default bodies so old test doubles still compile. A real implementation must override all of them.
 
 Mock details:
@@ -580,7 +580,7 @@ Inject the type. Hilt provides it. All calls below are `suspend` unless noted.
 | Add the words for one requirement ("I have this") | `AddUserStatedFactUseCase` | `addUserStatedFact(requirement, statement)`. The fact gets a `U-` id |
 | Propose company and role from a pasted job description | `ProposeJobLabelUseCase` | `proposeJobLabel(rawText)` gives `JobLabelProposal(role, company)` |
 | Show a fact id | `FactDisplayIds` (object) | `FactDisplayIds.forBulletId(bulletId, entries)`, `FactDisplayIds.of(entry, entries)` |
-| Spend a credit | `PaymentGateway` | `paymentGateway.consumeCredit()` gives `CreditSpend.Spent(entitlement, kind)` or `CreditSpend.NoCreditLeft` |
+| Spend a credit | `PaymentGateway` | `paymentGateway.unlock(applicationId)` gives `CreditSpend.Spent(entitlement, kind)` or `CreditSpend.NoCreditLeft` |
 | Record an export | `ExportHistoryRepository` | After a `Spent` result: `exportHistoryRepository.record(ExportRecord(applicationId, format, fileName, clock.now(), spend.kind))` |
 | Show the exported state | `ExportHistoryRepository` | `exportHistoryRepository.observeExports(applicationId)`. The state is "exported" when the list is not empty |
 | Know if the device is online | `ConnectivityMonitor` | `connectivityMonitor.isOnline` (a `Flow<Boolean>`) |

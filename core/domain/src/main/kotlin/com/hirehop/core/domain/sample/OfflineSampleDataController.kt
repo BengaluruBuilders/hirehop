@@ -106,7 +106,7 @@ class OfflineSampleDataController @Inject constructor(
     private fun TailoredBullet.decidedAs(decision: BulletDecision) = copy(decision = decision)
 
     private suspend fun recordExport(plan: SampleExportPlan, now: Instant) {
-        val spend = paymentGateway.consumeCredit()
+        val spend = paymentGateway.unlock(plan.applicationId)
         exportHistoryRepository.record(
             ExportRecord(
                 applicationId = plan.applicationId,

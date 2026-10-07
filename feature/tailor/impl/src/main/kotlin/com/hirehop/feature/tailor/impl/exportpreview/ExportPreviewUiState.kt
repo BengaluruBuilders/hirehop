@@ -52,11 +52,12 @@ internal data class ExportPreviewUiState(
     val freeCredits: Int = 0,
     val purchasedCredits: Int = 0,
     val isFreeBeta: Boolean = false,
+    val alreadyUnlocked: Boolean = false,
     val navigation: ExportPreviewNavigation? = null,
 ) {
     val totalCredits: Int get() = freeCredits + purchasedCredits
 
-    val needsCredits: Boolean get() = creditsKnown && !isFreeBeta && totalCredits == 0
+    val needsCredits: Boolean get() = creditsKnown && !isFreeBeta && !alreadyUnlocked && totalCredits == 0
 
     val canExport: Boolean
         get() = stage == ExportPreviewStage.PREVIEW_READY && sheet != null && !isOffline

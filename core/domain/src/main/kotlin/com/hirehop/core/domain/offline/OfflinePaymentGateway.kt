@@ -82,12 +82,14 @@ class OfflinePaymentGateway @Inject constructor(
         return entitlement()
     }
 
-    override suspend fun consumeCredit(): CreditSpend = mutex.withLock {
+    override suspend fun unlock(applicationId: String): CreditSpend = mutex.withLock {
         val state = load()
+        val unlocked = state.copy(unlockedApplicationIds = state.unlockedApplicationIds + applicationId)
         when {
-            state.freeCredits > 0 -> spend(state.copy(freeCredits = state.freeCredits - 1), CreditKind.FREE)
+            applicationId in state.unlockedApplicationIds -> CreditSpend.Spent(state.toEntitlement(), kind = null)
+            state.freeCredits > 0 -> spend(unlocked.copy(freeCredits = state.freeCredits - 1), CreditKind.FREE)
             state.purchasedCredits > 0 ->
-                spend(state.copy(spentPurchasedCredits = state.spentPurchasedCredits + 1), CreditKind.PURCHASED)
+                spend(unlocked.copy(spentPurchasedCredits = state.spentPurchasedCredits + 1), CreditKind.PURCHASED)
             else -> CreditSpend.NoCreditLeft
         }
     }

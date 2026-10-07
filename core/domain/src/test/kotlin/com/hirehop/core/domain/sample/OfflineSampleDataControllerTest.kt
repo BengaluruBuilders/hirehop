@@ -91,12 +91,12 @@ class OfflineSampleDataControllerTest : SampleDataControllerContractTest() {
     }
 
     @Test
-    fun theNorthwindApplicationHasTwoExportsPaidByFreeThenPurchasedCredit() = runTest {
+    fun theNorthwindApplicationHasTwoExportsAndOnlyTheFirstSpendsACredit() = runTest {
         controller.load()
 
         val records = exports.observeExports("sample-northwind-associate-analyst").first()
 
-        assertThat(records.map { it.creditKind }).containsExactly(CreditKind.FREE, CreditKind.PURCHASED).inOrder()
+        assertThat(records.map { it.creditKind }).containsExactly(CreditKind.FREE, null).inOrder()
         assertThat(records.map { it.fileName }.distinct()).hasSize(2)
     }
 

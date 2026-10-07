@@ -41,7 +41,7 @@ abstract class SampleDataControllerContractTest {
 
         assertThat(fixture.profileRepository.observeProfile().first()?.entries).isNotEmpty()
         assertThat(fixture.applicationRepository.observeApplications().first()).hasSize(4)
-        assertThat(fixture.paymentGateway.entitlement().totalCredits).isEqualTo(4)
+        assertThat(fixture.paymentGateway.entitlement().totalCredits).isEqualTo(5)
         assertThat(fixture.paymentGateway.purchaseHistory()).hasSize(1)
     }
 
@@ -68,7 +68,7 @@ abstract class SampleDataControllerContractTest {
         fixture.controller.load()
 
         assertThat(fixture.applicationRepository.observeApplications().first()).hasSize(4)
-        assertThat(fixture.paymentGateway.entitlement().totalCredits).isEqualTo(4)
+        assertThat(fixture.paymentGateway.entitlement().totalCredits).isEqualTo(5)
         assertThat(fixture.paymentGateway.purchaseHistory()).hasSize(1)
     }
 

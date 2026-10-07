@@ -350,7 +350,6 @@ All are low severity. They come from reviews and walk-throughs.
 - Settings Sign out icon.
 - Small Delete text on S23.
 - S13 pending and cancelled states cannot be forced from the debug menu. This was also true on `main` before.
-- The `ApplicationPack.SINGLE_APPLICATION` constant is unused.
 - Release gate: the privacy-policy and web-delete addresses show "Address not set in this build".
 
 ### 9.4 Lessons for the next run

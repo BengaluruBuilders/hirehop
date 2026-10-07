@@ -272,7 +272,7 @@ class ExportPreviewViewModelTest {
     @Test
     fun aPendingExportStartForThisApplication_exportsByItselfOnce() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-1")
         enter()
         viewModel.onAction(ExportPreviewAction.Export)
         assertThat(viewModel.uiState.value.navigation).isEqualTo(ExportPreviewNavigation.BuyCredits)
@@ -300,7 +300,7 @@ class ExportPreviewViewModelTest {
     @Test
     fun withoutAPendingExportStart_returningFromThePackDoesNotExport() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-2")
         enter()
         viewModel.onAction(ExportPreviewAction.Export)
         paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
@@ -311,7 +311,7 @@ class ExportPreviewViewModelTest {
     @Test
     fun exportWithAPurchasedCredit_recordsThePurchasedKind() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-3")
         paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
         enter()
 
@@ -327,7 +327,7 @@ class ExportPreviewViewModelTest {
     @Test
     fun withNoCredit_exportOpensThePackAndWritesNothing() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-4")
         enter()
         assertThat(viewModel.uiState.value.needsCredits).isTrue()
 
@@ -339,9 +339,27 @@ class ExportPreviewViewModelTest {
     }
 
     @Test
+    fun exportingTheSameApplicationAgainSpendsNoCreditAndRecordsNoKind() = runTest {
+        given()
+        enter()
+        viewModel.onAction(ExportPreviewAction.Export)
+        viewModel.onAction(ExportPreviewAction.NavigationHandled)
+        viewModel.onAction(ExportPreviewAction.SelectFormat(ExportFormat.DOCX))
+
+        assertThat(viewModel.uiState.value.needsCredits).isFalse()
+        viewModel.onAction(ExportPreviewAction.Export)
+
+        val kinds = exportHistory.observeExports(APPLICATION_ID).first().map { it.creditKind }
+        assertThat(kinds).containsExactly(CreditKind.FREE, null).inOrder()
+        assertThat(paymentGateway.entitlement().totalCredits).isEqualTo(0)
+        assertThat(viewModel.uiState.value.navigation)
+            .isEqualTo(ExportPreviewNavigation.Exported(ExportFormat.DOCX, spentFreeCredit = false))
+    }
+
+    @Test
     fun creditsFollowThePurchaseMadeOnTheNextScreen() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-5")
         enter()
         assertThat(viewModel.uiState.value.needsCredits).isTrue()
 

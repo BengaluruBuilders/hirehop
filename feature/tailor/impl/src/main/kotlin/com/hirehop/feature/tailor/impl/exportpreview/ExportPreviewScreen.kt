@@ -384,7 +384,7 @@ private fun ExportingSheet(uiState: ExportPreviewUiState) {
 
 @Composable
 private fun exportPreviewCreditLine(uiState: ExportPreviewUiState): String = when {
-    uiState.isOffline || uiState.isFreeBeta || !uiState.creditsKnown || uiState.needsCredits -> ""
+    uiState.isOffline || uiState.isFreeBeta || uiState.alreadyUnlocked || !uiState.creditsKnown || uiState.needsCredits -> ""
     uiState.purchasedCredits == 0 -> pluralStringResource(
         R.plurals.feature_tailor_impl_export_preview_credit_free,
         uiState.freeCredits,

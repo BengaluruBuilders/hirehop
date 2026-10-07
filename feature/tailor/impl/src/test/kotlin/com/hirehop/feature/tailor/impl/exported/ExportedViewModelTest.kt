@@ -89,7 +89,7 @@ class ExportedViewModelTest {
     @Test
     fun freeCredit_namesTheJobAndReadsTheCreditsLeftFromTheGateway() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-1")
         enter(free = true)
 
         val state = viewModel.uiState.value
@@ -136,9 +136,9 @@ class ExportedViewModelTest {
     @Test
     fun paidCredit_dropsTheCounterByOne() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-2")
         paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-3")
         enter(free = false)
 
         val state = viewModel.uiState.value
@@ -151,7 +151,7 @@ class ExportedViewModelTest {
     @Test
     fun theCounterFollowsAnyLaterChangeOfTheCredits() = runTest {
         given()
-        paymentGateway.consumeCredit()
+        paymentGateway.unlock("application-4")
         enter(free = true)
 
         paymentGateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
