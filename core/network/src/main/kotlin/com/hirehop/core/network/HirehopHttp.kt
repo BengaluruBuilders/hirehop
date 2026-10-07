@@ -1,6 +1,5 @@
 package com.hirehop.core.network
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -8,10 +7,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalSerializationApi::class)
 fun hirehopJson(): Json = Json {
     ignoreUnknownKeys = true
-    explicitNulls = false
     encodeDefaults = true
 }
 

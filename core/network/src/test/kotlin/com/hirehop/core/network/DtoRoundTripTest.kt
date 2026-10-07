@@ -73,10 +73,10 @@ class DtoRoundTripTest {
     }
 
     @Test
-    fun explicitNullsAreOmittedOnTheWire() {
+    fun nullFieldsAreSentOnTheWireBecauseTheBackendRequiresThem() {
         val request = decode<TailoringStartRequest>("tailoring-start-request")
         assertThat(request.section).isNull()
-        assertThat(json.encodeToString(TailoringStartRequest.serializer(), request)).doesNotContain("section")
+        assertThat(json.encodeToString(TailoringStartRequest.serializer(), request)).contains("\"section\":null")
     }
 
     private inline fun <reified T> roundTrip(name: String) {
@@ -84,7 +84,7 @@ class DtoRoundTripTest {
         val serializer: KSerializer<T> = serializer()
         val decoded = json.decodeFromString(serializer, text)
         val encoded = json.encodeToJsonElement(serializer, decoded)
-        assertThat(encoded).isEqualTo(plain.parseToJsonElement(text).withoutNulls())
+        assertThat(encoded.withoutNulls()).isEqualTo(plain.parseToJsonElement(text).withoutNulls())
         assertThat(json.decodeFromJsonElement(serializer, encoded)).isEqualTo(decoded)
     }
 
