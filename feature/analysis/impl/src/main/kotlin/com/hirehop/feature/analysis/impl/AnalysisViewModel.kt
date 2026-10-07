@@ -1,5 +1,6 @@
 package com.hirehop.feature.analysis.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.common.network.Dispatcher
@@ -15,6 +16,7 @@ import com.hirehop.core.domain.AddUserStatedFactUseCase
 import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.CreateApplicationUseCase
+import com.hirehop.core.domain.IdGenerator
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.isAiFailure
@@ -27,6 +29,7 @@ import com.hirehop.core.model.KeptJobDescription
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.PrepPlanItem
 import com.hirehop.core.model.ReportedItemKind
+import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.factCounts
 import com.hirehop.core.navigation.PendingNavigation
 import com.hirehop.feature.tailor.api.navigation.TailorNavKey
@@ -68,6 +71,8 @@ class AnalysisViewModel @Inject constructor(
     private val usageAllowance: UsageAllowance,
     private val paymentGateway: PaymentGateway,
     private val clock: Clock,
+    private val idGenerator: IdGenerator,
+    private val savedState: SavedStateHandle,
     connectivityMonitor: ConnectivityMonitor,
     @param:Dispatcher(HhDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
@@ -339,9 +344,14 @@ class AnalysisViewModel @Inject constructor(
         return allowed
     }
 
+    private fun applicationIdFor(ready: Phase.Ready): String {
+        val key = APPLICATION_ID_KEY + ready.draftKey
+        return savedState.get<String>(key) ?: idGenerator.newId().also { savedState[key] = it }
+    }
+
     private suspend fun createApplicationFor(ready: Phase.Ready): String {
         val applicationId = withContext(computeDispatcher) {
-            createApplication(ready.profile, ready.analysis, ready.kept)
+            createApplication(ready.profile, ready.analysis, ready.kept, applicationIdFor(ready))
         }
         prepPlanRepository.observeItems(ready.draftKey).first().forEach { item ->
             prepPlanRepository.add(applicationId, item)
@@ -393,8 +403,20 @@ class AnalysisViewModel @Inject constructor(
         }
     }
 
-    private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready =
-        ready.copy(profile = profile, analysis = analyze(ready.kept, profile))
+    private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
+        val fresh = analyze(ready.kept, profile)
+        val freshByText = fresh.gap.matches.associateBy { it.requirement.text.normalizedRequirementText() }
+        val previous = ready.analysis
+        val matches = previous.gap.matches.map { old ->
+            freshByText[old.requirement.text.normalizedRequirementText()]
+                ?.let { RequirementMatch(old.requirement, it.status, it.evidenceIds) }
+                ?: old
+        }
+        return ready.copy(
+            profile = profile,
+            analysis = JobAnalysisResult(previous.job, fresh.gap.copy(matches = matches)),
+        )
+    }
 
     private suspend fun analyze(kept: KeptJobDescription, profile: CandidateProfile): JobAnalysisResult =
         withContext(computeDispatcher) { analyzeJob(profile, kept.text) }
@@ -497,8 +519,11 @@ class AnalysisViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val APPLICATION_ID_KEY = "application-id-"
     }
 }
+
+private fun String.normalizedRequirementText(): String = trim().lowercase().replace(Regex("\\s+"), " ")
 
 private fun CandidateProfile.confirmedFactCount(): Int = factCounts().confirmed
 

@@ -8,6 +8,7 @@ import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.core.model.ProfileLimits
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -37,16 +38,17 @@ class AddUserStatedFactUseCase @Inject constructor(
 
     private fun CandidateProfile.withStatement(statement: String): CandidateProfile {
         val bullet = EvidenceBullet(id = idGenerator.newId(), text = statement)
-        val exists = entries.any { it.isUserStatedCollection() }
-        val updated = if (exists) entries.map { it.appendingTo(bullet) } else entries + newEntry(bullet, entries)
+        val target = entries.lastOrNull { it.isUserStatedCollection() && it.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY }
+        val updated = if (target != null) {
+            entries.map { if (it === target) it.copy(bullets = it.bullets + bullet) else it }
+        } else {
+            entries + newEntry(bullet, entries)
+        }
         return copy(entries = updated)
     }
 
     private fun ProfileEntry.isUserStatedCollection(): Boolean =
         source == FactSource.USER_STATED && title == USER_STATED_ENTRY_TITLE
-
-    private fun ProfileEntry.appendingTo(bullet: EvidenceBullet): ProfileEntry =
-        if (isUserStatedCollection()) copy(bullets = bullets + bullet) else this
 
     private fun newEntry(bullet: EvidenceBullet, existing: List<ProfileEntry>) = ProfileEntry(
         id = idAllocator.nextUncategorisedId(existing),

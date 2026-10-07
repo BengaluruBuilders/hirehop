@@ -51,6 +51,22 @@ class RemoteAiRoutesTest {
     }
 
     @Test
+    fun resumeParseAcceptsTheNullsThatTheBackendSchemaAllows() = runBlocking<Unit> {
+        backend.reply(
+            200,
+            """{"generationId":"g","profile":{"fullName":null,"email":null,"phone":null,"headline":null,"skills":[],
+"entries":[{"ref":"e1","category":"PROJECT","title":"Sales dashboard","organization":null,"startDate":null,"endDate":null,
+"bullets":[{"ref":"e1b1","text":"Built a dashboard."}]}]},"droppedSensitive":[]}""",
+        )
+
+        val profile = RemoteResumeTextParser(backend.api, FactIdAllocator(), ImportRemovalNotice()).parse("resume text")
+
+        assertThat(profile.fullName).isEmpty()
+        assertThat(profile.entries.single().organization).isEmpty()
+        assertThat(profile.entries.single().endDate).isEmpty()
+    }
+
+    @Test
     fun resumeParseHidesTheRemovedBannerWhenNoBirthDateOrPhotoWasDropped() = runBlocking<Unit> {
         backend.reply(200, RESUME_PARSE_RESPONSE.replace("DATE_OF_BIRTH", "RELIGION"))
         val notice = ImportRemovalNotice()

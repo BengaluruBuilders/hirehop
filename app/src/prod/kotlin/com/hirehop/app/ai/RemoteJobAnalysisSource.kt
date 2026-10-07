@@ -8,6 +8,8 @@ import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.RequirementMatch
+import com.hirehop.core.model.confirmedWithinLimits
+import com.hirehop.core.model.evidenceIds
 import com.hirehop.core.network.HirehopApi
 import com.hirehop.core.network.dto.AnalysisRequest
 import com.hirehop.core.network.dto.MatchDto
@@ -35,7 +37,7 @@ class RemoteJobAnalysisSource @Inject constructor(
         synchronized(cache) { cache[key] }?.let { return it }
         val response = remoteAi { api.analyse(AnalysisRequest(rawJobText, facts)) }
         val job = response.job.toJobDescription(rawJobText)
-        val factIds = facts.entries.flatMap { entry -> entry.bullets.map { it.id } }.toSet()
+        val factIds = profile.confirmedWithinLimits().evidenceIds()
         val gap = GapAnalysis(
             matches = matchesOf(job, response.matches, factIds),
             keywordCoverage = matcher.match(profile, job).keywordCoverage,

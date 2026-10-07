@@ -12,10 +12,13 @@ import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.MatchStatus
 import com.hirehop.core.model.ProfileEntry
+import com.hirehop.core.model.ProfileLimits
 import com.hirehop.core.model.ReportedItemKind
 import com.hirehop.core.model.RequirementMatch
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
+import com.hirehop.core.model.confirmedWithinLimits
+import com.hirehop.core.model.evidenceIds
 import com.hirehop.core.network.dto.BulletVerification
 import com.hirehop.core.network.dto.MatchDto
 import com.hirehop.core.network.dto.TailoredBulletDto
@@ -45,6 +48,28 @@ class MappersTest {
         assertThat(facts.entries.map { it.id }).containsExactly("E1")
         assertThat(facts.entries.single().bullets.single().id).isEqualTo("E1-1")
         assertThat(facts.toString()).doesNotContain("p@example.com")
+    }
+
+    @Test
+    fun factsNeverExceedTheContractLimits() {
+        val bullets = List(ProfileLimits.MAX_BULLETS_PER_ENTRY + 3) { EvidenceBullet("B$it", "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + 50)) }
+        val big = entry("E1", true).copy(title = "t".repeat(ProfileLimits.MAX_TEXT_LENGTH + 5), bullets = bullets + EvidenceBullet("B-blank", " "))
+        val skills = List(ProfileLimits.MAX_SKILLS + 5) { "S$it" } + "s".repeat(ProfileLimits.MAX_SKILL_LENGTH + 1) + " "
+        val profile = CandidateProfile("Priya", "p@example.com", "+91", "Headline", skills, listOf(big))
+
+        val facts = profile.toFactsDto()
+
+        assertThat(facts.skills).hasSize(ProfileLimits.MAX_SKILLS)
+        assertThat(facts.entries.single().title).hasLength(ProfileLimits.MAX_TEXT_LENGTH)
+        assertThat(facts.entries.single().bullets).hasSize(ProfileLimits.MAX_BULLETS_PER_ENTRY)
+        assertThat(facts.entries.single().bullets.all { it.text.length == ProfileLimits.MAX_BULLET_LENGTH }).isTrue()
+    }
+
+    @Test
+    fun evidenceIdsHoldEntryBulletAndSkillIdsOfConfirmedEntriesOnly() {
+        val profile = CandidateProfile("P", "", "", "", listOf("SQL"), listOf(entry("E1", true), entry("E2", false)))
+
+        assertThat(profile.confirmedWithinLimits().evidenceIds()).containsExactly("E1", "E1-1", "skill:SQL")
     }
 
     @Test
