@@ -46,7 +46,7 @@ A feature must change these things when it adopts the integration changes.
 ## Tokens
 
 ### Colour (`HhTheme.colors`)
-New roles: `header`, `headerShape`, `onHeader`, `onHeaderVariant`, `onHeaderControl`, `primary`,
+New roles: `header`, `headerShape`, `onHeader`, `onHeaderVariant`, `onHeaderControl`, `headerControl`, `primary`,
 `onPrimary`, `primaryContainer`, `onPrimaryContainer`, `background`, `surface`, `card`, `ground`,
 `document`, `tool`, `onTool`, `onToolVariant`, `outline`, `outlineVariant`, `outlineSoft`,
 `onSurface`, `onSurfaceVariant`, `body`, `inverseSurface`, `inverseOnSurface`, `inversePrimary`,
@@ -59,7 +59,8 @@ New roles: `brand` and `onBrand` (the jade fill, #0B7A5C with white, the same in
 `onCoral` (#B94C37 with white, the same in both themes), `sheet` (a bottom sheet and a dialog fill).
 `primary` is the jade for text, icons, links and focus: #0B7A5C in light, bright #5FD0A8 in dark. Fills
 use `brand`. `special` is marigold #FFC94D with ink text. `error` is coral text and marks: #B94C37 in light,
-#F08F79 in dark. `headerShape` is the tint of the header squiggle (#F3A08E).
+#F08F79 in dark. `headerShape` is the tint of the header squiggle (#F3A08E). `headerControl` is the fill of a
+header icon button: black at 20% (#33000000) in both themes.
 Values (light / dark): `background` and `ground` #FFFFFF / #0F1114, `card` #F6F7F9 / #1A1D22, `surface`
 #FFFFFF / #1A1D22, `sheet` and `tool` (the dock) #FFFFFF / #22262D for `sheet`, #16181D / #22262D for `tool`,
 `outlineVariant` and `outlineSoft` #E6E8EC / #2B3038, `onSurface` #16181D / #F1F2F4, `onSurfaceVariant`
@@ -287,8 +288,12 @@ Marigold pack purchase. `HhSpecialOffer` pairs it with an equal-size "Not now" b
 
 ```kotlin
 fun HhIconButton(icon: ImageVector, contentDescription: String, onClick, modifier, enabled = true, tint, containerColor, borderColor, shape, size: Dp = 48.dp)
-fun HhHeaderIconButton(icon, contentDescription, onClick, modifier)   // white 48 dp circle
+fun HhHeaderIconButton(icon, contentDescription, onClick, modifier)
+fun HhBackButton(contentDescription, onClick, modifier, onHeader: Boolean = false)
 ```
+`HhHeaderIconButton` is a 48 dp `headerControl` circle with a white icon, for every control on a jade header.
+`HhBackButton` is the only back control: the `HhIcons.Back` chevron in a borderless 48 dp circle. With
+`onHeader = true` it is an `HhHeaderIconButton`; otherwise the fill is `card` and the icon is `onSurface`.
 
 ## Surfaces
 ```kotlin

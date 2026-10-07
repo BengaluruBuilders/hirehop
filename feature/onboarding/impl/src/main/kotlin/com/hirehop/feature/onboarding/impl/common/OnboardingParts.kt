@@ -30,12 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
+import com.hirehop.core.designsystem.component.HhBackButton
 import com.hirehop.core.designsystem.component.HhDecoration
 import com.hirehop.core.designsystem.component.HhDecorationKind
-import com.hirehop.core.designsystem.component.HhHeaderIconButton
 import com.hirehop.core.designsystem.component.HhHeroCard
-import com.hirehop.core.designsystem.component.HhIconButton
-import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -225,21 +223,7 @@ internal fun OnboardingStepBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            if (onBrand) {
-                HhHeaderIconButton(
-                    icon = HhIcons.ArrowBack,
-                    contentDescription = backContentDescription,
-                    onClick = onBack,
-                )
-            } else {
-                HhIconButton(
-                    icon = HhIcons.ArrowBack,
-                    contentDescription = backContentDescription,
-                    onClick = onBack,
-                    containerColor = HhTheme.colors.surface,
-                    borderColor = HhTheme.colors.outlineVariant,
-                )
-            }
+            HhBackButton(contentDescription = backContentDescription, onClick = onBack, onHeader = onBrand)
         } else {
             Box(modifier = Modifier.width(HhTheme.spacing.touch))
         }

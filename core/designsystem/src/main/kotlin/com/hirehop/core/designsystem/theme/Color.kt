@@ -12,6 +12,7 @@ class HhColors(
     val onHeader: Color,
     val onHeaderVariant: Color,
     val onHeaderControl: Color,
+    val headerControl: Color,
     val primary: Color,
     val onPrimary: Color,
     val primaryContainer: Color,

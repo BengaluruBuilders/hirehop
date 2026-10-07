@@ -729,7 +729,7 @@ private fun ImportResumeBottomBar(
     val chooseAnother = stringResource(R.string.feature_onboarding_impl_import_resume_choose_another)
     when {
         uiState.isQueued -> HhIconActionBar(
-            secondaryIcon = HhIcons.ArrowBack,
+            secondaryIcon = HhIcons.Back,
             secondaryContentDescription = back,
             onSecondaryClick = actions.onBack,
             primaryLabel = chooseAnother,
@@ -746,7 +746,7 @@ private fun ImportResumeBottomBar(
         )
 
         uiState.stage == ImportStage.Failed -> HhIconActionBar(
-            secondaryIcon = HhIcons.ArrowBack,
+            secondaryIcon = HhIcons.Back,
             secondaryContentDescription = back,
             onSecondaryClick = actions.onBack,
             primaryLabel = stringResource(R.string.feature_onboarding_impl_import_resume_try_again),

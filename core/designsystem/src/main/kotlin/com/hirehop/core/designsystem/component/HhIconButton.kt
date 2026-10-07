@@ -69,10 +69,31 @@ fun HhHeaderIconButton(
         contentDescription = contentDescription,
         onClick = onClick,
         modifier = modifier,
-        tint = HhTheme.colors.onHeaderControl,
-        containerColor = HhTheme.colors.onHeader,
+        tint = HhTheme.colors.onHeader,
+        containerColor = HhTheme.colors.headerControl,
         borderColor = Color.Transparent,
     )
+}
+
+@Composable
+fun HhBackButton(
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onHeader: Boolean = false,
+) {
+    if (onHeader) {
+        HhHeaderIconButton(icon = HhIcons.Back, contentDescription = contentDescription, onClick = onClick, modifier = modifier)
+    } else {
+        HhIconButton(
+            icon = HhIcons.Back,
+            contentDescription = contentDescription,
+            onClick = onClick,
+            modifier = modifier,
+            containerColor = HhTheme.colors.card,
+            borderColor = Color.Transparent,
+        )
+    }
 }
 
 private const val DISABLED_ALPHA = 0.38f

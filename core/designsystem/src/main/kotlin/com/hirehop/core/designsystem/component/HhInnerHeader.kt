@@ -33,7 +33,7 @@ fun HhInnerHeader(
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     backContentDescription: String = "",
-    backIcon: ImageVector = HhIcons.ArrowBack,
+    backIcon: ImageVector = HhIcons.Back,
     trailing: (@Composable () -> Unit)? = null,
     belowTitle: (@Composable () -> Unit)? = null,
     extended: Boolean = true,

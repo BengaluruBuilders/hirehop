@@ -49,7 +49,7 @@ new components.
 |---|---|---|
 | Home header | Welcome and the three top-level tabs | Jade header, two soft circles, greeting, credits pill, bold headline, outline pill button. The woman hero pose stands in front of the sheet |
 | Sheet | Below a home header | Surface with 28 dp top corners that overlaps the header |
-| Inner header | Every pushed screen | Shorter jade header, white 48 dp circular back button, centred title and subtitle. Hero cards (24 dp radius) overlap it |
+| Inner header | Every pushed screen | Shorter jade header, 48 dp tinted circular back button with a white chevron (`HhBackButton`), centred title and subtitle. Hero cards (24 dp radius) overlap it |
 | Dock | The three top-level tabs only | Full-width `tool` bar on the bottom edge, with a notch. The active item is an icon in a primary ball in the notch. No labels. Never on onboarding or pushed screens |
 | Bottom action bar | Screens with 1 to 3 main actions | `tool` bar. Content has an inset, so the bar never covers content |
 | Status | Met, partly met, to prepare | Shape plus word plus colour. The gap word in the UI is "To prepare" |

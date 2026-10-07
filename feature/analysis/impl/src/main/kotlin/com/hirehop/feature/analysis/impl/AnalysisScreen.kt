@@ -40,10 +40,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.designsystem.component.HhBackButton
 import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhDecoration
 import com.hirehop.core.designsystem.component.HhDecorationKind
-import com.hirehop.core.designsystem.component.HhHeaderIconButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
@@ -318,10 +318,10 @@ private fun HeaderTopRow(
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhHeaderIconButton(
-            icon = HhIcons.ArrowBack,
+        HhBackButton(
             contentDescription = stringResource(R.string.feature_analysis_impl_back),
             onClick = onBack,
+            onHeader = true,
         )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             if (result != null) {

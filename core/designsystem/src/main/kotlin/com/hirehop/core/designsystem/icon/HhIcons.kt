@@ -3,6 +3,7 @@ package com.hirehop.core.designsystem.icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.outlined.Person
@@ -49,6 +50,7 @@ object HhIcons {
     val Add = Icons.Rounded.Add
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
     val ArrowForward = Icons.AutoMirrored.Rounded.ArrowForward
+    val Back = Icons.AutoMirrored.Rounded.KeyboardArrowLeft
     val Applications = Icons.Rounded.Work
     val ApplicationsBorder = Icons.Outlined.Work
     val Award = Icons.Rounded.WorkspacePremium

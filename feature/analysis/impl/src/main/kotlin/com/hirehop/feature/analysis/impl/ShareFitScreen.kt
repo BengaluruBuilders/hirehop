@@ -34,8 +34,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhBackButton
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusDisc
@@ -141,11 +141,9 @@ private fun ShareFitTopRow(onBack: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhIconButton(
-            icon = HhIcons.ArrowBack,
+        HhBackButton(
             contentDescription = stringResource(R.string.feature_analysis_impl_back),
             onClick = onBack,
-            borderColor = HhTheme.colors.outlineVariant,
         )
         Box(
             modifier = Modifier
