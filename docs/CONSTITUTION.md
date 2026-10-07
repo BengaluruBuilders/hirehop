@@ -23,7 +23,7 @@ These rules come from the core promise in `docs/PRD.md`: "We never invent anythi
 | I.2 | The candidate decides. Every suggestion starts as `PENDING`. Nothing reaches an export without an explicit accept. | `UpdateBulletDecisionUseCaseTest`, `TailorViewModelTest` |
 | I.3 | UI copy never claims an ATS score, an ATS pass, or a job, interview, or placement guarantee. Say "keyword coverage" and "readable by common ATS parsers" (PRD 6.4, 7). | Policy I.3 on `res/values*/*.xml` |
 | I.4 | No API key, token, or private key goes into the app or the repository. Model credentials live on the backend only. | Policy I.4; gitleaks |
-| I.5 | Candidate data stays on the device. Backups stay off. Network access, analytics, and crash SDKs need an amendment first. The amendment must name the consent screen (PRD 10.4). | Policy I.5: no `INTERNET` permission, no `allowBackup="true"`, no network or analytics library in the catalog |
+| I.5 | Candidate data leaves the device only to the HireHop backend (`apps-backend`), only in the `prod` flavour, and only after the candidate accepts consent screen S4 (PRD 10.4). The app has one HTTP stack: OkHttp, Retrofit, and kotlinx.serialization. Firebase Auth, Credential Manager (Google sign-in), and Google Play Billing are allowed. The `demo` flavour has no `INTERNET` permission. Backups stay off. Analytics, crash, and ad SDKs stay forbidden. | Policy I.5: `INTERNET` only in `app/src/prod/AndroidManifest.xml`, no `allowBackup="true"`, no analytics, crash, or ad library, network libraries only in `core:network` or as `prodImplementation` in `:app`; Dependency Guard (`dependencyGuard`) locks the release classpath of both flavours |
 
 ## Article II — Architecture
 
@@ -101,11 +101,9 @@ baselines, Dependabot, gitleaks, an R8 release build, a Room schema check, and w
 |---|---|---|
 | Fabrication test set as a CI gate | PRD 9 makes "0 critical fabrications" a release gate. This is the core promise. | Next PR |
 | Custom lint module | Turns II.2, II.5, and III.2 into real detectors, as NiA's `DesignSystemDetector` does. | After the fabrication set |
-| Dependency Guard | Locks the release classpath, which makes I.5 airtight. | Before the backend work starts |
 | Instrumented tests on every PR | Catches DAO and UI regressions before merge. | When the repository has free minutes (public or paid plan) |
 
-Deferred until a trigger occurs: baseline profiles (after the first Play release), Firebase (needs
-an I.5 amendment), and `demo`/`prod` flavors (when the backend exists).
+Deferred until a trigger occurs: baseline profiles (after the first Play release).
 
 ### Ledger amendment — coverage and screenshot tests moved forward
 
@@ -121,3 +119,13 @@ Kover was chosen over JaCoCo. Roborazzi and Robolectric are build-time test depe
 never reach the app binary, so they do not conflict with I.5. Robolectric downloads its
 `android-all` jars from Maven at test runtime; that is build tooling, not app network access, and
 the release APK still requests no network permission.
+
+### Ledger amendment — 2026-10-08, network access for the HireHop backend (I.5)
+
+Adopted under Article VII in the PR that adds the `demo` and `prod` flavours.
+
+| Item | Why | Gate |
+|---|---|---|
+| I.5 rewritten | The backend contract (`docs/BACKEND_CONTRACT.md`) needs sign-in, sync, tailoring, and billing from the app. The owner approved a narrow network exception on 2026-10-08: backend only, `prod` only, consent screen S4 (PRD 10.4), one HTTP stack. Backups, analytics, crash SDKs, and ad SDKs stay forbidden. | `tools/ci/check-constitution.sh` policy I.5 |
+| Flavours `demo` and `prod` (dimension `backend`, `:app` only, III.5) | `demo` keeps the offline behaviour and the developer menu with no `INTERNET` permission. `prod` adds the permission through `app/src/prod/AndroidManifest.xml`. | Policy I.5; `assembleDemoRelease` and `assembleProdRelease` in CI |
+| Dependency Guard | Closes the Dependency Guard row of the ledger. Any new release dependency in either flavour fails until the baseline in `app/dependencies/` is updated on purpose. | `dependencyGuard` in `tools/ci/verify-local.sh` |

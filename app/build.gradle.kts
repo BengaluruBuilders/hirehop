@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.hirehop.android.application)
     alias(libs.plugins.hirehop.android.application.compose)
     alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.dependency.guard)
 }
 
 android {
@@ -11,6 +12,26 @@ android {
         applicationId = "com.hirehop.app"
         versionCode = 1
         versionName = "0.1.0"
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    flavorDimensions += "backend"
+    productFlavors {
+        create("demo") {
+            dimension = "backend"
+        }
+        create("prod") {
+            dimension = "backend"
+            buildConfigField("String", "HIREHOP_API_BASE_URL", "\"https://apps-backend.fly.dev\"")
+            buildConfigField(
+                "String",
+                "HIREHOP_WEB_CLIENT_ID",
+                "\"${providers.gradleProperty("hirehopWebClientId").getOrElse("")}\"",
+            )
+        }
     }
 
     buildTypes {
@@ -59,4 +80,9 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+}
+
+dependencyGuard {
+    configuration("demoReleaseRuntimeClasspath")
+    configuration("prodReleaseRuntimeClasspath")
 }

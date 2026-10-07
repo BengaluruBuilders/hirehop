@@ -114,10 +114,14 @@ jobs:
           :build-logic:convention:check
           spotlessCheck
           testDebugUnitTest
+          :app:testDemoDebugUnitTest
+          :app:testProdDebugUnitTest
           :core:domain:koverVerify
           :core:data:koverVerify
           verifyRoborazziDebug
           lintRelease
+          :app:lintDemoRelease
+          :app:lintProdRelease
           assembleDebug
           assembleRelease
           -PwarningsAsErrors=true

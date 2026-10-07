@@ -85,13 +85,19 @@ forbid I.4 "Possible API key or secret in source." \
 forbid I.3 "UI copy claims an ATS result or a guarantee." \
   '[Yy]our ATS score|ATS score:|[Bb]eats? (the )?ATS|ATS[- ](proof|approved)|[Gg]uaranteed (job|interview|selection|placement|shortlist)' \
   '*/res/values*/*.xml'
-forbid I.5 "Network access needs a constitution amendment first." \
-  'android\.permission\.INTERNET' '*AndroidManifest.xml'
+forbid I.5 "The INTERNET permission is allowed only in app/src/prod/AndroidManifest.xml." \
+  'android\.permission\.INTERNET' '*AndroidManifest.xml' ':!app/src/prod/AndroidManifest.xml'
 forbid I.5 "Backups would copy candidate data off the device." \
   'allowBackup="true"' '*AndroidManifest.xml'
-forbid I.5 "Network, analytics, or crash SDKs need a constitution amendment first." \
-  'okhttp|retrofit|ktor|firebase|crashlytics|analytics|sentry|amplitude|mixpanel' \
-  'gradle/libs.versions.toml'
+forbid I.5 "Analytics, crash, and ad SDKs are forbidden." \
+  'crashlytics|analytics|sentry|amplitude|mixpanel|admob|play-services-ads|(^|[^[:alpha:]])ads([^[:alpha:]]|$)' \
+  'gradle/libs.versions.toml' '*.gradle.kts'
+forbid I.5 "Network libraries belong in core:network or in prod-only dependencies of :app." \
+  'libs\.(okhttp|retrofit|firebase|play\.billing|androidx\.credentials|google\.googleid)' \
+  'feature/*/build.gradle.kts' 'core/*/build.gradle.kts' ':!core/network/build.gradle.kts'
+forbid I.5 "Network libraries in :app must use prodImplementation." \
+  '^[[:space:]]*(implementation|api)\(.*libs\.(okhttp|retrofit|firebase|play\.billing|androidx\.credentials|google\.googleid)' \
+  'app/build.gradle.kts'
 forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual time." \
   'Thread\.sleep' '*.kt'
 forbid III.3 "Production code must not reference a test double or a fake." \

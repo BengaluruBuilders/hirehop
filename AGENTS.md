@@ -72,14 +72,22 @@ If the design changes, export the frames again and replace the folder in one PR.
 | Run every CI gate on your machine | `tools/ci/verify-local.sh` |
 | Run the constitution policy check only | `tools/ci/check-constitution.sh` |
 | Fix formatting | `./gradlew spotlessApply` |
-| Run unit tests | `./gradlew testDebugUnitTest` |
+| Run unit tests | `./gradlew testDebugUnitTest :app:testDemoDebugUnitTest :app:testProdDebugUnitTest` |
 | Record screenshot baselines for one module | `./gradlew :feature:<name>:impl:recordRoborazziDebug` |
 | Verify screenshot baselines | `./gradlew verifyRoborazziDebug` |
 | Run one test class | `./gradlew :core:domain:testDebugUnitTest --tests "com.hirehop.core.domain.TailorResumeUseCaseTest"` |
-| Run lint | `./gradlew lintRelease` |
-| Build the debug APK | `./gradlew assembleDebug` |
+| Run lint | `./gradlew lintRelease :app:lintDemoRelease :app:lintProdRelease` |
+| Check the release classpath | `./gradlew dependencyGuard` |
+| Update the release classpath baseline | `./gradlew dependencyGuardBaseline` |
+| Build the offline debug APK | `./gradlew assembleDemoDebug` |
+| Build the backend debug APK | `./gradlew assembleProdDebug` |
 | Install the pre-push hook | `tools/setup.sh` |
 | Stop Gradle daemons when you finish | `./gradlew --stop` |
+
+## Flavours
+
+`:app` has the flavour dimension `backend`. `demo` is offline and has no `INTERNET` permission. `prod` talks to
+the HireHop backend (Constitution I.5). The debug build below belongs to `demo`.
 
 ## Debug build
 
