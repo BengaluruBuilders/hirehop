@@ -79,7 +79,7 @@ class OfflineSignInGatewayStateTest {
         val payment = OfflinePaymentGateway(store, NoMockLatency, TestClock(Instant.fromEpochSeconds(1)), TestIdGenerator("order"))
         val gateway = OfflineSignInGateway(session, NoMockLatency, store)
         gateway.signIn()
-        payment.consumeCredit()
+        payment.unlock("application-1")
         assertThat(payment.entitlement().totalCredits).isEqualTo(0)
 
         gateway.signOut()

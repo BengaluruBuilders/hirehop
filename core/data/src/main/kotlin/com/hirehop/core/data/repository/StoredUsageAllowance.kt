@@ -15,7 +15,7 @@ import javax.inject.Singleton
 import kotlin.time.Clock
 
 @Singleton
-internal class StoredUsageAllowance @Inject constructor(
+class StoredUsageAllowance @Inject constructor(
     private val store: MockStateStore,
     private val clock: Clock,
 ) : UsageAllowance {

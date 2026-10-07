@@ -16,6 +16,7 @@ internal data class PaymentState(
     val pendingPackIds: List<String> = emptyList(),
     val purchases: List<PurchaseDto> = emptyList(),
     val closed: Boolean = false,
+    val unlockedApplicationIds: List<String> = emptyList(),
 ) {
     val purchasedCredits: Int
         get() = (confirmedPackIds.sumOf(::creditsOf) - spentPurchasedCredits).coerceAtLeast(0)
@@ -24,6 +25,7 @@ internal data class PaymentState(
         freeCredits = freeCredits,
         purchasedCredits = purchasedCredits,
         pendingPackIds = pendingPackIds,
+        unlockedApplicationIds = unlockedApplicationIds.toSet(),
     )
 
     fun confirm(packId: String, orderId: String, nowMillis: Long): PaymentState = copy(

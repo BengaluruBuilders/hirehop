@@ -74,6 +74,7 @@ dependencies {
     implementation(projects.core.ui)
 
     "prodImplementation"(projects.core.network)
+    "prodImplementation"(libs.play.billing)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -82,6 +83,7 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+    "testProdImplementation"(libs.okhttp.mockwebserver)
 }
 
 dependencyGuard {

@@ -100,6 +100,7 @@ internal class ExportPreviewViewModel @Inject constructor(
                         creditsKnown = true,
                         freeCredits = entitlement.freeCredits,
                         purchasedCredits = entitlement.purchasedCredits,
+                        alreadyUnlocked = applicationId in entitlement.unlockedApplicationIds,
                     )
                 }
             }
@@ -217,7 +218,7 @@ internal class ExportPreviewViewModel @Inject constructor(
         fileName: String,
         pageCount: Int?,
     ) {
-        when (val spend = runCatching { paymentGateway.consumeCredit() }.getOrNull()) {
+        when (val spend = runCatching { paymentGateway.unlock(applicationId) }.getOrNull()) {
             is CreditSpend.Spent -> {
                 exportHistoryRepository.record(
                     ExportRecord(

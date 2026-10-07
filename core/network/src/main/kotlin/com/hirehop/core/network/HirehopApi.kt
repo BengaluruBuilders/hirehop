@@ -23,6 +23,7 @@ import com.hirehop.core.network.dto.TailoringResponse
 import com.hirehop.core.network.dto.TailoringStartRequest
 import com.hirehop.core.network.dto.UnlockResponse
 import com.hirehop.core.network.dto.WalletResponse
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -61,7 +62,7 @@ interface HirehopApi {
     suspend fun wallet(): WalletResponse
 
     @POST("v1/hirehop/applications/{applicationId}/unlock")
-    suspend fun unlock(@Path("applicationId") applicationId: String): UnlockResponse
+    suspend fun unlock(@Path("applicationId") applicationId: String): Response<UnlockResponse>
 
     @GET("v1/hirehop/packs")
     suspend fun packs(): PacksResponse

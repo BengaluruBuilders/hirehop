@@ -384,7 +384,7 @@ private class BalancePaymentGateway(
 
     override suspend fun restorePurchases(): PurchaseEntitlement = current
 
-    override suspend fun consumeCredit(): CreditSpend = if (current.totalCredits > 0) {
+    override suspend fun unlock(applicationId: String): CreditSpend = if (current.totalCredits > 0) {
         current = current.copy(freeCredits = current.freeCredits - 1)
         CreditSpend.Spent(current)
     } else {
@@ -411,7 +411,7 @@ private class ThrowingPaymentGateway : PaymentGateway {
 
     override suspend fun restorePurchases(): PurchaseEntitlement = entitlement()
 
-    override suspend fun consumeCredit(): CreditSpend = throw IllegalStateException("no credit service")
+    override suspend fun unlock(applicationId: String): CreditSpend = throw IllegalStateException("no credit service")
 
     override suspend fun clearCredits(): PurchaseEntitlement = throw IllegalStateException("no credit service")
 }

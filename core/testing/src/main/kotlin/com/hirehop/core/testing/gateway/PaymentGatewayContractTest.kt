@@ -171,7 +171,7 @@ abstract class PaymentGatewayContractTest {
         gateway.packs().firstOrNull()?.let { pack -> gateway.purchase(pack.id) }
         val before = gateway.entitlement()
 
-        val spend = gateway.consumeCredit()
+        val spend = gateway.unlock("application-1")
 
         if (spend is CreditSpend.Spent) {
             val after = gateway.entitlement()
@@ -184,11 +184,11 @@ abstract class PaymentGatewayContractTest {
     fun spendingWithAnEmptyBalanceReportsNoCreditLeftAndChangesNothing() = runTest {
         val gateway = createPaymentGateway()
         repeat(SPEND_ATTEMPTS_UNTIL_EMPTY) {
-            if (gateway.entitlement().totalCredits > 0) gateway.consumeCredit()
+            if (gateway.entitlement().totalCredits > 0) gateway.unlock("application-$it")
         }
         val before = gateway.entitlement()
 
-        val spend = gateway.consumeCredit()
+        val spend = gateway.unlock("application-3")
 
         if (before.totalCredits == 0) {
             assertThat(spend).isEqualTo(CreditSpend.NoCreditLeft)
@@ -200,8 +200,23 @@ abstract class PaymentGatewayContractTest {
     fun spendingNeverLeavesTheBalanceNegative() = runTest {
         val gateway = createPaymentGateway()
         repeat(SPEND_ATTEMPTS_BEYOND_BALANCE) {
-            gateway.consumeCredit()
+            gateway.unlock("application-$it")
             assertThat(gateway.entitlement().totalCredits).isAtLeast(0)
+        }
+    }
+
+    @Test
+    fun unlockingTheSameApplicationAgainSpendsNothingAndReportsNoKind() = runTest {
+        val gateway = createPaymentGateway()
+        val first = gateway.unlock("application-repeat")
+        val before = gateway.entitlement()
+
+        val second = gateway.unlock("application-repeat")
+
+        if (first is CreditSpend.Spent) {
+            assertThat(second).isEqualTo(CreditSpend.Spent(before, kind = null))
+            assertThat(gateway.entitlement()).isEqualTo(before)
+            assertThat(before.unlockedApplicationIds).contains("application-repeat")
         }
     }
 
@@ -279,7 +294,7 @@ abstract class PaymentGatewayContractTest {
         val before = gateway.entitlement()
         assertThat(gateway.observeEntitlement().first()).isEqualTo(before)
 
-        val spend = gateway.consumeCredit()
+        val spend = gateway.unlock("application-5")
 
         if (spend is CreditSpend.Spent) {
             assertThat(gateway.observeEntitlement().first()).isEqualTo(spend.entitlement)
@@ -299,7 +314,7 @@ abstract class PaymentGatewayContractTest {
         val gateway = createPaymentGateway()
         val before = gateway.entitlement()
 
-        val spend = gateway.consumeCredit()
+        val spend = gateway.unlock("application-6")
 
         if (spend is CreditSpend.Spent) {
             val expected = if (before.freeCredits > 0) CreditKind.FREE else CreditKind.PURCHASED

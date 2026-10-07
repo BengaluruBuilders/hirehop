@@ -191,7 +191,7 @@ class PackPurchaseViewModelTest {
     @Test
     fun success_countsFromTheOldBalanceToTheNewOneAndKeepsAReceipt() = runTest {
         val subject = entered()
-        gateway.consumeCredit()
+        gateway.unlock("application-1")
 
         subject.onAction(PackPurchaseAction.Buy(ApplicationPack.APPLICATION_PACK_FIVE))
 
