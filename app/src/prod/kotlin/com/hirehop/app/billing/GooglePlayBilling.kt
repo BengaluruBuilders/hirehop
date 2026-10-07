@@ -9,6 +9,7 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
+import com.hirehop.app.auth.ForegroundActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
@@ -19,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class GooglePlayBilling @Inject constructor(
     @ApplicationContext context: Context,
+    private val foreground: ForegroundActivity,
 ) : PlayBilling {
     private val purchaseMutex = Mutex()
     private var inFlight: CompletableDeferred<PlayPurchaseResult>? = null
@@ -35,7 +37,7 @@ class GooglePlayBilling @Inject constructor(
     override suspend fun launchPurchase(productId: String, obfuscatedAccountId: String): PlayPurchaseResult =
         purchaseMutex.withLock {
             val details = loadProductDetails(productId)
-            val activity = ActivityTracker.current
+            val activity = foreground.current()
             if (details == null || activity == null) return PlayPurchaseResult.Failed
             val outcome = CompletableDeferred<PlayPurchaseResult>().also { inFlight = it }
             val params = BillingFlowParams.newBuilder()

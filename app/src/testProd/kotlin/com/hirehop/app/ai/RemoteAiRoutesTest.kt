@@ -2,6 +2,7 @@ package com.hirehop.app.ai
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.GapMatcher
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.domain.prep.PrepQuestionKind
@@ -34,7 +35,8 @@ class RemoteAiRoutesTest {
     fun resumeParseSendsOnlyTheTextAndGivesEveryEntryAndBulletItsOwnId() = runBlocking<Unit> {
         backend.reply(200, RESUME_PARSE_RESPONSE)
 
-        val profile = RemoteResumeTextParser(backend.api, FactIdAllocator()).parse("resume text")
+        val notice = ImportRemovalNotice()
+        val profile = RemoteResumeTextParser(backend.api, FactIdAllocator(), notice).parse("resume text")
 
         val request = backend.server.takeRequest()
         assertThat(request.path).isEqualTo("/v1/hirehop/resume/parse")
@@ -45,6 +47,17 @@ class RemoteAiRoutesTest {
         assertThat(entry.bullets.map { it.id }).containsExactly("W-01-b1")
         assertThat(entry.source).isEqualTo(FactSource.IMPORTED)
         assertThat(entry.isConfirmed).isFalse()
+        assertThat(notice.showsBanner.value).isTrue()
+    }
+
+    @Test
+    fun resumeParseHidesTheRemovedBannerWhenNoBirthDateOrPhotoWasDropped() = runBlocking<Unit> {
+        backend.reply(200, RESUME_PARSE_RESPONSE.replace("DATE_OF_BIRTH", "RELIGION"))
+        val notice = ImportRemovalNotice()
+
+        RemoteResumeTextParser(backend.api, FactIdAllocator(), notice).parse("resume text")
+
+        assertThat(notice.showsBanner.value).isFalse()
     }
 
     @Test
@@ -163,6 +176,7 @@ class RemoteAiRoutesTest {
             .isEqualTo("I cleaned weekly sales data for 40 stores in Excel. It was accurate.")
         assertThat(draft.closingParagraph).isEqualTo("Thank you for reading. Yours sincerely, $CANDIDATE_NAME.")
         assertThat(draft.generationId).isEqualTo("g-letter")
+        assertThat(draft.citedFactIds).containsExactly(FACT_ID)
     }
 
     @Test

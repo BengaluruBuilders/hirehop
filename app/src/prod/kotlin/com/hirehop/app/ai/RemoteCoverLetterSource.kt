@@ -36,6 +36,7 @@ class RemoteCoverLetterSource @Inject constructor(private val api: HirehopApi) :
                 .filter { it.isNotBlank() }
                 .joinToString(" "),
             generationId = response.generationId,
+            citedFactIds = paragraphs.flatMap { it.sourceIds }.distinct(),
         )
     }
 

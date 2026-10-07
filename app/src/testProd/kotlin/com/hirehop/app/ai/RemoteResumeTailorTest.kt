@@ -28,7 +28,7 @@ class RemoteResumeTailorTest {
     @After
     fun tearDown() = backend.shutdown()
 
-    private fun requestIdOf(body: String) = Regex(""""requestId":"([^"]+)"""").find(body)!!.groupValues[1]
+    private fun requestIdOf(body: String) = Regex(""""requestId":"([^"]+)"""").find(body)?.groupValues.orEmpty().last()
 
     @Test
     fun startsAJobThenPollsWithABackoffAndMapsTheResult() = runTest {

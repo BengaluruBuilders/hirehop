@@ -106,6 +106,7 @@ internal class TailorViewModel @AssistedInject constructor(
                     itemId = itemId,
                     itemText = itemText,
                     reportedAt = clock.now(),
+                    generationId = success.reportedGenerationId(kind, itemId),
                 ),
             )
         }

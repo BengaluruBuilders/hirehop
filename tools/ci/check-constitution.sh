@@ -64,7 +64,7 @@ forbid II.3 "GlobalScope is forbidden. Inject an application CoroutineScope." \
   'GlobalScope' '*.kt'
 forbid II.3 "The !! operator is forbidden. Model the null case." \
   '!!' '*.kt'
-production_kotlin=('*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!*/src/testFixtures/*' ':!core/testing/*')
+production_kotlin=('*/src/*/*.kt' ':!*/src/test/*' ':!*/src/test[A-Z]*/*' ':!*/src/androidTest/*' ':!*/src/testFixtures/*' ':!core/testing/*')
 forbid II.3 "runBlocking is forbidden in production code." \
   'runBlocking' "${production_kotlin[@]}"
 forbid II.4 "Hard-coded dispatcher. Inject it with @Dispatcher." \

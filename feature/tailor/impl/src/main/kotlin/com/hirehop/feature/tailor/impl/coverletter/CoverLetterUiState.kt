@@ -79,6 +79,7 @@ data class CoverLetterUiState(
     val factCount: Int = 0,
     val reportedIds: Set<String> = emptySet(),
     val generationId: String? = null,
+    val citedFactIds: List<String>? = null,
 ) {
     val wordCount: Int get() = paragraphs.sumOf { paragraph -> paragraph.text.wordCount() }
 
@@ -134,14 +135,21 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
         }
     val hasQuotedFact = paragraphs.any { paragraph -> paragraph.basis == CoverLetterBasis.CONFIRMED_FACT }
     return CoverLetterUiState(
-        stage = if (hasQuotedFact) CoverLetterStage.READY else CoverLetterStage.NO_MATCHING_EVIDENCE,
+        stage = if (hasQuotedFact || inputs.draft.citesOnlyConfirmedFacts(facts)) CoverLetterStage.READY else CoverLetterStage.NO_MATCHING_EVIDENCE,
         jobTitle = analysis.job.title,
         jobCompany = analysis.job.company,
         paragraphs = paragraphs,
         paragraphCount = paragraphs.count { !it.isGreeting },
         factCount = paragraphs.flatMap { paragraph -> paragraph.facts.map { it.displayId } }.distinct().size,
         generationId = inputs.draft.generationId,
+        citedFactIds = inputs.draft.citedFactIds,
     )
+}
+
+private fun CoverLetterDraft.citesOnlyConfirmedFacts(facts: List<CoverLetterFactRef>): Boolean {
+    val confirmedIds = facts.map { it.factId }.toSet()
+    val cited = citedFactIds.orEmpty()
+    return cited.isNotEmpty() && confirmedIds.containsAll(cited)
 }
 
 fun CoverLetterUiState.toWrittenLetter(writtenAt: Instant): WrittenCoverLetter = WrittenCoverLetter(
@@ -150,6 +158,7 @@ fun CoverLetterUiState.toWrittenLetter(writtenAt: Instant): WrittenCoverLetter =
     },
     writtenAt = writtenAt,
     generationId = generationId,
+    citedFactIds = citedFactIds,
 )
 
 fun restoredCoverLetterState(
@@ -164,6 +173,7 @@ fun restoredCoverLetterState(
         evidenceParagraph = body.getOrElse(1) { "" },
         closingParagraph = body.getOrElse(2) { "" },
         generationId = written.generationId,
+        citedFactIds = written.citedFactIds,
     )
     val state = coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))
     if (state.paragraphs.isEmpty()) return null

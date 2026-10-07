@@ -149,6 +149,14 @@ internal fun TailoredBullet.reviewKind(isStale: Boolean): BulletReviewKind = whe
     else -> BulletReviewKind.REVIEWABLE
 }
 
+internal fun TailorUiState.Success.reportedGenerationId(kind: ReportedItemKind, itemId: String): String? {
+    val bullets = sections.filterIsInstance<ReviewSection.Entries>().flatMap { it.entries }.flatMap { it.bullets }.map { it.bullet }
+    return when (kind) {
+        ReportedItemKind.RESUME_BULLET -> bullets.firstOrNull { it.id == itemId }?.generationId
+        else -> bullets.firstNotNullOfOrNull { it.generationId }
+    }
+}
+
 internal fun TailorUiState.Success.reportedText(kind: ReportedItemKind, itemId: String): String? = when (kind) {
     ReportedItemKind.RESUME_BULLET -> sections.filterIsInstance<ReviewSection.Entries>()
         .flatMap { it.entries }.flatMap { it.bullets }

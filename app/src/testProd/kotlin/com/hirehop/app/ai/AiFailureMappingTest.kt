@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.hirehop.core.domain.AiException
 import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.GapMatcher
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.model.GapAnalysis
@@ -30,7 +31,7 @@ class AiFailureMappingTest {
         }
         val tailor = RemoteResumeTailor(backend.api, PendingTailoringIds(TestMockStateStore(), FixedIds))
         return mapOf(
-            "parse" to { RemoteResumeTextParser(backend.api, FactIdAllocator()).parse("x".repeat(60)) },
+            "parse" to { RemoteResumeTextParser(backend.api, FactIdAllocator(), ImportRemovalNotice()).parse("x".repeat(60)) },
             "analyse" to { RemoteJobAnalysisSource(backend.api, matcher, Json).analyse(candidate, "jd text") },
             "tailor" to { tailor.tailor(candidate, job, analysis.gap, "app-1", null) },
             "prep" to { RemotePrepQuestionSource(backend.api)(analysis, candidate, 6) },

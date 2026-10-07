@@ -6,4 +6,5 @@ data class CoverLetterDraft(
     val evidenceParagraph: String,
     val closingParagraph: String,
     val generationId: String? = null,
+    val citedFactIds: List<String>? = null,
 )

@@ -188,6 +188,7 @@ class ApplicationDetailViewModel @AssistedInject constructor(
                     itemId = id,
                     itemText = task.requirementText,
                     reportedAt = clock.now(),
+                    generationId = currentApplication.value?.gapAnalysis?.generationId,
                 ),
             )
             eventChannel.send(ApplicationDetailEvent.ReportRecorded)

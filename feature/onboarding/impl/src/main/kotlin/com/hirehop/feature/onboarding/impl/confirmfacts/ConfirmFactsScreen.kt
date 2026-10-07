@@ -200,10 +200,12 @@ private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
     if (uiState.hasSaveFailed) {
         HhErrorCallout(title = stringResource(R.string.feature_onboarding_impl_confirm_facts_error_title))
     }
-    OnboardingNotice(
-        text = stringResource(R.string.feature_onboarding_impl_confirm_facts_removed_banner),
-        icon = HhIcons.Info,
-    )
+    if (uiState.showsRemovedBanner) {
+        OnboardingNotice(
+            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_removed_banner),
+            icon = HhIcons.Info,
+        )
+    }
 }
 
 @Composable

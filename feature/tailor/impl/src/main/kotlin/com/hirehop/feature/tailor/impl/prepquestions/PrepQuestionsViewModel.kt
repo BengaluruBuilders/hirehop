@@ -142,6 +142,7 @@ class PrepQuestionsViewModel @Inject constructor(
                     itemId = questionId,
                     itemText = card.prompt,
                     reportedAt = clock.now(),
+                    generationId = card.generationId,
                 ),
             )
         }

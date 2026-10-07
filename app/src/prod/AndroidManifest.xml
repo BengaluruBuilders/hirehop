@@ -8,10 +8,6 @@
             android:name="com.hirehop.app.auth.ForegroundActivityRegistrar"
             android:authorities="${applicationId}.foreground-activity"
             android:exported="false" />
-        <provider
-            android:name="com.hirehop.app.billing.ActivityTrackerProvider"
-            android:authorities="${applicationId}.activity-tracker"
-            android:exported="false" />
     </application>
 
 </manifest>

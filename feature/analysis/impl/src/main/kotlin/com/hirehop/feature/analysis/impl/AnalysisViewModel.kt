@@ -173,7 +173,14 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             attempt {
                 contentReportRepository.report(
-                    ContentReport(ready.draftKey, ReportedItemKind.REQUIREMENT, requirementId, itemText, clock.now()),
+                    ContentReport(
+                        ready.draftKey,
+                        ReportedItemKind.REQUIREMENT,
+                        requirementId,
+                        itemText,
+                        clock.now(),
+                        ready.analysis.gap.generationId,
+                    ),
                 )
             }.onSuccess { showToast(AnalysisToast.Reported) }
         }

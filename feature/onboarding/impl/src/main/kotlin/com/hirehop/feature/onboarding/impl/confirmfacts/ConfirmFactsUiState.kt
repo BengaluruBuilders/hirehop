@@ -53,6 +53,7 @@ data class ConfirmFactsUiState(
     val skippedSections: Set<ConfirmFactsSection> = emptySet(),
     val pendingEdit: PendingEdit? = null,
     val nextStep: OnboardingStep? = null,
+    val showsRemovedBanner: Boolean = true,
 ) {
     val facts: List<ConfirmFactUi> get() = sections.flatMap(ConfirmFactsSectionUi::facts)
     val skills: List<String>

@@ -220,6 +220,7 @@ class CoverLetterViewModel @Inject constructor(
                     itemId = ordinal.toString(),
                     itemText = paragraph.text,
                     reportedAt = clock.now(),
+                    generationId = mutableState.value.generationId,
                 ),
             )
         }

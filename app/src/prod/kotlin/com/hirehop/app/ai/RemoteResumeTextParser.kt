@@ -1,5 +1,6 @@
 package com.hirehop.app.ai
 
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.fact.FactIdAllocator
 import com.hirehop.core.model.CandidateProfile
@@ -9,14 +10,18 @@ import com.hirehop.core.model.ProfileEntry
 import com.hirehop.core.network.HirehopApi
 import com.hirehop.core.network.dto.ParsedEntryDto
 import com.hirehop.core.network.dto.ResumeParseRequest
+import com.hirehop.core.network.dto.SensitiveField
 import javax.inject.Inject
 
 class RemoteResumeTextParser @Inject constructor(
     private val api: HirehopApi,
     private val ids: FactIdAllocator,
+    private val removalNotice: ImportRemovalNotice,
 ) : ResumeTextParser {
     override suspend fun parse(rawText: String): CandidateProfile {
-        val parsed = remoteAi { api.parseResume(ResumeParseRequest(rawText)) }.profile
+        val response = remoteAi { api.parseResume(ResumeParseRequest(rawText)) }
+        removalNotice.record(response.droppedSensitive.any { it == SensitiveField.DATE_OF_BIRTH || it == SensitiveField.PHOTO })
+        val parsed = response.profile
         return CandidateProfile(
             fullName = parsed.fullName,
             email = parsed.email,

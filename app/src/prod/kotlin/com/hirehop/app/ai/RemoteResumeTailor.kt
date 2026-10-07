@@ -97,7 +97,7 @@ class RemoteResumeTailor @Inject constructor(
         const val POLL_BACKOFF_MILLIS = 1_000L
         const val MAX_POLL_MILLIS = 5_000L
 
-        // BACKEND_CONTRACT 4.4 rule 5: the server fails a RUNNING job after 5 minutes; 30 s of slack
+        // docs/BACKEND_CONTRACT.md line 4.4 rule 5: the server fails a RUNNING job after 5 minutes; 30 s of slack
         const val GIVE_UP_AFTER_MILLIS = 330_000L
     }
 }

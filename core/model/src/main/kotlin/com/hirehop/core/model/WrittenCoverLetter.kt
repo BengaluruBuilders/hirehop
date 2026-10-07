@@ -12,6 +12,7 @@ data class WrittenCoverLetter(
     val paragraphs: List<WrittenParagraph>,
     val writtenAt: Instant,
     val generationId: String? = null,
+    val citedFactIds: List<String>? = null,
 ) {
     val wordCount: Int get() = paragraphs.sumOf { paragraph -> paragraph.text.split(WHITESPACE).count { it.isNotEmpty() } }
 

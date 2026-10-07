@@ -27,6 +27,7 @@ data class PrepQuestionCard(
     val prompt: String,
     val requirementText: String,
     val fact: CoverLetterFactRef?,
+    val generationId: String? = null,
 )
 
 data class PrepQuestionGroup(
@@ -115,4 +116,5 @@ private fun PrepQuestion.toCard(ordinal: Int, fact: CoverLetterFactRef?): PrepQu
     prompt = prompt,
     requirementText = requirementText,
     fact = fact,
+    generationId = generationId,
 )

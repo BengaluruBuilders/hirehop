@@ -1,6 +1,7 @@
 package com.hirehop.feature.onboarding.impl.confirmfacts
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.ConsentPurpose
@@ -53,10 +54,13 @@ class ConfirmFactsViewModelTest {
 
     private val connectivity = TestConnectivityMonitor()
 
+    private val notice = ImportRemovalNotice()
+
     private fun createViewModel(scenario: DebugScenario = DebugScenario.DEFAULT) = ConfirmFactsViewModel(
         profileRepository = repository,
         nextOnboardingStep = NextOnboardingStepUseCase(session, repository),
         connectivityMonitor = connectivity,
+        importRemovalNotice = notice,
     ).apply { onEnter(ConfirmFactsNavKey(scenario = scenario)) }
 
     @Test
@@ -68,6 +72,16 @@ class ConfirmFactsViewModelTest {
         assertThat(state.openCount).isEqualTo(4)
         assertThat(state.isFullyConfirmed).isFalse()
         assertThat(state.skills).containsExactly("SQL", "Power BI")
+    }
+
+    @Test
+    fun removedBanner_followsWhatTheImportRemoved() {
+        val viewModel = createViewModel()
+        assertThat(viewModel.uiState.value.showsRemovedBanner).isTrue()
+
+        notice.record(removedDateOfBirthOrPhoto = false)
+
+        assertThat(viewModel.uiState.value.showsRemovedBanner).isFalse()
     }
 
     @Test

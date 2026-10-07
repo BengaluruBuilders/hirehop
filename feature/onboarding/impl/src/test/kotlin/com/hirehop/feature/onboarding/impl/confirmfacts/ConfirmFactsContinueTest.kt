@@ -1,6 +1,7 @@
 package com.hirehop.feature.onboarding.impl.confirmfacts
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.model.ConsentRecord
@@ -54,10 +55,13 @@ class ConfirmFactsContinueTest {
 
     private val connectivity = TestConnectivityMonitor()
 
+    private val notice = ImportRemovalNotice()
+
     private fun createViewModel(scenario: DebugScenario = DebugScenario.DEFAULT) = ConfirmFactsViewModel(
         profileRepository = repository,
         nextOnboardingStep = NextOnboardingStepUseCase(session, repository),
         connectivityMonitor = connectivity,
+        importRemovalNotice = notice,
     ).apply { onEnter(ConfirmFactsNavKey(scenario = scenario)) }
 
     @Test

@@ -179,4 +179,14 @@ class RemotePaymentGatewayTest {
         assertThat(allowance.consumeFreeTailoring()).isFalse()
         assertThat(allowance.observeAnalysesLeft().first()).isEqualTo(2)
     }
+
+    @Test
+    fun consumingAnAllowanceNeverDecrementsLocally() = runTest {
+        repeat(3) { reply(200, "{\"wallet\":${walletJson(analyses = 2, tailorings = 1)}}") }
+        val allowance = WalletUsageAllowance(source)
+
+        assertThat(allowance.consumeAnalysis()).isTrue()
+        assertThat(allowance.consumeFreeTailoring()).isTrue()
+        assertThat(allowance.consumeFreeTailoring()).isTrue()
+    }
 }

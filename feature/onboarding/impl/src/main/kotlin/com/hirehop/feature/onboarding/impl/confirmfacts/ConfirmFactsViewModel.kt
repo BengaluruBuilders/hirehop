@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.ImportRemovalNotice
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
@@ -38,6 +39,7 @@ class ConfirmFactsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val importRemovalNotice: ImportRemovalNotice,
 ) : ViewModel() {
 
     private val profileMutex = Mutex()
@@ -57,6 +59,11 @@ class ConfirmFactsViewModel @Inject constructor(
         viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
                 mutableUiState.update { it.copy(isOffline = offline) }
+            }
+        }
+        viewModelScope.launch {
+            importRemovalNotice.showsBanner.collect { shows ->
+                mutableUiState.update { it.copy(showsRemovedBanner = shows) }
             }
         }
         if (key.scenario != DebugScenario.LOADING) {

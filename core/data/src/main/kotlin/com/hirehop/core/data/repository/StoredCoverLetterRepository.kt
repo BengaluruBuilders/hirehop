@@ -33,11 +33,13 @@ private data class LetterDto(
     val paragraphs: List<ParagraphDto>,
     val writtenAtMillis: Long,
     val generationId: String? = null,
+    val citedFactIds: List<String>? = null,
 ) {
     fun toModel() = WrittenCoverLetter(
         paragraphs = paragraphs.map { WrittenParagraph(it.text, it.isGreeting, it.isUserEdited) },
         writtenAt = Instant.fromEpochMilliseconds(writtenAtMillis),
         generationId = generationId,
+        citedFactIds = citedFactIds,
     )
 }
 
@@ -48,4 +50,5 @@ private fun WrittenCoverLetter.toDto() = LetterDto(
     paragraphs = paragraphs.map { ParagraphDto(it.text, it.isGreeting, it.isUserEdited) },
     writtenAtMillis = writtenAt.toEpochMilliseconds(),
     generationId = generationId,
+    citedFactIds = citedFactIds,
 )
