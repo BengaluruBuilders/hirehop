@@ -20,7 +20,7 @@ class StoredSessionRepositoryTest : SessionRepositoryContractTest() {
     fun theWholeSessionSurvivesARestartOfTheRepository() = runTest {
         val store = TestMockStateStore()
         val consent = ConsentRecord(
-            purposes = setOf(ConsentPurpose.ANALYSE_ON_DEVICE),
+            purposes = setOf(ConsentPurpose.AI_PROCESSING),
             acceptedAt = Instant.fromEpochMilliseconds(1_790_000_123_000),
             noticeVersion = "2026-10",
         )

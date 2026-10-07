@@ -59,6 +59,11 @@ Dependency rules: features depend on `core:*` and on other features' `api` only.
 `core:data` and `core:model`. `core:model` depends on nothing Android. `core:network` depends on `core:model` only,
 and only `:app` (as `prodImplementation`) and remote bindings of the `prod` flavour depend on it.
 
+Prod sign-in (`app/src/prod/.../auth`) uses Firebase Auth and Credential Manager without the google-services
+plugin. It reads four Gradle properties (in `gradle.properties` or `~/.gradle/gradle.properties`, never in git):
+`hirehopWebClientId`, `hirehopFirebaseApiKey`, `hirehopFirebaseAppId`, and `hirehopFirebaseProjectId`. Each
+defaults to empty. If one is empty, sign-in shows the sign-in-failed state and the app still starts.
+
 ## 3. Shared models (`:core:model`, package `com.hirehop.core.model`)
 
 Use these names and shapes exactly. Timestamps use `kotlin.time.Instant` (Kotlin 2.3, stable).

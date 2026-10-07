@@ -7,6 +7,7 @@ import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.domain.account.AccountCreditBalance
 import com.hirehop.core.domain.account.AccountDeletionStep
 import com.hirehop.core.domain.account.DeleteAccountUseCase
+import com.hirehop.core.domain.offline.OfflineServerAccountDeleter
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.DebugScenario
@@ -186,6 +187,7 @@ class DeleteAccountViewModelTest {
             exportHistoryRepository = TestExportHistoryRepository(),
             sessionRepository = sessionRepository,
             signInGateway = TestSignInGateway(sessionRepository),
+            serverAccountDeleter = OfflineServerAccountDeleter(),
             creditBalance = AccountCreditBalance(
                 paymentGateway = TestPaymentGateway().withFreeCredits(4),
             ),

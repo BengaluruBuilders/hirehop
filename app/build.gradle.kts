@@ -31,6 +31,21 @@ android {
                 "HIREHOP_WEB_CLIENT_ID",
                 "\"${providers.gradleProperty("hirehopWebClientId").getOrElse("")}\"",
             )
+            buildConfigField(
+                "String",
+                "HIREHOP_FIREBASE_API_KEY",
+                "\"${providers.gradleProperty("hirehopFirebaseApiKey").getOrElse("")}\"",
+            )
+            buildConfigField(
+                "String",
+                "HIREHOP_FIREBASE_APP_ID",
+                "\"${providers.gradleProperty("hirehopFirebaseAppId").getOrElse("")}\"",
+            )
+            buildConfigField(
+                "String",
+                "HIREHOP_FIREBASE_PROJECT_ID",
+                "\"${providers.gradleProperty("hirehopFirebaseProjectId").getOrElse("")}\"",
+            )
         }
     }
 
@@ -74,6 +89,11 @@ dependencies {
     implementation(projects.core.ui)
 
     "prodImplementation"(projects.core.network)
+    "prodImplementation"(platform(libs.firebase.bom))
+    "prodImplementation"(libs.firebase.auth)
+    "prodImplementation"(libs.androidx.credentials)
+    "prodImplementation"(libs.androidx.credentials.playServicesAuth)
+    "prodImplementation"(libs.google.googleid)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -82,6 +102,8 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+    "testProdImplementation"(libs.okhttp.mockwebserver)
+    "testProdImplementation"(libs.robolectric)
 }
 
 dependencyGuard {

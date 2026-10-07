@@ -27,12 +27,15 @@ class ConsentViewModelTest {
 
     private val clock = TestClock()
 
+    private var uploadResult: Result<Unit> = Result.success(Unit)
+
     private lateinit var viewModel: ConsentViewModel
 
     @Before
     fun setup() {
         viewModel = ConsentViewModel(
             sessionRepository = session,
+            consentUploader = { uploadResult },
             nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
             clock = clock,
         )
@@ -49,11 +52,11 @@ class ConsentViewModelTest {
     }
 
     @Test
-    fun thereAreExactlyThreePurposes() {
+    fun thereAreExactlyFourPurposes() {
         viewModel.onEnter(ConsentNavKey())
 
-        assertThat(ConsentPurpose.entries).hasSize(3)
-        assertThat(viewModel.uiState.value.entries).hasSize(3)
+        assertThat(ConsentPurpose.entries).hasSize(4)
+        assertThat(viewModel.uiState.value.entries).hasSize(4)
     }
 
     @Test
@@ -68,7 +71,7 @@ class ConsentViewModelTest {
     @Test
     fun eachToggleFlipsItsOwnPurpose() {
         viewModel.onEnter(ConsentNavKey())
-        val purpose = ConsentPurpose.ANALYSE_ON_DEVICE
+        val purpose = ConsentPurpose.AI_PROCESSING
 
         viewModel.onAction(ConsentAction.PurposeToggled(purpose))
         assertThat(viewModel.uiState.value.isAcknowledged(purpose)).isTrue()
@@ -114,6 +117,20 @@ class ConsentViewModelTest {
         assertThat(record?.noticeVersion).isEqualTo(ConsentRecord.CURRENT_NOTICE_VERSION)
         assertThat(viewModel.uiState.value.nextStep).isEqualTo(OnboardingStep.ImportResume)
         assertThat(viewModel.uiState.value.isSaving).isFalse()
+    }
+
+    @Test
+    fun agree_whenTheServerRefuses_recordsNothingAndShowsTheFailure() = runTest {
+        uploadResult = Result.failure(IllegalStateException("offline"))
+        viewModel.onEnter(ConsentNavKey())
+        ConsentPurpose.entries.forEach { viewModel.onAction(ConsentAction.PurposeToggled(it)) }
+
+        viewModel.onAction(ConsentAction.Agree)
+
+        assertThat(session.observeConsent().first()).isNull()
+        assertThat(viewModel.uiState.value.uploadFailed).isTrue()
+        assertThat(viewModel.uiState.value.isSaving).isFalse()
+        assertThat(viewModel.uiState.value.nextStep).isNull()
     }
 
     @Test

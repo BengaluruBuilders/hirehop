@@ -23,6 +23,7 @@ class DeleteAccountUseCase @Inject constructor(
     private val exportHistoryRepository: ExportHistoryRepository,
     private val sessionRepository: SessionRepository,
     private val signInGateway: SignInGateway,
+    private val serverAccountDeleter: ServerAccountDeleter,
     private val creditBalance: AccountCreditBalance,
     private val latency: MockLatency,
 ) {
@@ -40,6 +41,7 @@ class DeleteAccountUseCase @Inject constructor(
         val profile = profileRepository.observeProfile().first()
         val exports = exportHistoryRepository.observeExports().first()
         val counts = countsOf(applications, profile)
+        if (serverAccountDeleter.delete().isFailure) return AccountDeletionResult.Failed(dataIntact = true)
         var creditsTouched = false
         return try {
             startStep(AccountDeletionStep.DELETING_APPLICATIONS, onStep)

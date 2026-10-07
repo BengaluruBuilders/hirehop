@@ -3,6 +3,7 @@ package com.hirehop.feature.onboarding.impl.consent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hirehop.core.data.repository.SessionRepository
+import com.hirehop.core.domain.ConsentUploader
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.core.model.ConsentRecord
@@ -19,6 +20,7 @@ import kotlin.time.Clock
 @HiltViewModel
 class ConsentViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
+    private val consentUploader: ConsentUploader,
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val clock: Clock,
 ) : ViewModel() {
@@ -56,6 +58,7 @@ class ConsentViewModel @Inject constructor(
                 state
             } else {
                 state.copy(
+                    uploadFailed = false,
                     entries = state.entries.map { entry ->
                         if (entry.purpose == purpose) entry.copy(isAcknowledged = !entry.isAcknowledged) else entry
                     },
@@ -67,15 +70,18 @@ class ConsentViewModel @Inject constructor(
     private fun onAgree() {
         val state = mutableState.value
         if (!state.canAgree) return
-        mutableState.value = state.copy(isSaving = true)
+        mutableState.value = state.copy(isSaving = true, uploadFailed = false)
         viewModelScope.launch {
-            sessionRepository.recordConsent(
-                ConsentRecord(
-                    purposes = state.entries.map { it.purpose }.toSet(),
-                    acceptedAt = clock.now(),
-                    noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
-                ),
+            val record = ConsentRecord(
+                purposes = state.entries.map { it.purpose }.toSet(),
+                acceptedAt = clock.now(),
+                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
             )
+            if (consentUploader.upload(record).isFailure) {
+                mutableState.update { it.copy(isSaving = false, uploadFailed = true) }
+                return@launch
+            }
+            sessionRepository.recordConsent(record)
             val step = nextOnboardingStep()
             mutableState.update { it.copy(isSaving = false, nextStep = step) }
         }

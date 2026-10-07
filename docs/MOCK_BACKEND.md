@@ -148,7 +148,7 @@ Models are in `com.hirehop.core.model`:
 
 ```kotlin
 data class SignInAccount(val id: String, val displayName: String, val email: String)
-enum class ConsentPurpose { READ_AND_BUILD, ANALYSE_ON_DEVICE, KEEP_CONFIRMED_FACTS }
+enum class ConsentPurpose { READ_AND_BUILD, KEEP_CONFIRMED_FACTS, AI_PROCESSING, AGE_18_PLUS }
 data class ConsentRecord(val purposes: Set<ConsentPurpose>, val acceptedAt: Instant, val noticeVersion: String)
 data class KeptJobDescription(val text: String, val company: String, val role: String) {
     val draftKey: String

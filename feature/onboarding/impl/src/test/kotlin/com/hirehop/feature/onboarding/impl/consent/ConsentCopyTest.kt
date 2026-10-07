@@ -49,10 +49,10 @@ class ConsentCopyTest {
     }
 
     @Test
-    fun theMatchNoticeNamesOpenAiAndStatesNoRetentionPeriod() {
-        val body = stringValue(consentStrings, "feature_onboarding_impl_consent_match_body")
+    fun theAiNoticeNamesTheProviderAndStatesNoRetentionPeriod() {
+        val body = stringValue(consentStrings, "feature_onboarding_impl_consent_ai_body")
 
-        assertThat(body).contains("OpenAI")
+        assertThat(body).contains("AI provider")
         assertThat(body).doesNotContainMatch("\\d+\\s*(day|days|hour|hours|month|months|year|years)")
         assertThat(body.lowercase(Locale.ROOT)).doesNotContain("retain")
         assertThat(body.lowercase(Locale.ROOT)).doesNotContain("retention")

@@ -12,6 +12,7 @@ import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
 import com.hirehop.core.domain.PurchaseFailureReason
 import com.hirehop.core.domain.PurchaseResult
+import com.hirehop.core.domain.offline.OfflineServerAccountDeleter
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.ConsentPurpose
@@ -45,6 +46,7 @@ class DeleteAccountUseCaseTest {
     private var failingProfileClear = false
     private val session = TestSessionRepository()
     private val exportHistory = TestExportHistoryRepository()
+    private var serverAccountDeleter: ServerAccountDeleter = OfflineServerAccountDeleter()
 
     @Test
     fun previewCountsTheRealProfileApplicationsAndCredits() = runTest {
@@ -57,6 +59,21 @@ class DeleteAccountUseCaseTest {
         assertThat(counts.profileFacts).isEqualTo(27)
         assertThat(counts.applications).isEqualTo(4)
         assertThat(counts.unusedCredits).isEqualTo(4)
+    }
+
+    @Test
+    fun aFailedServerDeleteKeepsEveryLocalRecord() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        serverAccountDeleter = ServerAccountDeleter { Result.failure(IllegalStateException("offline")) }
+        val useCase = useCase(gateway = gatewayWith(credits = 4))
+
+        val result = useCase()
+
+        assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
+        assertThat(applications.value).hasSize(4)
+        assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(calls).isEmpty()
     }
 
     @Test
@@ -103,6 +120,7 @@ class DeleteAccountUseCaseTest {
             exportHistoryRepository = exportHistory,
             sessionRepository = session,
             signInGateway = signIn,
+            serverAccountDeleter = OfflineServerAccountDeleter(),
             applicationRepository = RecordingApplicationRepository(applications, calls, { failingApplicationIds }),
             profileRepository = RecordingProfileRepository(profile, calls, { failingProfileClear }),
             creditBalance = AccountCreditBalance(paymentGateway = payment),
@@ -288,6 +306,7 @@ class DeleteAccountUseCaseTest {
         exportHistoryRepository = exportHistory,
         sessionRepository = session,
         signInGateway = TestSignInGateway(session),
+        serverAccountDeleter = serverAccountDeleter,
         applicationRepository = RecordingApplicationRepository(
             applications = applications,
             calls = calls,

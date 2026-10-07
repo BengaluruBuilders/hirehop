@@ -66,7 +66,8 @@ private val DATE_PATTERN = "d MMM yyyy"
 private val FRAME_PURPOSES = listOf(
     ConsentPurpose.READ_AND_BUILD,
     ConsentPurpose.KEEP_CONFIRMED_FACTS,
-    ConsentPurpose.ANALYSE_ON_DEVICE,
+    ConsentPurpose.AI_PROCESSING,
+    ConsentPurpose.AGE_18_PLUS,
 )
 
 @Composable
@@ -152,6 +153,13 @@ private fun ConsentBody(
     actions: ConsentActions,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+        if (uiState.uploadFailed) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_consent_upload_failed),
+                style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+                color = HhTheme.colors.error,
+            )
+        }
         FRAME_PURPOSES.forEach { purpose ->
             PurposeCard(
                 purpose = purpose,
@@ -433,11 +441,18 @@ private fun purposeCopy(purpose: ConsentPurpose): PurposeCopy = when (purpose) {
         keep = R.string.feature_onboarding_impl_consent_keep_keep,
     )
 
-    ConsentPurpose.ANALYSE_ON_DEVICE -> PurposeCopy(
+    ConsentPurpose.AI_PROCESSING -> PurposeCopy(
         icon = HhIcons.Link,
-        title = R.string.feature_onboarding_impl_consent_match_title,
-        body = R.string.feature_onboarding_impl_consent_match_body,
-        keep = R.string.feature_onboarding_impl_consent_match_keep,
+        title = R.string.feature_onboarding_impl_consent_ai_title,
+        body = R.string.feature_onboarding_impl_consent_ai_body,
+        keep = R.string.feature_onboarding_impl_consent_ai_keep,
+    )
+
+    ConsentPurpose.AGE_18_PLUS -> PurposeCopy(
+        icon = HhIcons.Lock,
+        title = R.string.feature_onboarding_impl_consent_age_title,
+        body = R.string.feature_onboarding_impl_consent_age_body,
+        keep = R.string.feature_onboarding_impl_consent_age_keep,
     )
 }
 
