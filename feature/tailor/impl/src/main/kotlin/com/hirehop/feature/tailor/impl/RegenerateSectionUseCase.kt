@@ -30,7 +30,7 @@ internal class RegenerateSectionUseCase @Inject constructor(
             .toSet()
         val existing = application.tailoredResume?.bullets.orEmpty()
         val fresh = try {
-            tailorResume(profile, application.job, gap).bullets
+            tailorResume(profile, application.job, gap, applicationId, category).bullets
         } catch (_: AiException) {
             return false
         }

@@ -104,6 +104,7 @@ dependencies {
     testImplementation(libs.truth)
     "testProdImplementation"(libs.okhttp.mockwebserver)
     "testProdImplementation"(libs.robolectric)
+    "testProdImplementation"(libs.kotlinx.coroutines.test)
 }
 
 dependencyGuard {

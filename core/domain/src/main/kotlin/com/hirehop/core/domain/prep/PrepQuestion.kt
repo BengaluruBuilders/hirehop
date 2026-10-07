@@ -6,6 +6,9 @@ data class PrepQuestion(
     val prompt: String,
     val requirementText: String,
     val backingFactId: String?,
+    val why: String = "",
+    val gapAdvice: String? = null,
+    val generationId: String? = null,
 ) {
     val isTiedToFact: Boolean get() = kind != PrepQuestionKind.GAP
 }

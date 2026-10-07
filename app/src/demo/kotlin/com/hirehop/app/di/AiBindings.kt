@@ -1,11 +1,11 @@
 package com.hirehop.app.di
 
-import com.hirehop.core.domain.JobDescriptionAnalyzer
+import com.hirehop.core.domain.JobAnalysisSource
 import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.coverletter.CoverLetterSource
 import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
-import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
+import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.offline.OfflineResumeTailor
 import com.hirehop.core.domain.offline.OfflineResumeTextParser
 import com.hirehop.core.domain.prep.GeneratePrepQuestionsUseCase
@@ -19,7 +19,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface AiBindings {
     @Binds
-    fun bindJobDescriptionAnalyzer(impl: OfflineJobDescriptionAnalyzer): JobDescriptionAnalyzer
+    fun bindJobAnalysisSource(impl: OfflineJobAnalysisSource): JobAnalysisSource
 
     @Binds
     fun bindResumeTailor(impl: OfflineResumeTailor): ResumeTailor

@@ -475,7 +475,7 @@ class TailorViewModelTest {
 private class FixedTailor : ResumeTailor {
     var failure: AiFailure? = null
 
-    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
+    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis, applicationId: String, section: EntryCategory?): TailoredResume {
         failure?.let { throw AiException(it) }
         return TailoredResume(
             listOf(

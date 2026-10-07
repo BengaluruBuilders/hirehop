@@ -6,6 +6,7 @@ import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.TailorResumeUseCase
 import com.hirehop.core.domain.offline.OfflineFabricationGuard
 import com.hirehop.core.domain.offline.OfflineGapMatcher
+import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
 import com.hirehop.core.domain.offline.OfflinePaymentGateway
 import com.hirehop.core.domain.offline.OfflineResumeTailor
@@ -41,7 +42,7 @@ class OfflineSampleDataControllerTest : SampleDataControllerContractTest() {
         applicationRepository = applications,
         exportHistoryRepository = exports,
         paymentGateway = payments,
-        analyzeJob = AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher()),
+        analyzeJob = AnalyzeJobUseCase(OfflineJobAnalysisSource(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())),
         tailorResume = TailorResumeUseCase(OfflineResumeTailor(), OfflineFabricationGuard()),
         clock = clock,
     )

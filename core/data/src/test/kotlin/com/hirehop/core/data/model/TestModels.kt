@@ -108,6 +108,7 @@ val testGapAnalysis = GapAnalysis(
         RequirementMatch(testJob.requirements[1], MatchStatus.GAP, emptyList()),
     ),
     keywordCoverage = KeywordCoverage(covered = 1, total = 3),
+    generationId = "gen-analysis",
 )
 
 val testTailoredResume = TailoredResume(
@@ -122,6 +123,7 @@ val testTailoredResume = TailoredResume(
             keywordsUsed = listOf("kotlin"),
             violations = emptyList(),
             decision = BulletDecision.ACCEPTED,
+            generationId = "gen-tailor",
         ),
         TailoredBullet(
             id = "t-2",

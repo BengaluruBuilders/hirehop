@@ -20,10 +20,21 @@ class StoredCoverLetterRepositoryTest : CoverLetterRepositoryContractTest() {
         val letter = WrittenCoverLetter(
             paragraphs = listOf(WrittenParagraph("Dear team,", isGreeting = true), WrittenParagraph("I wrote SQL.", isUserEdited = true)),
             writtenAt = Instant.fromEpochMilliseconds(1_700_000_000_000),
+            generationId = "gen-letter",
         )
         StoredCoverLetterRepository(store).save("app-1", letter)
 
         assertThat(StoredCoverLetterRepository(store).observeLetter("app-1").first()).isEqualTo(letter)
+    }
+
+    @Test
+    fun aLetterSavedBeforeGenerationIdsStillLoads() = runTest {
+        val store = TestMockStateStore()
+        store.write("coverletter.app-1", """{"paragraphs":[{"text":"Hi.","isGreeting":false,"isUserEdited":false}],"writtenAtMillis":1}""")
+
+        val letter = StoredCoverLetterRepository(store).observeLetter("app-1").first()
+
+        assertThat(letter?.generationId).isNull()
     }
 
     @Test

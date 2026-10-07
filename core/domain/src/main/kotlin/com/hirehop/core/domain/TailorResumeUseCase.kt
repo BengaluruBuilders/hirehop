@@ -1,6 +1,7 @@
 package com.hirehop.core.domain
 
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobDescription
@@ -16,12 +17,14 @@ class TailorResumeUseCase @Inject constructor(
         profile: CandidateProfile,
         job: JobDescription,
         gap: GapAnalysis,
+        applicationId: String,
+        section: EntryCategory? = null,
     ): TailoredResume {
         val confirmedSources = profile.entries
             .filter { it.isConfirmed }
             .flatMap { it.bullets }
             .associateBy { it.id }
-        val proposed = tailor.tailor(profile, job, gap)
+        val proposed = tailor.tailor(profile, job, gap, applicationId, section)
         return TailoredResume(
             bullets = proposed.bullets.mapNotNull { verified(it, confirmedSources, profile) },
             entryIds = profile.entries.filter { it.isConfirmed }.map { it.id },

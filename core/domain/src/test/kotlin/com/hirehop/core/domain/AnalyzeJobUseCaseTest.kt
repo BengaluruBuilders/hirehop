@@ -2,6 +2,7 @@ package com.hirehop.core.domain
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.offline.OfflineGapMatcher
+import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
 import com.hirehop.core.domain.offline.sampleProfile
 import com.hirehop.core.model.CandidateProfile
@@ -19,7 +20,7 @@ class AnalyzeJobUseCaseTest {
             override suspend fun analyze(rawText: String): JobDescription = throw AiException(AiFailure.AllowanceExhausted)
         }
 
-        val failure = runCatching { AnalyzeJobUseCase(analyzer, OfflineGapMatcher())(sampleProfile, "jd") }.exceptionOrNull()
+        val failure = runCatching { AnalyzeJobUseCase(OfflineJobAnalysisSource(analyzer, OfflineGapMatcher()))(sampleProfile, "jd") }.exceptionOrNull()
 
         assertThat(failure?.isAiFailure(AiFailure.AllowanceExhausted)).isTrue()
         assertThat(failure?.isAiFailure(AiFailure.Network)).isFalse()
@@ -39,7 +40,7 @@ class AnalyzeJobUseCaseTest {
                 return gap
             }
         }
-        val useCase = AnalyzeJobUseCase(analyzer, matcher)
+        val useCase = AnalyzeJobUseCase(OfflineJobAnalysisSource(analyzer, matcher))
 
         val result = useCase(sampleProfile, "any text")
 
@@ -49,7 +50,7 @@ class AnalyzeJobUseCaseTest {
 
     @Test
     fun analysesRawTextEndToEndWithOfflineImplementations() = runTest {
-        val useCase = AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())
+        val useCase = AnalyzeJobUseCase(OfflineJobAnalysisSource(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher()))
 
         val result = useCase(sampleProfile, "Requirements\n- Kotlin\n- Kubernetes")
 

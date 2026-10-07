@@ -44,9 +44,11 @@ fun KeywordCoverageDto.asExternalModel() = KeywordCoverage(covered = covered, to
 fun GapAnalysis.asDto() = GapAnalysisDto(
     matches = matches.map(RequirementMatch::asDto),
     keywordCoverage = keywordCoverage.asDto(),
+    generationId = generationId,
 )
 
 fun GapAnalysisDto.asExternalModel() = GapAnalysis(
     matches = matches.map(RequirementMatchDto::asExternalModel),
     keywordCoverage = keywordCoverage.asExternalModel(),
+    generationId = generationId,
 )

@@ -78,6 +78,7 @@ data class CoverLetterUiState(
     val paragraphCount: Int = 0,
     val factCount: Int = 0,
     val reportedIds: Set<String> = emptySet(),
+    val generationId: String? = null,
 ) {
     val wordCount: Int get() = paragraphs.sumOf { paragraph -> paragraph.text.wordCount() }
 
@@ -139,6 +140,7 @@ fun coverLetterStateFor(inputs: CoverLetterInputs): CoverLetterUiState {
         paragraphs = paragraphs,
         paragraphCount = paragraphs.count { !it.isGreeting },
         factCount = paragraphs.flatMap { paragraph -> paragraph.facts.map { it.displayId } }.distinct().size,
+        generationId = inputs.draft.generationId,
     )
 }
 
@@ -147,6 +149,7 @@ fun CoverLetterUiState.toWrittenLetter(writtenAt: Instant): WrittenCoverLetter =
         WrittenParagraph(text = paragraph.text, isGreeting = paragraph.isGreeting, isUserEdited = paragraph.isUserEdited)
     },
     writtenAt = writtenAt,
+    generationId = generationId,
 )
 
 fun restoredCoverLetterState(
@@ -160,6 +163,7 @@ fun restoredCoverLetterState(
         openingParagraph = body.getOrElse(0) { "" },
         evidenceParagraph = body.getOrElse(1) { "" },
         closingParagraph = body.getOrElse(2) { "" },
+        generationId = written.generationId,
     )
     val state = coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))
     if (state.paragraphs.isEmpty()) return null

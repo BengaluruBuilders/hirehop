@@ -29,10 +29,15 @@ internal class StoredCoverLetterRepository @Inject constructor(
 }
 
 @Serializable
-private data class LetterDto(val paragraphs: List<ParagraphDto>, val writtenAtMillis: Long) {
+private data class LetterDto(
+    val paragraphs: List<ParagraphDto>,
+    val writtenAtMillis: Long,
+    val generationId: String? = null,
+) {
     fun toModel() = WrittenCoverLetter(
         paragraphs = paragraphs.map { WrittenParagraph(it.text, it.isGreeting, it.isUserEdited) },
         writtenAt = Instant.fromEpochMilliseconds(writtenAtMillis),
+        generationId = generationId,
     )
 }
 
@@ -42,4 +47,5 @@ private data class ParagraphDto(val text: String, val isGreeting: Boolean, val i
 private fun WrittenCoverLetter.toDto() = LetterDto(
     paragraphs = paragraphs.map { ParagraphDto(it.text, it.isGreeting, it.isUserEdited) },
     writtenAtMillis = writtenAt.toEpochMilliseconds(),
+    generationId = generationId,
 )

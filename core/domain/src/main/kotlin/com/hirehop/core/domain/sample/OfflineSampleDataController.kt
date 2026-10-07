@@ -74,7 +74,7 @@ class OfflineSampleDataController @Inject constructor(
 
     private suspend fun build(plan: SampleApplicationPlan, now: Instant): JobApplication {
         val analysis = analyzeJob(SampleDataSet.profile, plan.jobText)
-        val tailored = tailorResume(SampleDataSet.profile, analysis.job, analysis.gap)
+        val tailored = tailorResume(SampleDataSet.profile, analysis.job, analysis.gap, plan.id)
         return JobApplication(
             id = plan.id,
             job = analysis.job,
