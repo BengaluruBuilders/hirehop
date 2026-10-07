@@ -17,6 +17,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -52,7 +53,7 @@ class FirebaseAuthClient @Inject constructor(
     override fun idToken(forceRefresh: Boolean): String? {
         val user = auth?.currentUser ?: return null
         return try {
-            Tasks.await(user.getIdToken(forceRefresh)).token
+            Tasks.await(user.getIdToken(forceRefresh), TOKEN_TIMEOUT_SECONDS, TimeUnit.SECONDS).token
         } catch (failure: Exception) {
             null
         }
@@ -82,3 +83,5 @@ private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { conti
     addOnSuccessListener { continuation.resume(it) }
     addOnFailureListener { continuation.resumeWithException(it) }
 }
+
+private const val TOKEN_TIMEOUT_SECONDS = 10L

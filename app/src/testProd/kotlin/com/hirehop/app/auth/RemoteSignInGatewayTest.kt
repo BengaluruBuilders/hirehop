@@ -1,8 +1,11 @@
 package com.hirehop.app.auth
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.app.billing.signOutCleaner
 import com.hirehop.core.domain.SignInFailureReason
 import com.hirehop.core.domain.SignInResult
+import com.hirehop.core.model.ConsentPurpose
+import com.hirehop.core.model.ConsentRecord
 import com.hirehop.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -11,18 +14,20 @@ import org.junit.After
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import kotlin.time.Instant
 
 class RemoteSignInGatewayTest {
     private val server = MockWebServer().apply { start() }
     private val credentials = ScriptedCredentials()
     private val firebase = ScriptedFirebase()
     private val session = TestSessionRepository()
+    private val cleaner = server.signOutCleaner(session)
 
     @After
     fun tearDown() = runCatching { server.shutdown() }.let { }
 
     private fun gateway(config: FirebaseConfig = completeConfig) =
-        RemoteSignInGateway(config, credentials, firebase, server.api(), session)
+        RemoteSignInGateway(config, credentials, firebase, server.api(), session, cleaner)
 
     private fun failed(reason: SignInFailureReason) = SignInResult.Failed(reason)
 
@@ -123,12 +128,14 @@ class RemoteSignInGatewayTest {
         server.enqueue(jsonResponse(200, ME_BODY))
         val gateway = gateway()
         gateway.signIn()
+        session.recordConsent(ConsentRecord(setOf(ConsentPurpose.AI_PROCESSING), Instant.fromEpochMilliseconds(1), "2026-10-b"))
 
         gateway.signOut()
 
         assertThat(firebase.signedOut).isTrue()
         assertThat(credentials.cleared).isTrue()
         assertThat(gateway.currentAccount()).isNull()
+        assertThat(session.observeConsent().first()).isNull()
     }
 
     @Test

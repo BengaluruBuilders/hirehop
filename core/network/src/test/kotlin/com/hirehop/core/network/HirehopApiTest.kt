@@ -17,8 +17,10 @@ class HirehopApiTest {
     @After
     fun tearDown() = runCatching { server.shutdown() }.let { }
 
+    private var consentSignals = 0
+
     private fun api(readTimeoutMillis: Long? = null): HirehopApi {
-        val base = hirehopOkHttpClient(tokens)
+        val base = hirehopOkHttpClient(tokens) { consentSignals++ }
         val client = readTimeoutMillis
             ?.let { base.newBuilder().readTimeout(it, TimeUnit.MILLISECONDS).build() }
             ?: base
@@ -34,6 +36,17 @@ class HirehopApiTest {
     private fun failureOf(block: suspend () -> Any): ApiError {
         val exception = runBlocking { apiResult(block) }.exceptionOrNull()
         return (exception as ApiException).error
+    }
+
+    @Test
+    fun aConsentRequiredAnswerSignalsTheListenerAndOtherForbiddenAnswersDoNot() {
+        server.enqueue(error(403, "FORBIDDEN"))
+        server.enqueue(error(403, "CONSENT_REQUIRED"))
+
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Forbidden)
+        assertThat(consentSignals).isEqualTo(0)
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.ConsentRequired)
+        assertThat(consentSignals).isEqualTo(1)
     }
 
     @Test

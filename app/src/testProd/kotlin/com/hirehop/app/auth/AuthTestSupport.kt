@@ -1,5 +1,10 @@
 package com.hirehop.app.auth
 
+import com.hirehop.core.domain.GapMatcher
+import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.GapAnalysis
+import com.hirehop.core.model.JobDescription
+import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.network.HirehopApi
 import com.hirehop.core.network.HirehopApiConfig
 import com.hirehop.core.network.IdTokenProvider
@@ -57,4 +62,8 @@ internal class ScriptedFirebase(
     override fun signOut() {
         signedOut = true
     }
+}
+
+internal object NoMatcher : GapMatcher {
+    override fun match(profile: CandidateProfile, job: JobDescription) = GapAnalysis(emptyList(), KeywordCoverage(1, 2))
 }

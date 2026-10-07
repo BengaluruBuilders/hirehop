@@ -10,6 +10,6 @@ data class ConsentRecord(
     val noticeVersion: String,
 ) {
     companion object {
-        const val CURRENT_NOTICE_VERSION = "2026-10-c"
+        const val CURRENT_NOTICE_VERSION = "2026-10-b"
     }
 }

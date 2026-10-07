@@ -1,6 +1,10 @@
 package com.hirehop.app.billing
 
+import kotlinx.coroutines.flow.Flow
+
 interface PlayBilling {
+    val unsolicitedPurchases: Flow<PlayPurchase>
+
     suspend fun productDetails(productId: String): PlayProduct?
 
     suspend fun launchPurchase(productId: String, obfuscatedAccountId: String): PlayPurchaseResult

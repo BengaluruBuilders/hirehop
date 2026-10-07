@@ -1,7 +1,9 @@
 package com.hirehop.app.di
 
+import com.hirehop.app.AppStartTask
 import com.hirehop.app.billing.GooglePlayBilling
 import com.hirehop.app.billing.PlayBilling
+import com.hirehop.app.billing.PurchaseRestorer
 import com.hirehop.app.billing.RemotePaymentGateway
 import com.hirehop.app.billing.WalletUsageAllowance
 import com.hirehop.core.data.repository.UsageAllowance
@@ -10,6 +12,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,4 +25,8 @@ interface PaymentBindings {
 
     @Binds
     fun bindPlayBilling(impl: GooglePlayBilling): PlayBilling
+
+    @Binds
+    @IntoSet
+    fun bindPurchaseRestorer(impl: PurchaseRestorer): AppStartTask
 }

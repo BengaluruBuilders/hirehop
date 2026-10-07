@@ -33,6 +33,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -237,6 +238,35 @@ class DeleteAccountUseCaseTest {
         val result = useCase()
 
         assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = false))
+    }
+
+    @Test
+    fun aLocalFailureAfterTheServerDeletionNeverClaimsTheDataIsIntact() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        failingProfileClear = true
+        serverAccountDeleter = object : ServerAccountDeleter {
+            override val deletesRemoteData = true
+
+            override suspend fun delete() = Result.success(Unit)
+        }
+
+        val result = useCase(gateway = gatewayWith(credits = 4))()
+
+        assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = false))
+    }
+
+    @Test
+    fun anUnreachableWalletFallsBackToTheCachedCreditsInsteadOfCrashing() = runTest {
+        val gateway = object : PaymentGateway by gatewayWith(credits = 4) {
+            override suspend fun entitlement(): PurchaseEntitlement = throw java.io.IOException("offline")
+
+            override fun observeEntitlement(): Flow<PurchaseEntitlement> = flowOf(PurchaseEntitlement(0, 3, emptyList()))
+        }
+
+        val counts = useCase(gateway = gateway).preview()
+
+        assertThat(counts.unusedCredits).isEqualTo(3)
     }
 
     @Test

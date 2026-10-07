@@ -23,6 +23,10 @@ class TestMockStateStore : MockStateStore {
         values.update { it - key }
     }
 
+    override suspend fun removeWithPrefix(prefix: String) {
+        values.update { current -> current.filterKeys { !it.startsWith(prefix) } }
+    }
+
     override suspend fun clear() {
         values.value = emptyMap()
     }

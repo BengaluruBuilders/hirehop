@@ -15,7 +15,7 @@ class RemoteAccountServerTest {
     private val record = ConsentRecord(
         purposes = ConsentPurpose.entries.toSet(),
         acceptedAt = Instant.fromEpochSeconds(1),
-        noticeVersion = "2026-10-C",
+        noticeVersion = "2026-10-B",
     )
 
     @After
@@ -23,7 +23,7 @@ class RemoteAccountServerTest {
 
     private fun consentResponse(purpose: String) = jsonResponse(
         200,
-        """{"consent":{"purpose":"$purpose","granted":true,"policyVersion":"2026-10-c","recordedAt":"t"}}""",
+        """{"consent":{"purpose":"$purpose","granted":true,"policyVersion":"2026-10-b","recordedAt":"t"}}""",
     )
 
     @Test
@@ -45,10 +45,10 @@ class RemoteAccountServerTest {
         assertThat(result.isSuccess).isTrue()
         val bodies = List(4) { server.takeRequest().body.readUtf8() }
         assertThat(bodies).containsExactly(
-            """{"purpose":"read-and-build","granted":true,"policyVersion":"2026-10-c"}""",
-            """{"purpose":"keep-confirmed-facts","granted":true,"policyVersion":"2026-10-c"}""",
-            """{"purpose":"ai-processing","granted":true,"policyVersion":"2026-10-c"}""",
-            """{"purpose":"age-18-plus","granted":true,"policyVersion":"2026-10-c"}""",
+            """{"purpose":"read-and-build","granted":true,"policyVersion":"2026-10-b"}""",
+            """{"purpose":"keep-confirmed-facts","granted":true,"policyVersion":"2026-10-b"}""",
+            """{"purpose":"ai-processing","granted":true,"policyVersion":"2026-10-b"}""",
+            """{"purpose":"age-18-plus","granted":true,"policyVersion":"2026-10-b"}""",
         ).inOrder()
     }
 

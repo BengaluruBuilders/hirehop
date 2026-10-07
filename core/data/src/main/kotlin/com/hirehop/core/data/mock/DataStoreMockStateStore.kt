@@ -29,6 +29,12 @@ internal class DataStoreMockStateStore @Inject constructor(
         dataStore.edit { preferences -> preferences.remove(stringPreferencesKey(key)) }
     }
 
+    override suspend fun removeWithPrefix(prefix: String) {
+        dataStore.edit { preferences ->
+            preferences.asMap().keys.filter { it.name.startsWith(prefix) }.forEach { preferences.remove(it) }
+        }
+    }
+
     override suspend fun clear() {
         dataStore.edit { preferences -> preferences.clear() }
     }

@@ -25,6 +25,8 @@ class PendingReportQueue @Inject constructor(private val store: MockStateStore) 
     suspend fun pending(): List<ContentReport> =
         mutex.withLock { store.readValue(KEY, serializer).orEmpty() }.mapNotNull(ReportDto::toModel)
 
+    suspend fun clear() = mutex.withLock { store.remove(KEY) }
+
     suspend fun clearFor(applicationId: String) = update { current -> current.filterNot { it.applicationId == applicationId } }
 
     private suspend fun update(change: (List<ReportDto>) -> List<ReportDto>) {

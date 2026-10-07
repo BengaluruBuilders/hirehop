@@ -26,6 +26,8 @@ class RemoteConsentUploader @Inject constructor(private val api: HirehopApi) : C
 }
 
 class RemoteServerAccountDeleter @Inject constructor(private val api: HirehopApi) : ServerAccountDeleter {
+    override val deletesRemoteData = true
+
     override suspend fun delete(): Result<Unit> = apiResult { api.deleteMe() }
         .map { }
         .recoverCatching { failure ->

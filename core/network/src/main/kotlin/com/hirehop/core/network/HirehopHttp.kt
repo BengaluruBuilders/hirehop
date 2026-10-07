@@ -12,11 +12,16 @@ fun hirehopJson(): Json = Json {
     encodeDefaults = true
 }
 
-fun hirehopOkHttpClient(tokens: IdTokenProvider): OkHttpClient = OkHttpClient.Builder()
+fun hirehopOkHttpClient(
+    tokens: IdTokenProvider,
+    consentListener: ConsentRequiredListener = ConsentRequiredListener {},
+): OkHttpClient = OkHttpClient.Builder()
     .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .addInterceptor(AppIdInterceptor())
     .addInterceptor(AuthInterceptor(tokens))
+    .addInterceptor(ConsentRequiredInterceptor(consentListener))
     .build()
 
 fun hirehopApi(config: HirehopApiConfig, client: OkHttpClient, json: Json): HirehopApi =
@@ -29,3 +34,4 @@ fun hirehopApi(config: HirehopApiConfig, client: OkHttpClient, json: Json): Hire
 
 private const val CONNECT_TIMEOUT_SECONDS = 15L
 private const val READ_TIMEOUT_SECONDS = 60L
+private const val CALL_TIMEOUT_SECONDS = 75L

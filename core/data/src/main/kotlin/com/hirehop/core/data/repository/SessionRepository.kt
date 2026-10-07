@@ -31,6 +31,8 @@ interface SessionRepository {
 
     suspend fun clearKeptJobDescription()
 
+    suspend fun clearConsent()
+
     suspend fun signOut()
 
     suspend fun clear()

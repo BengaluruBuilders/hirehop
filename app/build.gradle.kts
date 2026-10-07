@@ -53,7 +53,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.named("debug").get()
         }
     }
@@ -94,7 +94,9 @@ dependencies {
     "prodImplementation"(libs.androidx.credentials)
     "prodImplementation"(libs.androidx.credentials.playServicesAuth)
     "prodImplementation"(libs.google.googleid)
-    "prodImplementation"(libs.play.billing)
+    "prodImplementation"(libs.play.billing) {
+        exclude(group = "com.google.android.gms", module = "play-services-location")
+    }
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)

@@ -50,6 +50,20 @@ abstract class MockStateStoreContractTest {
     }
 
     @Test
+    fun removeWithPrefixDeletesOnlyMatchingKeys() = runTest {
+        val store = createStore(backgroundScope)
+        store.write("p.a", "1")
+        store.write("p.b", "2")
+        store.write("q.a", "3")
+
+        store.removeWithPrefix("p.")
+
+        assertThat(store.read("p.a")).isNull()
+        assertThat(store.read("p.b")).isNull()
+        assertThat(store.read("q.a")).isEqualTo("3")
+    }
+
+    @Test
     fun clearDeletesEveryKey() = runTest {
         val store = createStore(backgroundScope)
         store.write("a", "1")

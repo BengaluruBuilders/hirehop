@@ -1,5 +1,6 @@
 package com.hirehop.core.network.di
 
+import com.hirehop.core.network.ConsentRequiredListener
 import com.hirehop.core.network.HirehopApi
 import com.hirehop.core.network.HirehopApiConfig
 import com.hirehop.core.network.IdTokenProvider
@@ -23,7 +24,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun okHttpClient(tokens: IdTokenProvider): OkHttpClient = hirehopOkHttpClient(tokens)
+    fun okHttpClient(tokens: IdTokenProvider, consentListener: ConsentRequiredListener): OkHttpClient =
+        hirehopOkHttpClient(tokens, consentListener)
 
     @Provides
     @Singleton

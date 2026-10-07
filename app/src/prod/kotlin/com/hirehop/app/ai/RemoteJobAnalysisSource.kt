@@ -44,6 +44,8 @@ class RemoteJobAnalysisSource @Inject constructor(
         return JobAnalysisResult(job, gap).also { synchronized(cache) { cache[key] = it } }
     }
 
+    fun clear() = synchronized(cache) { cache.clear() }
+
     private fun matchesOf(job: JobDescription, matches: List<MatchDto>, factIds: Set<String>): List<RequirementMatch> {
         val byRequirement = matches.associateBy { it.requirementId }
         return job.requirements.map { requirement ->

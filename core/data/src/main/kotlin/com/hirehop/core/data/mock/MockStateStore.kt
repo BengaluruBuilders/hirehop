@@ -15,6 +15,8 @@ interface MockStateStore {
 
     suspend fun remove(key: String)
 
+    suspend fun removeWithPrefix(prefix: String)
+
     suspend fun clear()
 }
 

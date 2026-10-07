@@ -62,7 +62,8 @@ class DeleteAccountUseCase @Inject constructor(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (failure: Exception) {
-            val restored = restore(applications, profile, exports, onStep)
+            val serverCopyGone = serverAccountDeleter.deletesRemoteData
+            val restored = !serverCopyGone && restore(applications, profile, exports, onStep)
             AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched)
         }
     }

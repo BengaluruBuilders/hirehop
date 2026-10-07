@@ -1,6 +1,7 @@
 package com.hirehop.app.di
 
 import com.hirehop.app.BuildConfig
+import com.hirehop.app.auth.ConsentRevoker
 import com.hirehop.app.auth.CredentialManagerGoogleSource
 import com.hirehop.app.auth.FirebaseAuthClient
 import com.hirehop.app.auth.FirebaseConfig
@@ -15,6 +16,7 @@ import com.hirehop.core.domain.ConsentUploader
 import com.hirehop.core.domain.FirebaseUidProvider
 import com.hirehop.core.domain.SignInGateway
 import com.hirehop.core.domain.account.ServerAccountDeleter
+import com.hirehop.core.network.ConsentRequiredListener
 import com.hirehop.core.network.IdTokenProvider
 import dagger.Binds
 import dagger.Module
@@ -42,6 +44,9 @@ interface SignInBindings {
 
     @Binds
     fun bindConsentUploader(impl: RemoteConsentUploader): ConsentUploader
+
+    @Binds
+    fun bindConsentRequiredListener(impl: ConsentRevoker): ConsentRequiredListener
 
     @Binds
     fun bindServerAccountDeleter(impl: RemoteServerAccountDeleter): ServerAccountDeleter

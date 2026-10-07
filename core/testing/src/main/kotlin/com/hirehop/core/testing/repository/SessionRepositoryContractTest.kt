@@ -129,6 +129,18 @@ abstract class SessionRepositoryContractTest {
     }
 
     @Test
+    fun clearConsentRemovesOnlyTheConsent() = runTest {
+        val session = createSessionRepository()
+        session.saveAccount(SignInAccount.localAccount)
+        session.recordConsent(consent)
+
+        session.clearConsent()
+
+        assertThat(session.observeConsent().first()).isNull()
+        assertThat(session.observeAccount().first()).isEqualTo(SignInAccount.localAccount)
+    }
+
+    @Test
     fun clearOnAnEmptySessionIsHarmless() = runTest {
         val session = createSessionRepository()
 

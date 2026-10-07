@@ -1,12 +1,23 @@
 package com.hirehop.app.billing
 
+import com.hirehop.app.ai.RemoteJobAnalysisSource
+import com.hirehop.app.auth.NoMatcher
+import com.hirehop.app.auth.SignOutCleaner
+import com.hirehop.app.auth.api
+import com.hirehop.core.data.repository.PendingReportQueue
+import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.domain.FirebaseUidProvider
 import com.hirehop.core.network.IdTokenProvider
+import com.hirehop.core.testing.mock.TestMockStateStore
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.serialization.json.Json
+import okhttp3.mockwebserver.MockWebServer
 
 internal class FakePlayBilling : PlayBilling {
     var products = mapOf("application_pack_5" to PlayProduct("5 applications", 149_000_000, "INR"))
     var purchaseResult: PlayPurchaseResult = PlayPurchaseResult.Failed
     var owned = emptyList<PlayPurchase>()
+    override val unsolicitedPurchases = MutableSharedFlow<PlayPurchase>(extraBufferCapacity = 8)
     var launchedWith: Pair<String, String>? = null
 
     override suspend fun productDetails(productId: String) = products[productId]
@@ -42,3 +53,15 @@ internal fun purchaseJson(wallet: String) =
 "purchasedAt":"2026-10-07T09:12:00Z","state":"COMPLETED"},"wallet":$wallet}"""
 
 internal fun errorJson(code: String) = """{"error":{"code":"$code","message":"m"}}"""
+
+internal fun MockWebServer.signOutCleaner(session: SessionRepository): SignOutCleaner {
+    val store = TestMockStateStore()
+    val api = api()
+    return SignOutCleaner(
+        RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1")),
+        RemoteJobAnalysisSource(api, NoMatcher, Json),
+        PendingReportQueue(store),
+        store,
+        session,
+    )
+}

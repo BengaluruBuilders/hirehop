@@ -7,7 +7,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-private val errorJson = Json { ignoreUnknownKeys = true }
+internal val errorJson = Json { ignoreUnknownKeys = true }
 
 suspend fun <T> apiResult(block: suspend () -> T): Result<T> = try {
     Result.success(block())

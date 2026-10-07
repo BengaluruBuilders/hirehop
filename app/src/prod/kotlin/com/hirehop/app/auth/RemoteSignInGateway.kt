@@ -21,6 +21,7 @@ class RemoteSignInGateway @Inject constructor(
     private val firebase: FirebaseSessionClient,
     private val api: HirehopApi,
     private val sessionRepository: SessionRepository,
+    private val cleaner: SignOutCleaner,
 ) : SignInGateway {
 
     override suspend fun currentAccount(): SignInAccount? = sessionRepository.observeAccount().first()
@@ -49,6 +50,7 @@ class RemoteSignInGateway @Inject constructor(
             firebase.signOut()
             credentials.clearState()
             sessionRepository.signOut()
+            cleaner.clear()
         }
     }
 

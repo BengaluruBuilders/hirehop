@@ -54,6 +54,10 @@ class TestSessionRepository : SessionRepository {
         keptJob.value = null
     }
 
+    override suspend fun clearConsent() {
+        consent.value = null
+    }
+
     override suspend fun signOut() {
         account.value = null
         keptJob.value = null

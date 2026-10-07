@@ -34,6 +34,16 @@ class PendingReportQueueTest {
     }
 
     @Test
+    fun clearDropsEveryReport() = runTest {
+        queue.add(report(applicationId = "app-1"))
+        queue.add(report(applicationId = "app-2"))
+
+        queue.clear()
+
+        assertThat(queue.pending()).isEmpty()
+    }
+
+    @Test
     fun clearForDropsEveryReportOfOneApplication() = runTest {
         queue.add(report(applicationId = "app-1"))
         queue.add(report(applicationId = "app-2"))

@@ -2,20 +2,30 @@ package com.hirehop.core.domain.account
 
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.PurchaseEntitlement
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class AccountCreditBalance @Inject constructor(
     private val paymentGateway: PaymentGateway,
 ) {
 
-    suspend fun unusedCredits(): Int = paymentGateway.entitlement().totalCredits
+    suspend fun unusedCredits(): Int = knownEntitlement().totalCredits
 
     suspend fun creditLine(): AccountCreditLine {
-        val entitlement = paymentGateway.entitlement()
+        val entitlement = knownEntitlement()
         return AccountCreditLine(
             freeCredits = entitlement.freeCredits,
             purchasedCredits = entitlement.purchasedCredits,
         )
+    }
+
+    private suspend fun knownEntitlement(): PurchaseEntitlement = try {
+        paymentGateway.entitlement()
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: Exception) {
+        paymentGateway.observeEntitlement().first()
     }
 
     suspend fun clearUnusedCredits(): PurchaseEntitlement {

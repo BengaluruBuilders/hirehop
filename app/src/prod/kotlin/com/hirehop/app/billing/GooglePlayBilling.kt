@@ -5,6 +5,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
@@ -12,6 +13,8 @@ import com.android.billingclient.api.queryPurchasesAsync
 import com.hirehop.app.auth.ForegroundActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -26,10 +29,23 @@ class GooglePlayBilling @Inject constructor(
     private var inFlight: CompletableDeferred<PlayPurchaseResult>? = null
 
     private val client: BillingClient = BillingClient.newBuilder(context)
-        .setListener { result, purchases -> inFlight?.complete(purchaseResultOf(result, purchases)) }
+        .setListener(::onPurchasesUpdated)
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
         .enableAutoServiceReconnection()
         .build()
+
+    private val unsolicited = MutableSharedFlow<PlayPurchase>(extraBufferCapacity = UNSOLICITED_BUFFER)
+
+    override val unsolicitedPurchases: Flow<PlayPurchase> = unsolicited
+
+    private fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
+        val waiting = inFlight?.takeIf { it.isActive }
+        if (waiting != null) {
+            waiting.complete(purchaseResultOf(result, purchases))
+        } else if (result.isOk()) {
+            purchases.orEmpty().flatMap { it.toPlayPurchases() }.forEach(unsolicited::tryEmit)
+        }
+    }
 
     override suspend fun productDetails(productId: String): PlayProduct? =
         loadProductDetails(productId)?.toPlayProduct()
@@ -69,3 +85,5 @@ class GooglePlayBilling @Inject constructor(
 }
 
 internal fun BillingResult.isOk() = responseCode == BillingClient.BillingResponseCode.OK
+
+private const val UNSOLICITED_BUFFER = 8
