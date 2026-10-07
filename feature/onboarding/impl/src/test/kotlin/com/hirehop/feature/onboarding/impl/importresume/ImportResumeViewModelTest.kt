@@ -327,7 +327,7 @@ private class RecordingResumeTextParser : ResumeTextParser {
     )
     val parsedText = mutableListOf<String>()
 
-    override fun parse(rawText: String): CandidateProfile {
+    override suspend fun parse(rawText: String): CandidateProfile {
         parsedText += rawText
         return profile
     }

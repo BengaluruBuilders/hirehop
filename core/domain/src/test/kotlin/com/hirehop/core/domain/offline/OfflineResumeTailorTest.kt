@@ -9,6 +9,7 @@ import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.core.model.TailoredResume
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class OfflineResumeTailorTest {
@@ -16,7 +17,7 @@ class OfflineResumeTailorTest {
     private val matcher = OfflineGapMatcher()
     private val tailor = OfflineResumeTailor()
 
-    private fun tailorFor(
+    private suspend fun tailorFor(
         jd: String,
         profile: CandidateProfile = sampleProfile,
     ): Pair<JobDescription, TailoredResume> {
@@ -29,14 +30,14 @@ class OfflineResumeTailorTest {
     private fun tokensOf(text: String) = TextTokens.words(text)
 
     @Test
-    fun onlyConfirmedEntriesAreTailoredAndEveryBulletIsCovered() {
+    fun onlyConfirmedEntriesAreTailoredAndEveryBulletIsCovered() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Kotlin")
         val expected = sampleProfile.entries.filter { it.isConfirmed }.flatMap { it.bullets }.map { it.id }
         assertThat(resume.bullets.flatMap { it.sourceIds }).containsExactlyElementsIn(expected)
     }
 
     @Test
-    fun bulletsStartPendingWithSourceIdsAndNoViolations() {
+    fun bulletsStartPendingWithSourceIdsAndNoViolations() = runTest {
         val (_, resume) = tailorFor(resourceText("jd_android.txt"))
         resume.bullets.forEach {
             assertThat(it.decision).isEqualTo(BulletDecision.PENDING)
@@ -47,7 +48,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun trapJobGapsNeverAppearInAnyTailoredBullet() {
+    fun trapJobGapsNeverAppearInAnyTailoredBullet() = runTest {
         val (job, resume) = tailorFor(resourceText("jd_trap_cloud.txt"))
         val forbidden = listOf("kubernetes", "aws", "mba", "terraform", "docker")
         resume.bullets.forEach { bullet ->
@@ -59,7 +60,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun rewordsAliasToTheJobTermOnlyWhenTheBulletHasTheAlias() {
+    fun rewordsAliasToTheJobTermOnlyWhenTheBulletHasTheAlias() = runTest {
         val (_, resume) = tailorFor("Requirements\n- JavaScript\n- Excel")
         val js = resume.bulletFor("exp-1-b4")
         assertThat(js.proposedText).isEqualTo("Fixing bugs in the JavaScript frontend")
@@ -74,20 +75,20 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun pluralFormOfTheSameTermIsNotReworded() {
+    fun pluralFormOfTheSameTermIsNotReworded() = runTest {
         val (_, resume) = tailorFor("Requirements\n- REST API")
         assertThat(resume.bulletFor("exp-1-b1").proposedText).contains("REST APIs")
     }
 
     @Test
-    fun aliasIsNotRewordedWhenJobDoesNotAskForIt() {
+    fun aliasIsNotRewordedWhenJobDoesNotAskForIt() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Kotlin")
         assertThat(resume.bulletFor("exp-1-b4").proposedText).contains("js frontend")
         assertThat(resume.bulletFor("proj-1-b3").proposedText).contains("ms excel")
     }
 
     @Test
-    fun looseAliasesAreNeverReworded() {
+    fun looseAliasesAreNeverReworded() = runTest {
         val profile = profileOf(
             emptyList(),
             entry("e1", EntryCategory.EXPERIENCE, "Intern", "Wrote core java services for billing"),
@@ -99,7 +100,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun shortensFillerPhrasesWithoutAddingWords() {
+    fun shortensFillerPhrasesWithoutAddingWords() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Kotlin")
         val bullet = resume.bulletFor("exp-1-b1")
         assertThat(bullet.proposedText)
@@ -108,7 +109,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun emphasisesKeywordClauseByPureReordering() {
+    fun emphasisesKeywordClauseByPureReordering() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Jetpack Compose")
         val bullet = resume.bulletFor("proj-1-b1")
         assertThat(bullet.proposedText)
@@ -118,7 +119,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun doesNotEmphasiseWhenKeywordAlreadyLeads() {
+    fun doesNotEmphasiseWhenKeywordAlreadyLeads() = runTest {
         val profile = profileOf(
             emptyList(),
             entry("e1", EntryCategory.PROJECT, "App", "Kotlin developer who built tools using Git"),
@@ -128,7 +129,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun doesNotEmphasiseWhenClauseContinuesWithAnotherVerb() {
+    fun doesNotEmphasiseWhenClauseContinuesWithAnotherVerb() = runTest {
         val profile = profileOf(
             emptyList(),
             entry("e1", EntryCategory.PROJECT, "App", "Built dashboards using Excel and presented insights weekly"),
@@ -138,7 +139,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun reordersBulletsWithinAnEntryByJobRelevance() {
+    fun reordersBulletsWithinAnEntryByJobRelevance() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Git")
         val experience = resume.bullets.filter { it.entryId == "exp-1" }
         assertThat(experience.map { it.sourceIds.single() })
@@ -148,14 +149,14 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun entriesKeepProfileOrder() {
+    fun entriesKeepProfileOrder() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Power BI")
         assertThat(resume.bullets.map { it.entryId }.distinct())
             .containsExactly("edu-1", "exp-1", "proj-1", "proj-2").inOrder()
     }
 
     @Test
-    fun mustHaveKeywordsOutrankNiceToHaveWhenReordering() {
+    fun mustHaveKeywordsOutrankNiceToHaveWhenReordering() = runTest {
         val profile = profileOf(
             emptyList(),
             entry(
@@ -171,7 +172,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun unchangedBulletHasNoEditTypes() {
+    fun unchangedBulletHasNoEditTypes() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Kotlin")
         val bullet = resume.bulletFor("exp-1-b3")
         assertThat(bullet.proposedText).isEqualTo(bullet.originalText)
@@ -179,7 +180,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun keywordsUsedListsJobKeywordsPresentInProposedText() {
+    fun keywordsUsedListsJobKeywordsPresentInProposedText() = runTest {
         val (_, resume) = tailorFor("Requirements\n- Kotlin, Python and SQL")
         assertThat(resume.bulletFor("exp-1-b1").keywordsUsed).containsExactly("kotlin")
         assertThat(resume.bulletFor("proj-2-b1").keywordsUsed).containsExactly("sql")
@@ -187,7 +188,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun tailoredTextNeverIntroducesWordsOutsideTheSourceBulletAcrossFiveJobs() {
+    fun tailoredTextNeverIntroducesWordsOutsideTheSourceBulletAcrossFiveJobs() = runTest {
         jobDescriptionResources.forEach { resource ->
             val (job, resume) = tailorFor(resourceText(resource))
             val jobTerms = job.requirements.flatMap { it.keywords }.distinct()
@@ -202,7 +203,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun aliasRewordingIntroducesOnlyTheCanonicalTermTokens() {
+    fun aliasRewordingIntroducesOnlyTheCanonicalTermTokens() = runTest {
         val (_, resume) = tailorFor("Requirements\n- JavaScript\n- Excel")
         resume.bullets.forEach { bullet ->
             val allowed = tokensOf(bullet.originalText).toSet() + tokensOf("JavaScript Excel")
@@ -211,19 +212,19 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun tailoringIsDeterministic() {
+    fun tailoringIsDeterministic() = runTest {
         val jd = resourceText("jd_data_analyst.txt")
         assertThat(tailorFor(jd).second).isEqualTo(tailorFor(jd).second)
     }
 
     @Test
-    fun profileWithoutConfirmedEntriesGivesEmptyResume() {
+    fun profileWithoutConfirmedEntriesGivesEmptyResume() = runTest {
         val profile = sampleProfile.copy(entries = sampleProfile.entries.map { it.copy(isConfirmed = false) })
         assertThat(tailorFor("Requirements\n- Kotlin", profile).second.bullets).isEmpty()
     }
 
     @Test
-    fun fillerRemoverKeepsShortBulletsIntact() {
+    fun fillerRemoverKeepsShortBulletsIntact() = runTest {
         assertThat(FillerRemover.shorten("Various tasks")).isEqualTo("Various tasks")
         assertThat(FillerRemover.shorten("Responsible for various reports and dashboards"))
             .isEqualTo("Reports and dashboards")
@@ -231,7 +232,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun unixIsNeverRewordedToLinux() {
+    fun unixIsNeverRewordedToLinux() = runTest {
         val profile = profileOf(
             emptyList(),
             entry("e1", EntryCategory.EXPERIENCE, "Intern", "Administered Unix servers"),
@@ -246,7 +247,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun onlyLooselyRelatedAliasesStayUntouched() {
+    fun onlyLooselyRelatedAliasesStayUntouched() = runTest {
         listOf(
             Triple("Managed SCM using Git", "Supply Chain", "Managed SCM using Git"),
             Triple("Handled costing for orders", "Cost Accounting", "Handled costing for orders"),
@@ -261,7 +262,7 @@ class OfflineResumeTailorTest {
     }
 
     @Test
-    fun strictSameToolAliasesAreReworded() {
+    fun strictSameToolAliasesAreReworded() = runTest {
         val profile = profileOf(
             emptyList(),
             entry(

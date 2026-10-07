@@ -72,7 +72,7 @@ class OfflineSampleDataController @Inject constructor(
         sessionRepository.clearKeptJobDescription()
     }
 
-    private fun build(plan: SampleApplicationPlan, now: Instant): JobApplication {
+    private suspend fun build(plan: SampleApplicationPlan, now: Instant): JobApplication {
         val analysis = analyzeJob(SampleDataSet.profile, plan.jobText)
         val tailored = tailorResume(SampleDataSet.profile, analysis.job, analysis.gap)
         return JobApplication(

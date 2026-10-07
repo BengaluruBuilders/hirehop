@@ -7,7 +7,7 @@ class AnalyzeJobUseCase @Inject constructor(
     private val analyzer: JobDescriptionAnalyzer,
     private val matcher: GapMatcher,
 ) {
-    operator fun invoke(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
+    suspend operator fun invoke(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
         val job = analyzer.analyze(rawJobText)
         return JobAnalysisResult(job = job, gap = matcher.match(profile, job))
     }

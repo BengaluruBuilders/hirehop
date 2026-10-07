@@ -7,6 +7,7 @@ import com.hirehop.core.common.network.HhDispatchers
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.data.repository.UsageAllowance
+import com.hirehop.core.domain.AiException
 import com.hirehop.core.domain.DiscardJobDraftsUseCase
 import com.hirehop.core.domain.JobLabelProposal
 import com.hirehop.core.domain.ProposeJobLabelUseCase
@@ -104,7 +105,11 @@ class PasteJobDescriptionViewModel @Inject constructor(
         if (text.isBlank()) return
         prefillJob = viewModelScope.launch {
             delay(PREFILL_DEBOUNCE_MS)
-            val proposal = withContext(computeDispatcher) { proposeJobLabel(text) }
+            val proposal = try {
+                withContext(computeDispatcher) { proposeJobLabel(text) }
+            } catch (_: AiException) {
+                return@launch
+            }
             mutableState.update { it.withProposedLabels(proposal) }
         }
     }

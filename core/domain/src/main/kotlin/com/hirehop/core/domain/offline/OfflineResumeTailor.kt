@@ -15,7 +15,7 @@ import com.hirehop.core.model.TailoredResume
 import javax.inject.Inject
 
 internal class OfflineResumeTailor @Inject constructor() : ResumeTailor {
-    override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
+    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
         val weights = keywordWeights(gap)
         val rewriter = BulletRewriter(weights.keys)
         val jobKeywords = job.requirements.flatMap { it.keywords }.distinct()

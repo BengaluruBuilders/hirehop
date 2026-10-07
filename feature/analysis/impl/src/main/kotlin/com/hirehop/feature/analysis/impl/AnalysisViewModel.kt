@@ -12,10 +12,12 @@ import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.data.repository.SessionRepository
 import com.hirehop.core.data.repository.UsageAllowance
 import com.hirehop.core.domain.AddUserStatedFactUseCase
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.CreateApplicationUseCase
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.PaymentGateway
+import com.hirehop.core.domain.isAiFailure
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.CandidateProfile
@@ -249,9 +251,13 @@ class AnalysisViewModel @Inject constructor(
         if (!state.canTailor) return
         local.update { it.copy(tailoring = true, overlay = AnalysisOverlay.None) }
         applicationScope.launch {
-            attempt { tailor(ready) }.onFailure {
-                local.update { it.copy(tailoring = false) }
-                showToast(AnalysisToast.TailorFailed)
+            attempt { tailor(ready) }.onFailure { failure ->
+                if (failure.isAiFailure(AiFailure.NoCredit)) {
+                    local.update { it.copy(tailoring = false, tailorLimitHit = true) }
+                } else {
+                    local.update { it.copy(tailoring = false) }
+                    showToast(AnalysisToast.TailorFailed)
+                }
             }
         }
     }
@@ -280,7 +286,14 @@ class AnalysisViewModel @Inject constructor(
                     if (analysis.gap.keywordCoverage.total > 0) countAnalysisOnce(kept)
                     local.update { it.copy(phase = Phase.Ready(kept, profile, analysis)) }
                 },
-                onFailure = { local.update { it.copy(phase = Phase.Failed(kept)) } },
+                onFailure = { failure ->
+                    val phase = if (failure.isAiFailure(AiFailure.AllowanceExhausted)) {
+                        Phase.DailyLimit(kept)
+                    } else {
+                        Phase.Failed(kept)
+                    }
+                    local.update { it.copy(phase = phase) }
+                },
             )
         }
     }
@@ -403,6 +416,10 @@ class AnalysisViewModel @Inject constructor(
             override val label: JobLabel get() = JobLabel(kept.role, kept.company)
         }
 
+        data class DailyLimit(val kept: KeptJobDescription) : Phase {
+            override val label: JobLabel get() = JobLabel(kept.role, kept.company)
+        }
+
         data class Ready(
             val kept: KeptJobDescription,
             val profile: CandidateProfile,
@@ -451,6 +468,7 @@ class AnalysisViewModel @Inject constructor(
                 env.scenario == DebugScenario.EMPTY -> AnalysisUiState.DailyLimit(label)
                 phase is Phase.Analyzing -> AnalysisUiState.Analyzing(label, factCount)
                 phase is Phase.Failed -> AnalysisUiState.Failed(label)
+                phase is Phase.DailyLimit -> AnalysisUiState.DailyLimit(label)
                 phase is Phase.Ready -> AnalysisUiState.Result(
                     job = label,
                     keywordCoverage = phase.analysis.gap.keywordCoverage,

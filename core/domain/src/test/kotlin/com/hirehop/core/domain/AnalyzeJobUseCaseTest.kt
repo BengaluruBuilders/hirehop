@@ -9,16 +9,29 @@ import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class AnalyzeJobUseCaseTest {
     @Test
-    fun passesAnalyzerOutputToMatcherAndReturnsBoth() {
+    fun analyzerFailureIsRethrownWithItsType() = runTest {
+        val analyzer = object : JobDescriptionAnalyzer {
+            override suspend fun analyze(rawText: String): JobDescription = throw AiException(AiFailure.AllowanceExhausted)
+        }
+
+        val failure = runCatching { AnalyzeJobUseCase(analyzer, OfflineGapMatcher())(sampleProfile, "jd") }.exceptionOrNull()
+
+        assertThat(failure?.isAiFailure(AiFailure.AllowanceExhausted)).isTrue()
+        assertThat(failure?.isAiFailure(AiFailure.Network)).isFalse()
+    }
+
+    @Test
+    fun passesAnalyzerOutputToMatcherAndReturnsBoth() = runTest {
         val job = JobDescription("Title", "Company", "raw", emptyList())
         val gap = GapAnalysis(emptyList(), KeywordCoverage(0, 0))
         val received = mutableListOf<Pair<CandidateProfile, JobDescription>>()
         val analyzer = object : JobDescriptionAnalyzer {
-            override fun analyze(rawText: String): JobDescription = job
+            override suspend fun analyze(rawText: String): JobDescription = job
         }
         val matcher = object : GapMatcher {
             override fun match(profile: CandidateProfile, job: JobDescription): GapAnalysis {
@@ -35,7 +48,7 @@ class AnalyzeJobUseCaseTest {
     }
 
     @Test
-    fun analysesRawTextEndToEndWithOfflineImplementations() {
+    fun analysesRawTextEndToEndWithOfflineImplementations() = runTest {
         val useCase = AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())
 
         val result = useCase(sampleProfile, "Requirements\n- Kotlin\n- Kubernetes")

@@ -12,7 +12,7 @@ class TailorResumeUseCase @Inject constructor(
     private val tailor: ResumeTailor,
     private val guard: FabricationGuard,
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         profile: CandidateProfile,
         job: JobDescription,
         gap: GapAnalysis,

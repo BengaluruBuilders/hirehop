@@ -8,7 +8,12 @@ import com.hirehop.core.domain.offline.OfflineResumeTailor
 import com.hirehop.core.domain.offline.resourceText
 import com.hirehop.core.domain.offline.sampleProfile
 import com.hirehop.core.model.ApplicationStatus
+import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.GapAnalysis
+import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.KeptJobDescription
+import com.hirehop.core.model.TailoredResume
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.time.Instant
@@ -22,10 +27,12 @@ class CreateApplicationUseCaseTest {
         clock = clock,
         idGenerator = SequentialIdGenerator("app"),
     )
-    private val analysis = AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())(
-        sampleProfile,
-        resourceText("jd_android.txt"),
-    )
+    private val analysis = runBlocking {
+        AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())(
+            sampleProfile,
+            resourceText("jd_android.txt"),
+        )
+    }
 
     @Test
     fun savesApplicationWithSavedStatusAndReturnsItsId() = runTest {
@@ -46,6 +53,25 @@ class CreateApplicationUseCaseTest {
         assertThat(checkNotNull(saved.tailoredResume).bullets).isNotEmpty()
         assertThat(saved.createdAt).isEqualTo(Instant.fromEpochSeconds(1_800_000_000))
         assertThat(saved.updatedAt).isEqualTo(saved.createdAt)
+    }
+
+    @Test
+    fun whenTheTailorFails_savesNothingAndRethrowsTheTypedFailure() = runTest {
+        val failing = object : ResumeTailor {
+            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume =
+                throw AiException(AiFailure.NoCredit)
+        }
+        val failingUseCase = CreateApplicationUseCase(
+            applicationRepository = repository,
+            tailorResume = TailorResumeUseCase(failing, OfflineFabricationGuard()),
+            clock = clock,
+            idGenerator = SequentialIdGenerator("app"),
+        )
+
+        val failure = runCatching { failingUseCase(sampleProfile, analysis) }.exceptionOrNull()
+
+        assertThat(failure?.isAiFailure(AiFailure.NoCredit)).isTrue()
+        assertThat(repository.upsertCount).isEqualTo(0)
     }
 
     @Test

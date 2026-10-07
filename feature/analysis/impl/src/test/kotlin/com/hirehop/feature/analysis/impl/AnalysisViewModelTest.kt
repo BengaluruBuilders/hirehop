@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.repository.UsageAllowance
 import com.hirehop.core.domain.AddUserStatedFactUseCase
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.CreateApplicationUseCase
 import com.hirehop.core.domain.TailorResumeUseCase
@@ -62,6 +63,7 @@ class AnalysisViewModelTest {
     private val usageAllowance = TestUsageAllowance(TestClock())
     private var paymentGateway = TestPaymentGateway()
     private val analyzer = FixedJobDescriptionAnalyzer()
+    private val tailor = EmptyResumeTailor()
     private val matcher = KeywordGapMatcher()
     private var nextId = 0
 
@@ -99,7 +101,7 @@ class AnalysisViewModelTest {
         addUserStatedFact = AddUserStatedFactUseCase(profileRepository, ::newId),
         createApplication = CreateApplicationUseCase(
             applicationRepository = flakyApplicationRepository,
-            tailorResume = TailorResumeUseCase(EmptyResumeTailor(), AcceptingFabricationGuard()),
+            tailorResume = TailorResumeUseCase(tailor, AcceptingFabricationGuard()),
             clock = FixedClock,
             idGenerator = ::newId,
         ),
@@ -276,6 +278,27 @@ class AnalysisViewModelTest {
         analyzer.failing = false
         viewModel.onRetry()
         assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Result::class.java)
+    }
+
+    @Test
+    fun serverAllowanceExhausted_showsTheDailyLimit_andCountsNothing() = runTest {
+        analyzer.failure = AiFailure.AllowanceExhausted
+        start()
+
+        assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.DailyLimit::class.java)
+        assertThat(usageAllowance.observeAnalysesLeft().first()).isEqualTo(UsageAllowance.DAILY_ANALYSES)
+    }
+
+    @Test
+    fun otherServerFailures_showTheErrorState_andRetryRecovers() = runTest {
+        AiFailure.entries.filter { it != AiFailure.AllowanceExhausted }.forEach { failure ->
+            analyzer.failure = failure
+            start()
+            assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Failed::class.java)
+            analyzer.failure = null
+            viewModel.onRetry()
+            assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Result::class.java)
+        }
     }
 
     @Test
@@ -613,6 +636,29 @@ class AnalysisViewModelTest {
         viewModel.onTailor()
 
         assertThat(applicationRepository.observeApplications().first()).isEmpty()
+    }
+
+    @Test
+    fun tailor_whenTheServerHasNoCredit_showsTheLimitAndNoFailureToast() = runTest {
+        start(onboardingComplete = true)
+        tailor.failure = AiFailure.NoCredit
+
+        viewModel.onTailor()
+
+        assertThat(result().tailorLimitReached).isTrue()
+        assertThat(result().isTailoring).isFalse()
+        assertThat(result().toast).isNull()
+    }
+
+    @Test
+    fun tailor_whenTheServerFailsOtherwise_showsTheFailureToast() = runTest {
+        start(onboardingComplete = true)
+        tailor.failure = AiFailure.Unavailable
+
+        viewModel.onTailor()
+
+        assertThat(result().toast).isEqualTo(AnalysisToast.TailorFailed)
+        assertThat(result().isTailoring).isFalse()
     }
 
     @Test

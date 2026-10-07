@@ -1,6 +1,8 @@
 package com.hirehop.feature.tailor.impl
 
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.AiException
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.FabricationGuard
 import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.domain.TailorResumeUseCase
@@ -41,6 +43,7 @@ import org.junit.Test
 import kotlin.time.Clock
 
 class TailorViewModelTest {
+    private val tailor = FixedTailor()
 
     @get:Rule
     val dispatcherRule = MainDispatcherRule()
@@ -120,7 +123,7 @@ class TailorViewModelTest {
             regenerateSection = RegenerateSectionUseCase(
                 applicationRepository,
                 profileRepository,
-                TailorResumeUseCase(FixedTailor(), NoViolationGuard()),
+                TailorResumeUseCase(tailor, NoViolationGuard()),
                 reviewState,
                 clock,
             ),
@@ -401,6 +404,20 @@ class TailorViewModelTest {
     }
 
     @Test
+    fun onRegenerate_whenTheServerFails_keepsTheSectionAndSpendsNoRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        viewModel.onAccept("r1")
+        tailor.failure = AiFailure.Network
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
     fun onRegenerate_stopsAfterTheIncludedRegenerationsAreUsed() = runTest {
         val viewModel = viewModel()
         collectUiState(viewModel)
@@ -456,8 +473,11 @@ class TailorViewModelTest {
 }
 
 private class FixedTailor : ResumeTailor {
-    override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume =
-        TailoredResume(
+    var failure: AiFailure? = null
+
+    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
+        failure?.let { throw AiException(it) }
+        return TailoredResume(
             listOf(
                 testBullet(
                     id = "r1",
@@ -467,6 +487,7 @@ private class FixedTailor : ResumeTailor {
                 ),
             ),
         )
+    }
 }
 
 private class NoViolationGuard : FabricationGuard {

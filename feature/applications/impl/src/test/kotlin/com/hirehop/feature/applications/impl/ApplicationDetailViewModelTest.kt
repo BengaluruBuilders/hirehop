@@ -6,6 +6,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.hirehop.core.domain.AiException
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CreditKind
 import com.hirehop.core.model.DebugScenario
@@ -52,7 +54,11 @@ class ApplicationDetailViewModelTest {
     private val prepPlanRepository = TestPrepPlanRepository()
     private val contentReportRepository = TestContentReportRepository()
     private val coverLetterRepository = TestCoverLetterRepository()
-    private val prepQuestionSource = TestPrepQuestionSource(gapQuestions = 1) { _, _ -> PREP_QUESTION_COUNT }
+    private var prepQuestionFailure: AiFailure? = null
+    private val prepQuestionSource = TestPrepQuestionSource(gapQuestions = 1) { _, _ ->
+        prepQuestionFailure?.let { throw AiException(it) }
+        PREP_QUESTION_COUNT
+    }
     private val application = testApplication(
         id = APPLICATION_ID,
         notes = "Saved notes",
@@ -682,6 +688,20 @@ class ApplicationDetailViewModelTest {
                 assertThat(awaitItem().map { record -> record.fileName }).containsExactly("other.pdf")
                 cancelAndIgnoreRemainingEvents()
             }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun uiState_whenThePrepQuestionServiceFails_showsNoPrepQuestions() = runTest {
+        prepQuestionFailure = AiFailure.Unavailable
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(application))
+            runCurrent()
+            profileRepository.sendProfile(canonicalCandidateProfile)
+            runCurrent()
+
+            assertThat(current().ready().prepQuestionCount).isEqualTo(0)
             cancelAndIgnoreRemainingEvents()
         }
     }

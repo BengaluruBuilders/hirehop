@@ -3,6 +3,7 @@ package com.hirehop.feature.tailor.impl
 import com.hirehop.core.data.repository.ApplicationRepository
 import com.hirehop.core.data.repository.ProfileRepository
 import com.hirehop.core.data.repository.TailoringReviewStateRepository
+import com.hirehop.core.domain.AiException
 import com.hirehop.core.domain.TailorResumeUseCase
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.EntryCategory
@@ -28,7 +29,11 @@ internal class RegenerateSectionUseCase @Inject constructor(
             .map { it.id }
             .toSet()
         val existing = application.tailoredResume?.bullets.orEmpty()
-        val fresh = tailorResume(profile, application.job, gap).bullets
+        val fresh = try {
+            tailorResume(profile, application.job, gap).bullets
+        } catch (_: AiException) {
+            return false
+        }
             .filter { it.entryId in sectionEntryIds }
             .map { it.copy(decision = BulletDecision.PENDING) }
         val kept = existing.filter { it.entryId !in sectionEntryIds }

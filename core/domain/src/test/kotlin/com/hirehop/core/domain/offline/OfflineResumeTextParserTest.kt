@@ -5,12 +5,13 @@ import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.ProfileEntry
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class OfflineResumeTextParserTest {
     private val parser = OfflineResumeTextParser()
 
-    private fun parseResource(name: String): CandidateProfile = parser.parse(resourceText(name))
+    private suspend fun parseResource(name: String): CandidateProfile = parser.parse(resourceText(name))
 
     private fun CandidateProfile.entriesOf(category: EntryCategory): List<ProfileEntry> =
         entries.filter { it.category == category }
@@ -18,7 +19,7 @@ class OfflineResumeTextParserTest {
     private fun CandidateProfile.everything(): String = toString()
 
     @Test
-    fun parsesContactDetailsAndNameFromEngineeringResume() {
+    fun parsesContactDetailsAndNameFromEngineeringResume() = runTest {
         val profile = parseResource("resume_1.txt")
         assertThat(profile.fullName).isEqualTo("RAHUL VERMA")
         assertThat(profile.email).isEqualTo("rahul.verma2002@gmail.com")
@@ -27,7 +28,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesSkillsAcrossLabelledLines() {
+    fun parsesSkillsAcrossLabelledLines() = runTest {
         val profile = parseResource("resume_1.txt")
         assertThat(profile.skills).containsExactly(
             "Kotlin", "Java", "Python", "SQL", "Git", "Android Studio", "Postman", "Communication", "Teamwork",
@@ -35,7 +36,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesEducationEntriesWithOrganizationAndDates() {
+    fun parsesEducationEntriesWithOrganizationAndDates() = runTest {
         val education = parseResource("resume_1.txt").entriesOf(EntryCategory.EDUCATION)
         assertThat(education.map { it.title })
             .containsExactly("B.Tech in Computer Science and Engineering", "Class XII (PCM)").inOrder()
@@ -48,7 +49,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesInternshipWithWrappedBulletLines() {
+    fun parsesInternshipWithWrappedBulletLines() = runTest {
         val internship = parseResource("resume_1.txt").entriesOf(EntryCategory.EXPERIENCE).single()
         assertThat(internship.title).isEqualTo("Android Developer Intern")
         assertThat(internship.organization).isEqualTo("Infosys Springboard, Remote")
@@ -62,7 +63,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesProjectsIncludingDescriptionAndTechnologyLines() {
+    fun parsesProjectsIncludingDescriptionAndTechnologyLines() = runTest {
         val projects = parseResource("resume_1.txt").entriesOf(EntryCategory.PROJECT)
         assertThat(projects.map { it.title })
             .containsExactly("Expense Tracker App | Kotlin, Room, Compose", "Student Result Portal").inOrder()
@@ -72,7 +73,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesCertificationsAndPositionsOfResponsibility() {
+    fun parsesCertificationsAndPositionsOfResponsibility() = runTest {
         val profile = parseResource("resume_1.txt")
         assertThat(profile.entriesOf(EntryCategory.CERTIFICATION).map { it.title })
             .containsExactly("Google Android Basics in Kotlin", "NPTEL Python for Everybody").inOrder()
@@ -82,7 +83,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun dropsObjectivePersonalDetailsHobbiesAndDeclarationFromEngineeringResume() {
+    fun dropsObjectivePersonalDetailsHobbiesAndDeclarationFromEngineeringResume() = runTest {
         val text = parseResource("resume_1.txt").everything()
         listOf(
             "14/08/2002", "Suresh", "Hindu", "Single", "Nationality", "Religion", "challenging position",
@@ -91,7 +92,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun importedEntriesAreUnconfirmedWithStableIds() {
+    fun importedEntriesAreUnconfirmedWithStableIds() = runTest {
         val profile = parseResource("resume_1.txt")
         assertThat(profile.entries).isNotEmpty()
         profile.entries.forEach {
@@ -105,7 +106,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesCommerceResumeWithTitleCaseHeadingsAndDashBullets() {
+    fun parsesCommerceResumeWithTitleCaseHeadingsAndDashBullets() = runTest {
         val profile = parseResource("resume_2.txt")
         assertThat(profile.fullName).isEqualTo("Priya Nair")
         assertThat(profile.email).isEqualTo("priya.nair@outlook.com")
@@ -114,7 +115,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesCommerceEducationAndExperience() {
+    fun parsesCommerceEducationAndExperience() = runTest {
         val profile = parseResource("resume_2.txt")
         val degree = profile.entriesOf(EntryCategory.EDUCATION).first()
         assertThat(degree.title).isEqualTo("B.Com (Finance)")
@@ -132,7 +133,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesCommerceSkillsSeparatedByCommasAndSemicolons() {
+    fun parsesCommerceSkillsSeparatedByCommasAndSemicolons() = runTest {
         assertThat(parseResource("resume_2.txt").skills).containsExactly(
             "Tally Prime",
             "GST",
@@ -144,7 +145,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesCertificationsWithAmpersandHeadingAndBulletOnlyAchievements() {
+    fun parsesCertificationsWithAmpersandHeadingAndBulletOnlyAchievements() = runTest {
         val profile = parseResource("resume_2.txt")
         assertThat(profile.entriesOf(EntryCategory.CERTIFICATION).map { it.title })
             .containsExactly("Tally Prime Certification, Tally Education, 2024", "Advanced Excel course – Udemy")
@@ -153,7 +154,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun dropsInlineObjectiveDobMaritalStatusLanguagesAndDeclarationFromCommerceResume() {
+    fun dropsInlineObjectiveDobMaritalStatusLanguagesAndDeclarationFromCommerceResume() = runTest {
         val text = parseResource("resume_2.txt").everything()
         listOf(
             "03-05-2003",
@@ -167,7 +168,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesContactFromPipeSeparatedNameLine() {
+    fun parsesContactFromPipeSeparatedNameLine() = runTest {
         val profile = parseResource("resume_3.txt")
         assertThat(profile.fullName).isEqualTo("ANANYA IYER")
         assertThat(profile.email).isEqualTo("ananya.iyer@gmail.com")
@@ -176,7 +177,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun keepsBulletOnlyEducationAsEvidenceUnderDefaultTitle() {
+    fun keepsBulletOnlyEducationAsEvidenceUnderDefaultTitle() = runTest {
         val education = parseResource("resume_3.txt").entriesOf(EntryCategory.EDUCATION).single()
         assertThat(education.title).isEqualTo("Education")
         assertThat(education.bullets.map { it.text }).containsExactly(
@@ -186,7 +187,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesProjectsWithDatesInTitleLine() {
+    fun parsesProjectsWithDatesInTitleLine() = runTest {
         val projects = parseResource("resume_3.txt").entriesOf(EntryCategory.PROJECT)
         assertThat(projects.map { it.title }).containsExactly("Sales Insights Dashboard", "Customer Churn Prediction").inOrder()
         assertThat(projects.first().startDate).isEqualTo("Oct 2024")
@@ -197,7 +198,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun parsesPipeSeparatedSkillsAndHyphenatedActivityHeading() {
+    fun parsesPipeSeparatedSkillsAndHyphenatedActivityHeading() = runTest {
         val profile = parseResource("resume_3.txt")
         assertThat(profile.skills).containsExactly("Python", "SQL", "Power BI", "Excel", "Tableau").inOrder()
         val activity = profile.entriesOf(EntryCategory.ACHIEVEMENT).single()
@@ -205,7 +206,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun dropsPipeSeparatedDobAndNationalitySegments() {
+    fun dropsPipeSeparatedDobAndNationalitySegments() = runTest {
         val text = parseResource("resume_3.txt").everything()
         listOf("DOB", "21 Jan", "Nationality", "Indian", "hands-on experience").forEach {
             assertThat(text).doesNotContain(it)
@@ -213,7 +214,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun emptyTextGivesEmptyProfile() {
+    fun emptyTextGivesEmptyProfile() = runTest {
         val profile = parser.parse("  \n\n ")
         assertThat(profile.fullName).isEmpty()
         assertThat(profile.entries).isEmpty()
@@ -221,34 +222,34 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun documentTitleLineIsNotTheName() {
+    fun documentTitleLineIsNotTheName() = runTest {
         val profile = parser.parse("RESUME\nMeera Shah\nSkills\nPython, SQL")
         assertThat(profile.fullName).isEqualTo("Meera Shah")
         assertThat(profile.skills).containsExactly("Python", "SQL").inOrder()
     }
 
     @Test
-    fun duplicateSkillsAreRemovedCaseInsensitively() {
+    fun duplicateSkillsAreRemovedCaseInsensitively() = runTest {
         val profile = parser.parse("Meera Shah\nSkills\nPython, python, SQL\nTechnical Skills: sql, Git")
         assertThat(profile.skills).containsExactly("Python", "SQL", "Git").inOrder()
     }
 
     @Test
-    fun phoneIsNotMistakenForDateRange() {
+    fun phoneIsNotMistakenForDateRange() = runTest {
         val profile = parser.parse("Meera Shah\nB.Tech 2021 - 2025\nEducation\nB.Tech in IT | 2021 - 2025")
         assertThat(profile.phone).isEmpty()
         assertThat(profile.entries.single().startDate).isEqualTo("2021")
     }
 
     @Test
-    fun declarationWithoutHeadingStillStopsImport() {
+    fun declarationWithoutHeadingStillStopsImport() = runTest {
         val profile = parser.parse("Meera Shah\nSkills\nPython\nI hereby declare that this is true.\nFather's Name: Ravi Shah")
         assertThat(profile.everything()).doesNotContain("hereby")
         assertThat(profile.everything()).doesNotContain("Ravi")
     }
 
     @Test
-    fun sensitiveFieldsAreDroppedEverywhere() {
+    fun sensitiveFieldsAreDroppedEverywhere() = runTest {
         val profile = parser.parse(
             "Meera Shah\nGender: Female\nReligion: Jain\nCaste: General\nBlood Group: O+\nSkills\nNationality: Indian\nPython",
         )
@@ -259,7 +260,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun indianSensitiveLabelsAreDropped() {
+    fun indianSensitiveLabelsAreDropped() = runTest {
         listOf(
             "Birth Date: 12/05/2002" to "12/05/2002",
             "Born on 12 May 2002" to "May 2002",
@@ -283,7 +284,7 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun sensitiveLinesInsideSectionsDoNotBecomeEntryText() {
+    fun sensitiveLinesInsideSectionsDoNotBecomeEntryText() = runTest {
         val profile = parser.parse(
             "Meera Shah\nEducation\nB.Tech in IT | 2021 - 2025\nBorn on 12 May 2002\nCategory: OBC\nAge: 22 years",
         )
@@ -293,13 +294,13 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun panIndiaAndAgileAreNotTreatedAsSensitive() {
+    fun panIndiaAndAgileAreNotTreatedAsSensitive() = runTest {
         val profile = parser.parse("Meera Shah\nExperience\nSales Intern\n- Pan-India campaign support\n- Agile sprint planning")
         assertThat(profile.entries.single().bullets).hasSize(2)
     }
 
     @Test
-    fun lowercaseEntryLineAfterABulletStartsANewEntry() {
+    fun lowercaseEntryLineAfterABulletStartsANewEntry() = runTest {
         val profile = parser.parse(
             "Meera Shah\nExperience\nSales Intern | Acme\n- Built a quiz app\niOS Developer Intern | Acme Corp\n- Shipped a release",
         )
@@ -308,14 +309,14 @@ class OfflineResumeTextParserTest {
     }
 
     @Test
-    fun lowercaseNameWithDashStartsANewEntry() {
+    fun lowercaseNameWithDashStartsANewEntry() = runTest {
         val profile = parser.parse("Meera Shah\nExperience\nIntern\n- Built a quiz app\neBay - Analyst")
         assertThat(profile.entries).hasSize(2)
         assertThat(profile.entries.first().bullets.map { it.text }).containsExactly("Built a quiz app")
     }
 
     @Test
-    fun lowercaseWrappedLineStillJoinsAnUnfinishedBullet() {
+    fun lowercaseWrappedLineStillJoinsAnUnfinishedBullet() = runTest {
         val profile = parser.parse("Meera Shah\nExperience\nIntern\n- Built a quiz app for\nlocal schools")
         assertThat(profile.entries.single().bullets.single().text).isEqualTo("Built a quiz app for local schools")
     }

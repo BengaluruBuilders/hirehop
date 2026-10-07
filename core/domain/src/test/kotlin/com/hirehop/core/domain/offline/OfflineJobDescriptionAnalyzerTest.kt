@@ -5,12 +5,13 @@ import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.JobRequirement
 import com.hirehop.core.model.RequirementPriority
 import com.hirehop.core.model.RequirementType
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class OfflineJobDescriptionAnalyzerTest {
     private val analyzer = OfflineJobDescriptionAnalyzer()
 
-    private fun analyze(resource: String): JobDescription = analyzer.analyze(resourceText(resource))
+    private suspend fun analyze(resource: String): JobDescription = analyzer.analyze(resourceText(resource))
 
     private fun JobDescription.requirementWith(keyword: String): JobRequirement =
         requirements.first { keyword in it.keywords }
@@ -19,42 +20,42 @@ class OfflineJobDescriptionAnalyzerTest {
         requirements.first { it.text == text }
 
     @Test
-    fun extractsTitleAndCompanyFromAtPattern() {
+    fun extractsTitleAndCompanyFromAtPattern() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.title).isEqualTo("Junior Android Developer")
         assertThat(job.company).isEqualTo("Zenith Apps")
     }
 
     @Test
-    fun extractsTitleAndCompanyFromSeparatorPattern() {
+    fun extractsTitleAndCompanyFromSeparatorPattern() = runTest {
         val job = analyze("jd_data_analyst.txt")
         assertThat(job.title).isEqualTo("Data Analyst Trainee")
         assertThat(job.company).isEqualTo("Orbit Analytics")
     }
 
     @Test
-    fun extractsTitleAndCompanyFromLabels() {
+    fun extractsTitleAndCompanyFromLabels() = runTest {
         val job = analyze("jd_finance.txt")
         assertThat(job.title).isEqualTo("Accounts Executive (Fresher)")
         assertThat(job.company).isEqualTo("Sharma & Associates")
     }
 
     @Test
-    fun extractsTitleAndCompanyFromAtSign() {
+    fun extractsTitleAndCompanyFromAtSign() = runTest {
         val job = analyze("jd_marketing.txt")
         assertThat(job.title).isEqualTo("Digital Marketing Intern")
         assertThat(job.company).isEqualTo("BrightLeaf Media")
     }
 
     @Test
-    fun extractsCompanyFromHiringSentence() {
+    fun extractsCompanyFromHiringSentence() = runTest {
         val job = analyzer.analyze("Acme Robotics is looking for a Junior Python Developer to join our team.\nRequirements\n- Python")
         assertThat(job.company).isEqualTo("Acme Robotics")
         assertThat(job.title).isEqualTo("Junior Python Developer")
     }
 
     @Test
-    fun fallsBackToEmptyStringsWhenNothingLooksLikeATitle() {
+    fun fallsBackToEmptyStringsWhenNothingLooksLikeATitle() = runTest {
         val job = analyzer.analyze("We are a fast growing company and we love building great products for everyone every day.\nRequirements\n- SQL")
         assertThat(job.title).isEmpty()
         assertThat(job.company).isEmpty()
@@ -62,14 +63,14 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun emptyTextGivesNoRequirements() {
+    fun emptyTextGivesNoRequirements() = runTest {
         val job = analyzer.analyze("   \n\n")
         assertThat(job.requirements).isEmpty()
         assertThat(job.title).isEmpty()
     }
 
     @Test
-    fun requirementIdsAreStableAndSequential() {
+    fun requirementIdsAreStableAndSequential() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.requirements.map { it.id })
             .containsExactlyElementsIn((1..job.requirements.size).map { "req-$it" }).inOrder()
@@ -77,13 +78,13 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun aboutUsSectionIsNotAnalysed() {
+    fun aboutUsSectionIsNotAnalysed() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.requirements.none { it.text.contains("fintech") }).isTrue()
     }
 
     @Test
-    fun requirementsSectionIsMustHaveAndPreferredSectionIsNiceToHave() {
+    fun requirementsSectionIsMustHaveAndPreferredSectionIsNiceToHave() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.requirementText("Strong knowledge of Kotlin and Android SDK").priority)
             .isEqualTo(RequirementPriority.MUST_HAVE)
@@ -92,28 +93,28 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun plusCueMakesRequirementNiceToHaveEvenInsideRequirementsSection() {
+    fun plusCueMakesRequirementNiceToHaveEvenInsideRequirementsSection() = runTest {
         val job = analyzer.analyze("Requirements\n- Python\n- Knowledge of Docker is a plus")
         assertThat(job.requirementWith("python").priority).isEqualTo(RequirementPriority.MUST_HAVE)
         assertThat(job.requirementWith("docker").priority).isEqualTo(RequirementPriority.NICE_TO_HAVE)
     }
 
     @Test
-    fun mustCueOverridesResponsibilitiesSection() {
+    fun mustCueOverridesResponsibilitiesSection() = runTest {
         val job = analyzer.analyze("Responsibilities\n- Must know Git\n- Use Jira daily")
         assertThat(job.requirementWith("git").priority).isEqualTo(RequirementPriority.MUST_HAVE)
         assertThat(job.requirementWith("jira").priority).isEqualTo(RequirementPriority.NICE_TO_HAVE)
     }
 
     @Test
-    fun textWithoutSectionsDefaultsToMustHave() {
+    fun textWithoutSectionsDefaultsToMustHave() = runTest {
         val job = analyzer.analyze("Looking for a candidate with Python and SQL skills.")
         assertThat(job.requirements.single().priority).isEqualTo(RequirementPriority.MUST_HAVE)
         assertThat(job.requirements.single().keywords).containsExactly("python", "sql").inOrder()
     }
 
     @Test
-    fun goodToHaveHeaderWithColonMakesNiceToHave() {
+    fun goodToHaveHeaderWithColonMakesNiceToHave() = runTest {
         val job = analyze("jd_data_analyst.txt")
         assertThat(job.requirementWith("pandas").priority).isEqualTo(RequirementPriority.NICE_TO_HAVE)
         assertThat(job.requirementWith("machine learning").priority).isEqualTo(RequirementPriority.NICE_TO_HAVE)
@@ -121,7 +122,7 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun classifiesRequirementTypesWithTheLexicon() {
+    fun classifiesRequirementTypesWithTheLexicon() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.requirementWith("b.tech").type).isEqualTo(RequirementType.EDUCATION)
         assertThat(job.requirementWith("communication").type).isEqualTo(RequirementType.SOFT_SKILL)
@@ -130,7 +131,7 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun keywordsAreNormalisedAndInOrderOfAppearance() {
+    fun keywordsAreNormalisedAndInOrderOfAppearance() = runTest {
         val job = analyze("jd_android.txt")
         assertThat(job.requirementWith("b.tech").keywords)
             .containsExactly("b.tech", "b.e.", "computer science").inOrder()
@@ -139,7 +140,7 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun inlineEligibilityHeaderYieldsEducationRequirement() {
+    fun inlineEligibilityHeaderYieldsEducationRequirement() = runTest {
         val job = analyze("jd_data_analyst.txt")
         val education = job.requirementWith("bca")
         assertThat(education.type).isEqualTo(RequirementType.EDUCATION)
@@ -147,13 +148,13 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun splitsMultipleSentencesOnOneLine() {
+    fun splitsMultipleSentencesOnOneLine() = runTest {
         val job = analyze("jd_data_analyst.txt")
         assertThat(job.requirementWith("problem solving").text).isEqualTo("Strong problem-solving skills.")
     }
 
     @Test
-    fun linesWithoutKeywordsButWithExperienceCuesBecomeRequirements() {
+    fun linesWithoutKeywordsButWithExperienceCuesBecomeRequirements() = runTest {
         val job = analyzer.analyze("Requirements\n- Prior experience handling customer complaints\n- Loves memes")
         val requirement = job.requirements.single()
         assertThat(requirement.text).isEqualTo("Prior experience handling customer complaints")
@@ -162,32 +163,32 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun linesWithoutKeywordsButWithEducationCuesBecomeEducationRequirements() {
+    fun linesWithoutKeywordsButWithEducationCuesBecomeEducationRequirements() = runTest {
         val job = analyzer.analyze("Requirements\n- Final year students pursuing any degree")
         assertThat(job.requirements.single().type).isEqualTo(RequirementType.EDUCATION)
     }
 
     @Test
-    fun yearsOfExperienceLineMakesExperienceType() {
+    fun yearsOfExperienceLineMakesExperienceType() = runTest {
         val job = analyzer.analyze("Requirements\n- 1-2 years of experience in Python")
         assertThat(job.requirements.single().type).isEqualTo(RequirementType.EXPERIENCE)
         assertThat(job.requirements.single().keywords).containsExactly("python")
     }
 
     @Test
-    fun freshersWelcomeLineIsNotARequirement() {
+    fun freshersWelcomeLineIsNotARequirement() = runTest {
         val job = analyze("jd_marketing.txt")
         assertThat(job.requirements.none { it.text.contains("Freshers", ignoreCase = true) }).isTrue()
     }
 
     @Test
-    fun bulletMarkersAreRemovedFromRequirementText() {
+    fun bulletMarkersAreRemovedFromRequirementText() = runTest {
         val job = analyze("jd_trap_cloud.txt")
         assertThat(job.requirements.map { it.text }).contains("Proficiency in Kotlin")
     }
 
     @Test
-    fun trapJobExtractsAllThreeMissingSkillFamilies() {
+    fun trapJobExtractsAllThreeMissingSkillFamilies() = runTest {
         val job = analyze("jd_trap_cloud.txt")
         val keywords = job.requirements.flatMap { it.keywords }
         assertThat(keywords).containsAtLeast("mba", "kubernetes", "docker", "aws", "kotlin", "terraform")
@@ -196,7 +197,7 @@ class OfflineJobDescriptionAnalyzerTest {
     }
 
     @Test
-    fun rawTextIsPreserved() {
+    fun rawTextIsPreserved() = runTest {
         val raw = resourceText("jd_finance.txt")
         assertThat(analyzer.analyze(raw).rawText).isEqualTo(raw)
     }

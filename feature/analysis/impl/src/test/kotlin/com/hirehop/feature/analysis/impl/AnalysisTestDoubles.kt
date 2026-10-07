@@ -1,6 +1,8 @@
 package com.hirehop.feature.analysis.impl
 
 import com.hirehop.core.data.repository.ApplicationRepository
+import com.hirehop.core.domain.AiException
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.FabricationGuard
 import com.hirehop.core.domain.GapMatcher
 import com.hirehop.core.domain.JobDescriptionAnalyzer
@@ -72,10 +74,12 @@ fun unconfirmedProfile() = confirmedProfile().let { profile ->
 
 class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
     var failing = false
+    var failure: AiFailure? = null
     var withoutRequirements = false
 
-    override fun analyze(rawText: String): JobDescription {
+    override suspend fun analyze(rawText: String): JobDescription {
         check(!failing) { "analyzer failure" }
+        failure?.let { throw AiException(it) }
         return describe(rawText)
     }
 
@@ -125,8 +129,12 @@ class KeywordGapMatcher : GapMatcher {
 }
 
 class EmptyResumeTailor : ResumeTailor {
-    override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis) =
-        TailoredResume(bullets = emptyList())
+    var failure: AiFailure? = null
+
+    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
+        failure?.let { throw AiException(it) }
+        return TailoredResume(bullets = emptyList())
+    }
 }
 
 class AcceptingFabricationGuard : FabricationGuard {

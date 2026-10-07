@@ -1,6 +1,7 @@
 package com.hirehop.core.domain.offline
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class OfflineRobustnessTest {
@@ -25,19 +26,19 @@ class OfflineRobustnessTest {
     )
 
     @Test
-    fun analyzerNeverThrowsOnOddInput() {
+    fun analyzerNeverThrowsOnOddInput() = runTest {
         val analyzer = OfflineJobDescriptionAnalyzer()
         odd.forEach { assertThat(analyzer.analyze(it).rawText).isEqualTo(it) }
     }
 
     @Test
-    fun parserNeverThrowsOnOddInput() {
+    fun parserNeverThrowsOnOddInput() = runTest {
         val parser = OfflineResumeTextParser()
         odd.forEach { assertThat(parser.parse(it)).isNotNull() }
     }
 
     @Test
-    fun matcherAndTailorNeverThrowOnOddJobs() {
+    fun matcherAndTailorNeverThrowOnOddJobs() = runTest {
         val analyzer = OfflineJobDescriptionAnalyzer()
         val matcher = OfflineGapMatcher()
         val tailor = OfflineResumeTailor()
@@ -50,14 +51,14 @@ class OfflineRobustnessTest {
     }
 
     @Test
-    fun guardNeverThrowsOnOddText() {
+    fun guardNeverThrowsOnOddText() = runTest {
         val guard = OfflineFabricationGuard()
         val sources = sampleProfile.entries.flatMap { it.bullets }
         odd.forEach { assertThat(guard.check(it, sources, sampleProfile)).isNotNull() }
     }
 
     @Test
-    fun parsedResumeCanBeConfirmedAndUsedAsEvidence() {
+    fun parsedResumeCanBeConfirmedAndUsedAsEvidence() = runTest {
         val parsed = OfflineResumeTextParser().parse(resourceText("resume_1.txt"))
         val confirmed = parsed.copy(entries = parsed.entries.map { it.copy(isConfirmed = true) })
         val job = OfflineJobDescriptionAnalyzer().analyze(resourceText("jd_android.txt"))

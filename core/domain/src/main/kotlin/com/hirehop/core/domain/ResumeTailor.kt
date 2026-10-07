@@ -6,5 +6,5 @@ import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.TailoredResume
 
 interface ResumeTailor {
-    fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume
+    suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume
 }

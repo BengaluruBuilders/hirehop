@@ -5,7 +5,7 @@ import com.hirehop.core.model.CandidateProfile
 import javax.inject.Inject
 
 internal class OfflineResumeTextParser @Inject constructor() : ResumeTextParser {
-    override fun parse(rawText: String): CandidateProfile {
+    override suspend fun parse(rawText: String): CandidateProfile {
         val lines = rawText.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val nameIndex = lines.indexOfFirst { it.lowercase().trim(':') !in documentTitles }
         val session = ResumeParseSession()

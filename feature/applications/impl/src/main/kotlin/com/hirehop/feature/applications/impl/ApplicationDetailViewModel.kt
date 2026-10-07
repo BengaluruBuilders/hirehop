@@ -10,6 +10,7 @@ import com.hirehop.core.data.repository.CoverLetterRepository
 import com.hirehop.core.data.repository.ExportHistoryRepository
 import com.hirehop.core.data.repository.PrepPlanRepository
 import com.hirehop.core.data.repository.ProfileRepository
+import com.hirehop.core.domain.AiException
 import com.hirehop.core.domain.JobAnalysisResult
 import com.hirehop.core.domain.PaymentGateway
 import com.hirehop.core.domain.prep.PrepQuestionSource
@@ -269,10 +270,14 @@ class ApplicationDetailViewModel @AssistedInject constructor(
     private suspend fun JobApplication.prepQuestionCount(profile: CandidateProfile?): Int {
         val analysis = gapAnalysis ?: return 0
         if (profile == null) return 0
-        return prepQuestionSource(
-            analysis = JobAnalysisResult(job = job, gap = analysis),
-            profile = profile,
-        ).count { it.isTiedToFact }
+        return try {
+            prepQuestionSource(
+                analysis = JobAnalysisResult(job = job, gap = analysis),
+                profile = profile,
+            ).count { it.isTiedToFact }
+        } catch (_: AiException) {
+            0
+        }
     }
 
     @AssistedFactory

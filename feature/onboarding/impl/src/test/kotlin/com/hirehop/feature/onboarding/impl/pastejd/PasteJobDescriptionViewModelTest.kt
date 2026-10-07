@@ -2,6 +2,8 @@ package com.hirehop.feature.onboarding.impl.pastejd
 
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.data.repository.UsageAllowance
+import com.hirehop.core.domain.AiException
+import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.DiscardJobDraftsUseCase
 import com.hirehop.core.domain.JobDescriptionAnalyzer
 import com.hirehop.core.domain.ProposeJobLabelUseCase
@@ -39,6 +41,7 @@ class PasteJobDescriptionViewModelTest {
     private val usage = TestUsageAllowance(TestClock())
     private val prepPlan = TestPrepPlanRepository()
     private val reports = TestContentReportRepository()
+    private val analyzer = LabelAnalyzer()
     private lateinit var viewModel: PasteJobDescriptionViewModel
 
     @Before
@@ -48,7 +51,7 @@ class PasteJobDescriptionViewModelTest {
             nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
             connectivityMonitor = connectivity,
             usageAllowance = usage,
-            proposeJobLabel = ProposeJobLabelUseCase(LabelAnalyzer),
+            proposeJobLabel = ProposeJobLabelUseCase(analyzer),
             discardJobDrafts = DiscardJobDraftsUseCase(prepPlan, reports),
             computeDispatcher = UnconfinedTestDispatcher(),
         )
@@ -324,6 +327,19 @@ class PasteJobDescriptionViewModelTest {
     }
 
     @Test
+    fun onAction_textChanged_whenTheServerFails_leavesTheLabelsEmptyAndKeepsTheText() = runTest {
+        analyzer.failure = AiFailure.Network
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+
+        assertThat(viewModel.uiState.value.text).isEqualTo(SAMPLE_JD)
+        assertThat(viewModel.uiState.value.company).isEmpty()
+        assertThat(viewModel.uiState.value.role).isEmpty()
+    }
+
+    @Test
     fun onAction_textChanged_prefillsCompanyAndRoleFromTheText() = runTest {
         viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
 
@@ -499,13 +515,18 @@ class PasteJobDescriptionViewModelTest {
         assertThat(pasteJdProblem(longSentence)).isNull()
     }
 
-    private object LabelAnalyzer : JobDescriptionAnalyzer {
-        override fun analyze(rawText: String) = JobDescription(
-            title = PROPOSED_ROLE,
-            company = PROPOSED_COMPANY,
-            rawText = rawText,
-            requirements = emptyList(),
-        )
+    private class LabelAnalyzer : JobDescriptionAnalyzer {
+        var failure: AiFailure? = null
+
+        override suspend fun analyze(rawText: String): JobDescription {
+            failure?.let { throw AiException(it) }
+            return JobDescription(
+                title = PROPOSED_ROLE,
+                company = PROPOSED_COMPANY,
+                rawText = rawText,
+                requirements = emptyList(),
+            )
+        }
     }
 
     private companion object {

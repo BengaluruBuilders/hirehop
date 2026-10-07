@@ -18,6 +18,7 @@ import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.TailoredBullet
 import com.hirehop.core.model.TailoredResume
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class TailorResumeUseCaseTest {
@@ -42,16 +43,16 @@ class TailorResumeUseCaseTest {
         decision = BulletDecision.PENDING,
     )
 
-    private fun useCaseReturning(vararg bullets: TailoredBullet): TailorResumeUseCase {
+    private suspend fun useCaseReturning(vararg bullets: TailoredBullet): TailorResumeUseCase {
         val tailor = object : ResumeTailor {
-            override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis) =
+            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis) =
                 TailoredResume(bullets.toList())
         }
         return TailorResumeUseCase(tailor, OfflineFabricationGuard())
     }
 
     @Test
-    fun cleanBulletKeepsProposedTextAndEditTypes() {
+    fun cleanBulletKeepsProposedTextAndEditTypes() = runTest {
         val result = useCaseReturning(
             bullet("t1", "exp-1-b2", "Wrote unit tests with JUnit to improve reliability", "Wrote unit tests with JUnit to improve reliability"),
         )(sampleProfile, emptyJob, emptyGap)
@@ -61,7 +62,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletWithFabricatedNumberFallsBackToOriginalButKeepsViolations() {
+    fun bulletWithFabricatedNumberFallsBackToOriginalButKeepsViolations() = runTest {
         val original = "Wrote unit tests with JUnit to improve reliability"
         val result = useCaseReturning(
             bullet("t1", "exp-1-b2", original, "Wrote 200 unit tests with JUnit to improve reliability"),
@@ -74,7 +75,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletWithEscalatedVerbFallsBackToOriginal() {
+    fun bulletWithEscalatedVerbFallsBackToOriginal() = runTest {
         val original = "Assisted senior developers with code reviews on Git"
         val result = useCaseReturning(
             bullet("t1", "exp-1-b3", original, "Led senior developers with code reviews on Git"),
@@ -86,7 +87,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletWithUnknownSourceIdIsDropped() {
+    fun bulletWithUnknownSourceIdIsDropped() = runTest {
         val result = useCaseReturning(bullet("t1", "does-not-exist", "Original", "Changed text"))(
             sampleProfile,
             emptyJob,
@@ -97,7 +98,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletCitingAnUnconfirmedEntryIsDropped() {
+    fun bulletCitingAnUnconfirmedEntryIsDropped() = runTest {
         val text = "Deployed containers with Kubernetes on AWS"
         val result = useCaseReturning(bullet("t1", "unconfirmed-1-b1", text, text))(
             sampleProfile,
@@ -109,7 +110,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun resultRecordsTheIdsOfTheConfirmedEntriesUsed() {
+    fun resultRecordsTheIdsOfTheConfirmedEntriesUsed() = runTest {
         val result = useCaseReturning()(sampleProfile, emptyJob, emptyGap)
 
         assertThat(result.entryIds).containsExactlyElementsIn(sampleProfile.entries.filter { it.isConfirmed }.map { it.id })
@@ -117,7 +118,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun bulletWithNoSourceIdsIsDroppedAndOthersAreKept() {
+    fun bulletWithNoSourceIdsIsDroppedAndOthersAreKept() = runTest {
         val text = "Wrote unit tests with JUnit to improve reliability"
         val result = useCaseReturning(
             bullet("t1", "exp-1-b2", text, text).copy(sourceIds = emptyList()),
@@ -129,7 +130,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun fallbackUsesTheProfileSourceTextNotTheTailorsOriginalText() {
+    fun fallbackUsesTheProfileSourceTextNotTheTailorsOriginalText() = runTest {
         val profileText = "Wrote unit tests with JUnit to improve reliability"
         val lying = bullet("t1", "exp-1-b2", "Led a team of 5", "Led a team of 50 to write tests")
             .copy(keywordsUsed = listOf("junit"))
@@ -144,7 +145,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun cleanBulletTakesItsOriginalTextFromTheProfile() {
+    fun cleanBulletTakesItsOriginalTextFromTheProfile() = runTest {
         val profileText = "Wrote unit tests with JUnit to improve reliability"
         val clean = bullet("t1", "exp-1-b2", "tailor supplied text", profileText)
 
@@ -155,7 +156,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun onlyTheViolatingBulletFallsBack() {
+    fun onlyTheViolatingBulletFallsBack() = runTest {
         val cleanText = "Wrote unit tests with JUnit to improve reliability"
         val result = useCaseReturning(
             bullet("t1", "exp-1-b2", cleanText, cleanText),
@@ -168,14 +169,14 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun guardRunsOnEveryBulletWithItsOwnSources() {
+    fun guardRunsOnEveryBulletWithItsOwnSources() = runTest {
         val calls = mutableListOf<Pair<String, List<EvidenceBullet>>>()
         val guard = object : FabricationGuard {
             override fun check(proposedText: String, sources: List<EvidenceBullet>, profile: CandidateProfile) =
                 emptyList<GuardrailViolation>().also { calls += proposedText to sources }
         }
         val tailor = object : ResumeTailor {
-            override fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis) = TailoredResume(
+            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis) = TailoredResume(
                 listOf(
                     bullet("t1", "exp-1-b2", "a", "a1"),
                     bullet("t2", "proj-1-b2", "b", "b1"),
@@ -190,7 +191,7 @@ class TailorResumeUseCaseTest {
     }
 
     @Test
-    fun realTailorOutputPassesTheRealGuardForEveryBulletAcrossFiveJobs() {
+    fun realTailorOutputPassesTheRealGuardForEveryBulletAcrossFiveJobs() = runTest {
         val analyzer = OfflineJobDescriptionAnalyzer()
         val matcher = OfflineGapMatcher()
         val useCase = TailorResumeUseCase(OfflineResumeTailor(), OfflineFabricationGuard())

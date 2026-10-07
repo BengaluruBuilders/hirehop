@@ -3,13 +3,14 @@ package com.hirehop.core.domain
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
 import com.hirehop.core.domain.offline.resourceText
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class ProposeJobLabelUseCaseTest {
     private val useCase = ProposeJobLabelUseCase(OfflineJobDescriptionAnalyzer())
 
     @Test
-    fun theProposalMatchesWhatTheAnalyzerFinds() {
+    fun theProposalMatchesWhatTheAnalyzerFinds() = runTest {
         val raw = resourceText("jd_android.txt")
         val job = OfflineJobDescriptionAnalyzer().analyze(raw)
 
@@ -20,7 +21,7 @@ class ProposeJobLabelUseCaseTest {
     }
 
     @Test
-    fun blankTextProposesNothing() {
+    fun blankTextProposesNothing() = runTest {
         assertThat(useCase("   ")).isEqualTo(JobLabelProposal(role = "", company = ""))
     }
 }
