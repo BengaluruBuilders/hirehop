@@ -26,8 +26,12 @@ the constitution wins. Update section 2 and the chunk table each time a chunk ch
   `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` is 44 dp with a 48 dp touch area.
   Pressed jade is #064D3A. The dark sheet-item border is #3A404A. The dock is 76 dp with a stepped
   shadow.
-- Merged: C2 (#64), C3 (#62), C5 (#63), C6 (#65).
-- In review: C4 (#67), the whole-card tap fix (#66), the status-bar icon contrast fix (#68).
+- C0 to C6 are merged: C0 #59, C1 #60, C2 #64, C3 #62, C4 #67, C5 #63, C6 #65.
+- Fixes are merged: #66 (the whole application card opens the workspace), #68 (status-bar icons
+  follow the top colour through `HhScreen(lightTop)`), and #70 (the sign-in back arrow shows in dark).
+- Docs are merged: #51, #61, #69.
+- The final emulator walk-through of all five flows on `main` (929ca73) passed in light, dark and
+  200% font. No crash occurred. Its one medium defect is fixed in #70.
 - Open lows that stay:
   - The S3b dark under-18 disc needs a dark illustration variant in `core:designsystem`.
   - The inner header 200% layout should move into `HhInnerHeader` (follow-up task).
@@ -128,7 +132,7 @@ push"; and the report format (files changed, gate results, open questions, under
 | C1 | Design system restyle | foundations boards | 2 to 3 days | Merged (#60) |
 | C2 | Flow 1 screens | C1 | 2 days | Merged (#64) |
 | C3 | Flow 2 screens | C1 | 2 days | Merged (#62) |
-| C4 | Flow 3 screens | C1 | 1.5 days | In review (#67) |
+| C4 | Flow 3 screens | C1 | 1.5 days | Merged (#67) |
 | C5 | Flow 4 screens | C1 | 2 days | Merged (#63) |
 | C6 | Flow 5 screens | C1 | 2 days | Merged (#65) |
 | C7 | R0 spikes | none | 3 days | Ready, needs user input |
@@ -282,3 +286,74 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-07 | C4 | Keep the "Get an application pack" row visible and disabled offline. | It keeps the existing behaviour; this is the smaller change. |
 | 2026-10-07 | C4 | Keep "Price includes GST" and "No subscription. Nothing renews." at 200%. | The price disclosure must stay; truthful copy wins over the frame. |
 | 2026-10-07 | Status bar | Add an explicit `HhScreen` `lightTop` flag. The default is header == null. Profile is false. The C2 consent and import screens are true. The fixer runs after C2 merges. | A header does not tell the top colour; the defect lives on the C2 branch. |
+| 2026-10-07 | All | Use `gh pr update-branch` when a PR is behind `main` only by a docs PR. | It makes a merge commit on the server. It needs no force push and no local Gradle build. CI runs again on the new head. |
+| 2026-10-07 | C4 | Remove the ₹49 single-application option from S13. | PRD 6.1.1 cuts the single-application product. The MVP has the 5-application pack only. |
+| 2026-10-07 | C4 | Accept ₹149 and "5 applications" in the hero and on the button. Accept the "DOCX · Plain" meta. | The hero and the button have different roles. "Plain" follows the C0 decision. |
+| 2026-10-07 | C4 | The S13 pending and cancelled states stay as a listed low if `main` could not force them either. | The criterion is to keep the states that were forceable before. The fixer checked `main` first. |
+| 2026-10-07 | C4 | Merge after the walk-through at d46fb48 and the tested fixes. Do not run a second C4 walk. | The same rule as C2. The all-flows walk-through on `main` follows at once. |
+| 2026-10-07 | Final | Fix the S3 dark back arrow in a small PR now. List the 10 lows in this file as follow-ups. S5 and S6 "Step 4 of 5" matches the frames. | The medium defect fails the dark-mode criterion. The lows are cosmetic or need product input. |
+
+## 9. Run record (2026-10-06 to 2026-10-07)
+
+All lanes used a separate worktree and a separate branch. Every PR got a lead read of the diff.
+Code that Sonnet wrote was reviewed by Opus (Reviewer B). In the table, "Reviewer A" is the first
+review of MiniMax code. "Reviewer B" is the final review. C2 and C6 also had a security review.
+
+### 9.1 Per-issue table
+
+| Issue | Chunk | Worktree/branch | PR and final head | Reviewer A | Coder pass 2 | Reviewer B | Fixer | CI | Performance | Can close |
+|---|---|---|---|---|---|---|---|---|---|---|
+| #53 | C0 | `c0-one-export-template` / `feat/c0-one-export-template` | #59, 2ba9a2c | 3 low, all confirmed | Fixed the 3 low findings | 1 low (brittle test) | Changed one test line | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #52 | C1 | `agent-a1e7062fb357f0b2f` / `feat/c1-designsystem-restyle` | #60, 1b3e385 | Skipped (Sonnet code) | None | 1 high, 2 medium, 3 low; round 2: 2 medium, 1 low | Fixed 6 findings, then 3 more, then a CI dock-shadow fix | Green after the dock fix | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #54 | C2 | `c2-first-run` / `feat/c2-first-run` | #64, 907665a | 2 high, 15 medium, and a set of lows | Fixed all findings and S7a to S7d | Security: 0 high, 2 medium, 2 low. B: 1 medium (under-18 job text kept), 8 lows. Round 2: 1 medium, 2 low | 4 fix passes, including the under-18 clear and the career-choice clear | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #55 | C3 | `tailor-stack` / `feat/c3-tailoring` | #62, dca9303 | 3 high, 5 medium, 5 low | Fixed 13 findings and the S10a row | 3 medium, 6 low; round 2: 3 low | 5 fix passes, including 17 lint suppressions removed and the 200% headers | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #56 | C4 | `tailor-stack` / `feat/c4-export-payment` | #67, 093c16c | 4 medium, 4 low | Fixed 8 findings and the lead decisions | 2 low and 1 nit | 2 fix passes, including the removal of the ₹49 option | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #57 | C5 | `c5-profile` / `feat/c5-profile` | #63, a68dd2f | 1 high, 5 medium, 2 low | Fixed 8 findings | 3 medium, 2 low | Fixed 5 findings | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| #58 | C6 | `c6-workspace-settings` / `feat/c6-workspace-settings` | #65, 50a9ae5 | 1 high, 3 medium, 3 low | Fixed the export split and the ledger spacing | Security: 1 low. B: 1 medium, 1 low | 2 fix passes, including the dock halo | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths. One extra `observeExports()` flow combined in `ApplicationsViewModel` | Closed |
+| — | Fix | `applications-card-tap` / `fix/applications-card-tap` | #66, 2c68b75 | None | None | No findings | Merged `main` | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| — | Fix | `status-bar-contrast` / `fix/status-bar-contrast` | #68, 422f854 | None | None | Not ready (wrong top colour on Profile); round 2: 1 low | Added the `lightTop` flag and 5 tests | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+| — | Fix | `signin-back-dark` / `fix/signin-back-button-dark` | #70, a5204e6 | None | None | No findings | None | Green | Not material: UI restyle on the mock backend; no new data access or I/O paths | Closed |
+
+### 9.2 Blocked items
+
+None of the lanes was blocked. These items were not done:
+
+- C7 to C10 are out of scope for this run. They need accounts, keys and legal input from the user.
+
+### 9.3 Open follow-ups
+
+All are low severity. They come from reviews and walk-throughs.
+
+- `HhInnerHeader` 200% layout should move into the component. A follow-up task exists.
+- S3b dark: the under-18 disc needs a dark illustration variant in `core:designsystem`.
+- S3 at 200% in dark: the Privacy Notice line overlaps "I'm under 18".
+- S7 sticky footer says "You have 0 free" while Credits shows credits. Check the real flow.
+- S7 "Open full analysis" expands the rows in place.
+- S1 hero cards break words at 200%.
+- S8 sticky note takes about 40% of the viewport at 200%.
+- S16 "13 facts" touches "Add evidence" at 200%.
+- S17 and S18 header strip alignment.
+- S18 Employer placeholder.
+- S10 and S11 header monogram.
+- Small arrow icons on "Preview export" and "Paste a job".
+- S19 evidence-path copy leans toward study terms. It has no banned word.
+- Settings Sign out icon.
+- Small Delete text on S23.
+- S13 pending and cancelled states cannot be forced from the debug menu. This was also true on `main` before.
+- The `ApplicationPack.SINGLE_APPLICATION` constant is unused.
+- Release gate: the privacy-policy and web-delete addresses show "Address not set in this build".
+
+### 9.4 Lessons for the next run
+
+- A stale `gh pr checks` rollup can show a skipped duplicate run. Read the run where "Build, lint, and unit tests" ran.
+- `gh pr update-branch` sometimes starts no CI. Close the PR and open it again.
+- Each merge puts the other open PRs behind `main`. Merge in a planned order.
+- Reviewers must view the Font200 baselines of every changed screen.
+- Lane briefs must forbid `tools:ignore` from the start.
+
+### 9.5 Next actions for C7 to C10 (need the user)
+
+- C7, R0 spikes: the user gives 10 real resumes and agrees to their use.
+- C8: the user decides the I.5 amendment. The user gives the Supabase project, the OpenAI keys (backend only) and the Google sign-in client.
+- C9: the user opens a Play developer account and makes the 5-pack product in Play Console.
+- C10: the user gives the support email, the privacy policy URL and the delete-account URL. The user also fills the data safety form, runs the closed test (12 or more testers, 14 days) and orders a legal check of the consent copy.
