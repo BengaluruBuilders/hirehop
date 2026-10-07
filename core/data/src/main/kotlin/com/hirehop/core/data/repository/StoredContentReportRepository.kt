@@ -47,21 +47,25 @@ class StoredContentReportRepository @Inject constructor(
 }
 
 @Serializable
-private data class ReportDto(
+internal data class ReportDto(
     val applicationId: String,
     val itemKind: String,
     val itemId: String,
     val reportedAtMillis: Long,
+    val itemText: String = "",
+    val generationId: String? = null,
 ) {
     fun toModel(): ContentReport? {
         val kind = ReportedItemKind.entries.find { it.name == itemKind } ?: return null
-        return ContentReport(applicationId, kind, itemId, Instant.fromEpochMilliseconds(reportedAtMillis))
+        return ContentReport(applicationId, kind, itemId, itemText, Instant.fromEpochMilliseconds(reportedAtMillis), generationId)
     }
 }
 
-private fun ContentReport.toDto() = ReportDto(
+internal fun ContentReport.toDto() = ReportDto(
     applicationId = applicationId,
     itemKind = itemKind.name,
     itemId = itemId,
     reportedAtMillis = reportedAt.toEpochMilliseconds(),
+    itemText = itemText,
+    generationId = generationId,
 )

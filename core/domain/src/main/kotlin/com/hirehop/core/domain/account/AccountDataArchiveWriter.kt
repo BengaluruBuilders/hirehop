@@ -5,9 +5,9 @@ import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-internal class AccountDataArchiveWriter {
+class AccountDataArchiveWriter {
 
-    fun write(data: AccountData, target: File) {
+    fun write(data: AccountData, target: File, extraEntries: Map<String, String> = emptyMap()) {
         target.parentFile?.mkdirs()
         val temporary = File(target.parentFile, target.name + TEMPORARY_SUFFIX)
         try {
@@ -16,6 +16,7 @@ internal class AccountDataArchiveWriter {
                 zip.writeEntry(PROFILE_ENTRY, profileText(data))
                 zip.writeEntry(APPLICATIONS_ENTRY, applicationsText(data))
                 zip.writeEntry(PURCHASES_ENTRY, purchasesText(data))
+                extraEntries.forEach { (name, body) -> zip.writeEntry(name, body) }
             }
             if (!temporary.renameTo(target)) throw IOException("Could not move the archive to ${target.name}")
         } finally {

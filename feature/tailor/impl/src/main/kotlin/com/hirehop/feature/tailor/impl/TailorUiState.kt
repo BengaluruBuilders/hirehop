@@ -5,6 +5,7 @@ import com.hirehop.core.model.EditType
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.FactSource
 import com.hirehop.core.model.GuardrailViolation
+import com.hirehop.core.model.ReportedItemKind
 import com.hirehop.core.model.TailoredBullet
 
 internal const val MAX_REGENERATIONS = 2
@@ -146,4 +147,17 @@ internal fun TailoredBullet.reviewKind(isStale: Boolean): BulletReviewKind = whe
     violations.isNotEmpty() && proposedText.trim() == originalText.trim() -> BulletReviewKind.REPAIR_FAILED
     proposedText.trim() == originalText.trim() && EditType.REORDER !in editTypes -> BulletReviewKind.UNCHANGED
     else -> BulletReviewKind.REVIEWABLE
+}
+
+internal fun TailorUiState.Success.reportedText(kind: ReportedItemKind, itemId: String): String? = when (kind) {
+    ReportedItemKind.RESUME_BULLET -> sections.filterIsInstance<ReviewSection.Entries>()
+        .flatMap { it.entries }.flatMap { it.bullets }
+        .firstOrNull { it.bullet.id == itemId }?.bullet?.proposedText
+
+    else -> sections.firstOrNull { it.key == itemId }?.let { section ->
+        when (section) {
+            is ReviewSection.Skills -> section.skills.joinToString(", ")
+            is ReviewSection.Entries -> section.entries.flatMap { it.bullets }.joinToString("\n") { it.bullet.proposedText }
+        }
+    }
 }

@@ -179,12 +179,14 @@ class ApplicationDetailViewModel @AssistedInject constructor(
     }
 
     private fun reportPrepTask(id: String) {
+        val task = (uiState.value as? ApplicationDetailUiState.Ready)?.prepTasks?.firstOrNull { it.id == id } ?: return
         viewModelScope.launch {
             contentReportRepository.report(
                 ContentReport(
                     applicationId = applicationId,
                     itemKind = ReportedItemKind.REQUIREMENT,
                     itemId = id,
+                    itemText = task.requirementText,
                     reportedAt = clock.now(),
                 ),
             )

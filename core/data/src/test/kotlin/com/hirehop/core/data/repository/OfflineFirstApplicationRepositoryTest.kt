@@ -141,7 +141,7 @@ class OfflineFirstApplicationRepositoryTest {
         )
         repository.upsertApplication(testApplication)
         prepPlan.add(testApplication.id, PrepPlanItem("p1", "Practise Kotlin"))
-        reports.report(ContentReport(testApplication.id, ReportedItemKind.RESUME_BULLET, "b1", now))
+        reports.report(ContentReport(testApplication.id, ReportedItemKind.RESUME_BULLET, "b1", "text", now))
         reviewState.recordRegeneration(testApplication.id, "EXPERIENCE")
         reviewState.markEdited(testApplication.id, "b1")
         coverLetters.save(testApplication.id, WrittenCoverLetter(listOf(WrittenParagraph("Hello.")), now))

@@ -66,5 +66,7 @@ fun TailoredBulletDto.toTailoredBullet(originalText: String): TailoredBullet = T
     decision = BulletDecision.PENDING,
 )
 
-fun ContentReport.toRequest(generationId: String?, itemText: String): ContentReportRequest =
-    ContentReportRequest(applicationId, itemKind, itemId, generationId, itemText)
+fun ContentReport.toRequest(): ContentReportRequest =
+    ContentReportRequest(applicationId, itemKind, itemId, generationId, itemText.take(MAX_REPORT_TEXT))
+
+private const val MAX_REPORT_TEXT = 2_000

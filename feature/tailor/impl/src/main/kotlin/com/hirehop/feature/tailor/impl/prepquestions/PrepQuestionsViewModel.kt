@@ -132,7 +132,7 @@ class PrepQuestionsViewModel @Inject constructor(
     }
 
     private fun onReportInaccurate(questionId: String) {
-        if (mutableState.value.cardOf(questionId) == null) return
+        val card = mutableState.value.cardOf(questionId) ?: return
         mutableState.update { state -> state.copy(message = PrepQuestionsMessage.REPORTED) }
         viewModelScope.launch {
             contentReportRepository.report(
@@ -140,6 +140,7 @@ class PrepQuestionsViewModel @Inject constructor(
                     applicationId = applicationId,
                     itemKind = ReportedItemKind.PREP_QUESTION,
                     itemId = questionId,
+                    itemText = card.prompt,
                     reportedAt = clock.now(),
                 ),
             )

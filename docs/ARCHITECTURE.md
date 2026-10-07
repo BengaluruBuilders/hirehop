@@ -59,6 +59,16 @@ Dependency rules: features depend on `core:*` and on other features' `api` only.
 `core:data` and `core:model`. `core:model` depends on nothing Android. `core:network` depends on `core:model` only,
 and only `:app` (as `prodImplementation`) and remote bindings of the `prod` flavour depend on it.
 
+### Flavours
+
+`:app` has one flavour dimension, `backend`, with two flavours. `demo` binds the on-device implementations of
+`docs/MOCK_BACKEND.md`, keeps the developer menu and sample data, and has no `INTERNET` permission and no
+network classes. `prod` binds the remote implementations through the files in `app/src/prod/kotlin/.../di`
+and declares `INTERNET`. Room stays the local source of truth in both. In `prod` these are remote:
+sign-in and account deletion, resume parsing, job analysis, tailoring, prep questions, the cover letter,
+payment and the wallet, content reports (saved locally, then posted), and the data export (local files plus
+`server.json`). Profile, applications, and review state are local in both flavours.
+
 ## 3. Shared models (`:core:model`, package `com.hirehop.core.model`)
 
 Use these names and shapes exactly. Timestamps use `kotlin.time.Instant` (Kotlin 2.3, stable).

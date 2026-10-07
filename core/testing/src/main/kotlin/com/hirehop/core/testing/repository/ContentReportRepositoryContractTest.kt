@@ -16,7 +16,7 @@ abstract class ContentReportRepositoryContractTest {
     private val at = Instant.fromEpochMilliseconds(1_790_000_000_000)
 
     private fun report(applicationId: String, kind: ReportedItemKind, itemId: String) =
-        ContentReport(applicationId, kind, itemId, at)
+        ContentReport(applicationId, kind, itemId, "text", at)
 
     @Test
     fun aReportKeepsEveryField() = runTest {

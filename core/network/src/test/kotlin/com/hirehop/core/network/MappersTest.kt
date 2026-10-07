@@ -71,8 +71,8 @@ class MappersTest {
 
     @Test
     fun contentReportCarriesGenerationIdAndText() {
-        val report = ContentReport("app-1", ReportedItemKind.RESUME_BULLET, "t-1", Instant.fromEpochSeconds(0))
-        val request = report.toRequest("gen-1", "text")
+        val report = ContentReport("app-1", ReportedItemKind.RESUME_BULLET, "t-1", "text", Instant.fromEpochSeconds(0), "gen-1")
+        val request = report.toRequest()
         assertThat(request.generationId).isEqualTo("gen-1")
         assertThat(request.itemText).isEqualTo("text")
         assertThat(request.itemKind).isEqualTo(ReportedItemKind.RESUME_BULLET)
