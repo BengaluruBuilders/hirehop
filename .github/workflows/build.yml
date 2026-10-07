@@ -124,6 +124,7 @@ jobs:
           :app:lintProdRelease
           assembleDebug
           assembleRelease
+          :app:dependencyGuard
           -PwarningsAsErrors=true
           --continue
 
