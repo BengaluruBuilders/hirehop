@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +41,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhCollapsingHomeHeader
 import com.hirehop.core.designsystem.component.HhContentSwitch
 import com.hirehop.core.designsystem.component.HhCreditsPill
-import com.hirehop.core.designsystem.component.HhHeaderButton
 import com.hirehop.core.designsystem.component.HhHeaderCollapseState
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
@@ -54,8 +54,6 @@ import com.hirehop.core.designsystem.component.rememberHhHeaderCollapseState
 import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
-import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.DebugScenario
@@ -65,7 +63,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import com.hirehop.feature.applications.api.R as apiR
 
-private val SPOT_DIAMETER = 132.dp
+private val SPOT_DIAMETER = 96.dp
 
 @Composable
 fun ApplicationsRoute(
@@ -161,16 +159,10 @@ private fun ApplicationsHeaderBar(
             }
         },
         action = {
-            HhHeaderButton(
+            HhPrimaryButton(
                 label = stringResource(R.string.feature_applications_impl_paste_job),
                 onClick = { onAction(ApplicationsAction.PasteJobChosen) },
                 trailingIcon = HhIcons.ArrowForward,
-            )
-        },
-        illustration = {
-            HhCharacterIllustration(
-                illustration = HhIllustration.Hero,
-                modifier = Modifier.fillMaxSize(),
             )
         },
     )
@@ -295,12 +287,14 @@ private fun ApplicationsEmpty(
                 .align(Alignment.CenterHorizontally)
                 .size(SPOT_DIAMETER)
                 .clip(HhTheme.shapes.pill)
-                .background(HhTheme.colors.primaryContainer),
-            contentAlignment = Alignment.BottomCenter,
+                .background(HhTheme.colors.header),
+            contentAlignment = Alignment.Center,
         ) {
-            HhCharacterIllustration(
-                illustration = HhIllustration.Empty,
-                modifier = Modifier.fillMaxSize(),
+            Icon(
+                imageVector = HhIcons.Applications,
+                contentDescription = null,
+                tint = HhTheme.colors.brand,
+                modifier = Modifier.size(44.dp),
             )
         }
         Text(

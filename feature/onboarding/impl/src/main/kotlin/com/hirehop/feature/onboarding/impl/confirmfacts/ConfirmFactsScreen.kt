@@ -13,12 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,8 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhExpandable
 import com.hirehop.core.designsystem.component.HhFactId
@@ -54,7 +51,6 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.EntryCategory
@@ -322,32 +318,23 @@ private fun ConfirmedFactsBody(
 @Composable
 private fun ConfirmedFactsHero() {
     Box(
-        modifier = Modifier.fillMaxWidth().height(HERO_HEIGHT),
-        contentAlignment = Alignment.BottomCenter,
+        modifier = Modifier.fillMaxWidth().height(140.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = HERO_DISC_TOP)
-                .size(HERO_DISC)
-                .clip(CircleShape)
-                .background(HhTheme.colors.special),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Spark,
-            color = HhTheme.colors.coral,
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = HERO_SPARK_X, y = HERO_SPARK_Y),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Dots,
-            color = HhTheme.colors.coral,
-            modifier = Modifier.align(Alignment.BottomEnd).offset(x = HERO_DOTS_X, y = HERO_DOTS_Y),
-        )
-        HhCharacterIllustration(
-            illustration = HhIllustration.Hero,
-            contentDescription = null,
-            modifier = Modifier.size(width = HERO_FIGURE_WIDTH, height = HERO_FIGURE_HEIGHT),
-        )
+                .size(112.dp)
+                .clip(HhTheme.shapes.card)
+                .background(HhTheme.colors.header),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = HhIcons.CheckCircle,
+                contentDescription = null,
+                tint = HhTheme.colors.brand,
+                modifier = Modifier.size(52.dp),
+            )
+        }
     }
 }
 
@@ -670,14 +657,5 @@ private const val CONFIRMED_IDS_SHOWN = 6
 private val PROGRESS_HEIGHT = 8.dp
 private val PROGRESS_GAP = 4.dp
 private val BADGE_SIZE = 26.dp
-private val HERO_HEIGHT = 222.dp
-private val HERO_DISC = 170.dp
-private val HERO_DISC_TOP = 34.dp
-private val HERO_FIGURE_WIDTH = 166.dp
-private val HERO_FIGURE_HEIGHT = 222.dp
-private val HERO_SPARK_X = -8.dp
-private val HERO_SPARK_Y = 22.dp
-private val HERO_DOTS_X = -6.dp
-private val HERO_DOTS_Y = -18.dp
 private const val DETAIL_SEPARATOR = " · "
 private const val LIST_SEPARATOR = " · "

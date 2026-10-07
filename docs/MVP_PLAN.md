@@ -6,6 +6,10 @@ the constitution wins. Update section 2 and the chunk table each time a chunk ch
 
 ## 1. Sources of truth, in order
 
+Visual update, 2026-10-07: the user requested the Avvio-inspired direction in
+`docs/AVVIO_REDESIGN.md`. It replaces the Jade look in the historical decisions and frame references
+below. Product scope and implementation state are unchanged.
+
 1. `docs/CONSTITUTION.md`: rules and their CI gates.
 2. `docs/PRD.md`, section 6.1.1: the locked MVP scope.
 3. `design/jade-restyle/` (see its `INDEX.md`): the new look, for foundations, Flow 1 and Flow 2.

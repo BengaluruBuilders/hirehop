@@ -1,11 +1,9 @@
 # HireHop design system catalogue
 
 Module: `core:designsystem`. Package root: `com.hirehop.core.designsystem`.
-Board: `design/claude-design/foundations/`. Board names: Main (type), Colour, Surface, Motion,
-ComponentsLight, ComponentsDark.
-The C1 restyle follows four newer boards: Foundations (light), Foundations (dark), Components (light) and
-Components (dark). Jade stays the brand. The layout language is round: 28 cards, 36 pill rows, 60 dp buttons,
-48 dp hero corners, and small squiggle decorations. Where this file and the old boards differ, this file wins.
+The current visual direction is [AVVIO_REDESIGN.md](AVVIO_REDESIGN.md). The old Jade frame exports
+remain a record of content and states. The shared palette, Open Sans type scale, restrained rounded
+surfaces, and compact chrome below implement the Avvio reference.
 
 Read tokens with `HhTheme.colors`, `HhTheme.typography`, `HhTheme.spacing`, `HhTheme.shapes`,
 `HhTheme.elevation`, `HhTheme.motion`, `HhTheme.isDark`. Dark mode follows the system.
@@ -46,51 +44,71 @@ A feature must change these things when it adopts the integration changes.
 ## Tokens
 
 ### Colour (`HhTheme.colors`)
-New roles: `header`, `headerShape`, `onHeader`, `onHeaderVariant`, `onHeaderControl`, `headerControl`, `primary`,
-`onPrimary`, `primaryContainer`, `onPrimaryContainer`, `background`, `surface`, `card`, `ground`,
-`document`, `tool`, `onTool`, `onToolVariant`, `outline`, `outlineVariant`, `outlineSoft`,
-`onSurface`, `onSurfaceVariant`, `body`, `inverseSurface`, `inverseOnSurface`, `inversePrimary`,
-`met`, `metContainer`, `onMetContainer`, `partial`, `partialContainer`, `onPartialContainer`,
-`gap`, `gapContainer`, `onGapContainer`, `neutralContainer`, `onNeutralContainer` (a quiet notice, same fill as
-`gapContainer`), `evidence`,
-`evidenceLine`, `error`, `onError`, `errorContainer`, `onErrorContainer`, `special`, `onSpecial`,
-`scrim`.
-New roles: `onToolSelected` (the selected dock item, bright jade #5ED3AA / #5FD0A8). `brand` and `onBrand` (the jade fill, #0B7A5C with white, the same in both themes), `coral` and
-`onCoral` (#B94C37 with white, the same in both themes), `sheet` (a bottom sheet and a dialog fill).
-`primary` is the jade for text, icons, links and focus: #0B7A5C in light, bright #5FD0A8 in dark. Fills
-use `brand`. `special` is marigold #FFC94D with ink text. `error` is coral text and marks: #B94C37 in light,
-#F08F79 in dark. `headerShape` is the tint of the header squiggle (#F3A08E). `headerControl` is the fill of a
-header icon button: black at 20% (#33000000) in both themes.
-Values (light / dark): `background` and `ground` #FFFFFF / #0F1114, `card` #F6F7F9 / #1A1D22, `surface`
-#FFFFFF / #1A1D22, `sheet` and `tool` (the dock) #FFFFFF / #22262D for `sheet`, #16181D / #22262D for `tool`,
-`outlineVariant` and `outlineSoft` #E6E8EC / #2B3038, `onSurface` #16181D / #F1F2F4, `onSurfaceVariant`
-#5F6672 / #A5ACB8, `primaryContainer` #DDF2EA / #123B2F, `onPrimaryContainer` #064D3A / #9BE3C7, `partial`
-#2B5FA8 / #6C9BE6, `gap` #4A5263 / #8F98AB, `inverseSurface` #16181D / #F1F2F4. The header is jade in both
-themes.
-Rules: `gap` is never red. Marigold is an accent for the pack purchase button, solid cards and badges.
-Hero chips are white in both themes, so their status marks keep the light values.
+
+The app action fill is the sampled Lime `#AAFF00`, paired with black `#000000` text. `brand`,
+`special`, and `onToolSelected` use lime. `primary` is a text and focus color: darker green
+`#3C6208` on light surfaces to meet text contrast, and lime on dark surfaces. The link green,
+pressed lime `#91D900`, secondary text, and hairline strokes are HireHop accessibility and
+interaction adaptations; the Play artwork does not verify their native-app tokens. Keep `error`
+and `coral` for errors and warnings, not decoration. Status colors keep words and shapes.
+
+| Role | Light | Dark |
+|---|---|---|
+| Background and ground | white `#FFFFFF` | black `#000000` |
+| Header | black `#000000`, white text | black `#000000`, white text |
+| Card | pale neutral `#F4F6F1` | charcoal `#141614` |
+| Surface and document | white | charcoal `#141614` and inset `#252624` |
+| Quiet containers and evidence | `#EFF1EC` and inset `#EBEEE7` | inset `#252624` |
+| Dock | black `#000000` | charcoal `#141614` |
+| Main text | black `#000000` | white `#FFFFFF` |
+| Secondary text | neutral `#525251` | light neutral `#E4E5E1` |
+| Main action | Lime `#AAFF00`, black text | Lime `#AAFF00`, black text |
+| Subtle stroke | `#D5D8D2` | `#525251` |
+
+The black, charcoal, white, pale panel, and lime values above were sampled from flat phone UI
+regions in the [Google Play artwork](https://play.google.com/store/apps/details?id=xyz.avvio.app).
+They are not published native app source tokens. The neutral secondary text and strokes are
+HireHop choices checked for contrast. The [brand kit](https://avvio.xyz/brand/) describes a
+different website and identity palette; its green-tinted darks and `#B9FA4B` lime do not set
+the app theme.
+
+The names `HhAccent.Coral`, `Jade`, and `Marigold` and matching pill-row styles remain
+source-compatible. They now render black, lime, and a pale neutral container. Their names do not
+set a red, jade, or yellow visual treatment. The `coral` color role remains error red for
+existing error states. `headerShape` remains for older feature callers but shared headers
+draw no decorative squiggles.
 
 ### Type (`HhTheme.typography`)
-`displayL` 36/40 800 (-0.6), `displayM` 32/38 800 (-0.5), `headlineL` 28/34 800 (-0.4), `headlineM` 22/28 800,
-`titleL` 20/26 800, `titleM` 16/22 700, `titleS` 14/20 700, `bodyL` 15/22 400, `bodyM` 14/21 400,
-`button` 16/20 700, `labelL` 13/18 600, `labelM` 12/16 600, `bodyS` 12/16 400 (small meta lines),
-`numeralHero` 44/48 800, `numeralM` 18/24 700, `factId` 12/16 mono. Figures are tabular. Fonts are set in
-`HhFontFamilies.sans` and `HhFontFamilies.mono` (`theme/Type.kt`). They point to Plus Jakarta Sans (one variable file, weights 400, 600, 700, 800) and IBM Plex Mono 500.
-Licences are in `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` (44 dp) is for buttons inside cards.
-`brandPressed` is #064D3A. `sheetItemBorder` is #E6E8EC in light and #3A404A in dark.
+
+Open Sans ships in `res/font/core_designsystem_open_sans.ttf` as a variable font with
+400 body, 500 headlines, 700 labels and buttons, and 800 key numbers. The source is
+[Google Fonts Open Sans](https://github.com/google/fonts/tree/main/ofl/opensans); the
+[OFL license](../core/designsystem/fonts-licenses/OpenSans-OFL.txt) ships beside it.
+IBM Plex Mono 500 remains for provenance fact IDs. Text uses `sp`, and the shared
+components grow at 200% font scale.
+
+`displayL` 36/42, `displayM` 32/39, `headlineL` 28/36, `headlineM` 22/30,
+`titleL` 20/28, `titleM` 16/24, `titleS` 14/21, `bodyL` 16/24,
+`bodyM` 14/22, `button` 15/22, `labelL` 13/19, `labelM` 12/18,
+`bodyS` 12/16, `numeralHero` 44/52, `numeralM` 18/26, `factId` 12/16.
+Values are size/line height in `sp`. Buttons have slight letter spacing.
+`HhButtonSize.Compact` is 44 dp for buttons inside cards.
 
 ### Shape (`HhTheme.shapes`)
-`sheet` (28 top, the screen sheet and the dock), `modalSheet` (32 top, the bottom sheet), `heroCard` 28,
-`card` 28, `field` 20 (a multi-line field uses `card`), `pill`, `tag` 8, `banner` 20, `pillRow` 36,
-`statusRow` 24, `heroBottom` (48 bottom corners).
+
+`sheet` and `modalSheet` have 24 dp top corners. `heroCard` is 22 dp; `card` and
+`pillRow` are 20 and 24 dp. `field` is 16 dp, `statusRow` is 18 dp, and
+`heroBottom` is 28 dp. Buttons and small chips remain pills.
 
 ### Spacing (`HhTheme.spacing`)
-`gutter` 16, `cardPadding` 14, `sectionGap` 24, `touch` 48, plus `xxs` 2, `xs` 4, `sm` 8, `md` 12,
-`lg` 16, `xl` 20, `xxl` 24, `xxxl` 32, `d2` to `d64`.
+
+`gutter` 20, `cardPadding` 18, `sectionGap` 24, `touch` 48, plus the
+named spacing steps from 2 to 64 dp.
 
 ### Elevation (`HhTheme.elevation`)
+
 `level0` to `level4`, `hero` (level 2), `dock` (level 3), `modal` (level 4).
-Apply with `Modifier.hhShadow(shadow, shape)`.
+Use `Modifier.hhShadow(shadow, shape)`.
 
 ### Motion (`HhTheme.motion`)
 `proofSpecs`: `spatial`, `spatialFast`, `offset`, `size`, `fade`, `color`, `staggerMs`, `staggerMax`.
@@ -161,15 +179,15 @@ background still fill the area behind the zone.
 | No header | status bar inset | see below |
 | Header and `sheet = true` | 24 dp | see below |
 | Header and `sheet = false` | 0 dp | see below |
-| `bottomBar` or `bottomBarNotice` set | as above | 16 dp (`spacing.gutter`), the gap above the last item |
+| `bottomBar` or `bottomBarNotice` set | as above | 20 dp (`spacing.gutter`), the gap above the last item |
 | Neither set, no dock | as above | navigation bar inset |
-| Neither set, dock inset provided (`LocalHhBottomInset`) | as above | navigation bar inset plus `HhDockDefaults.inset` (88 dp) |
+| Neither set, dock inset provided (`LocalHhBottomInset`) | as above | navigation bar inset plus 88 dp; add 48 dp at 150% font scale or more |
 
-The old bottom padding was the bar height plus 16 dp. It is now 16 dp, because the content area
+The old bottom padding was the bar height plus the gutter. It is now 20 dp, because the content area
 no longer reaches under the bar. A feature that passed the `PaddingValues` to its list needs no
 change. A feature that added its own bar clearance must remove it, or the clearance is doubled.
 
-`bottomBarNotice` is placed directly above the bar with a 16 dp side gutter and an 8 dp gap to the
+`bottomBarNotice` is placed directly above the bar with a 20 dp side gutter and an 8 dp gap to the
 bar. Put a notice card or a reason line in it. Without a bar, it sits above the dock inset. The
 `snackbarHost` and `floatingAction` lift above the notice.
 
@@ -180,13 +198,13 @@ clear of the dock.
 fun HhHomeHeader(greeting: String, headline: String, modifier, trailing: @Composable RowScope.() -> Unit = {},
     action: (@Composable () -> Unit)? = null, illustration: (@Composable BoxScope.() -> Unit)? = null)
 ```
-Jade home header with the hero illustration slot (174 x 200 dp, drawn above the sheet). Board: Home header.
+Deep home header with an optional illustration slot. When no illustration is supplied, the headline uses the full width.
 
 ```kotlin
 fun HhCompactHomeHeader(title: String, subtitle: String, modifier, trailing: @Composable RowScope.() -> Unit = {})
 ```
-Compact: a tab screen with no illustration. Title first (`headlineL`), then one subtitle line, 200 dp
-plus the status bar, sheet overlap 28 dp. Use it for Settings. It works as `HhScreen(header = ...)`
+Compact: a tab screen with no illustration. Title first (`headlineL`), then one subtitle line, 164 dp
+plus the status bar, sheet overlap 24 dp. Use it for Settings. It works as `HhScreen(header = ...)`
 with `sheet = true`.
 
 ```kotlin
@@ -195,7 +213,7 @@ fun HhCollapsingHomeHeader(collapse: HhHeaderCollapseState, title: String, greet
 fun rememberHhHeaderCollapseState(): HhHeaderCollapseState
 ```
 The home header for a screen with a list. The scroll sets the height. Fully expanded, it is the same
-frame as `HhHomeHeader`. Fully collapsed, it is a short jade bar (96 dp including the 28 dp overlap)
+frame as `HhHomeHeader`. Fully collapsed, it is a short Deep bar (84 dp including the 24 dp overlap)
 with the title and the trailing slot. Put `Modifier.nestedScroll(collapse.connection)` on the list.
 A scroll up collapses the header before the list moves. A scroll down expands the header after the
 list is at the top. Parallax: the headline, the action, and the hero move up at half the speed of
@@ -211,13 +229,13 @@ fun HhInnerHeader(title: String, modifier, subtitle: String? = null, onBack: (()
     trailing: (@Composable () -> Unit)? = null, belowTitle: (@Composable () -> Unit)? = null,
     extended: Boolean = true, overlap: Dp = ...)
 ```
-Header of every pushed screen. `extended = true` is 200 dp for hero cards (overlap 96).
+Header of every pushed screen. Titles align to the start. `extended = true` is at least 164 dp for hero cards (overlap 80).
 Board: Inner header + hero card.
 
 ```kotlin
 fun HhSheet(modifier, contentPadding: PaddingValues = ..., content: @Composable ColumnScope.() -> Unit)
 ```
-Surface with 28 dp top corners. Board: Sheet.
+Surface with 24 dp top corners.
 
 ```kotlin
 fun HhDock(modifier, content: @Composable RowScope.() -> Unit)
@@ -227,7 +245,10 @@ fun HhDockIcon(icon: ImageVector)
 ```
 Floating 64 dp `tool` pill, inset by the gutter at the sides and 8 dp below, for the three top-level tabs only.
 Each item is an icon above a `labelM` label and takes an equal share of the width. The selected item is
-`onToolSelected` (bright jade), the others `onToolVariant`. In dark the pill has an `outlineSoft` hairline.
+`onToolSelected` (lime), the others `onToolVariant`. In dark the pill has an `outlineSoft` hairline.
+At 150% font scale or more, the dock grows to 112 dp, adds 16 dp interior side padding,
+and lets each label wrap to two lines. `HhScreen`
+adds the matching 48 dp to the dock clearance so the last list item remains reachable.
 `HhDock` applies the navigation bar inset. Do not add it in `:app`.
 Put each `HhDockItem` inside `HhDock`; it is a `RowScope` extension.
 
@@ -277,14 +298,14 @@ fun HhSpecialButton(label: String, onClick: () -> Unit, modifier, caption: Strin
 fun HhSpecialDeclineButton(label: String, onClick: () -> Unit, modifier)
 fun HhSpecialOffer(label, declineLabel, onAccept, onDecline, modifier, caption: String? = null)
 ```
-Marigold pack purchase. `HhSpecialOffer` pairs it with an equal-size "Not now" button. Board: Pack purchase.
+Lime pack purchase action. `HhSpecialOffer` pairs it with an equal-size "Not now" button. Board: Pack purchase.
 
 ```kotlin
 fun HhIconButton(icon: ImageVector, contentDescription: String, onClick, modifier, enabled = true, tint, containerColor, borderColor, shape, size: Dp = 48.dp)
 fun HhHeaderIconButton(icon, contentDescription, onClick, modifier)
 fun HhBackButton(contentDescription, onClick, modifier, onHeader: Boolean = false)
 ```
-`HhHeaderIconButton` is a 48 dp `headerControl` circle with a white icon, for every control on a jade header.
+`HhHeaderIconButton` is a 48 dp Bone circle with a Deep icon on the dark header.
 `HhBackButton` is the only back control: the `HhIcons.Back` chevron in a borderless 48 dp circle. With
 `onHeader = true` it is an `HhHeaderIconButton`; otherwise the fill is `card` and the icon is `onSurface`.
 
@@ -295,33 +316,31 @@ fun HhHeroCard(modifier, contentPadding, onClick: (() -> Unit)? = null, content:
 fun HhSectionCard(modifier, contentPadding, trailingAction, content)
 fun HhMonogram(text: String, modifier, size: Dp = 40.dp)
 ```
-Card: card fill, 1 dp border, 28 dp. Hero card: document fill, 28 dp, hero shadow. Board: Application card, Bullet review card.
+Card: quiet neutral fill, 1 dp border, 20 dp corners. Hero card: document fill, 22 dp corners, subtle shadow. Board: Application card, Bullet review card.
 
 ```kotlin
 enum class HhAccent { Coral, Jade, Marigold }
 enum class HhOnColorChipStyle { White, Outline, Ink }
 fun HhSolidCard(accent: HhAccent, monogram: String, title: String, subtitle: String, modifier,
     onOpen: (() -> Unit)? = null, openContentDescription: String = "",
-    decoration: HhDecorationKind? = Squiggle, chips: (@Composable RowScope.() -> Unit)? = null)
+    decoration: HhDecorationKind? = null, chips: (@Composable RowScope.() -> Unit)? = null)
 fun HhOnColorChip(label: String, modifier, style: HhOnColorChipStyle = White, accent: HhAccent = Coral)
 ```
 A solid colour card: a white circular monogram, an ink round open button, a title, a subtitle, and chips.
-Put `HhOnColorChip` in `chips`. Marigold uses ink text, the others use white. Board: Cards.
+Put `HhOnColorChip` in `chips`. The legacy accents map to Deep, Lime, and a quiet green panel.
 
 ```kotlin
 enum class HhPillRowStyle { Coral, Jade, Marigold, Ink, Neutral }
 fun HhPillRow(title: String, onClick: () -> Unit, modifier, style = Coral, subtitle: String? = null,
     icon: ImageVector? = null, monogram: String? = null, trailingIcon: ImageVector? = ArrowForward)
 ```
-A pill list row: 72 dp tall, 36 dp radius, solid colour, a 48 dp white circle with an icon (or a jade circle with
-a monogram on `Neutral`). `Ink` inverts to light in dark. Board: Pill list rows.
+A pill list row: 72 dp tall, 24 dp radius, a 48 dp icon circle and a Deep, Lime, or quiet neutral surface. `Ink` inverts to light in dark. Board: Pill list rows.
 
 ```kotlin
 enum class HhDecorationKind { Squiggle, Ring, Dots, Spark, Loop, Zigzag, Plus }
 fun HhDecoration(kind: HhDecorationKind, color: Color, modifier, strokeWidth: Dp = 2.6.dp)
 ```
-The decoration set, drawn from the board paths. At most three per screen, never behind text.
-The hero header draws a marigold ring and a `headerShape` squiggle by itself.
+The legacy decoration set remains for compatibility. Shared headers and solid cards omit it by default.
 
 ```kotlin
 fun HhIconActionBar(secondaryIcon: ImageVector, secondaryContentDescription: String, onSecondaryClick: () -> Unit,

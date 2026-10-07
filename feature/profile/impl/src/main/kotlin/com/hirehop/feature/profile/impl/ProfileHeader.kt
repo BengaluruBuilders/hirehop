@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -23,7 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -31,8 +30,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeaderButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
@@ -50,19 +47,11 @@ internal data class ProfileHeaderState(
     val toConfirmCount: Int,
 )
 
-private val HeaderHeight = 284.dp
-private val SheetOverlap = 48.dp
+private val HeaderHeight = 220.dp
 private val HeaderTop = 12.dp
+private val HeaderBottom = 24.dp
 private val RowGap = 10.dp
 private val ChipGap = 6.dp
-private val DecorationBottom = 6.dp
-private val DecorationStroke = 2.6.dp
-private val RingSize = 34.dp
-private val RingRight = 22.dp
-private val SquiggleWidth = 54.dp
-private val SquiggleHeight = SquiggleWidth * 18 / 64
-private val SquiggleRight = 70.dp
-private val SquiggleRise = 8.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -81,18 +70,7 @@ internal fun ProfileFrame(
                 onEditContact = onEditContact,
             )
             HhSheet(
-                modifier = Modifier
-                    .weight(1f)
-                    .layout { measurable, constraints ->
-                        val overlap = SheetOverlap.roundToPx()
-                        val placeable = measurable.measure(
-                            constraints.copy(
-                                minHeight = constraints.maxHeight + overlap,
-                                maxHeight = constraints.maxHeight + overlap,
-                            ),
-                        )
-                        layout(placeable.width, constraints.maxHeight) { placeable.place(0, -overlap) }
-                    },
+                modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(),
             ) {
                 LazyColumn(
@@ -119,6 +97,7 @@ private fun ProfileHeaderBlock(
     onEditContact: (() -> Unit)?,
 ) {
     val colors = HhTheme.colors
+    val largeText = LocalDensity.current.fontScale >= 1.5f
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val factsLabel = pluralStringResource(R.plurals.feature_profile_impl_fact_count_accessibility, state.factCount, state.factCount)
     val summary = stringResource(
@@ -133,24 +112,6 @@ private fun ProfileHeaderBlock(
             .heightIn(min = statusTop + HeaderHeight)
             .background(colors.header),
     ) {
-        HhDecoration(
-            kind = HhDecorationKind.Ring,
-            color = colors.special,
-            strokeWidth = DecorationStroke,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = SheetOverlap + DecorationBottom, end = RingRight)
-                .size(RingSize),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Squiggle,
-            color = colors.headerShape,
-            strokeWidth = DecorationStroke,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = SheetOverlap + DecorationBottom + SquiggleRise, end = SquiggleRight)
-                .size(SquiggleWidth, SquiggleHeight),
-        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,38 +119,17 @@ private fun ProfileHeaderBlock(
                     start = HhTheme.spacing.gutter,
                     end = HhTheme.spacing.gutter,
                     top = statusTop + HeaderTop,
-                    bottom = SheetOverlap + DecorationBottom + RingSize,
+                    bottom = HeaderBottom,
                 ),
             verticalArrangement = Arrangement.spacedBy(RowGap),
         ) {
             NameLine(headerLine = state.headerLine, onEditContact = onEditContact)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics(mergeDescendants = true) { contentDescription = summary },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(RowGap)) {
-                    Text(
-                        text = state.factCount.toString(),
-                        modifier = Modifier.alignByBaseline(),
-                        style = HhTheme.typography.numeralHero,
-                        color = colors.onHeader,
-                    )
-                    Text(
-                        text = stringResource(R.string.feature_profile_impl_hero_caption),
-                        modifier = Modifier.alignByBaseline(),
-                        style = HhTheme.typography.headlineM,
-                        color = colors.onHeader,
-                    )
-                }
-                HhHeaderButton(
-                    label = stringResource(R.string.feature_profile_impl_add_evidence),
-                    onClick = onAddEvidence,
-                    trailingIcon = HhIcons.Add,
-                )
-            }
+            ProfileSummaryRow(
+                factCount = state.factCount,
+                summary = summary,
+                largeText = largeText,
+                onAddEvidence = onAddEvidence,
+            )
             FlowRow(
                 modifier = Modifier.clearAndSetSemantics { },
                 horizontalArrangement = Arrangement.spacedBy(ChipGap),
@@ -219,6 +159,60 @@ private fun ProfileHeaderBlock(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ProfileSummaryRow(
+    factCount: Int,
+    summary: String,
+    largeText: Boolean,
+    onAddEvidence: () -> Unit,
+) {
+    val modifier = Modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) { contentDescription = summary }
+    if (largeText) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(RowGap)) {
+            FactCountLabel(factCount)
+            HhHeaderButton(
+                label = stringResource(R.string.feature_profile_impl_add_evidence),
+                onClick = onAddEvidence,
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = HhIcons.Add,
+            )
+        }
+    } else {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            FactCountLabel(factCount)
+            HhHeaderButton(
+                label = stringResource(R.string.feature_profile_impl_add_evidence),
+                onClick = onAddEvidence,
+                trailingIcon = HhIcons.Add,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FactCountLabel(factCount: Int) {
+    Row(horizontalArrangement = Arrangement.spacedBy(RowGap)) {
+        Text(
+            text = factCount.toString(),
+            modifier = Modifier.alignByBaseline(),
+            style = HhTheme.typography.numeralHero,
+            color = HhTheme.colors.onHeader,
+        )
+        Text(
+            text = stringResource(R.string.feature_profile_impl_hero_caption),
+            modifier = Modifier.alignByBaseline(),
+            style = HhTheme.typography.headlineM,
+            color = HhTheme.colors.onHeader,
+        )
     }
 }
 

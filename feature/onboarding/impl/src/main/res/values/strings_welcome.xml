@@ -3,6 +3,16 @@
     <string name="feature_onboarding_impl_welcome_brand">HireHop</string>
     <string name="feature_onboarding_impl_welcome_headline">Your next move, better prepared</string>
     <string name="feature_onboarding_impl_welcome_subline">Tailored applications built only from facts you confirm.</string>
+    <string name="feature_onboarding_impl_welcome_process_heading">Your application, step by step</string>
+    <string name="feature_onboarding_impl_welcome_process_job_mark">01</string>
+    <string name="feature_onboarding_impl_welcome_process_job">Choose a role</string>
+    <string name="feature_onboarding_impl_welcome_process_job_detail">Paste the job description</string>
+    <string name="feature_onboarding_impl_welcome_process_facts_mark">02</string>
+    <string name="feature_onboarding_impl_welcome_process_facts">Confirm your facts</string>
+    <string name="feature_onboarding_impl_welcome_process_facts_detail">Keep only what is true</string>
+    <string name="feature_onboarding_impl_welcome_process_draft_mark">03</string>
+    <string name="feature_onboarding_impl_welcome_process_draft">Review your draft</string>
+    <string name="feature_onboarding_impl_welcome_process_draft_detail">Decide what to use</string>
     <string name="feature_onboarding_impl_welcome_illustration_description">A young job seeker proudly holding up her resume</string>
     <string name="feature_onboarding_impl_welcome_offline_message">You are offline</string>
     <string name="feature_onboarding_impl_welcome_offline_support">Everything on this screen works without a connection.</string>

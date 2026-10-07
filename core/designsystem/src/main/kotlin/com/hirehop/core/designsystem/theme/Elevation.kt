@@ -56,22 +56,22 @@ internal object HhElevationDefaults {
         spotColor = ink.copy(alpha = alpha),
     )
 
-    private val LightInk = Color(0xFF16181D)
+    private val LightInk = Color(0xFF000000)
     private val DarkInk = Color(0xFF000000)
 
     val Light = HhElevation(
         level0 = step(0, 0, 0, 0f, LightInk),
         level1 = step(0, 0, 0, 0f, LightInk),
-        level2 = step(6, 6, 18, 0.08f, LightInk),
-        level3 = step(8, 8, 20, 0.22f, LightInk),
-        level4 = step(12, 12, 32, 0.24f, LightInk),
+        level2 = step(3, 3, 12, 0.08f, LightInk),
+        level3 = step(4, 4, 16, 0.16f, LightInk),
+        level4 = step(8, 8, 24, 0.20f, LightInk),
     )
 
     val Dark = HhElevation(
         level0 = step(0, 0, 0, 0f, DarkInk),
         level1 = step(0, 0, 0, 0f, DarkInk),
-        level2 = step(6, 6, 18, 0.40f, DarkInk),
-        level3 = step(8, 8, 20, 0.55f, DarkInk),
-        level4 = step(12, 12, 32, 0.60f, DarkInk),
+        level2 = step(2, 2, 8, 0.32f, DarkInk),
+        level3 = step(4, 4, 16, 0.42f, DarkInk),
+        level4 = step(8, 8, 24, 0.48f, DarkInk),
     )
 }

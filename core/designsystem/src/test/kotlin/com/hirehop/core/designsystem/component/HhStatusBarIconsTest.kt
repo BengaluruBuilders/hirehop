@@ -42,12 +42,12 @@ class HhStatusBarIconsTest {
     }
 
     @Test
-    fun jadeHeaderUsesLightIcons() {
+    fun deepHeaderUsesLightIcons() {
         assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(header = { HhInnerHeader(title = "T") }) { } })
     }
 
     @Test
-    fun jadeCustomTopWithLightTopFalseUsesLightIcons() {
+    fun deepCustomTopWithLightTopFalseUsesLightIcons() {
         assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(lightTop = false) { } })
     }
 

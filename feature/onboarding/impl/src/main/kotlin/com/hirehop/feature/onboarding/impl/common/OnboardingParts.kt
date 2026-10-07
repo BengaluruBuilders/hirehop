@@ -31,8 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.designsystem.component.HhBackButton
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
@@ -205,8 +203,6 @@ internal fun MessageCard(
     }
 }
 
-private val STEP_SQUIGGLE_WIDTH = 58.dp
-private val STEP_SQUIGGLE_HEIGHT = 16.dp
 private val STEP_CHIP_HEIGHT = 32.dp
 
 @Composable
@@ -228,16 +224,11 @@ internal fun OnboardingStepBar(
             Box(modifier = Modifier.width(HhTheme.spacing.touch))
         }
         if (step != null) {
-            HhDecoration(
-                kind = HhDecorationKind.Squiggle,
-                color = HhTheme.colors.coral,
-                modifier = Modifier.size(width = STEP_SQUIGGLE_WIDTH, height = STEP_SQUIGGLE_HEIGHT),
-            )
             Box(
                 modifier = Modifier
                     .height(STEP_CHIP_HEIGHT)
                     .background(
-                        if (onBrand) HhTheme.colors.brandPressed else HhTheme.colors.primaryContainer,
+                        if (onBrand) HhTheme.colors.brand else HhTheme.colors.primaryContainer,
                         HhTheme.shapes.pill,
                     )
                     .padding(horizontal = HhTheme.spacing.d12 + HhTheme.spacing.xxs),

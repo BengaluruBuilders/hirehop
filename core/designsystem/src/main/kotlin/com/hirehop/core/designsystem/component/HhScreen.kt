@@ -18,17 +18,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import com.hirehop.core.designsystem.theme.HhColors
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.core.designsystem.theme.LocalHhDark
 import kotlin.math.roundToInt
 
 val LocalHhBottomInset = compositionLocalOf { 0.dp }
@@ -52,11 +54,13 @@ fun HhScreen(
     val colors = HhTheme.colors
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val resting = navBottom + LocalHhBottomInset.current
+    val dockInset = LocalHhBottomInset.current
+    val dockExtra = if (dockInset > 0.dp && LocalDensity.current.fontScale >= 1.5f) HhDockLargeFontExtra else 0.dp
+    val resting = navBottom + dockInset + dockExtra
     val gutter = HhTheme.spacing.gutter
     val sheetTop = HhTheme.spacing.d24
     val collapse = rememberHhHeaderCollapseState()
-    HhStatusBarIcons(darkIcons = lightTop && !LocalHhDark.current)
+    HhStatusBarIcons(darkIcons = hhDarkStatusBarIcons(lightTop, colors))
     SubcomposeLayout(
         modifier = modifier
             .fillMaxSize()
@@ -81,7 +85,7 @@ fun HhScreen(
         }.orEmpty().map { it.measure(loose) }
         val noticeHeight = notices.maxOfOrNull { it.height } ?: 0
         val floor = if (barHeight > 0) barHeight else resting.roundToPx()
-        val reserved = if (barHeight > 0 || noticeHeight > 0) floor + noticeHeight else 0
+        val reserved = if (barHeight > 0 || dockInset > 0.dp || noticeHeight > 0) floor + noticeHeight else 0
         val contentTop = if (headerPlaceable == null) {
             0
         } else {
@@ -127,6 +131,9 @@ fun HhScreen(
         }
     }
 }
+
+internal fun hhDarkStatusBarIcons(lightTop: Boolean, colors: HhColors): Boolean =
+    (if (lightTop) colors.ground else colors.header).luminance() > 0.5f
 
 @Composable
 private fun HhStatusBarIcons(darkIcons: Boolean) {

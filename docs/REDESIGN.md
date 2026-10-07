@@ -1,4 +1,11 @@
-# HireHop redesign — "Friendly hero, Jade"
+# HireHop redesign
+
+## Current direction — 2026-10-07
+
+The user requested a full Avvio-inspired restyle. `docs/AVVIO_REDESIGN.md` and the current
+`docs/DESIGN_SYSTEM.md` replace the visual rules below, including the Jade palette, typography,
+decorations, and hero layouts. The remaining behavior, navigation, accessibility, and build rules
+still apply. The sections below preserve the previous design reference.
 
 This document binds every agent that works on the redesign. `docs/CONSTITUTION.md` wins a conflict.
 `docs/ARCHITECTURE.md` comes second. This document comes third.

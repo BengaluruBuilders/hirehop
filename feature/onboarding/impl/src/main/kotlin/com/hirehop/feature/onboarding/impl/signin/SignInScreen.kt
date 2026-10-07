@@ -36,8 +36,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhCheckbox
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhInkButton
@@ -46,8 +44,6 @@ import com.hirehop.core.designsystem.component.HhOutlinedButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
-import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.onboarding.impl.R
 import com.hirehop.feature.onboarding.impl.common.NoticeTone
@@ -61,11 +57,8 @@ private val BADGE_ICON_SIZE = 18.dp
 private val BADGE_HEIGHT = 34.dp
 private val NOTE_ICON_SIZE = 40.dp
 private val NOTE_ICON_GLYPH = 22.dp
-private val ART_DISC = 180.dp
-private val ART_HEIGHT = 250.dp
-private val RING_CLEARANCE = 56.dp
-private val HEADER_RING_PADDING_END = 24.dp
-private val HEADER_RING_PADDING_BOTTOM = 24.dp
+private val ART_DISC = 120.dp
+private val ART_HEIGHT = 156.dp
 private val LEGAL_LINE_CLEARANCE = 92.dp
 private val PINNED_ACTION_BOTTOM = 24.dp
 
@@ -113,17 +106,10 @@ private fun SignInHeader(actions: SignInActions, modifier: Modifier = Modifier) 
         modifier = modifier
             .fillMaxWidth()
             .clip(HhTheme.shapes.heroBottom)
-            .background(HhTheme.colors.brand)
+            .background(HhTheme.colors.header)
             .padding(horizontal = HhTheme.spacing.gutter)
             .padding(top = statusTop + HhTheme.spacing.xxl, bottom = HhTheme.spacing.xxl),
     ) {
-        HhDecoration(
-            kind = HhDecorationKind.Ring,
-            color = HhTheme.colors.special,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = HEADER_RING_PADDING_END, bottom = HEADER_RING_PADDING_BOTTOM),
-        )
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xl)) {
             OnboardingStepBar(
                 step = SIGN_IN_STEP,
@@ -133,14 +119,11 @@ private fun SignInHeader(actions: SignInActions, modifier: Modifier = Modifier) 
                     R.string.feature_onboarding_impl_sign_in_navigation_back_content_description,
                 ),
             )
-            Column(
-                modifier = Modifier.padding(end = RING_CLEARANCE),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
                 Text(
                     text = stringResource(R.string.feature_onboarding_impl_sign_in_heading),
                     style = HhTheme.typography.displayM,
-                    color = HhTheme.colors.onBrand,
+                    color = HhTheme.colors.onHeader,
                 )
                 Text(
                     text = stringResource(R.string.feature_onboarding_impl_sign_in_intro),
@@ -348,37 +331,18 @@ private fun UnderEighteenArt(modifier: Modifier = Modifier) {
             .height(ART_HEIGHT),
         contentAlignment = Alignment.Center,
     ) {
-        HhDecoration(
-            kind = HhDecorationKind.Squiggle,
-            color = HhTheme.colors.coral,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = HhTheme.spacing.lg),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Ring,
-            color = HhTheme.colors.special,
-            modifier = Modifier.align(Alignment.TopEnd),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Dots,
-            color = HhTheme.colors.brand,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(bottom = HhTheme.spacing.md),
-        )
         Box(
             modifier = Modifier
                 .size(ART_DISC)
                 .clip(HhTheme.shapes.pill)
-                .background(HhTheme.colors.card)
-                .border(1.dp, HhTheme.colors.outlineVariant, HhTheme.shapes.pill),
-            contentAlignment = Alignment.BottomCenter,
+                .background(HhTheme.colors.header),
+            contentAlignment = Alignment.Center,
         ) {
-            HhCharacterIllustration(
-                illustration = HhIllustration.Goodbye,
+            Icon(
+                imageVector = HhIcons.Block,
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
+                tint = HhTheme.colors.brand,
+                modifier = Modifier.size(48.dp),
             )
         }
     }

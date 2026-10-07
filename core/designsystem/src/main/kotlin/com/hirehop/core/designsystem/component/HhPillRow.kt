@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,10 +44,10 @@ private class HhPillRowPalette(
 private fun pillRowPalette(style: HhPillRowStyle): HhPillRowPalette {
     val colors = HhTheme.colors
     return when (style) {
-        HhPillRowStyle.Coral -> HhPillRowPalette(colors.coral, colors.onCoral, colors.onCoral, Color.White, colors.coral, null)
-        HhPillRowStyle.Jade -> HhPillRowPalette(colors.brand, colors.onBrand, colors.onBrand, Color.White, colors.brand, null)
+        HhPillRowStyle.Coral -> HhPillRowPalette(colors.header, colors.onHeader, colors.onHeaderVariant, colors.brand, colors.onBrand, null)
+        HhPillRowStyle.Jade -> HhPillRowPalette(colors.brand, colors.onBrand, colors.onBrand, colors.header, colors.brand, null)
         HhPillRowStyle.Marigold ->
-            HhPillRowPalette(colors.special, colors.onSpecial, colors.onSpecial, Color.White, colors.onSpecial, null)
+            HhPillRowPalette(colors.primaryContainer, colors.onPrimaryContainer, colors.onPrimaryContainer, colors.brand, colors.onBrand, null)
         HhPillRowStyle.Ink -> HhPillRowPalette(
             colors.inverseSurface,
             colors.inverseOnSurface,
@@ -78,8 +79,12 @@ fun HhPillRow(
     trailingIcon: ImageVector? = HhIcons.ArrowForward,
     leading: (@Composable () -> Unit)? = null,
     titleMaxLines: Int = Int.MAX_VALUE,
+    supporting: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val palette = pillRowPalette(style)
+    val quietDisc = style == HhPillRowStyle.Neutral && leading == null && icon == null && monogram != null
+    val circle = if (quietDisc) HhTheme.colors.primaryContainer else palette.circle
+    val onCircle = if (quietDisc) HhTheme.colors.onSurface else palette.onCircle
     val source = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
@@ -98,7 +103,7 @@ fun HhPillRow(
             Box(
                 modifier = Modifier
                     .size(HhHeightTouch)
-                    .background(palette.circle, HhTheme.shapes.pill)
+                    .background(circle, HhTheme.shapes.pill)
                     .clearAndSetSemantics {},
                 contentAlignment = Alignment.Center,
             ) {
@@ -110,7 +115,7 @@ fun HhPillRow(
                     Text(
                         text = monogram.trim().take(2).uppercase(),
                         style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.ExtraBold),
-                        color = palette.onCircle,
+                        color = onCircle,
                     )
                 }
             }
@@ -127,6 +132,13 @@ fun HhPillRow(
                         text = subtitle,
                         style = HhTheme.typography.labelM,
                         color = palette.subtitle,
+                    )
+                }
+                if (supporting != null) {
+                    Column(
+                        modifier = Modifier.padding(top = HhTheme.spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                        content = supporting,
                     )
                 }
             }

@@ -37,8 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhButtonSize
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhIconButton
@@ -48,8 +46,6 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhSecondaryButton
 import com.hirehop.core.designsystem.component.HhTextField
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
-import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.onboarding.impl.R
 import com.hirehop.feature.onboarding.impl.common.DisclosureCard
@@ -65,12 +61,9 @@ private val PASTE_FIELD_CORNER = 28.dp
 private val PASTE_FIELD_BORDER = 1.5.dp
 private val PASTE_FIELD_PADDING = 18.dp
 private val PASTE_FOOTER_RESERVE = 76.dp
-private val PASTE_RING_SIZE = 34.dp
 private val PASTE_ERROR_ICON = 22.dp
 private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
-private val PASTE_ILLUSTRATION_WIDTH = 84.dp
-private val PASTE_ILLUSTRATION_HEIGHT = 112.dp
 private val SOURCE_CHIP_ICON = 16.dp
 private val PASTE_WORD_ICON = 18.dp
 
@@ -260,16 +253,6 @@ private fun PasteJobDescriptionField(
                 .border(PASTE_FIELD_BORDER, border, HhTheme.shapes.card),
         ) {
             PasteJobDescriptionTextArea(uiState = uiState, onTextChange = actions.onTextChange)
-            if (uiState.text.isEmpty()) {
-                HhDecoration(
-                    kind = HhDecorationKind.Ring,
-                    color = colors.special,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = PASTE_FIELD_PADDING * 6, end = PASTE_FIELD_PADDING + HhTheme.spacing.d4)
-                        .size(PASTE_RING_SIZE),
-                )
-            }
             PasteJobDescriptionFieldFooter(uiState = uiState, onPaste = actions.onPaste)
         }
     }
@@ -318,13 +301,13 @@ private fun PasteJobDescriptionCount(uiState: PasteJobDescriptionUiState) {
             Icon(
                 imageVector = HhIcons.CheckCircle,
                 contentDescription = null,
-                tint = HhTheme.colors.brand,
+                tint = HhTheme.colors.primary,
                 modifier = Modifier.size(PASTE_WORD_ICON),
             )
             Text(
                 text = stringResource(R.string.feature_onboarding_impl_paste_jd_enough, uiState.wordCount),
                 style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.brand,
+                color = HhTheme.colors.primary,
             )
         }
 
@@ -403,7 +386,7 @@ private fun SpottedRow(uiState: PasteJobDescriptionUiState, onEdit: () -> Unit) 
                 icon = HhIcons.Edit,
                 contentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_edit_description),
                 onClick = onEdit,
-                tint = HhTheme.colors.brand,
+                tint = HhTheme.colors.primary,
                 containerColor = Color.Transparent,
                 borderColor = Color.Transparent,
             )
@@ -494,10 +477,11 @@ private fun HelpCard() {
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.Bottom,
     ) {
-        HhCharacterIllustration(
-            illustration = HhIllustration.Empty,
+        Icon(
+            imageVector = HhIcons.Applications,
             contentDescription = null,
-            modifier = Modifier.size(width = PASTE_ILLUSTRATION_WIDTH, height = PASTE_ILLUSTRATION_HEIGHT),
+            tint = HhTheme.colors.primary,
+            modifier = Modifier.size(40.dp),
         )
         Column(
             modifier = Modifier.weight(1f).padding(bottom = PASTE_CHIP_PADDING),

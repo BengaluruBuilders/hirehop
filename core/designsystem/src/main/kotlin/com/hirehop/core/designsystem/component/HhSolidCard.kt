@@ -28,15 +28,15 @@ import com.hirehop.core.designsystem.theme.HhTheme
 enum class HhAccent { Coral, Jade, Marigold }
 
 internal fun HhColors.accentFill(accent: HhAccent): Color = when (accent) {
-    HhAccent.Coral -> coral
+    HhAccent.Coral -> header
     HhAccent.Jade -> brand
-    HhAccent.Marigold -> special
+    HhAccent.Marigold -> primaryContainer
 }
 
 internal fun HhColors.onAccent(accent: HhAccent): Color = when (accent) {
-    HhAccent.Coral -> onCoral
+    HhAccent.Coral -> onHeader
     HhAccent.Jade -> onBrand
-    HhAccent.Marigold -> onSpecial
+    HhAccent.Marigold -> onPrimaryContainer
 }
 
 enum class HhOnColorChipStyle { White, Outline, Ink }
@@ -83,7 +83,7 @@ fun HhSolidCard(
     subtitle: String,
     modifier: Modifier = Modifier,
     openAction: HhOpenAction? = null,
-    decoration: HhDecorationKind? = HhDecorationKind.Squiggle,
+    decoration: HhDecorationKind? = null,
     chips: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val colors = HhTheme.colors
@@ -95,7 +95,7 @@ fun HhSolidCard(
             if (decoration != null) {
                 HhDecoration(
                     kind = decoration,
-                    color = if (accent == HhAccent.Marigold) colors.coral else colors.special,
+                    color = onFill.copy(alpha = 0.25f),
                     modifier = Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = 70.dp),
                 )
             }
@@ -108,7 +108,7 @@ fun HhSolidCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    HhAccentMonogram(monogram, if (accent == HhAccent.Marigold) ink else fill)
+                    HhAccentMonogram(monogram, ink)
                     if (openAction != null) {
                         HhIconButton(
                             icon = HhIcons.ArrowForward,

@@ -331,7 +331,7 @@ private fun NewFactRow(id: String, text: String) {
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill)
-            .border(2.dp, HhTheme.colors.brand, HhTheme.shapes.pill)
+            .border(2.dp, HhTheme.colors.primary, HhTheme.shapes.pill)
             .padding(start = 14.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
     ) {

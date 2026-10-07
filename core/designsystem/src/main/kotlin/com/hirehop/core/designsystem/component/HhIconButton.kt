@@ -69,7 +69,7 @@ fun HhHeaderIconButton(
         contentDescription = contentDescription,
         onClick = onClick,
         modifier = modifier,
-        tint = HhTheme.colors.onHeader,
+        tint = HhTheme.colors.onHeaderControl,
         containerColor = HhTheme.colors.headerControl,
         borderColor = Color.Transparent,
     )

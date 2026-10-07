@@ -43,8 +43,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhPillRow
@@ -53,7 +51,6 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusDisc
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.onboarding.impl.R
@@ -71,19 +68,7 @@ private val PROGRESS_RING_STROKE = 16.dp
 private val STAGE_MARK_SIZE = 24.dp
 private val STOP_BADGE_ICON_SIZE = 18.dp
 private val STOP_BADGE_HEIGHT = 34.dp
-private val STOP_HERO_HEIGHT = 196.dp
-private val STOP_HERO_DISC = 150.dp
-private val STOP_ART_WIDTH = 147.dp
-private val STOP_ART_HEIGHT = 196.dp
 private val TRY_NUMBER_SIZE = 28.dp
-private val CHOOSE_ART_HEIGHT = 216.dp
-private val CHOOSE_ART_WIDTH = 162.dp
-private val CHOOSE_ART_RIGHT = 44.dp
-private val CHOOSE_DISC_SIZE = 200.dp
-private val CHOOSE_LOOP_X = 40.dp
-private val CHOOSE_LOOP_Y = 12.dp
-private val CHOOSE_PLUS_X = 110.dp
-private val CHOOSE_PLUS_Y = 130.dp
 private val HAIRLINE = 1.dp
 private val LIFTED_FACTS_SHOWN = 3
 
@@ -221,33 +206,22 @@ private fun DeleteNote() {
 @Composable
 private fun ChooseIllustration() {
     Box(
-        modifier = Modifier.fillMaxWidth().height(CHOOSE_ART_HEIGHT),
-        contentAlignment = Alignment.BottomEnd,
+        modifier = Modifier.fillMaxWidth().height(144.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = HhTheme.spacing.xl)
-                .size(CHOOSE_DISC_SIZE)
-                .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Loop,
-            color = HhTheme.colors.coral,
-            modifier = Modifier.align(Alignment.TopStart).padding(start = CHOOSE_LOOP_X, top = CHOOSE_LOOP_Y),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Plus,
-            color = HhTheme.colors.special,
-            modifier = Modifier.align(Alignment.TopStart).padding(start = CHOOSE_PLUS_X, top = CHOOSE_PLUS_Y),
-        )
-        HhCharacterIllustration(
-            illustration = HhIllustration.Hero,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = CHOOSE_ART_RIGHT)
-                .size(width = CHOOSE_ART_WIDTH, height = CHOOSE_ART_HEIGHT),
-        )
+                .size(112.dp)
+                .background(HhTheme.colors.header, HhTheme.shapes.card),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = HhIcons.Description,
+                contentDescription = null,
+                tint = HhTheme.colors.brand,
+                modifier = Modifier.size(52.dp),
+            )
+        }
     }
 }
 
@@ -422,7 +396,7 @@ private fun StageRow(kind: HhStatusKind, label: String, status: String?) {
             Text(
                 text = status,
                 style = HhTheme.typography.labelL,
-                color = if (kind == HhStatusKind.Met) HhTheme.colors.brand else HhTheme.colors.onPrimaryContainer,
+                color = if (kind == HhStatusKind.Met) HhTheme.colors.primary else HhTheme.colors.onPrimaryContainer,
             )
         }
     }
@@ -497,10 +471,7 @@ private fun ReadingOutcome(uiState: ImportResumeUiState) {
 
 @Composable
 private fun QueuedContent(uiState: ImportResumeUiState) {
-    StopHero(
-        illustration = HhIllustration.Offline,
-        contentDescription = stringResource(R.string.feature_onboarding_impl_import_resume_spot_offline_description),
-    )
+    StopHero(contentDescription = stringResource(R.string.feature_onboarding_impl_import_resume_spot_offline_description))
     Text(
         text = stringResource(R.string.feature_onboarding_impl_import_resume_queued_title),
         style = HhTheme.typography.headlineL,
@@ -543,7 +514,7 @@ private fun WaitingFileChip(fileName: String) {
 @Composable
 private fun StopContent(uiState: ImportResumeUiState) {
     val copy = stopCopy(uiState)
-    StopHero(illustration = copy.illustration, contentDescription = stringResource(copy.description))
+    StopHero(contentDescription = stringResource(copy.description))
     if (copy.badge != null) {
         StopBadge(label = copy.badge)
     }
@@ -553,38 +524,21 @@ private fun StopContent(uiState: ImportResumeUiState) {
 }
 
 @Composable
-private fun StopHero(illustration: HhIllustration, contentDescription: String) {
-    Box(modifier = Modifier.fillMaxWidth().height(STOP_HERO_HEIGHT)) {
+private fun StopHero(contentDescription: String) {
+    Box(modifier = Modifier.fillMaxWidth().height(144.dp), contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = HhTheme.spacing.xl)
-                .size(STOP_HERO_DISC)
-                .clip(HhTheme.shapes.pill)
-                .background(HhTheme.colors.card)
-                .border(HAIRLINE, HhTheme.colors.outlineVariant, HhTheme.shapes.pill),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Zigzag,
-            color = HhTheme.colors.coral,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = HhTheme.spacing.d32, end = HhTheme.spacing.d40),
-        )
-        HhDecoration(
-            kind = HhDecorationKind.Ring,
-            color = HhTheme.colors.special,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = HhTheme.spacing.d32 + HhTheme.spacing.lg, bottom = HhTheme.spacing.d32),
-        )
-        HhCharacterIllustration(
-            illustration = illustration,
-            contentDescription = contentDescription,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .size(width = STOP_ART_WIDTH, height = STOP_ART_HEIGHT),
-        )
+                .size(112.dp)
+                .background(HhTheme.colors.header, HhTheme.shapes.card),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = HhIcons.Description,
+                contentDescription = contentDescription,
+                tint = HhTheme.colors.onHeader,
+                modifier = Modifier.size(52.dp),
+            )
+        }
     }
 }
 

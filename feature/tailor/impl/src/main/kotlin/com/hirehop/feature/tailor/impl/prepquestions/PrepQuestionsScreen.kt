@@ -479,7 +479,7 @@ private fun FactsRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit)
         Text(
             text = stringResource(R.string.feature_tailor_impl_prep_questions_facts_label),
             style = HhTheme.typography.labelM,
-            color = HhTheme.colors.brand,
+            color = HhTheme.colors.primary,
         )
         FactChip(id = fact.displayId, card = card, onFact = onFact)
     }

@@ -35,8 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhContentSwitch
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhIconActionBar
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhInkButton
@@ -205,7 +203,7 @@ private fun HeaderPill(text: String) {
     val colors = HhTheme.colors
     Box(
         modifier = Modifier
-            .background(colors.brandPressed, HhTheme.shapes.pill)
+            .background(colors.brand, HhTheme.shapes.pill)
             .heightIn(min = HhTheme.spacing.d32)
             .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
         contentAlignment = Alignment.Center,
@@ -434,16 +432,6 @@ private fun FailedContent(padding: PaddingValues, title: String, body: String) {
                     ) {
                         HhSpotIllustration(kind = HhSpotKind.Error, modifier = Modifier.align(Alignment.BottomCenter))
                     }
-                    HhDecoration(
-                        kind = HhDecorationKind.Zigzag,
-                        color = colors.coral,
-                        modifier = Modifier.align(Alignment.CenterStart),
-                    )
-                    HhDecoration(
-                        kind = HhDecorationKind.Ring,
-                        color = colors.special,
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                    )
                 }
                 Row(
                     modifier = Modifier
@@ -663,7 +651,6 @@ private fun RegenerateSheet(
                 modifier = Modifier.size(HhTheme.spacing.d24),
             )
         }
-        HhDecoration(kind = HhDecorationKind.Squiggle, color = colors.coral)
     }
     Text(text = title, style = HhTheme.typography.headlineM, color = colors.onSurface, modifier = Modifier.fillMaxWidth())
     Text(text = message, style = HhTheme.typography.bodyM, color = colors.onSurfaceVariant, modifier = Modifier.fillMaxWidth())

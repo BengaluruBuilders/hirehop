@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +44,7 @@ fun HhInnerHeader(
         modifier = modifier
             .fillMaxWidth()
             .layoutId(HhHeaderData(drawsAboveContent = false, overlap = overlap))
-            .hhHeaderBackdrop(colors.header, colors.special, colors.headerShape, statusTop + INNER_DECORATION_TOP, null, if (extended) 0.dp else HhHeroBottomRadius)
+            .hhHeaderBackdrop(colors.header, null, if (extended) 0.dp else HhHeroBottomRadius)
             .heightIn(min = minHeight + statusTop),
     ) {
         Row(
@@ -61,7 +59,9 @@ fun HhInnerHeader(
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
             verticalAlignment = Alignment.Top,
         ) {
-            HhInnerHeaderLeading(onBack, backContentDescription, backIcon)
+            if (onBack != null) {
+                HhHeaderIconButton(icon = backIcon, contentDescription = backContentDescription, onClick = onBack)
+            }
             HhInnerHeaderTitle(title, subtitle, belowTitle, Modifier.weight(1f))
             Box(modifier = Modifier.defaultMinSize(minWidth = HhHeightTouch), contentAlignment = Alignment.CenterEnd) {
                 if (trailing != null) {
@@ -69,15 +69,6 @@ fun HhInnerHeader(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HhInnerHeaderLeading(onBack: (() -> Unit)?, description: String, icon: ImageVector) {
-    if (onBack == null) {
-        Spacer(Modifier.size(HhHeightTouch))
-    } else {
-        HhHeaderIconButton(icon = icon, contentDescription = description, onClick = onBack)
     }
 }
 
@@ -90,21 +81,21 @@ private fun HhInnerHeaderTitle(
 ) {
     Column(
         modifier = modifier.padding(top = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
             text = title,
             style = HhTheme.typography.titleL,
             color = HhTheme.colors.onHeader,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Start,
         )
         if (subtitle != null) {
             Text(
                 text = subtitle,
                 style = HhTheme.typography.bodyS,
                 color = HhTheme.colors.onHeaderVariant,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
         if (belowTitle != null) {
@@ -113,8 +104,7 @@ private fun HhInnerHeaderTitle(
     }
 }
 
-private val HhHeroBottomRadius = 48.dp
-private val INNER_DECORATION_TOP = 80.dp
+private val HhHeroBottomRadius = 28.dp
 
 @Preview(showBackground = true)
 @Composable

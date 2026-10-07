@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -129,6 +132,17 @@ class HhComponentsScreenshotTest {
             HhDockItem(selected = true, onClick = {}, label = "Applications") { HhDockIcon(HhIcons.Applications) }
             HhDockItem(selected = false, onClick = {}, label = "Profile") { HhDockIcon(HhIcons.Profile) }
             HhDockItem(selected = false, onClick = {}, label = "Settings") { HhDockIcon(HhIcons.Settings) }
+        }
+    }
+
+    @Test
+    fun dockAt200Percent() = capture("HhDockFont200") {
+        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f)) {
+            HhDock {
+                HhDockItem(selected = true, onClick = {}, label = "Applications") { HhDockIcon(HhIcons.Applications) }
+                HhDockItem(selected = false, onClick = {}, label = "Profile") { HhDockIcon(HhIcons.Profile) }
+                HhDockItem(selected = false, onClick = {}, label = "Settings") { HhDockIcon(HhIcons.Settings) }
+            }
         }
     }
 }

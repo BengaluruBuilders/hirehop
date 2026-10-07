@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +34,6 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
 import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.account.AccountDeletionCounts
@@ -171,12 +171,13 @@ internal fun IllustrationCircle(illustration: HhIllustration, size: Dp, descript
         modifier = Modifier
             .size(size)
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.primaryContainer),
-        contentAlignment = Alignment.BottomCenter,
+            .background(HhTheme.colors.header),
+        contentAlignment = Alignment.Center,
     ) {
-        HhCharacterIllustration(
-            illustration = illustration,
-            modifier = Modifier.size(size),
+        Icon(
+            imageVector = if (illustration == HhIllustration.Offline) HhIcons.Block else HhIcons.CheckCircle,
+            tint = HhTheme.colors.brand,
+            modifier = Modifier.size(size / 2),
             contentDescription = description,
         )
     }

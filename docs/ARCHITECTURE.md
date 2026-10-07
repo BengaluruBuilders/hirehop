@@ -9,7 +9,7 @@ The prototype has no backend. All "AI" steps run as deterministic, offline Kotli
 backend implementation can replace them later (dependency inversion). Sign-in, payment, and the account state
 are mock implementations. `docs/MOCK_BACKEND.md` describes them.
 
-The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/DESIGN_SYSTEM.md` holds the components.
+The current look follows `docs/AVVIO_REDESIGN.md`. `docs/DESIGN_SYSTEM.md` holds the tokens and components.
 
 ## 1. Coding standards
 
@@ -37,7 +37,7 @@ The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/
 | `:app` | application | `HireHopApplication` (@HiltAndroidApp), `MainActivity`, `HhApp`, `AppViewModel`, `AppRootState`, the three top-level destinations, Nav3 wiring. The `debug` source set holds the developer menu |
 | `:core:model` | jvm library | Pure Kotlin data models (section 3) |
 | `:core:common` | android library | `Dispatcher` qualifier, `HhDispatchers`, dispatchers + application-scope DI modules, `Result` wrapper |
-| `:core:designsystem` | library compose | `HhTheme` with the "Friendly hero, Jade" tokens (colour, type, shape, spacing, elevation, motion). `HhScreen` and the headers `HhHomeHeader` and `HhInnerHeader`. `HhDock`, `HhBottomActionBar`, sheets, dialogs, cards, chips, and text fields. Spot illustrations (`HhSpotIllustration`, `HhCharacterIllustration`) as vector drawables. `docs/DESIGN_SYSTEM.md` lists every component |
+| `:core:designsystem` | library compose | `HhTheme` with the Avvio-inspired tokens (colour, type, shape, spacing, elevation, motion). `HhScreen` and the headers `HhHomeHeader` and `HhInnerHeader`. `HhDock`, `HhBottomActionBar`, sheets, dialogs, cards, chips, and text fields. `docs/DESIGN_SYSTEM.md` lists every component |
 | `:core:ui` | library compose | Shared UI pieces used by more than one feature |
 | `:core:navigation` | library | NiA `Navigator` and `NavigationState` pattern. `PendingNavigation` holds keys to push when the main root opens |
 | `:core:database` | library + room + hilt | Room DB, entities, DAOs, type converters. It holds the profile and the applications |
@@ -293,9 +293,8 @@ free credit.
 
 ### Fonts
 
-The UI will use Plus Jakarta Sans for text and IBM Plex Mono 500 for fact IDs. Today `HhFontFamilies` in
-`core:designsystem` points to Anek Latin (text) and JetBrains Mono (fact IDs). Plus Jakarta Sans and IBM Plex Mono
-replace them when the font files are added. The families are defined in one place, so no other file changes.
+The UI uses bundled Open Sans for text and IBM Plex Mono 500 for fact IDs. `HhFontFamilies` in
+`core:designsystem` defines both families. Font licenses are in `core/designsystem/fonts-licenses/`.
 
 ## 7. Build and host rules
 

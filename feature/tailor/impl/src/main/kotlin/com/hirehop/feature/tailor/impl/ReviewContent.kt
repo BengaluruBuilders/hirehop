@@ -44,8 +44,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhIconButton
@@ -219,11 +217,6 @@ private fun AllReviewedNotice(state: TailorUiState.Success) {
             .background(colors.special, HhTheme.shapes.card)
             .padding(HhTheme.spacing.cardPadding),
     ) {
-        HhDecoration(
-            kind = HhDecorationKind.Squiggle,
-            color = colors.brand,
-            modifier = Modifier.align(Alignment.TopEnd),
-        )
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
             Text(
                 text = stringResource(R.string.feature_tailor_impl_all_reviewed_title, state.totalCount),
@@ -377,13 +370,13 @@ private fun SectionCountLabel(changeCount: Int, reviewedCount: Int, canRegenerat
             Icon(
                 imageVector = HhIcons.CheckCircle,
                 contentDescription = null,
-                tint = colors.brand,
+                tint = colors.primary,
                 modifier = Modifier.size(HhTheme.spacing.d16),
             )
             Text(
                 text = stringResource(R.string.feature_tailor_impl_section_reviewed),
                 style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-                color = colors.brand,
+                color = colors.primary,
             )
         }
         reviewedCount > 0 -> Text(

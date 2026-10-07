@@ -3,7 +3,7 @@ package com.hirehop.feature.profile.impl.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -50,10 +50,10 @@ internal fun FactIdChip(
     Row(
         modifier = modifier
             .clearAndSetSemantics { contentDescription = description }
-            .height(ChipHeight)
+            .heightIn(min = ChipHeight)
             .background(container, shape)
             .then(if (dashed) Modifier.dashedBorder(colors.outline) else Modifier)
-            .padding(horizontal = HhTheme.spacing.md),
+            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.xxs),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -81,10 +81,10 @@ internal fun ToConfirmChip(
     val fill = if (onHeader) colors.onHeader.copy(alpha = HEADER_FILL_ALPHA) else Color.Transparent
     Row(
         modifier = modifier
-            .height(ChipHeight)
+            .heightIn(min = ChipHeight)
             .background(fill, HhTheme.shapes.pill)
             .dashedBorder(line)
-            .padding(horizontal = HhTheme.spacing.md),
+            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = label, style = HhTheme.typography.labelM, color = content)

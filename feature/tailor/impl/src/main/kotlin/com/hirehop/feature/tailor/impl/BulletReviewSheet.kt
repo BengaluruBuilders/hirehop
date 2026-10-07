@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -41,8 +40,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhEvidenceMark
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
@@ -231,13 +228,6 @@ private fun AcceptedBanner(left: Int) {
                 color = colors.onBrand,
             )
         }
-        HhDecoration(
-            kind = HhDecorationKind.Squiggle,
-            color = colors.special,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = -HhTheme.spacing.md, y = HhTheme.spacing.sm),
-        )
     }
 }
 

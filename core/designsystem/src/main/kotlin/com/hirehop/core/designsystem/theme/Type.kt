@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.sp
 import com.hirehop.core.designsystem.R
 
 @OptIn(ExperimentalTextApi::class)
-private fun jakarta(weight: FontWeight) = Font(
-    R.font.core_designsystem_plus_jakarta_sans,
+private fun openSans(weight: FontWeight) = Font(
+    R.font.core_designsystem_open_sans,
     weight,
     variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
 )
@@ -26,10 +26,10 @@ private fun jakarta(weight: FontWeight) = Font(
 @OptIn(ExperimentalTextApi::class)
 object HhFontFamilies {
     val sans = FontFamily(
-        jakarta(FontWeight.Normal),
-        jakarta(FontWeight.SemiBold),
-        jakarta(FontWeight.Bold),
-        jakarta(FontWeight.ExtraBold),
+        openSans(FontWeight.Normal),
+        openSans(FontWeight.Medium),
+        openSans(FontWeight.Bold),
+        openSans(FontWeight.ExtraBold),
     )
 
     val mono = FontFamily(
@@ -79,21 +79,21 @@ internal object HhTypographyTokens {
     )
 
     val Default = HhTypography(
-        displayL = sans(36, 40, FontWeight.ExtraBold, (-0.6 / 36).em),
-        displayM = sans(32, 38, FontWeight.ExtraBold, (-0.5 / 32).em),
-        headlineL = sans(28, 34, FontWeight.ExtraBold, (-0.4 / 28).em),
-        headlineM = sans(22, 28, FontWeight.ExtraBold, (-0.01).em),
-        titleL = sans(20, 26, FontWeight.ExtraBold, 0.em),
-        titleM = sans(16, 22, FontWeight.Bold, 0.em),
-        titleS = sans(14, 20, FontWeight.Bold, 0.em),
-        bodyL = sans(15, 22, FontWeight.Normal, 0.em),
-        bodyM = sans(14, 21, FontWeight.Normal, 0.em),
-        labelL = sans(13, 18, FontWeight.SemiBold, 0.em),
-        labelM = sans(12, 16, FontWeight.SemiBold, 0.em),
-        button = sans(16, 20, FontWeight.Bold, 0.em),
+        displayL = sans(36, 42, FontWeight.Medium, (-0.02).em),
+        displayM = sans(32, 39, FontWeight.Medium, (-0.02).em),
+        headlineL = sans(28, 36, FontWeight.Medium, (-0.01).em),
+        headlineM = sans(22, 30, FontWeight.Medium, (-0.01).em),
+        titleL = sans(20, 28, FontWeight.Medium, 0.em),
+        titleM = sans(16, 24, FontWeight.Bold, 0.em),
+        titleS = sans(14, 21, FontWeight.Bold, 0.em),
+        bodyL = sans(16, 24, FontWeight.Normal, 0.em),
+        bodyM = sans(14, 22, FontWeight.Normal, 0.em),
+        labelL = sans(13, 19, FontWeight.Bold, 0.em),
+        labelM = sans(12, 18, FontWeight.Bold, 0.em),
+        button = sans(15, 22, FontWeight.Bold, 0.04.em),
         bodyS = sans(12, 16, FontWeight.Normal, 0.01.em),
-        numeralHero = sans(44, 48, FontWeight.ExtraBold, (-0.02).em),
-        numeralM = sans(18, 24, FontWeight.Bold, 0.em),
+        numeralHero = sans(44, 52, FontWeight.ExtraBold, (-0.02).em),
+        numeralM = sans(18, 26, FontWeight.ExtraBold, 0.em),
         factId = TextStyle(
             fontFamily = HhFontFamilies.mono,
             fontWeight = FontWeight.Medium,

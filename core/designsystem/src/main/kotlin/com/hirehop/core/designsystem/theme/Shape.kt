@@ -26,17 +26,17 @@ class HhShapes(
 
 internal object HhShapesDefaults {
     val Default = HhShapes(
-        sheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        heroCard = RoundedCornerShape(28.dp),
-        card = RoundedCornerShape(28.dp),
-        field = RoundedCornerShape(20.dp),
+        sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        heroCard = RoundedCornerShape(22.dp),
+        card = RoundedCornerShape(20.dp),
+        field = RoundedCornerShape(16.dp),
         pill = CircleShape,
         tag = RoundedCornerShape(8.dp),
         banner = RoundedCornerShape(20.dp),
-        pillRow = RoundedCornerShape(36.dp),
-        statusRow = RoundedCornerShape(24.dp),
-        heroBottom = RoundedCornerShape(bottomStart = 48.dp, bottomEnd = 48.dp),
-        modalSheet = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        pillRow = RoundedCornerShape(24.dp),
+        statusRow = RoundedCornerShape(18.dp),
+        heroBottom = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp),
+        modalSheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     )
 }
 
@@ -46,7 +46,7 @@ val LocalHhShapes: ProvidableCompositionLocal<HhShapes> =
 internal val HhMaterialShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(32.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(24.dp),
 )

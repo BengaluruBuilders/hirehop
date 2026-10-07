@@ -109,7 +109,7 @@ private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind
             .background(
                 color = when (kind) {
                     WaitingPillKind.Done -> colors.brand
-                    WaitingPillKind.InProgress -> colors.special
+                    WaitingPillKind.InProgress -> colors.header
                     WaitingPillKind.UpNext -> colors.card
                 },
                 shape = HhTheme.shapes.pill,
@@ -129,20 +129,23 @@ private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .background(colors.surface, HhTheme.shapes.pill),
+                .background(
+                    if (kind == WaitingPillKind.InProgress) colors.onHeader.copy(alpha = 0.12f) else colors.surface,
+                    HhTheme.shapes.pill,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             when (kind) {
                 WaitingPillKind.Done -> Icon(
                     imageVector = HhIcons.Check,
                     contentDescription = null,
-                    tint = colors.brand,
+                    tint = colors.primary,
                     modifier = Modifier.size(24.dp),
                 )
                 WaitingPillKind.InProgress -> Icon(
                     imageVector = HhIcons.Clock,
                     contentDescription = null,
-                    tint = colors.onSurface,
+                    tint = colors.onHeader,
                     modifier = Modifier.size(24.dp),
                 )
                 WaitingPillKind.UpNext -> Box(
@@ -161,7 +164,7 @@ private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind
                 style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
                 color = when (kind) {
                     WaitingPillKind.Done -> colors.onBrand
-                    WaitingPillKind.InProgress -> colors.onSurface
+                    WaitingPillKind.InProgress -> colors.onHeader
                     WaitingPillKind.UpNext -> colors.onSurface
                 },
             )
@@ -169,8 +172,8 @@ private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind
                 text = stateLabel,
                 style = HhTheme.typography.labelM,
                 color = when (kind) {
-                    WaitingPillKind.Done -> colors.onHeaderVariant
-                    WaitingPillKind.InProgress -> colors.onSurface
+                    WaitingPillKind.Done -> colors.onBrand
+                    WaitingPillKind.InProgress -> colors.onHeaderVariant
                     WaitingPillKind.UpNext -> colors.onSurfaceVariant
                 },
             )

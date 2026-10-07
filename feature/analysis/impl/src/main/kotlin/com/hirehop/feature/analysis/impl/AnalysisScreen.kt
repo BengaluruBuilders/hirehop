@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -42,8 +41,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hirehop.core.designsystem.component.HhBackButton
 import com.hirehop.core.designsystem.component.HhContentSwitch
-import com.hirehop.core.designsystem.component.HhDecoration
-import com.hirehop.core.designsystem.component.HhDecorationKind
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
@@ -84,10 +81,6 @@ private val ChipHeight = 32.dp
 private val PillHeight = 48.dp
 private val PillIconSize = 18.dp
 private val ShareIconSize = 18.dp
-private val RingTop = 104.dp
-private val RingEnd = 22.dp
-private val SquiggleBottom = 3.dp
-private val SquiggleEnd = 86.dp
 
 @Composable
 internal fun AnalysisRoute(
@@ -266,7 +259,6 @@ private fun AnalysisHeader(
             .clip(shape)
             .background(HhTheme.colors.header),
     ) {
-        HeaderDecorations()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -285,25 +277,6 @@ private fun AnalysisHeader(
             }
         }
     }
-}
-
-@Composable
-private fun BoxScope.HeaderDecorations() {
-    val colors = HhTheme.colors
-    HhDecoration(
-        kind = HhDecorationKind.Ring,
-        color = colors.special,
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = RingTop, end = RingEnd),
-    )
-    HhDecoration(
-        kind = HhDecorationKind.Squiggle,
-        color = colors.headerShape,
-        modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(bottom = SquiggleBottom, end = SquiggleEnd),
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -336,7 +309,7 @@ private fun ShareFitPill(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.brandPressed, HhTheme.shapes.pill)
+            .background(HhTheme.colors.brand, HhTheme.shapes.pill)
             .clickable(role = Role.Button, onClick = onClick),
     ) {
         Row(
@@ -349,13 +322,13 @@ private fun ShareFitPill(onClick: () -> Unit) {
             Icon(
                 imageVector = HhIcons.Share,
                 contentDescription = null,
-                tint = HhTheme.colors.onHeader,
+                tint = HhTheme.colors.onBrand,
                 modifier = Modifier.size(ShareIconSize),
             )
             Text(
                 text = stringResource(R.string.feature_analysis_impl_share_my_fit),
                 style = HhTheme.typography.titleS,
-                color = HhTheme.colors.onHeader,
+                color = HhTheme.colors.onBrand,
             )
         }
     }
@@ -391,7 +364,7 @@ private fun HeaderMonogram(name: String) {
             .background(HhTheme.colors.onHeader),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = name.initials(), style = HhTheme.typography.titleM, color = HhTheme.colors.brand)
+        Text(text = name.initials(), style = HhTheme.typography.titleM, color = HhTheme.colors.header)
     }
 }
 

@@ -9,8 +9,8 @@ object HhDockDefaults {
 }
 
 object HhOverlap {
-    val Sheet: Dp = 28.dp
-    val HeroCard: Dp = 96.dp
+    val Sheet: Dp = 24.dp
+    val HeroCard: Dp = 80.dp
 }
 
 internal val HhHeightTouch: Dp = 48.dp
@@ -18,11 +18,12 @@ internal val HhHeightButtonLarge: Dp = 60.dp
 internal val HhHeightButtonCompact: Dp = 44.dp
 internal val HhHeightField: Dp = 56.dp
 internal val HhHeightDock: Dp = HhDockDefaults.height
-internal val HhHeightHomeHeader: Dp = 290.dp
-internal val HhHeightCompactHomeHeader: Dp = 200.dp
-internal val HhHeightCollapsedHomeHeader: Dp = 96.dp
-internal val HhHeightInnerHeader: Dp = 200.dp
-internal val HhHeightInnerHeaderCompact: Dp = 88.dp
+internal val HhDockLargeFontExtra: Dp = 48.dp
+internal val HhHeightHomeHeader: Dp = 244.dp
+internal val HhHeightCompactHomeHeader: Dp = 164.dp
+internal val HhHeightCollapsedHomeHeader: Dp = 84.dp
+internal val HhHeightInnerHeader: Dp = 164.dp
+internal val HhHeightInnerHeaderCompact: Dp = 80.dp
 internal val HhWidthStrokeFocus: Dp = 2.dp
 internal val HhWidthUnderline: Dp = 2.dp
 internal val HhSizeStatusMark: Dp = 18.dp

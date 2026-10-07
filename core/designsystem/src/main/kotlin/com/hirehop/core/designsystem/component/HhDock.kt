@@ -29,7 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
@@ -41,6 +43,7 @@ fun HhDock(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val largeText = LocalDensity.current.fontScale >= 1.5f
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -53,7 +56,7 @@ fun HhDock(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(HhHeightDock)
+                .height(HhHeightDock + if (largeText) HhDockLargeFontExtra else 0.dp)
                 .hhShadow(HhTheme.elevation.dock, HhTheme.shapes.pill)
                 .clip(HhTheme.shapes.pill)
                 .background(HhTheme.colors.tool)
@@ -63,7 +66,8 @@ fun HhDock(
                     } else {
                         Modifier
                     },
-                ),
+                )
+                .padding(horizontal = if (largeText) HhTheme.spacing.lg else 0.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
             content = content,
@@ -79,6 +83,7 @@ fun RowScope.HhDockItem(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
 ) {
+    val largeText = LocalDensity.current.fontScale >= 1.5f
     val tint by animateColorAsState(
         targetValue = if (selected) HhTheme.colors.onToolSelected else HhTheme.colors.onToolVariant,
         animationSpec = HhTheme.motion.proofSpecs.color,
@@ -105,7 +110,8 @@ fun RowScope.HhDockItem(
             text = label,
             style = HhTheme.typography.labelM,
             color = tint,
-            maxLines = 1,
+            textAlign = TextAlign.Center,
+            maxLines = if (largeText) 2 else 1,
         )
     }
 }

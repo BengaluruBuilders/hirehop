@@ -1,13 +1,16 @@
 package com.hirehop.core.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
@@ -22,6 +25,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.screenshot.HhTestDevice
 import com.hirehop.core.screenshot.captureMultiTheme
@@ -40,6 +44,8 @@ private const val SWIPE_START = 0.6f
 private const val SWIPE_END = 0.1f
 private const val SWIPE_X = 4f
 private const val FORM_TAG = "form"
+private const val CONTENT_TAG = "content"
+private const val DOCK_TAG = "dock"
 
 private val device = HhTestDevice("landscape-phone", LANDSCAPE_QUALIFIERS, 1.0f)
 
@@ -105,6 +111,27 @@ class HhScreenLandscapeScreenshotTest {
         assertTrue(role.bottom <= action.top)
         composeRule.onNodeWithText("Paste a job description").assertIsNotDisplayed()
         composeRule.onAllNodes(isFocused()).assertCountEquals(0)
+    }
+
+    @Test
+    fun dockKeepsContentOutOfItsViewport() {
+        composeRule.setContent {
+            HhTheme {
+                Box(Modifier.fillMaxSize()) {
+                    CompositionLocalProvider(LocalHhBottomInset provides HhDockDefaults.inset) {
+                        HhScreen { padding ->
+                            Box(Modifier.fillMaxSize().testTag(CONTENT_TAG).padding(padding))
+                        }
+                    }
+                    HhDock(Modifier.align(Alignment.BottomCenter).testTag(DOCK_TAG)) {
+                        HhDockItem(selected = true, onClick = {}, label = "Applications") { HhDockIcon(HhIcons.Applications) }
+                    }
+                }
+            }
+        }
+        val content = composeRule.onNodeWithTag(CONTENT_TAG).getUnclippedBoundsInRoot()
+        val dock = composeRule.onNodeWithTag(DOCK_TAG).getUnclippedBoundsInRoot()
+        assertTrue(content.bottom <= dock.top)
     }
 
     @Test

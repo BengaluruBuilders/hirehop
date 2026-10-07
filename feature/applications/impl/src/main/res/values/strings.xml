@@ -6,7 +6,7 @@
     <string name="feature_applications_impl_greeting_anonymous">Hi there</string>
     <string name="feature_applications_impl_headline">Your facts, every job</string>
     <string name="feature_applications_impl_paste_job">Paste a job</string>
-    <string name="feature_applications_impl_credits_label">left</string>
+    <string name="feature_applications_impl_credits_label">credits left</string>
     <plurals name="feature_applications_impl_credits_description">
         <item quantity="one">%1$d credit left. Open Credits and help</item>
         <item quantity="other">%1$d credits left. Open Credits and help</item>
@@ -20,9 +20,7 @@
     <string name="feature_applications_impl_company_not_set">Company not set</string>
     <string name="feature_applications_impl_monogram_not_set">–</string>
     <string name="feature_applications_impl_row_company_updated">%1$s · %2$s</string>
-    <string name="feature_applications_impl_pill_subtitle">%1$s · %2$s · %3$s</string>
     <string name="feature_applications_impl_row_description">%1$s at %2$s. %3$s. %4$s. %5$s.</string>
-    <string name="feature_applications_impl_row_open">Open %1$s</string>
     <string name="feature_applications_impl_row_change_status">Change status</string>
     <string name="feature_applications_impl_coverage_fraction">%1$d / %2$d</string>
     <string name="feature_applications_impl_coverage_key_terms">%1$d&#160;/&#160;%2$d&#160;key&#160;terms</string>

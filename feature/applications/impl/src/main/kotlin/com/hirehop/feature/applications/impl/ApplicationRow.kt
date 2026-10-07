@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,23 +18,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhApplicationStatusChip
-import com.hirehop.core.designsystem.component.HhOpenAction
+import com.hirehop.core.designsystem.component.HhCoverageBar
 import com.hirehop.core.designsystem.component.HhPillRow
 import com.hirehop.core.designsystem.component.HhPillRowStyle
-import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
@@ -40,6 +35,7 @@ import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.ui.ApplicationStatusKindMapper
 import kotlin.time.Instant
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ApplicationRow(
     row: ApplicationListRow,
@@ -71,92 +67,42 @@ internal fun ApplicationRow(
             contentDescription = rowDescription
             customActions = listOf(changeStatusAction)
         }
-    val openRole = stringResource(R.string.feature_applications_impl_row_open, role)
     val coverageLine = stringResource(
         R.string.feature_applications_impl_coverage_key_terms,
         row.coverage.covered,
         row.coverage.total,
     )
-    if (row.isExported) {
-        val syncPending = stringResource(R.string.feature_applications_impl_sync_pending)
-        val subtitle = stringResource(
-            id = R.string.feature_applications_impl_pill_subtitle,
-            statusLabel,
-            company,
-            updatedLabel,
-        ) + (if (row.isSyncPending) " · $syncPending" else "") + "\n" + coverageLine
-        HhPillRow(
-            title = role,
-            onClick = onClick,
-            style = row.status.pillStyle(),
-            subtitle = subtitle,
-            icon = row.status.pillIcon(),
-            modifier = rowModifier,
+    HhPillRow(
+        title = role,
+        onClick = onClick,
+        style = HhPillRowStyle.Neutral,
+        subtitle = stringResource(R.string.feature_applications_impl_row_company_updated, company, updatedLabel),
+        monogram = monogramOf(row.company),
+        titleMaxLines = 2,
+        modifier = rowModifier,
+    ) {
+        HhCoverageBar(
+            met = row.coverage.covered,
+            partial = 0,
+            gap = row.coverage.total - row.coverage.covered,
         )
-    } else {
-        HhSolidCard(
-            accent = row.status.accent(),
-            monogram = monogramOf(row.company),
-            title = role,
-            subtitle = stringResource(
-                id = R.string.feature_applications_impl_row_company_updated,
-                company,
-                updatedLabel,
-            ) + "\n" + coverageLine,
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(HhTheme.shapes.card)
-                .clickable(role = Role.Button, onClick = onClick)
-                .clearAndSetSemantics {
-                    contentDescription = rowDescription
-                    this.role = Role.Button
-                    customActions = listOf(changeStatusAction)
-                    onClick {
-                        onClick()
-                        true
-                    }
-                },
-            openAction = HhOpenAction(contentDescription = openRole, onClick = onClick),
-            chips = {
-                HhApplicationStatusChip(
-                    kind = ApplicationStatusKindMapper().kindOf(row.status),
-                    label = statusLabel,
-                    modifier = Modifier
-                        .defaultMinSize(minHeight = HhTheme.spacing.touch)
-                        .clip(HhTheme.shapes.pill)
-                        .clickable(onClick = onStatusClick),
-                )
-                if (row.isSyncPending) SyncPendingChip()
-            },
-        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhApplicationStatusChip(
+                kind = ApplicationStatusKindMapper().kindOf(row.status),
+                label = statusLabel,
+                modifier = Modifier
+                    .defaultMinSize(minHeight = HhTheme.spacing.touch)
+                    .clip(HhTheme.shapes.pill)
+                    .clickable(onClick = onStatusClick),
+            )
+            Text(text = coverageLine, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
+            if (row.isSyncPending) SyncPendingChip()
+        }
     }
-}
-
-private fun ApplicationStatus.pillStyle(): HhPillRowStyle = when (this) {
-    ApplicationStatus.SAVED -> HhPillRowStyle.Ink
-    ApplicationStatus.APPLIED -> HhPillRowStyle.Jade
-    ApplicationStatus.INTERVIEW -> HhPillRowStyle.Jade
-    ApplicationStatus.OFFER -> HhPillRowStyle.Marigold
-    ApplicationStatus.REJECTED -> HhPillRowStyle.Coral
-    ApplicationStatus.NO_RESPONSE -> HhPillRowStyle.Ink
-}
-
-private fun ApplicationStatus.pillIcon(): ImageVector = when (this) {
-    ApplicationStatus.SAVED -> HhIcons.Bookmark
-    ApplicationStatus.APPLIED -> HhIcons.Send
-    ApplicationStatus.INTERVIEW -> HhIcons.Calendar
-    ApplicationStatus.OFFER -> HhIcons.Award
-    ApplicationStatus.REJECTED -> HhIcons.CancelCircle
-    ApplicationStatus.NO_RESPONSE -> HhIcons.Clock
-}
-
-private fun ApplicationStatus.accent(): HhAccent = when (this) {
-    ApplicationStatus.SAVED -> HhAccent.Coral
-    ApplicationStatus.APPLIED -> HhAccent.Jade
-    ApplicationStatus.INTERVIEW -> HhAccent.Jade
-    ApplicationStatus.OFFER -> HhAccent.Marigold
-    ApplicationStatus.REJECTED -> HhAccent.Coral
-    ApplicationStatus.NO_RESPONSE -> HhAccent.Marigold
 }
 
 @Composable

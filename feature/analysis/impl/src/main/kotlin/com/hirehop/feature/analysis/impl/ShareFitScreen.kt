@@ -103,7 +103,7 @@ internal fun ShareFitScreen(
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 ShareInclusionRow(
                     icon = HhIcons.Check,
-                    tint = HhTheme.colors.brand,
+                    tint = HhTheme.colors.primary,
                     label = stringResource(R.string.feature_analysis_impl_share_included),
                     labelColor = HhTheme.colors.onSurface,
                 )
@@ -227,7 +227,7 @@ private fun ShareFitCard(
         Text(
             text = stringResource(R.string.feature_analysis_impl_share_card_label),
             style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = colors.onHeaderVariant,
+            color = colors.onBrand,
         )
         Text(
             text = role,
@@ -258,7 +258,7 @@ private fun ShareFitCard(
         Text(
             text = stringResource(R.string.feature_analysis_impl_share_card_footer),
             style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-            color = colors.onHeaderVariant,
+            color = colors.onBrand,
         )
     }
 }
