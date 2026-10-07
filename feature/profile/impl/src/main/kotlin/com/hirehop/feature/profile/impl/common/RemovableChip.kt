@@ -20,8 +20,8 @@ import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.profile.impl.R
 
-private val ChipHeight = 32.dp
-private val CloseSize = 18.dp
+private val ChipHeight = 48.dp
+private val CloseSize = 24.dp
 
 @Composable
 internal fun RemovableChip(
@@ -36,15 +36,15 @@ internal fun RemovableChip(
             .clip(HhTheme.shapes.pill)
             .background(HhTheme.colors.primaryContainer)
             .clickable(onClickLabel = removeDescription, role = Role.Button, onClick = onRemove)
-            .padding(start = HhTheme.spacing.md, end = HhTheme.spacing.sm),
+            .padding(start = 16.dp, end = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = HhTheme.typography.labelL, color = HhTheme.colors.onPrimaryContainer)
+        Text(text = label, style = HhTheme.typography.labelL, color = HhTheme.colors.onSurface)
         Icon(
             imageVector = HhIcons.Close,
             contentDescription = null,
-            tint = HhTheme.colors.onPrimaryContainer,
+            tint = HhTheme.colors.onSurface,
             modifier = Modifier.size(CloseSize),
         )
     }

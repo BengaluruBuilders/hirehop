@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
@@ -31,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
+
+private val HhTextAreaShape = RoundedCornerShape(22.dp)
 
 @Composable
 fun HhTextField(
@@ -52,21 +56,13 @@ fun HhTextField(
     val colors = HhTheme.colors
     var focused by remember { mutableStateOf(false) }
     val isError = errorText != null
-    val shape = if (singleLine) HhTheme.shapes.field else HhTheme.shapes.card
-    val fill = if (focused || isError) colors.background else colors.card
+    val shape = if (singleLine) HhTheme.shapes.field else HhTextAreaShape
     val borderColor = when {
         isError -> colors.error
         focused -> colors.primary
-        else -> colors.outlineSoft
+        else -> Color.Transparent
     }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (label != null) {
-            Text(
-                text = label,
-                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-                color = colors.onSurface,
-            )
-        }
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -74,10 +70,11 @@ fun HhTextField(
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = HhHeightField)
                 .onFocusChanged { focused = it.isFocused }
-                .background(fill, shape)
-                .border(if (focused || isError) 2.dp else HhWidthStroke, borderColor, shape),
+                .background(colors.card, shape)
+                .border(HhWidthStrokeFocus, borderColor, shape),
             enabled = enabled,
             textStyle = HhTheme.typography.bodyL.copy(
+                fontWeight = FontWeight.Bold,
                 color = if (enabled) colors.onSurface else colors.onSurfaceVariant,
             ),
             cursorBrush = SolidColor(colors.primary),
@@ -88,7 +85,7 @@ fun HhTextField(
             keyboardActions = keyboardActions,
             interactionSource = remember { MutableInteractionSource() },
             decorationBox = { inner ->
-                HhTextFieldDecoration(value, placeholder, trailingSlot, inner)
+                HhTextFieldDecoration(value, label, placeholder, trailingSlot, inner)
             },
         )
         HhTextFieldFooter(errorText = errorText, supportingText = supportingText)
@@ -98,6 +95,7 @@ fun HhTextField(
 @Composable
 private fun HhTextFieldDecoration(
     value: String,
+    label: String?,
     placeholder: String?,
     trailingSlot: (@Composable () -> Unit)?,
     inner: @Composable () -> Unit,
@@ -106,11 +104,16 @@ private fun HhTextFieldDecoration(
         modifier = Modifier.padding(horizontal = HhTheme.spacing.lg, vertical = HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.weight(1f)) {
-            if (value.isEmpty() && placeholder != null) {
-                Text(text = placeholder, style = HhTheme.typography.bodyL, color = HhTheme.colors.onSurfaceVariant)
+        Column(modifier = Modifier.weight(1f)) {
+            if (label != null) {
+                Text(text = label, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
             }
-            inner()
+            Box {
+                if (value.isEmpty() && placeholder != null) {
+                    Text(text = placeholder, style = HhTheme.typography.bodyL, color = HhTheme.colors.onSurfaceVariant)
+                }
+                inner()
+            }
         }
         if (trailingSlot != null) {
             trailingSlot()

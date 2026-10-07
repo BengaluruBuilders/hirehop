@@ -65,7 +65,7 @@ class CoverLetterOfferActionsTest {
     fun offerButtons_sitInTheCardAndCallTheirActions() {
         show(CoverLetterUiState(stage = CoverLetterStage.OFFER, jobCompany = "Northwind GCC"))
 
-        composeRule.onNodeWithText("Not now").performClick()
+        composeRule.onNodeWithText("No thanks").performClick()
         composeRule.onNodeWithText("Write one").performClick()
 
         assertThat(skipClicks).isEqualTo(1)

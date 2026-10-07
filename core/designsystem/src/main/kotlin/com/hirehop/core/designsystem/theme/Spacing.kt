@@ -55,8 +55,8 @@ internal object HhSpacingDefaults {
         d40 = 40.dp,
         d48 = 48.dp,
         d64 = 64.dp,
-        gutter = 20.dp,
-        cardPadding = 18.dp,
+        gutter = 16.dp,
+        cardPadding = 16.dp,
         sectionGap = 24.dp,
         touch = 48.dp,
     )

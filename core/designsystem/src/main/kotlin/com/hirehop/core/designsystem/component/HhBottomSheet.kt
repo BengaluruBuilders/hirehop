@@ -74,7 +74,7 @@ private fun HhBottomSheetDragHandle() {
             .padding(vertical = HhTheme.spacing.md)
             .size(width = HhSizeSheetHandleWidth, height = HhSizeDragHandleHeight)
             .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.sheetItemBorder),
+            .background(HhTheme.colors.outlineVariant),
     )
 }
 

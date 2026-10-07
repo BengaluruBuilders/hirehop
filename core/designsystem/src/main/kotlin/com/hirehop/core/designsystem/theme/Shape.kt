@@ -20,23 +20,21 @@ class HhShapes(
     val banner: Shape,
     val pillRow: Shape,
     val statusRow: Shape,
-    val heroBottom: Shape,
     val modalSheet: Shape,
 )
 
 internal object HhShapesDefaults {
     val Default = HhShapes(
-        sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         heroCard = RoundedCornerShape(22.dp),
         card = RoundedCornerShape(20.dp),
-        field = RoundedCornerShape(16.dp),
+        field = RoundedCornerShape(18.dp),
         pill = CircleShape,
         tag = RoundedCornerShape(8.dp),
-        banner = RoundedCornerShape(20.dp),
+        banner = RoundedCornerShape(18.dp),
         pillRow = RoundedCornerShape(24.dp),
         statusRow = RoundedCornerShape(18.dp),
-        heroBottom = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp),
-        modalSheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        modalSheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
     )
 }
 

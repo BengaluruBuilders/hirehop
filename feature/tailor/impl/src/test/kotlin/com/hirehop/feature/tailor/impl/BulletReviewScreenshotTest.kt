@@ -109,7 +109,6 @@ class BulletReviewScreenshotTest {
     @Test
     fun editByHand_showsTheNote() = captureSheet("BulletReviewEditByHand", ReviewFixtures.state()) {
         EditByHandContent(
-            position = 1,
             text = "Prepared weekly sales reports in Excel for 40 stores.",
             onTextChange = {},
             onCancel = {},
@@ -120,7 +119,6 @@ class BulletReviewScreenshotTest {
     @Test
     fun editByHand_blankShowsTheRequiredMessage() = captureSheet("BulletReviewEditByHandBlank", ReviewFixtures.state()) {
         EditByHandContent(
-            position = 1,
             text = "",
             onTextChange = {},
             onCancel = {},
@@ -150,7 +148,6 @@ class BulletReviewScreenshotTest {
             item = item,
             position = index + 1,
             total = state.totalCount,
-            openCount = state.openCount,
             actions = BulletSheetActions(
                 onPrevious = if (index > 0) ({}) else null,
                 onNext = if (index < state.totalCount - 1) ({}) else null,

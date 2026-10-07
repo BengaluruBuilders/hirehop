@@ -1,10 +1,10 @@
 package com.hirehop.feature.onboarding.impl.consent
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,44 +26,42 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhCheckbox
-import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhDivider
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhStatusChip
-import com.hirehop.core.designsystem.component.HhStatusKind
+import com.hirehop.core.designsystem.component.HhSectionLabel
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ConsentPurpose
 import com.hirehop.feature.onboarding.impl.R
-import com.hirehop.feature.onboarding.impl.common.MessageCard
 import com.hirehop.feature.onboarding.impl.common.NoticeTone
 import com.hirehop.feature.onboarding.impl.common.OnboardingNotice
 import com.hirehop.feature.onboarding.impl.common.OnboardingStepBar
+import com.hirehop.feature.onboarding.impl.common.StateCard
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val TOP_PADDING = 36.dp
-private val LEADING_DISC_SIZE = 36.dp
-private val LEADING_ICON_SIZE = 18.dp
+private val LEADING_DISC_SIZE = 44.dp
+private val LEADING_ICON_SIZE = 22.dp
 private val CARD_ROW_GAP = 10.dp
-private val CARD_TOP_PADDING = 8.dp
-private val CARD_BOTTOM_PADDING = 10.dp
 private val STATUS_WORD_GAP = 6.dp
 private val DASH = 6f
 private val STROKE = 1.5f
 private val DATE_PATTERN = "d MMM yyyy"
-private const val CONSENT_STEP = 3
 
 private val FRAME_PURPOSES = listOf(
     ConsentPurpose.READ_AND_BUILD,
@@ -84,31 +82,32 @@ internal fun ConsentScreen(
         header = {
             OnboardingStepBar(
                 modifier = Modifier.statusBarsPadding().padding(horizontal = HhTheme.spacing.gutter),
-                step = CONSENT_STEP,
                 onBack = actions.onBack,
                 backContentDescription = stringResource(
                     R.string.feature_onboarding_impl_consent_navigation_back_content_description,
                 ),
+                title = if (uiState.isReadOnly) stringResource(R.string.feature_onboarding_impl_consent_title) else null,
             )
         },
         bottomBar = if (uiState.isReadOnly) null else ({ ConsentBottomBar(uiState = uiState, actions = actions) }),
+        bottomBarNotice = if (uiState.showAgreementActions) ({ ConsentCounter(uiState = uiState) }) else null,
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(horizontal = HhTheme.spacing.gutter)
-                .padding(top = TOP_PADDING),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                .padding(horizontal = HhTheme.spacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
-            ConsentHeading()
             if (uiState.isDeclined) {
-                MessageCard(
+                StateCard(
+                    icon = HhIcons.Lock,
                     title = stringResource(R.string.feature_onboarding_impl_consent_declined_title),
                     body = stringResource(R.string.feature_onboarding_impl_consent_declined_body),
                 )
             } else {
+                if (!uiState.isReadOnly) ConsentHeading()
                 ConsentBody(uiState = uiState, actions = actions)
             }
         }
@@ -116,16 +115,32 @@ internal fun ConsentScreen(
 }
 
 @Composable
+private fun ConsentCounter(uiState: ConsentUiState) {
+    Text(
+        text = pluralStringResource(
+            R.plurals.feature_onboarding_impl_consent_understood_count,
+            uiState.acknowledgedCount,
+            uiState.acknowledgedCount,
+            uiState.entries.size,
+        ),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = HhTheme.spacing.gutter),
+        style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+        color = HhTheme.colors.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
 private fun ConsentHeading() {
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
+        HhHeadline(
             text = stringResource(R.string.feature_onboarding_impl_consent_heading),
             style = HhTheme.typography.headlineL,
             color = HhTheme.colors.onSurface,
         )
         Text(
             text = stringResource(R.string.feature_onboarding_impl_consent_intro),
-            style = HhTheme.typography.bodyM,
+            style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
             color = HhTheme.colors.onSurfaceVariant,
         )
     }
@@ -136,7 +151,7 @@ private fun ConsentBody(
     uiState: ConsentUiState,
     actions: ConsentActions,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
         FRAME_PURPOSES.forEach { purpose ->
             PurposeCard(
                 purpose = purpose,
@@ -160,30 +175,17 @@ private fun PurposeCard(
     onToggle: () -> Unit,
 ) {
     val copy = purposeCopy(purpose)
-    HhCard(
-        contentPadding = PaddingValues(
-            start = HhTheme.spacing.cardPadding,
-            top = CARD_TOP_PADDING,
-            end = HhTheme.spacing.cardPadding,
-            bottom = CARD_BOTTOM_PADDING,
-        ),
-    ) {
-        PurposeTitleRow(copy = copy, checked = checked, readOnly = readOnly, onToggle = onToggle)
-        Text(
-            text = stringResource(copy.body),
-            style = HhTheme.typography.bodyS,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
+    HhCard {
+        PurposeTitleRow(copy = copy)
+        PurposeLine(label = R.string.feature_onboarding_impl_consent_we_do, text = copy.body)
+        PurposeLine(label = R.string.feature_onboarding_impl_consent_we_keep, text = copy.keep)
+        HhDivider()
+        PurposeControl(checked = checked, readOnly = readOnly, onToggle = onToggle)
     }
 }
 
 @Composable
-private fun PurposeTitleRow(
-    copy: PurposeCopy,
-    checked: Boolean,
-    readOnly: Boolean,
-    onToggle: () -> Unit,
-) {
+private fun PurposeTitleRow(copy: PurposeCopy) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(CARD_ROW_GAP),
@@ -192,14 +194,14 @@ private fun PurposeTitleRow(
         Box(
             modifier = Modifier
                 .size(LEADING_DISC_SIZE)
-                .clip(HhTheme.shapes.pill)
+                .clip(HhTheme.shapes.tag)
                 .background(HhTheme.colors.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = copy.icon,
                 contentDescription = null,
-                tint = HhTheme.colors.onPrimaryContainer,
+                tint = HhTheme.colors.onSurface,
                 modifier = Modifier.size(LEADING_ICON_SIZE),
             )
         }
@@ -209,7 +211,14 @@ private fun PurposeTitleRow(
             style = HhTheme.typography.titleM,
             color = HhTheme.colors.onSurface,
         )
-        PurposeControl(checked = checked, readOnly = readOnly, onToggle = onToggle)
+    }
+}
+
+@Composable
+private fun PurposeLine(@StringRes label: Int, @StringRes text: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
+        HhSectionLabel(text = stringResource(label))
+        Text(text = stringResource(text), style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurface)
     }
 }
 
@@ -219,36 +228,51 @@ private fun PurposeControl(
     readOnly: Boolean,
     onToggle: () -> Unit,
 ) {
-    val word = stringResource(
-        if (checked) {
-            R.string.feature_onboarding_impl_consent_row_ticked
-        } else {
-            R.string.feature_onboarding_impl_consent_row_not_ticked
-        },
-    )
     if (readOnly) {
-        HhStatusChip(
-            kind = if (checked) HhStatusKind.Met else HhStatusKind.Partial,
-            label = word,
-        )
+        Row(
+            modifier = Modifier.defaultMinSize(minHeight = HhTheme.spacing.touch),
+            horizontalArrangement = Arrangement.spacedBy(STATUS_WORD_GAP),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (checked) {
+                Icon(
+                    imageVector = HhIcons.Check,
+                    contentDescription = null,
+                    tint = HhTheme.colors.primary,
+                    modifier = Modifier.size(LEADING_ICON_SIZE),
+                )
+            }
+            Text(
+                text = stringResource(
+                    if (checked) {
+                        R.string.feature_onboarding_impl_consent_row_ticked
+                    } else {
+                        R.string.feature_onboarding_impl_consent_row_not_ticked
+                    },
+                ),
+                style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.ExtraBold),
+                color = if (checked) HhTheme.colors.primary else HhTheme.colors.onSurfaceVariant,
+            )
+        }
         return
     }
     Row(
         modifier = Modifier
+            .fillMaxWidth()
             .defaultMinSize(minHeight = HhTheme.spacing.touch)
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() }),
         horizontalArrangement = Arrangement.spacedBy(STATUS_WORD_GAP),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = word,
-            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-            color = if (checked) HhTheme.colors.primary else HhTheme.colors.onSurfaceVariant,
-        )
         HhCheckbox(
             checked = checked,
             onCheckedChange = { onToggle() },
             modifier = Modifier.clearAndSetSemantics {},
+        )
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_consent_row_label),
+            style = HhTheme.typography.titleS,
+            color = HhTheme.colors.onSurface,
         )
     }
 }
@@ -363,44 +387,35 @@ private fun ConsentBottomBar(
     uiState: ConsentUiState,
     actions: ConsentActions,
 ) {
-    if (uiState.isDeclined) {
-        HhBottomActionBar {
-            HhOutlineButton(
+    HhBottomActionBar {
+        if (uiState.isDeclined) {
+            HhPrimaryButton(
                 label = stringResource(R.string.feature_onboarding_impl_consent_declined_action_read_again),
                 onClick = actions.onReadAgain,
                 modifier = Modifier.weight(1f),
             )
+        } else {
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                HhPrimaryButton(
+                    label = stringResource(R.string.feature_onboarding_impl_consent_action_agree),
+                    onClick = actions.onAgree,
+                    enabled = uiState.canAgree,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                HhTextButton(
+                    label = stringResource(R.string.feature_onboarding_impl_consent_action_not_now),
+                    onClick = actions.onNotNow,
+                )
+            }
         }
-        return
     }
-    HhBottomActionBar {
-        HhTextButton(
-            label = stringResource(R.string.feature_onboarding_impl_consent_action_not_now),
-            onClick = actions.onNotNow,
-            modifier = Modifier.weight(1f),
-        )
-        HhPrimaryButton(
-            label = agreeLabel(uiState),
-            onClick = actions.onAgree,
-            enabled = uiState.canAgree,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun agreeLabel(uiState: ConsentUiState): String = when {
-    uiState.isEveryPurposeAcknowledged -> stringResource(R.string.feature_onboarding_impl_consent_action_agree)
-    else -> stringResource(
-        R.string.feature_onboarding_impl_consent_waiting,
-        uiState.entries.size - uiState.acknowledgedCount,
-    )
 }
 
 private class PurposeCopy(
     val icon: ImageVector,
     val title: Int,
     val body: Int,
+    val keep: Int,
 )
 
 private fun purposeCopy(purpose: ConsentPurpose): PurposeCopy = when (purpose) {
@@ -408,18 +423,21 @@ private fun purposeCopy(purpose: ConsentPurpose): PurposeCopy = when (purpose) {
         icon = HhIcons.Description,
         title = R.string.feature_onboarding_impl_consent_read_title,
         body = R.string.feature_onboarding_impl_consent_read_body,
+        keep = R.string.feature_onboarding_impl_consent_read_keep,
     )
 
     ConsentPurpose.KEEP_CONFIRMED_FACTS -> PurposeCopy(
         icon = HhIcons.Verified,
         title = R.string.feature_onboarding_impl_consent_keep_title,
         body = R.string.feature_onboarding_impl_consent_keep_body,
+        keep = R.string.feature_onboarding_impl_consent_keep_keep,
     )
 
     ConsentPurpose.ANALYSE_ON_DEVICE -> PurposeCopy(
         icon = HhIcons.Link,
         title = R.string.feature_onboarding_impl_consent_match_title,
         body = R.string.feature_onboarding_impl_consent_match_body,
+        keep = R.string.feature_onboarding_impl_consent_match_keep,
     )
 }
 

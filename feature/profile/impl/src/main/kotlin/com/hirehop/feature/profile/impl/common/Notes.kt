@@ -1,10 +1,8 @@
 package com.hirehop.feature.profile.impl.common
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,18 +12,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhTextButton
+import com.hirehop.core.designsystem.component.HhButtonSize
+import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
-private val NoteIconSize = 20.dp
-private val NoteBorderWidth = 1.dp
-
-internal enum class NoteTone { Neutral, Positive, Outlined }
+internal enum class NoteTone { Neutral, Positive, Warning, Plain }
 
 @Composable
 internal fun Note(
@@ -37,62 +33,53 @@ internal fun Note(
     onAction: (() -> Unit)? = null,
 ) {
     val colors = HhTheme.colors
-    val container: Color
-    val content: Color
-    val border: BorderStroke?
-    val shape = if (tone == NoteTone.Outlined) HhTheme.shapes.card else HhTheme.shapes.banner
-    when (tone) {
-        NoteTone.Neutral -> {
-            container = colors.neutralContainer
-            content = colors.onNeutralContainer
-            border = null
-        }
-
-        NoteTone.Positive -> {
-            container = colors.metContainer
-            content = colors.onMetContainer
-            border = null
-        }
-
-        NoteTone.Outlined -> {
-            container = colors.card
-            content = colors.onSurface
-            border = BorderStroke(NoteBorderWidth, colors.outlineVariant)
-        }
+    val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
+    val container = when (tone) {
+        NoteTone.Neutral -> colors.primaryContainer
+        NoteTone.Positive -> colors.metContainer
+        NoteTone.Warning -> colors.partialContainer
+        NoteTone.Plain -> null
     }
-    val bordered = if (border != null) Modifier.border(border, shape) else Modifier
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(container)
-            .then(bordered),
-    ) {
+    val content = when (tone) {
+        NoteTone.Plain -> colors.onSurfaceVariant
+        NoteTone.Warning -> colors.onPartialContainer
+        else -> colors.onSurface
+    }
+    val frame = if (container != null) {
+        modifier.fillMaxWidth().background(container, HhTheme.shapes.banner).padding(
+            start = 16.dp,
+            top = 14.dp,
+            end = if (actionLabel != null) 8.dp else 16.dp,
+            bottom = 14.dp,
+        )
+    } else {
+        modifier.fillMaxWidth()
+    }
+    Column(modifier = frame, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
         Row(
-            modifier = Modifier.padding(
-                start = HhTheme.spacing.cardPadding,
-                top = HhTheme.spacing.md,
-                end = if (actionLabel != null) HhTheme.spacing.sm else HhTheme.spacing.cardPadding,
-                bottom = HhTheme.spacing.md,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(if (container != null) 12.dp else 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = content,
-                modifier = Modifier.size(NoteIconSize),
+                modifier = Modifier.size(if (container != null) 22.dp else 18.dp),
             )
             Text(
                 text = text,
                 modifier = Modifier.weight(1f),
-                style = HhTheme.typography.bodyM,
+                style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
                 color = content,
             )
-            if (actionLabel != null && onAction != null) {
-                HhTextButton(label = actionLabel, onClick = onAction)
+            if (actionLabel != null && onAction != null && !stacked) {
+                HhOutlineButton(label = actionLabel, onClick = onAction, size = HhButtonSize.Compact)
             }
+        }
+        if (actionLabel != null && onAction != null && stacked) {
+            HhOutlineButton(label = actionLabel, onClick = onAction, size = HhButtonSize.Compact)
         }
     }
 }
+
+private const val STACK_FONT_SCALE = 1.5f

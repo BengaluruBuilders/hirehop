@@ -30,13 +30,15 @@ fun HhStatusChip(
         return
     }
     val color = HhTheme.colors.statusColor(kind)
-    Row(
+    HhPill(
+        container = HhTheme.colors.primaryContainer,
+        content = color,
+        height = HhHeightChip,
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+        horizontalPadding = HhTheme.spacing.md,
     ) {
-        HhStatusDisc(kind = kind)
-        Text(text = text, style = HhTheme.typography.labelM, color = color)
+        HhStatusMark(kind, color, HhTheme.colors.primaryContainer, Modifier, HhSizeChipIcon)
+        Text(text = text, style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold), color = color)
     }
 }
 
@@ -56,31 +58,6 @@ private fun HhHeroStatusChip(kind: HhStatusKind, label: String, modifier: Modifi
                 style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
                 color = HhLightColors.onSurface,
             )
-        }
-    }
-}
-
-@Composable
-fun HhStatusRow(
-    kind: HhStatusKind,
-    title: String,
-    statusLine: String,
-    modifier: Modifier = Modifier,
-) {
-    val colors = HhTheme.colors
-    Surface(modifier = modifier, shape = HhTheme.shapes.statusRow, color = colors.card) {
-        Row(
-            modifier = Modifier
-                .defaultMinSize(minHeight = HhHeightStatusRow)
-                .padding(horizontal = HhSpacingFourteen, vertical = HhTheme.spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        ) {
-            HhStatusDisc(kind = kind, size = HhSizeStepMark)
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(text = title, style = HhTheme.typography.titleM, color = colors.onSurface)
-                Text(text = statusLine, style = HhTheme.typography.labelM, color = colors.statusColor(kind))
-            }
         }
     }
 }
@@ -106,6 +83,5 @@ private fun HhStatusChipPreviewColumn() {
         HhStatusChip(kind = HhStatusKind.Met, label = "Met")
         HhStatusChip(kind = HhStatusKind.Partial, label = "Partly met")
         HhStatusChip(kind = HhStatusKind.Gap, label = "To prepare")
-        HhStatusRow(HhStatusKind.Met, "SQL for product reporting", "Met · backed by F-02, F-04")
     }
 }

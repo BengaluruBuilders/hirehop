@@ -1,25 +1,20 @@
 package com.hirehop.feature.onboarding.impl.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -31,21 +26,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.connectivity.ConnectivityMonitor
 import com.hirehop.core.designsystem.component.HhBackButton
-import com.hirehop.core.designsystem.component.HhHeroCard
-import com.hirehop.core.designsystem.illustration.HhCharacterIllustration
-import com.hirehop.core.designsystem.illustration.HhIllustration
+import com.hirehop.core.designsystem.component.HhHeadline
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.feature.onboarding.impl.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-internal enum class NoticeTone { Neutral, Success, Error }
+internal enum class NoticeTone { Neutral, Success, Warning, Error }
 
 private val NOTICE_ICON_SIZE = 20.dp
 private val DISCLOSURE_ICON_SIZE = 18.dp
-private val STATE_ILLUSTRATION_SIZE = 160.dp
-private val STATE_CARD_PADDING = 20.dp
-private val NOTICE_BORDER = 2.dp
+private val STATE_CIRCLE_SIZE = 88.dp
+private val STATE_ICON_SIZE = 40.dp
 
 internal fun ConnectivityMonitor.observeOffline(forced: Boolean): Flow<Boolean> =
     isOnline.map { online -> forced || !online }
@@ -60,29 +52,33 @@ internal fun OnboardingNotice(
     val colors = HhTheme.colors
     val shape = HhTheme.shapes.banner
     val container = when (tone) {
-        NoticeTone.Neutral -> colors.neutralContainer
+        NoticeTone.Neutral -> colors.primaryContainer
         NoticeTone.Success -> colors.metContainer
-        NoticeTone.Error -> colors.card
+        NoticeTone.Warning -> colors.partialContainer
+        NoticeTone.Error -> colors.errorContainer
     }
-    val content = if (tone == NoticeTone.Success) colors.onMetContainer else colors.onSurface
     val tint = when (tone) {
-        NoticeTone.Neutral -> colors.onNeutralContainer
-        NoticeTone.Success -> colors.onMetContainer
+        NoticeTone.Neutral -> colors.onSurface
+        NoticeTone.Success -> colors.met
+        NoticeTone.Warning -> colors.partial
         NoticeTone.Error -> colors.error
     }
-    val framed = if (tone == NoticeTone.Error) Modifier.border(NOTICE_BORDER, colors.error, shape) else Modifier
     Row(
         modifier = modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite }
-            .then(framed)
             .background(container, shape)
             .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(NOTICE_ICON_SIZE))
-        Text(text = text, style = HhTheme.typography.bodyM, color = content, modifier = Modifier.weight(1f))
+        Text(
+            text = text,
+            style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+            color = colors.onSurface,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -93,24 +89,23 @@ internal fun DisclosureCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = HhTheme.colors
-    val shape = HhTheme.shapes.card
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(colors.document, shape)
-            .border(HhTheme.spacing.d2 / 2, colors.outlineVariant, shape)
-            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.sm + HhTheme.spacing.xxs),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = colors.primary,
-            modifier = Modifier.padding(top = HhTheme.spacing.xxs).size(DISCLOSURE_ICON_SIZE),
+            tint = colors.onSurfaceVariant,
+            modifier = Modifier.size(DISCLOSURE_ICON_SIZE),
         )
-        Text(text = text, style = HhTheme.typography.bodyM, color = colors.onSurface, modifier = Modifier.weight(1f))
+        Text(
+            text = text,
+            style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -126,122 +121,89 @@ internal fun ReasonText(
             addStyle(SpanStyle(fontWeight = FontWeight.Bold), emphasis.first, emphasis.last + 1)
         }
     }
-    Text(
-        text = styled,
-        modifier = modifier.fillMaxWidth().padding(horizontal = HhTheme.spacing.sm),
-        style = HhTheme.typography.labelM,
-        color = HhTheme.colors.onSurface,
-    )
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = HhIcons.Info,
+            contentDescription = null,
+            tint = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(DISCLOSURE_ICON_SIZE),
+        )
+        Text(
+            text = styled,
+            modifier = Modifier.weight(1f),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
 internal fun StateCard(
-    illustration: HhIllustration,
+    icon: ImageVector,
     title: String,
     body: String,
     modifier: Modifier = Modifier,
-    illustrationDescription: String? = null,
+    tone: NoticeTone = NoticeTone.Neutral,
     extra: (@Composable () -> Unit)? = null,
 ) {
-    HhHeroCard(
-        modifier = modifier,
-        contentPadding = PaddingValues(STATE_CARD_PADDING),
+    val colors = HhTheme.colors
+    val container = when (tone) {
+        NoticeTone.Neutral -> colors.card
+        NoticeTone.Success -> colors.metContainer
+        NoticeTone.Warning -> colors.partialContainer
+        NoticeTone.Error -> colors.errorContainer
+    }
+    val tint = when (tone) {
+        NoticeTone.Neutral -> colors.onSurface
+        NoticeTone.Success -> colors.met
+        NoticeTone.Warning -> colors.partial
+        NoticeTone.Error -> colors.error
+    }
+    Column(
+        modifier = modifier.fillMaxWidth().padding(vertical = HhTheme.spacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 + HhTheme.spacing.xxs),
+        Box(
+            modifier = Modifier.size(STATE_CIRCLE_SIZE).background(container, HhTheme.shapes.pill),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(STATE_ILLUSTRATION_SIZE)
-                    .clip(HhTheme.shapes.pill)
-                    .background(HhTheme.colors.primaryContainer),
-                contentAlignment = Alignment.BottomCenter,
-            ) {
-                HhCharacterIllustration(
-                    illustration = illustration,
-                    contentDescription = illustrationDescription,
-                    modifier = Modifier.size(STATE_ILLUSTRATION_SIZE),
-                )
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
-                Text(
-                    text = title,
-                    style = HhTheme.typography.titleL,
-                    color = HhTheme.colors.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = body,
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                    textAlign = TextAlign.Center,
-                )
-                if (extra != null) {
-                    extra()
-                }
-            }
+            Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(STATE_ICON_SIZE))
+        }
+        HhHeadline(text = title, style = HhTheme.typography.headlineL, color = colors.onSurface)
+        Text(
+            text = body,
+            style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+            color = colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        if (extra != null) {
+            extra()
         }
     }
 }
-
-@Composable
-internal fun MessageCard(
-    title: String,
-    body: String,
-    modifier: Modifier = Modifier,
-) {
-    HhHeroCard(modifier = modifier, contentPadding = PaddingValues(HhTheme.spacing.xl)) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-            Text(text = title, style = HhTheme.typography.titleL, color = HhTheme.colors.onSurface)
-            Text(text = body, style = HhTheme.typography.bodyL, color = HhTheme.colors.body)
-        }
-    }
-}
-
-private val STEP_CHIP_HEIGHT = 32.dp
 
 @Composable
 internal fun OnboardingStepBar(
-    step: Int?,
     onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
     backContentDescription: String = "",
-    onBrand: Boolean = false,
+    title: String? = null,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().height(HhTheme.spacing.touch),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier.fillMaxWidth().height(HhTheme.spacing.touch + HhTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            HhBackButton(contentDescription = backContentDescription, onClick = onBack, onHeader = onBrand)
-        } else {
-            Box(modifier = Modifier.width(HhTheme.spacing.touch))
+            HhBackButton(contentDescription = backContentDescription, onClick = onBack)
         }
-        if (step != null) {
-            Box(
-                modifier = Modifier
-                    .height(STEP_CHIP_HEIGHT)
-                    .background(
-                        if (onBrand) HhTheme.colors.brand else HhTheme.colors.primaryContainer,
-                        HhTheme.shapes.pill,
-                    )
-                    .padding(horizontal = HhTheme.spacing.d12 + HhTheme.spacing.xxs),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_impl_step_chip, step, ONBOARDING_STEP_COUNT),
-                    style = HhTheme.typography.labelL,
-                    color = if (onBrand) HhTheme.colors.onBrand else HhTheme.colors.onPrimaryContainer,
-                )
-            }
+        if (title != null) {
+            Text(text = title, style = HhTheme.typography.titleL, color = HhTheme.colors.onSurface)
         }
     }
 }
-
-internal const val ONBOARDING_STEP_COUNT = 5

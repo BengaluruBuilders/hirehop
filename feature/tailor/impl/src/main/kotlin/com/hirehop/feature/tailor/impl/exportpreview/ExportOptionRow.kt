@@ -1,9 +1,7 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -13,12 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -38,6 +38,8 @@ internal fun <T> ExportOptionRow(
     FlowRow(
         modifier = modifier
             .fillMaxWidth()
+            .background(HhTheme.colors.card, RoundedCornerShape(HhTheme.spacing.d24 + HhTheme.spacing.d4))
+            .padding(HhTheme.spacing.d4)
             .selectableGroup()
             .semantics { contentDescription = groupDescription },
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
@@ -61,43 +63,25 @@ private fun ExportOption(
     modifier: Modifier = Modifier,
 ) {
     val colors = HhTheme.colors
-    val contentColor = if (selected) colors.onPrimaryContainer else colors.onSurface
-    Box(
+    val contentColor = if (selected) colors.onBrand else colors.onSurface
+    Row(
         modifier = modifier
             .heightIn(min = HhTheme.spacing.touch)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        contentAlignment = Alignment.Center,
+            .clip(HhTheme.shapes.pill)
+            .background(if (selected) colors.brand else Color.Transparent)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = HhTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = HhTheme.spacing.d40)
-                .clip(HhTheme.shapes.pill)
-                .background(if (selected) colors.primaryContainer else colors.card)
-                .then(
-                    if (selected) {
-                        Modifier
-                    } else {
-                        Modifier.border(HhTheme.spacing.d2, colors.outlineVariant, HhTheme.shapes.pill)
-                    },
-                )
-                .padding(horizontal = HhTheme.spacing.md),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (selected) {
-                    Icon(
-                        imageVector = HhIcons.Check,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(HhTheme.spacing.lg),
-                    )
-                }
-                Text(text = label, style = HhTheme.typography.labelL, color = contentColor)
-            }
+        if (selected) {
+            Icon(
+                imageVector = HhIcons.Check,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(HhTheme.spacing.lg),
+            )
         }
+        Text(text = label, style = HhTheme.typography.labelL, color = contentColor)
     }
 }

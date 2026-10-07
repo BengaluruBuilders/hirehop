@@ -5,8 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -17,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,56 +23,47 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import com.hirehop.core.designsystem.component.HhAccent
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhBottomSheet
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
-import com.hirehop.core.designsystem.component.HhInkButton
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOnColorChip
-import com.hirehop.core.designsystem.component.HhOnColorChipStyle
-import com.hirehop.core.designsystem.component.HhPillRow
-import com.hirehop.core.designsystem.component.HhPillRowStyle
+import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhSectionLabel
 import com.hirehop.core.designsystem.component.HhSpotKind
-import com.hirehop.core.designsystem.component.HhStatusChip
-import com.hirehop.core.designsystem.component.HhStatusDisc
-import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhToastHost
-import com.hirehop.core.designsystem.component.evidenceMarkSpanStyle
 import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.FactSource
+import com.hirehop.feature.tailor.impl.GenerationStep
+import com.hirehop.feature.tailor.impl.GenerationSteps
+import com.hirehop.feature.tailor.impl.NoteLine
 import com.hirehop.feature.tailor.impl.R
 import com.hirehop.feature.tailor.impl.SourceFactSheetContent
 import com.hirehop.feature.tailor.impl.StatusCard
+import com.hirehop.feature.tailor.impl.StatusPill
+import com.hirehop.feature.tailor.impl.StepMark
 import com.hirehop.feature.tailor.impl.TailoredBulletSource
 import com.hirehop.feature.tailor.impl.coverletter.CoverLetterFactRef
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,8 +73,7 @@ internal fun PrepQuestionsScreen(
     modifier: Modifier = Modifier,
 ) {
     var openCard by remember { mutableStateOf<PrepQuestionCard?>(null) }
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
+    var showGaps by remember { mutableStateOf(uiState.factCards.isEmpty()) }
     val toastState = rememberHhToastState()
     val message = uiState.message
     val messageText = message?.let { stringResource(R.string.feature_tailor_impl_report_thanks) }
@@ -97,22 +85,27 @@ internal fun PrepQuestionsScreen(
     HhScreen(
         modifier = modifier,
         sheet = false,
-        header = { PrepQuestionsHeader(uiState, actions) },
+        header = {
+            HhInnerHeader(
+                title = stringResource(R.string.feature_tailor_impl_prep_questions_title),
+                onBack = actions.onNavigateBack,
+                backContentDescription = stringResource(R.string.feature_tailor_impl_prep_questions_back),
+            )
+        },
         bottomBar = prepQuestionsBottomBar(uiState, actions),
         snackbarHost = { HhToastHost(toastState) },
     ) { padding ->
         LazyColumn(
-            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = HhTheme.spacing.gutter,
                 end = HhTheme.spacing.gutter,
-                top = padding.calculateTopPadding() + HhTheme.spacing.sm,
-                bottom = padding.calculateBottomPadding(),
+                top = padding.calculateTopPadding() + HhTheme.spacing.md,
+                bottom = padding.calculateBottomPadding() + HhTheme.spacing.md,
             ),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
-            prepItems(uiState, actions, listState, scope) { openCard = it }
+            prepItems(uiState, actions, showGaps, { showGaps = it }) { openCard = it }
         }
     }
     openCard?.let { card ->
@@ -136,89 +129,6 @@ internal fun PrepQuestionsScreen(
     }
 }
 
-@Composable
-private fun PrepQuestionsHeader(
-    uiState: PrepQuestionsUiState,
-    actions: PrepQuestionsActions,
-) {
-    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
-    HhInnerHeader(
-        title = uiState.jobTitle.ifBlank {
-            stringResource(R.string.feature_tailor_impl_role_not_set)
-        },
-        subtitle = uiState.subtitle(),
-        onBack = actions.onNavigateBack,
-        backContentDescription = stringResource(R.string.feature_tailor_impl_prep_questions_back),
-        trailing = if (largeFont) null else ({ PrepQuestionsPill() }),
-        belowTitle = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
-                if (largeFont) {
-                    PrepQuestionsPill()
-                } else {
-                    HhMonogram(
-                        text = uiState.jobCompany.ifBlank {
-                            stringResource(R.string.feature_tailor_impl_company_not_set)
-                        },
-                    )
-                }
-                if (uiState.stage == PrepQuestionsStage.READY) {
-                    ReadyHeaderChips(uiState)
-                }
-            }
-        },
-    )
-}
-
-@Composable
-private fun PrepQuestionsPill() {
-    Row(
-        modifier = Modifier
-            .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.inverseSurface)
-            .defaultMinSize(minHeight = HhTheme.spacing.d32)
-            .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_prep_questions_title),
-            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = HhTheme.colors.inverseOnSurface,
-        )
-    }
-}
-
-@Composable
-private fun ReadyHeaderChips(uiState: PrepQuestionsUiState) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        HhOnColorChip(
-            label = pluralStringResource(
-                R.plurals.feature_tailor_impl_prep_questions_count_header,
-                uiState.questionCount,
-                uiState.questionCount,
-            ),
-            style = HhOnColorChipStyle.White,
-            accent = HhAccent.Jade,
-        )
-        if (uiState.gapCards.isNotEmpty()) {
-            HhOnColorChip(
-                label = pluralStringResource(
-                    R.plurals.feature_tailor_impl_prep_questions_gaps_header,
-                    uiState.gapCards.size,
-                    uiState.gapCards.size,
-                ),
-                style = HhOnColorChipStyle.White,
-                accent = HhAccent.Jade,
-            )
-        }
-    }
-}
-
 private fun prepQuestionsBottomBar(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
@@ -226,7 +136,7 @@ private fun prepQuestionsBottomBar(
     PrepQuestionsStage.GENERATING -> {
         {
             HhBottomActionBar {
-                HhInkButton(
+                HhSecondaryButton(
                     label = stringResource(R.string.feature_tailor_impl_prep_questions_notify),
                     onClick = actions.onNavigateBack,
                     modifier = Modifier.weight(1f),
@@ -236,11 +146,16 @@ private fun prepQuestionsBottomBar(
     }
     PrepQuestionsStage.ERROR -> {
         {
-            HhBottomActionBar {
+            HhBottomActionBar(stacked = true) {
+                HhSecondaryButton(
+                    label = stringResource(R.string.feature_tailor_impl_prep_questions_back_application),
+                    onClick = actions.onNavigateBack,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 HhPrimaryButton(
                     label = stringResource(R.string.feature_tailor_impl_prep_questions_retry),
                     onClick = actions.onRetry,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -272,19 +187,11 @@ private fun CoverLetterFactRef.asSource(): TailoredBulletSource = TailoredBullet
     dateRange = "",
 )
 
-@Composable
-private fun PrepQuestionsUiState.subtitle(): String? = jobCompany.trim().ifBlank {
-    stringResource(R.string.feature_tailor_impl_company_not_set)
-}
-
-private fun PrepQuestionsUiState.gapsListIndex(showOffline: Boolean): Int =
-    (if (showOffline) 1 else 0) + (if (gapCards.isEmpty()) 0 else 1) + factCards.size
-
 private fun LazyListScope.prepItems(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    scope: kotlinx.coroutines.CoroutineScope,
+    showGaps: Boolean,
+    onShowGaps: (Boolean) -> Unit,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
     val showOffline = uiState.isOffline && uiState.stage != PrepQuestionsStage.GENERATING
@@ -295,16 +202,16 @@ private fun LazyListScope.prepItems(
     }
     when (uiState.stage) {
         PrepQuestionsStage.GENERATING -> {
-            item(key = "loading-title") {
-                Text(
-                    text = stringResource(R.string.feature_tailor_impl_prep_questions_loading_title),
-                    style = HhTheme.typography.headlineM,
-                    color = HhTheme.colors.onSurface,
+            item(key = "loading-job") { JobCard(uiState) }
+            item(key = "loading-steps") { GeneratingSteps() }
+            item(key = "loading-caption") {
+                NoteLine(
+                    text = stringResource(R.string.feature_tailor_impl_prep_questions_caption),
+                    icon = HhIcons.Clock,
                 )
             }
-            item(key = "loading-steps") { GeneratingSteps() }
         }
-        PrepQuestionsStage.READY -> readyItems(uiState, actions, showOffline, listState, scope, onFact)
+        PrepQuestionsStage.READY -> readyItems(uiState, actions, showGaps, onShowGaps, onFact)
         PrepQuestionsStage.EMPTY_ANALYSIS -> item(key = "empty-analysis") {
             StatusCard(
                 kind = HhSpotKind.Empty,
@@ -330,99 +237,162 @@ private fun LazyListScope.prepItems(
 }
 
 @Composable
-private fun GeneratingSteps() {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2)) {
-        val readTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_read)
-        val readSubtitle = stringResource(R.string.feature_tailor_impl_status_done)
-        HhPillRow(
-            title = readTitle,
-            subtitle = readSubtitle,
-            onClick = {},
-            style = HhPillRowStyle.Jade,
-            icon = HhIcons.Check,
-            trailingIcon = null,
-            modifier = Modifier.clearAndSetSemantics { contentDescription = "$readTitle. $readSubtitle" },
-        )
-        val matchTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_match)
-        val matchSubtitle = stringResource(R.string.feature_tailor_impl_status_in_progress)
-        HhPillRow(
-            title = matchTitle,
-            subtitle = matchSubtitle,
-            onClick = {},
-            style = HhPillRowStyle.Marigold,
-            icon = HhIcons.Clock,
-            trailingIcon = null,
-            modifier = Modifier.clearAndSetSemantics { contentDescription = "$matchTitle. $matchSubtitle" },
-        )
-        val gapsTitle = stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps)
-        val gapsSubtitle = stringResource(R.string.feature_tailor_impl_status_up_next)
-        HhPillRow(
-            title = gapsTitle,
-            subtitle = gapsSubtitle,
-            onClick = {},
-            style = HhPillRowStyle.Neutral,
-            trailingIcon = null,
-            modifier = Modifier.clearAndSetSemantics { contentDescription = "$gapsTitle. $gapsSubtitle" },
-        )
+private fun JobCard(uiState: PrepQuestionsUiState) {
+    val company = uiState.jobCompany.trim().ifBlank { stringResource(R.string.feature_tailor_impl_company_not_set) }
+    HhCard {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhMonogram(text = company, size = 44.dp)
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
+                Text(
+                    text = uiState.jobTitle.ifBlank { stringResource(R.string.feature_tailor_impl_role_not_set) },
+                    style = HhTheme.typography.titleM,
+                    color = HhTheme.colors.onSurface,
+                )
+                Text(text = company, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
+            }
+        }
     }
+}
+
+@Composable
+private fun GeneratingSteps() {
+    GenerationSteps(
+        listOf(
+            GenerationStep(
+                title = stringResource(R.string.feature_tailor_impl_prep_questions_step_read),
+                detail = null,
+                status = stringResource(R.string.feature_tailor_impl_status_done),
+                mark = StepMark.Done,
+            ),
+            GenerationStep(
+                title = stringResource(R.string.feature_tailor_impl_prep_questions_step_match),
+                detail = null,
+                status = stringResource(R.string.feature_tailor_impl_status_in_progress),
+                mark = StepMark.Now,
+            ),
+            GenerationStep(
+                title = stringResource(R.string.feature_tailor_impl_prep_questions_step_gaps),
+                detail = null,
+                status = stringResource(R.string.feature_tailor_impl_status_up_next),
+                mark = StepMark.Waiting,
+            ),
+        ),
+    )
 }
 
 private fun LazyListScope.readyItems(
     uiState: PrepQuestionsUiState,
     actions: PrepQuestionsActions,
-    showOffline: Boolean,
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    scope: kotlinx.coroutines.CoroutineScope,
+    showGaps: Boolean,
+    onShowGaps: (Boolean) -> Unit,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
-    if (uiState.gapCards.isNotEmpty()) {
-        item(key = "gaps-row") {
-            HhPillRow(
-                title = stringResource(R.string.feature_tailor_impl_prep_questions_group_gaps),
-                subtitle = stringResource(R.string.feature_tailor_impl_prep_questions_gaps_subtitle),
-                onClick = { scope.launch { listState.animateScrollToItem(uiState.gapsListIndex(showOffline)) } },
-                style = HhPillRowStyle.Marigold,
-                trailingIcon = HhIcons.ArrowForward,
-                leading = { HhStatusDisc(kind = HhStatusKind.Gap) },
+    val hasBoth = uiState.gapCards.isNotEmpty() && uiState.factCards.isNotEmpty()
+    val gapsVisible = if (hasBoth) showGaps else uiState.factCards.isEmpty()
+    if (hasBoth) {
+        item(key = "tabs") {
+            PrepTabs(
+                factCount = uiState.factCards.size,
+                gapCount = uiState.gapCards.size,
+                gapsSelected = gapsVisible,
+                onSelect = onShowGaps,
             )
         }
     }
-    items(uiState.factCards.size, key = { uiState.factCards[it].id }) { index ->
-        val card = uiState.factCards[index]
-        QuestionCard(
-            card = card,
-            marked = !uiState.isOffline,
-            isReported = card.id in uiState.reportedIds,
-            actions = actions,
-            onFact = onFact,
+    if (!gapsVisible) {
+        item(key = "intro") {
+            val count = uiState.questionCount
+            Text(
+                text = "$count ${pluralStringResource(R.plurals.feature_tailor_impl_prep_questions_count_label, count)}. " +
+                    stringResource(R.string.feature_tailor_impl_prep_questions_intro),
+                style = HhTheme.typography.bodyS,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+        }
+        items(uiState.factCards.size, key = { uiState.factCards[it].id }) { index ->
+            val card = uiState.factCards[index]
+            QuestionCard(
+                card = card,
+                isReported = card.id in uiState.reportedIds,
+                actions = actions,
+                onFact = onFact,
+            )
+        }
+    } else {
+        items(uiState.gapCards.size, key = { uiState.gapCards[it].id }) { index ->
+            val card = uiState.gapCards[index]
+            GapCard(
+                card = card,
+                isReported = card.id in uiState.reportedIds,
+                actions = actions,
+                onFact = onFact,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PrepTabs(factCount: Int, gapCount: Int, gapsSelected: Boolean, onSelect: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(HhTheme.colors.card, HhTheme.shapes.pillRow)
+            .padding(HhTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
+    ) {
+        PrepTab(
+            label = stringResource(R.string.feature_tailor_impl_prep_questions_group_facts),
+            count = factCount,
+            selected = !gapsSelected,
+            onClick = { onSelect(false) },
+            modifier = Modifier.weight(1f),
+        )
+        PrepTab(
+            label = stringResource(R.string.feature_tailor_impl_prep_questions_group_gaps),
+            count = gapCount,
+            selected = gapsSelected,
+            onClick = { onSelect(true) },
+            modifier = Modifier.weight(1f),
         )
     }
-    items(uiState.gapCards.size, key = { uiState.gapCards[it].id }) { index ->
-        val card = uiState.gapCards[index]
-        GapCard(
-            card = card,
-            isReported = card.id in uiState.reportedIds,
-            actions = actions,
-            onFact = onFact,
-        )
+}
+
+@Composable
+private fun PrepTab(label: String, count: Int, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    val colors = HhTheme.colors
+    Row(
+        modifier = modifier
+            .defaultMinSize(minHeight = HhTheme.spacing.touch)
+            .clip(HhTheme.shapes.pillRow)
+            .background(if (selected) colors.brand else Color.Transparent)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+            .padding(horizontal = HhTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val content = if (selected) colors.onBrand else colors.onSurface
+        Text(text = label, style = HhTheme.typography.labelL, color = content)
+        Text(text = count.toString(), style = HhTheme.typography.labelL, color = content)
     }
 }
 
 @Composable
 private fun QuestionCard(
     card: PrepQuestionCard,
-    marked: Boolean,
     isReported: Boolean,
     actions: PrepQuestionsActions,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
     HhCard {
-        QuestionNumber(card.ordinal)
+        HhSectionLabel(text = stringResource(R.string.feature_tailor_impl_prep_questions_question_label, card.ordinal))
         Text(text = card.prompt, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
-        HhEvidenceText(
-            text = whyText(card.requirementText, marked, evidenceMarkSpanStyle()),
-            style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.body,
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_prep_questions_why, card.requirementText.trimEnd('.')),
+            style = HhTheme.typography.bodyS,
+            color = HhTheme.colors.onSurfaceVariant,
         )
         FactsRow(card, onFact)
         ReportButton(
@@ -434,55 +404,9 @@ private fun QuestionCard(
 }
 
 @Composable
-private fun QuestionNumber(ordinal: Int) {
-    val colors = HhTheme.colors
-    val fill = when (ordinal % 3) {
-        1 -> colors.brand
-        2 -> colors.coral
-        else -> colors.special
-    }
-    val content = if (ordinal % 3 == 0) colors.onSpecial else colors.onBrand
-    Box(
-        modifier = Modifier.size(HhTheme.spacing.d32).background(fill, HhTheme.shapes.pill),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = ordinal.toString(),
-            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
-            color = content,
-        )
-    }
-}
-
-@Composable
-private fun whyText(requirement: String, marked: Boolean, style: SpanStyle): AnnotatedString {
-    val template = stringResource(R.string.feature_tailor_impl_prep_questions_why, "\u0000")
-    val split = template.indexOf('\u0000')
-    val prefix = template.substring(0, split)
-    val suffix = template.substring(split + 1)
-    return buildAnnotatedString {
-        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(prefix) }
-        val trimmed = requirement.trimEnd('.')
-        if (marked) withStyle(style) { append(trimmed) } else append(trimmed)
-        append(suffix)
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
 private fun FactsRow(card: PrepQuestionCard, onFact: (PrepQuestionCard) -> Unit) {
     val fact = card.fact ?: return
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_tailor_impl_prep_questions_facts_label),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.primary,
-        )
-        FactChip(id = fact.displayId, card = card, onFact = onFact)
-    }
+    FactChip(id = fact.displayId, card = card, onFact = onFact)
 }
 
 @Composable
@@ -493,7 +417,7 @@ private fun FactChip(id: String, card: PrepQuestionCard, onFact: (PrepQuestionCa
             .defaultMinSize(minHeight = HhTheme.spacing.touch)
             .clickable(role = Role.Button) { onFact(card) }
             .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.CenterStart,
     ) {
         HhFactId(id = id)
     }
@@ -506,43 +430,19 @@ private fun GapCard(
     actions: PrepQuestionsActions,
     onFact: (PrepQuestionCard) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(HhTheme.shapes.card)
-            .background(HhTheme.colors.special)
-            .padding(HhTheme.spacing.cardPadding),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 - HhTheme.spacing.d2),
-    ) {
-        HhStatusChip(kind = HhStatusKind.Gap, label = gapLabel())
-        Text(
-            text = card.requirementText,
-            style = HhTheme.typography.titleL,
-            color = HhTheme.colors.onSpecial,
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(HhTheme.shapes.field)
-                .background(HhTheme.colors.card)
-                .padding(horizontal = HhTheme.spacing.md + HhTheme.spacing.d2, vertical = HhTheme.spacing.md),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm - HhTheme.spacing.xxs),
-        ) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_prep_questions_honest_way),
-                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            Text(
-                text = card.prompt,
-                style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
-                color = HhTheme.colors.onSurface,
-            )
+    HhCard {
+        Text(text = card.requirementText, style = HhTheme.typography.titleL, color = HhTheme.colors.onSurface)
+        StatusPill(label = gapLabel(), icon = HhIcons.Flag, color = HhTheme.colors.onSurface)
+        Text(text = card.prompt, style = HhTheme.typography.bodyM, color = HhTheme.colors.onSurface)
+        if (card.fact != null) {
+            HhSectionLabel(text = stringResource(R.string.feature_tailor_impl_prep_questions_facts_label))
+            FactsRow(card, onFact)
         }
-        HhInkButton(
+        HhOutlineButton(
             label = stringResource(R.string.feature_tailor_impl_prep_questions_open_prep_plan),
             onClick = actions.onOpenPrepPlan,
             modifier = Modifier.fillMaxWidth(),
+            size = HhButtonSize.Compact,
         )
         ReportButton(
             description = stringResource(
@@ -573,5 +473,3 @@ private fun ReportButton(description: String, isReported: Boolean, onClick: () -
             .semantics { contentDescription = description },
     )
 }
-
-private const val LARGE_FONT_SCALE = 1.5f

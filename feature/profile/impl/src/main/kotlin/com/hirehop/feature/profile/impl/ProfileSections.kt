@@ -1,21 +1,29 @@
 package com.hirehop.feature.profile.impl
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -23,39 +31,33 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhButtonSize
+import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOnColorChip
-import com.hirehop.core.designsystem.component.HhOnColorChipStyle
-import com.hirehop.core.designsystem.component.HhOpenAction
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.component.hhListEnter
 import com.hirehop.core.designsystem.component.rememberHhListEnterState
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactDisplayIds
 import com.hirehop.feature.profile.impl.common.FactCard
-import com.hirehop.feature.profile.impl.common.FactIdChip
 import com.hirehop.feature.profile.impl.common.FactStatus
+import com.hirehop.feature.profile.impl.common.ToConfirmChip
 
 private val ListGap = 10.dp
+private val SectionTile = 44.dp
 
-private const val SECTION_CHIP_LIMIT = 3
-private const val LARGE_TEXT_CHIP_LIMIT = 2
-private const val LARGE_TEXT_SCALE = 1.3f
-
-internal fun sectionAccent(kind: ProfileSectionKind): HhAccent = when (kind) {
-    ProfileSectionKind.Education -> HhAccent.Coral
-    ProfileSectionKind.Experience -> HhAccent.Jade
-    ProfileSectionKind.Projects -> HhAccent.Marigold
-    ProfileSectionKind.Skills -> HhAccent.Coral
-    ProfileSectionKind.Certifications -> HhAccent.Jade
-    ProfileSectionKind.Extras -> HhAccent.Marigold
+internal fun ProfileSectionKind.icon(): ImageVector = when (this) {
+    ProfileSectionKind.Education -> HhIcons.Description
+    ProfileSectionKind.Experience -> HhIcons.Applications
+    ProfileSectionKind.Projects -> HhIcons.Facts
+    ProfileSectionKind.Skills -> HhIcons.Check
+    ProfileSectionKind.Certifications -> HhIcons.Verified
+    ProfileSectionKind.Extras -> HhIcons.Flag
 }
 
 @StringRes
@@ -69,16 +71,6 @@ internal fun ProfileSectionKind.titleRes(): Int = when (this) {
 }
 
 @StringRes
-internal fun ProfileSectionKind.monogramRes(): Int = when (this) {
-    ProfileSectionKind.Education -> R.string.feature_profile_impl_monogram_education
-    ProfileSectionKind.Experience -> R.string.feature_profile_impl_monogram_experience
-    ProfileSectionKind.Projects -> R.string.feature_profile_impl_monogram_projects
-    ProfileSectionKind.Skills -> R.string.feature_profile_impl_monogram_skills
-    ProfileSectionKind.Certifications -> R.string.feature_profile_impl_monogram_certifications
-    ProfileSectionKind.Extras -> R.string.feature_profile_impl_monogram_extras
-}
-
-@StringRes
 internal fun ProfileSectionKind.addLabelRes(): Int = when (this) {
     ProfileSectionKind.Education -> R.string.feature_profile_impl_add_education
     ProfileSectionKind.Experience -> R.string.feature_profile_impl_add_experience
@@ -88,47 +80,55 @@ internal fun ProfileSectionKind.addLabelRes(): Int = when (this) {
     ProfileSectionKind.Extras -> R.string.feature_profile_impl_add_achievement
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SectionCard(
     section: ProfileSection,
-    accent: HhAccent,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val title = stringResource(section.kind.titleRes())
-    val subtitle = sectionSubtitle(section)
-    val description = stringResource(R.string.feature_profile_impl_section_description, title, subtitle)
-    val chipLimit = if (LocalDensity.current.fontScale > LARGE_TEXT_SCALE) LARGE_TEXT_CHIP_LIMIT else SECTION_CHIP_LIMIT
-    HhSolidCard(
-        accent = accent,
-        monogram = stringResource(section.kind.monogramRes()),
-        title = title,
-        subtitle = subtitle,
-        modifier = modifier
-            .clip(HhTheme.shapes.card)
-            .clickable(role = Role.Button, onClick = onOpen)
-            .clearAndSetSemantics {
-                contentDescription = description
-                role = Role.Button
-                onClick {
-                    onOpen()
-                    true
-                }
-            },
-        openAction = HhOpenAction(contentDescription = description, onClick = onOpen),
-        chips = {
-            section.facts.take(chipLimit).forEach { fact ->
-                FactIdChip(id = fact.displayId, status = fact.status)
-            }
-            if (section.count > chipLimit) {
-                HhOnColorChip(
-                    label = stringResource(R.string.feature_profile_impl_section_more_facts, section.count - chipLimit),
-                    style = HhOnColorChipStyle.White,
-                    accent = accent,
-                )
+    val description = stringResource(R.string.feature_profile_impl_section_description, title, sectionSubtitle(section))
+    HhCard(
+        onClick = onOpen,
+        contentPadding = PaddingValues(HhTheme.spacing.md),
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = description
+            role = Role.Button
+            onClick {
+                onOpen()
+                true
             }
         },
-    )
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier.size(SectionTile).background(HhTheme.colors.primaryContainer, RoundedCornerShape(SectionTile / 3)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(section.kind.icon(), contentDescription = null, tint = HhTheme.colors.onSurface)
+            }
+            FlowRow(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = title, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+                if (section.toConfirmCount > 0) {
+                    ToConfirmChip(label = pluralStringResource(R.plurals.feature_profile_impl_to_confirm_count, section.toConfirmCount, section.toConfirmCount))
+                }
+            }
+            Text(
+                text = section.count.toString(),
+                style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.ExtraBold),
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+        }
+    }
 }
 
 @Composable
@@ -235,7 +235,7 @@ private fun sectionSubtitle(section: ProfileSection): String {
         pluralStringResource(R.plurals.feature_profile_impl_user_stated_count, section.userStatedCount, section.userStatedCount),
     )
     return if (section.toConfirmCount > 0) {
-        base + stringResource(R.string.feature_profile_impl_section_subtitle_to_confirm, section.toConfirmCount)
+        base + pluralStringResource(R.plurals.feature_profile_impl_section_subtitle_to_confirm, section.toConfirmCount, section.toConfirmCount)
     } else {
         base
     }

@@ -42,13 +42,13 @@ class HhStatusBarIconsTest {
     }
 
     @Test
-    fun deepHeaderUsesLightIcons() {
-        assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(header = { HhInnerHeader(title = "T") }) { } })
+    fun whiteInnerHeaderInLightThemeUsesDarkIcons() {
+        assertTrue(darkIconsAfter(darkTheme = false) { HhScreen(header = { HhInnerHeader(title = "T") }) { } })
     }
 
     @Test
-    fun deepCustomTopWithLightTopFalseUsesLightIcons() {
-        assertFalse(darkIconsAfter(darkTheme = false) { HhScreen(lightTop = false) { } })
+    fun lightThemeHeaderTopUsesDarkIcons() {
+        assertTrue(darkIconsAfter(darkTheme = false) { HhScreen(lightTop = false) { } })
     }
 
     @Test

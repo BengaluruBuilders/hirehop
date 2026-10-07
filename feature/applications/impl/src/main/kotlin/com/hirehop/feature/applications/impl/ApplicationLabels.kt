@@ -50,6 +50,13 @@ internal fun coverageFraction(coverage: KeywordCoverage): String = stringResourc
 )
 
 @Composable
+internal fun coverageLine(coverage: KeywordCoverage): String = stringResource(
+    R.string.feature_applications_impl_coverage_key_terms,
+    coverage.covered,
+    coverage.total,
+)
+
+@Composable
 internal fun coveragePhrase(coverage: KeywordCoverage): String = pluralStringResource(
     id = R.plurals.feature_applications_impl_coverage_phrase,
     coverage.total,

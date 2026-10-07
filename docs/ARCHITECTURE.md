@@ -293,8 +293,8 @@ free credit.
 
 ### Fonts
 
-The UI uses bundled Open Sans for text and IBM Plex Mono 500 for fact IDs. `HhFontFamilies` in
-`core:designsystem` defines both families. Font licenses are in `core/designsystem/fonts-licenses/`.
+The UI uses bundled Manrope (variable) for text and fact IDs, and Archivo Black for uppercase
+headlines (`HhHeadline`). `HhFontFamilies` in `core:designsystem` defines both families. Font licenses are in `core/designsystem/fonts-licenses/`.
 
 ## 7. Build and host rules
 

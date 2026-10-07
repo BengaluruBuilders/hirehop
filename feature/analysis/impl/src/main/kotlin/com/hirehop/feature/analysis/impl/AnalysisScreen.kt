@@ -2,53 +2,31 @@ package com.hirehop.feature.analysis.impl
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hirehop.core.designsystem.component.HhBackButton
 import com.hirehop.core.designsystem.component.HhContentSwitch
+import com.hirehop.core.designsystem.component.HhHeaderIconButton
+import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhStatusChip
-import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhToastHost
 import com.hirehop.core.designsystem.component.HhToastResult
 import com.hirehop.core.designsystem.component.rememberHhToastState
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.DebugScenario
 import com.hirehop.core.model.MatchStatus
@@ -71,16 +49,6 @@ data class AnalysisActions(
     val onUndo: () -> Unit = {},
     val onToastDismiss: () -> Unit = {},
 )
-
-private val HeaderTopPadding = 36.dp
-private val HeaderBottomPadding = 24.dp
-private val HeaderGap = 16.dp
-private val MonogramSize = 56.dp
-private val ChipGap = 6.dp
-private val ChipHeight = 32.dp
-private val PillHeight = 48.dp
-private val PillIconSize = 18.dp
-private val ShareIconSize = 18.dp
 
 @Composable
 internal fun AnalysisRoute(
@@ -151,7 +119,6 @@ internal fun AnalysisScreen(
         HhScreen(
             header = {
                 AnalysisHeader(
-                    uiState = uiState,
                     result = result,
                     onBack = actions.onBackClick,
                     onShare = actions.onOpenShareCard,
@@ -215,6 +182,7 @@ private fun AnalysisBody(
         is AnalysisUiState.DailyLimit -> MessageContent(
             title = stringResource(R.string.feature_analysis_impl_daily_limit_title),
             body = stringResource(R.string.feature_analysis_impl_daily_limit_body),
+            chip = stringResource(R.string.feature_analysis_impl_daily_limit_left),
             note = stringResource(R.string.feature_analysis_impl_daily_limit_note),
             contentPadding = contentPadding,
         )
@@ -231,14 +199,14 @@ internal fun shareTextIntent(chooserTitle: String, text: String): Intent {
 }
 
 @Composable
-private fun AnalysisUiState.headerTitle(): String = when {
+internal fun AnalysisUiState.headerTitle(): String = when {
     job.title.isNotBlank() -> job.title
     this is AnalysisUiState.Result -> stringResource(R.string.feature_analysis_impl_role_not_set)
     else -> stringResource(R.string.feature_analysis_impl_title_fallback)
 }
 
 @Composable
-private fun AnalysisUiState.headerSubtitle(): String? = when {
+internal fun AnalysisUiState.headerSubtitle(): String? = when {
     job.company.isNotBlank() -> job.company
     this is AnalysisUiState.Result -> stringResource(R.string.feature_analysis_impl_company_not_set)
     else -> null
@@ -246,157 +214,24 @@ private fun AnalysisUiState.headerSubtitle(): String? = when {
 
 @Composable
 private fun AnalysisHeader(
-    uiState: AnalysisUiState,
     result: AnalysisUiState.Result?,
     onBack: () -> Unit,
     onShare: () -> Unit,
 ) {
-    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val shape = HhTheme.shapes.heroBottom
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(HhTheme.colors.header),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = HhTheme.spacing.gutter,
-                    end = HhTheme.spacing.gutter,
-                    top = statusTop + HeaderTopPadding,
-                    bottom = HeaderBottomPadding,
-                ),
-            verticalArrangement = Arrangement.spacedBy(HeaderGap),
-        ) {
-            HeaderTopRow(result = result, onBack = onBack, onShare = onShare)
-            JobIdentityRow(uiState = uiState)
-            if (result != null) {
-                ResultSummaryChips(result)
+    HhInnerHeader(
+        title = stringResource(R.string.feature_analysis_impl_title),
+        onBack = onBack,
+        backContentDescription = stringResource(R.string.feature_analysis_impl_back),
+        trailing = result?.let {
+            {
+                HhHeaderIconButton(
+                    icon = HhIcons.Share,
+                    contentDescription = stringResource(R.string.feature_analysis_impl_share_my_fit),
+                    onClick = onShare,
+                )
             }
-        }
-    }
+        },
+    )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun HeaderTopRow(
-    result: AnalysisUiState.Result?,
-    onBack: () -> Unit,
-    onShare: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        HhBackButton(
-            contentDescription = stringResource(R.string.feature_analysis_impl_back),
-            onClick = onBack,
-            onHeader = true,
-        )
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            if (result != null) {
-                ShareFitPill(onClick = onShare)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ShareFitPill(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.brand, HhTheme.shapes.pill)
-            .clickable(role = Role.Button, onClick = onClick),
-    ) {
-        Row(
-            modifier = Modifier
-                .defaultMinSize(minHeight = PillHeight)
-                .padding(start = 14.dp, end = HhTheme.spacing.gutter),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        ) {
-            Icon(
-                imageVector = HhIcons.Share,
-                contentDescription = null,
-                tint = HhTheme.colors.onBrand,
-                modifier = Modifier.size(ShareIconSize),
-            )
-            Text(
-                text = stringResource(R.string.feature_analysis_impl_share_my_fit),
-                style = HhTheme.typography.titleS,
-                color = HhTheme.colors.onBrand,
-            )
-        }
-    }
-}
-
-@Composable
-private fun JobIdentityRow(uiState: AnalysisUiState) {
-    val title = uiState.headerTitle()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        HeaderMonogram(name = uiState.job.company.ifBlank { title })
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(text = title, style = HhTheme.typography.headlineL, color = HhTheme.colors.onHeader)
-            uiState.headerSubtitle()?.let { subtitle ->
-                Text(text = subtitle, style = HhTheme.typography.labelL, color = HhTheme.colors.onHeaderVariant)
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeaderMonogram(name: String) {
-    Box(
-        modifier = Modifier
-            .defaultMinSize(MonogramSize, MonogramSize)
-            .clip(HhTheme.shapes.pill)
-            .background(HhTheme.colors.onHeader),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = name.initials(), style = HhTheme.typography.titleM, color = HhTheme.colors.header)
-    }
-}
-
-private fun String.initials(): String =
-    trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.take(2).joinToString("") { it.take(1) }.uppercase()
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ResultSummaryChips(result: AnalysisUiState.Result) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(ChipGap),
-        verticalArrangement = Arrangement.spacedBy(ChipGap),
-    ) {
-        HhStatusChip(
-            kind = HhStatusKind.Met,
-            label = stringResource(R.string.feature_analysis_impl_summary_met, result.countOf(MatchStatus.MET)),
-            onHero = true,
-        )
-        HhStatusChip(
-            kind = HhStatusKind.Partial,
-            label = stringResource(
-                R.string.feature_analysis_impl_summary_partial,
-                result.countOf(MatchStatus.PARTIAL),
-            ),
-            onHero = true,
-        )
-        HhStatusChip(
-            kind = HhStatusKind.Gap,
-            label = stringResource(R.string.feature_analysis_impl_summary_gap, result.gapCount),
-            onHero = true,
-        )
-    }
-}
-
-private fun AnalysisUiState.Result.countOf(status: MatchStatus): Int = items.count { it.status == status }
+internal fun AnalysisUiState.Result.countOf(status: MatchStatus): Int = items.count { it.status == status }

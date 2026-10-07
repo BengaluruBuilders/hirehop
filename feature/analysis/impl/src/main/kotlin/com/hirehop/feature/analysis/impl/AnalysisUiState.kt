@@ -36,7 +36,7 @@ sealed interface AnalysisUiState {
         override val job: JobLabel,
         val keywordCoverage: KeywordCoverage,
         val sections: List<RequirementSection>,
-        val freeCredits: Int,
+        val totalCredits: Int,
         val isOffline: Boolean = false,
         val tailorLimitReached: Boolean = false,
         val isTailoring: Boolean = false,

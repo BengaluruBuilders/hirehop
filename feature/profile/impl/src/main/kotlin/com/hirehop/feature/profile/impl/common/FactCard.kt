@@ -10,17 +10,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhButtonSize
+import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhFactId
-import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhSecondaryButton
-import com.hirehop.core.designsystem.component.HhSectionCard
+import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.fact.FactLineRenderer
@@ -47,12 +49,6 @@ internal fun FactCard(
         modifier = modifier,
         highlighted = highlighted,
     ) {
-        HhOutlineButton(
-            label = stringResource(R.string.feature_profile_impl_fact_edit),
-            onClick = onEdit,
-            trailingIcon = HhIcons.Edit,
-            size = HhButtonSize.Compact,
-        )
         if (onConfirm != null) {
             HhSecondaryButton(
                 label = stringResource(R.string.feature_profile_impl_fact_confirm),
@@ -61,6 +57,7 @@ internal fun FactCard(
                 size = HhButtonSize.Compact,
             )
         }
+        HhTextButton(label = stringResource(R.string.feature_profile_impl_fact_edit), onClick = onEdit)
     }
 }
 
@@ -76,21 +73,11 @@ internal fun FactCard(
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val statusLabel = stringResource(status.labelRes())
-    val description = stringResource(
-        R.string.feature_profile_impl_fact_card_description,
-        kind,
-        summary,
-        statusLabel,
-        id,
-    )
-    val shape = HhTheme.shapes.card
-    HhSectionCard(
+    val description = stringResource(R.string.feature_profile_impl_fact_card_description, kind, summary, statusLabel, id)
+    val outline = if (highlighted) Modifier.border(HighlightWidth, HhTheme.colors.primary, HhTheme.shapes.card) else Modifier
+    HhCard(
         contentPadding = PaddingValues(HhTheme.spacing.cardPadding),
-        modifier = modifier
-            .semantics(mergeDescendants = true) { contentDescription = description }
-            .then(
-                if (highlighted) Modifier.border(HighlightWidth, HhTheme.colors.primary, shape) else Modifier,
-            ),
+        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description }.then(outline),
     ) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
@@ -104,9 +91,17 @@ internal fun FactCard(
                 ToConfirmChip(label = statusLabel)
             }
         }
-        Text(text = summary, style = HhTheme.typography.bodyM, color = HhTheme.colors.body)
+        Text(
+            text = summary,
+            style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+            color = HhTheme.colors.onSurface,
+        )
         if (actions != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm), content = actions)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+                content = actions,
+            )
         }
     }
 }

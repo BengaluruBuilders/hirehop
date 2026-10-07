@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_onboarding_impl_import_resume_back_description">Back</string>
-    <string name="feature_onboarding_impl_import_resume_choose">Choose your resume</string>
+    <string name="feature_onboarding_impl_import_resume_choose">Choose your resume (PDF or DOCX)</string>
+    <string name="feature_onboarding_impl_import_resume_choose_hint">Opens your phone\'s file picker</string>
     <string name="feature_onboarding_impl_import_resume_choose_another">Choose another file</string>
     <string name="feature_onboarding_impl_import_resume_try_again">Try again</string>
     <string name="feature_onboarding_impl_import_resume_review_facts">Review facts</string>
     <string name="feature_onboarding_impl_import_resume_start_guided_form">Start the guided form</string>
-    <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission. Android\'s file picker opens, and only the one file you pick is shared with HireHop.</string>
+    <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission.</string>
 
     <string name="feature_onboarding_impl_import_resume_progress_description">Reading progress</string>
-    <string name="feature_onboarding_impl_import_resume_reading_footnote">You can leave this screen. We keep reading.</string>
+    <string name="feature_onboarding_impl_import_resume_reading_time">Up to 30 seconds</string>
+    <string name="feature_onboarding_impl_import_resume_facts_so_far">Facts found so far · %1$d</string>
+    <string name="feature_onboarding_impl_import_resume_reading_footnote">You\'ll confirm each fact next.</string>
 
-    <string name="feature_onboarding_impl_import_resume_queued_title">You are offline</string>
-    <string name="feature_onboarding_impl_import_resume_queued_body">We\'ll read it when you\'re back.</string>
-    <string name="feature_onboarding_impl_import_resume_queued_waiting">%1$s · waiting</string>
-    <string name="feature_onboarding_impl_import_resume_offline_banner">You\'re offline. We\'ll read your resume when you\'re back.</string>
+    <string name="feature_onboarding_impl_import_resume_queued_body">You\'re offline. Reading your resume needs a connection.</string>
+    <string name="feature_onboarding_impl_import_resume_queued_waiting">Ready to read</string>
+    <string name="feature_onboarding_impl_import_resume_offline_banner">You\'re offline. Reading your resume needs a connection.</string>
 
     <string name="feature_onboarding_impl_import_resume_success_body">Nothing is used until you confirm it.</string>
     <plurals name="feature_onboarding_impl_import_resume_success_heading">
@@ -22,43 +24,16 @@
         <item quantity="other">%1$d facts ready to check</item>
     </plurals>
 
-    <string name="feature_onboarding_impl_import_resume_unsupported_heading">We can\'t open this file type</string>
-    <string name="feature_onboarding_impl_import_resume_unsupported_body">%1$s is not a PDF or DOCX. Save it as one of those, or build your profile step by step.</string>
-    <string name="feature_onboarding_impl_import_resume_no_facts_heading">We found no facts in this file</string>
-    <string name="feature_onboarding_impl_import_resume_no_facts_body">Some layouts carry no readable facts. Add your details step by step, or choose another file.</string>
-    <string name="feature_onboarding_impl_import_resume_empty_heading">This file is empty</string>
-    <string name="feature_onboarding_impl_import_resume_empty_body">There was nothing to read. Nothing was kept.</string>
-    <string name="feature_onboarding_impl_import_resume_too_large_heading">This file is too large to read</string>
-    <string name="feature_onboarding_impl_import_resume_failed_heading">That did not work</string>
-    <string name="feature_onboarding_impl_import_resume_failed_body">We couldn\'t finish reading this file. Nothing from it was kept. Try again, or choose another file.</string>
+    <string name="feature_onboarding_impl_import_resume_unsupported_body">HireHop reads PDF and DOCX files only. This file is a %1$s.</string>
+    <string name="feature_onboarding_impl_import_resume_no_facts_body">We found no facts in this file. Add your details step by step, or choose another file.</string>
+    <string name="feature_onboarding_impl_import_resume_empty_body">This file is empty. Nothing was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_too_large_body">This file is too large to read. Nothing from it was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_failed_body">We couldn\'t read this file. Nothing from it was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_scanned_text">This PDF is a scan, so we can\'t read its text.</string>
 
-    <string name="feature_onboarding_impl_import_resume_spot_scanned_description">A man squinting at a photographed page next to a camera</string>
-    <string name="feature_onboarding_impl_import_resume_spot_empty_description">A man with an empty page</string>
-    <string name="feature_onboarding_impl_import_resume_spot_error_description">A man raising a hand, with a try-again arrow</string>
-    <string name="feature_onboarding_impl_import_resume_spot_offline_description">A man frowning at his phone under a crossed-out cloud</string>
-    <string name="feature_onboarding_impl_import_resume_heading">Bring in your resume</string>
-    <string name="feature_onboarding_impl_import_resume_intro">We read it once to suggest facts. You confirm every single one.</string>
-    <string name="feature_onboarding_impl_import_resume_option_pdf_title">Choose a PDF</string>
-    <string name="feature_onboarding_impl_import_resume_option_pdf_body">Text PDFs read best</string>
-    <string name="feature_onboarding_impl_import_resume_option_docx_title">Choose a DOCX</string>
-    <string name="feature_onboarding_impl_import_resume_option_docx_body">Word documents</string>
-    <string name="feature_onboarding_impl_import_resume_option_none_title">Start without a resume</string>
-    <string name="feature_onboarding_impl_import_resume_option_none_body">Add facts one by one</string>
-    <string name="feature_onboarding_impl_import_resume_delete_note">We delete the file after reading; only facts you confirm are kept.</string>
+    <string name="feature_onboarding_impl_import_resume_heading">Add your resume</string>
+    <string name="feature_onboarding_impl_import_resume_intro">We read it, you confirm each fact, and only confirmed facts are used.</string>
+    <string name="feature_onboarding_impl_import_resume_option_none_title">No resume? Build your profile step by step.</string>
     <string name="feature_onboarding_impl_import_resume_reading_heading">Reading your resume</string>
     <string name="feature_onboarding_impl_import_resume_file_meta">%1$s · %2$s</string>
-    <string name="feature_onboarding_impl_import_resume_progress_percent">%1$d%%</string>
-    <string name="feature_onboarding_impl_import_resume_stage_opened">Opened the file</string>
-    <string name="feature_onboarding_impl_import_resume_stage_done">Done</string>
-    <string name="feature_onboarding_impl_import_resume_stage_finding">Finding jobs, skills and dates</string>
-    <string name="feature_onboarding_impl_import_resume_stage_so_far">%1$d so far</string>
-    <string name="feature_onboarding_impl_import_resume_stage_getting_ready">Getting facts ready for you to check</string>
-    <string name="feature_onboarding_impl_import_resume_scanned_badge">Can\'t read this file</string>
-    <string name="feature_onboarding_impl_import_resume_scanned_title">This PDF is a scan</string>
-    <string name="feature_onboarding_impl_import_resume_scanned_text">It\'s a picture of your resume, so there\'s no text for us to read. We won\'t guess what it says.</string>
-    <string name="feature_onboarding_impl_import_resume_try_title">Try one of these</string>
-    <string name="feature_onboarding_impl_import_resume_try_1">Save it again as PDF from Word or Google Docs</string>
-    <string name="feature_onboarding_impl_import_resume_try_2">Upload the DOCX version instead</string>
-    <string name="feature_onboarding_impl_import_resume_try_3">Add your facts by hand</string>
-    <string name="feature_onboarding_impl_import_resume_more_facts">+%1$d</string>
 </resources>

@@ -1,43 +1,35 @@
 package com.hirehop.feature.profile.impl
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhPrimaryButton
-import com.hirehop.core.designsystem.component.HhSpotKind
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
-import com.hirehop.feature.profile.impl.common.SpotCircle
 
-private val SpotSize = 140.dp
-private val TextGap = 6.dp
+private val IconDiscSize = 88.dp
 
 @Composable
 internal fun ProfileEmptyScreen(
-    state: ProfileUiState.Empty,
     navigation: ProfileNavigation,
     modifier: Modifier = Modifier,
 ) {
-    ProfileFrame(
-        header = ProfileHeaderState(
-            headerLine = state.headerLine,
-            factCount = 0,
-            confirmedCount = 0,
-            userStatedCount = 0,
-            toConfirmCount = 0,
-        ),
-        onAddEvidence = navigation.onAddEvidence,
-        modifier = modifier,
-    ) {
+    ProfileFrame(modifier = modifier) {
         emptyContent(navigation)
     }
 }
@@ -49,41 +41,40 @@ private fun LazyListScope.emptyContent(navigation: ProfileNavigation) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
         ) {
-            SpotCircle(
-                kind = HhSpotKind.Empty,
-                size = SpotSize,
-                contentDescription = stringResource(R.string.feature_profile_impl_empty_illustration),
-            )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(TextGap),
+            Box(
+                modifier = Modifier.size(IconDiscSize).background(HhTheme.colors.card, HhTheme.shapes.pill),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_empty_headline),
-                    style = HhTheme.typography.titleL,
-                    color = HhTheme.colors.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_empty_body),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                    textAlign = TextAlign.Center,
+                Icon(
+                    imageVector = HhIcons.Profile,
+                    contentDescription = stringResource(R.string.feature_profile_impl_empty_illustration),
+                    tint = HhTheme.colors.onSurfaceVariant,
+                    modifier = Modifier.size(40.dp),
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            ) {
+            HhHeadline(
+                text = stringResource(R.string.feature_profile_impl_empty_headline),
+                style = HhTheme.typography.headlineL,
+                color = HhTheme.colors.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.feature_profile_impl_empty_body),
+                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+                color = HhTheme.colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
                 HhPrimaryButton(
                     label = stringResource(R.string.feature_profile_impl_import_resume),
                     onClick = navigation.onImportResume,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = HhIcons.Add,
                 )
-                HhOutlineButton(
+                HhSecondaryButton(
                     label = stringResource(R.string.feature_profile_impl_build_step_by_step),
                     onClick = navigation.onBuildStepByStep,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = HhIcons.ArrowForward,
                 )
             }
         }

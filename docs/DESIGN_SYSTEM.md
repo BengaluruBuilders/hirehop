@@ -2,8 +2,8 @@
 
 Module: `core:designsystem`. Package root: `com.hirehop.core.designsystem`.
 The current visual direction is [AVVIO_REDESIGN.md](AVVIO_REDESIGN.md). The old Jade frame exports
-remain a record of content and states. The shared palette, Open Sans type scale, restrained rounded
-surfaces, and compact chrome below implement the Avvio reference.
+remain a record of content and states. The canvas in `design/avvio-canvas/README.md` is the source for
+tokens: black and white grounds, neutral cards, lime `#AEFF00`, Manrope with Archivo Black headlines.
 
 Read tokens with `HhTheme.colors`, `HhTheme.typography`, `HhTheme.spacing`, `HhTheme.shapes`,
 `HhTheme.elevation`, `HhTheme.motion`, `HhTheme.isDark`. Dark mode follows the system.
@@ -31,10 +31,8 @@ A feature must change these things when it adopts the integration changes.
    `ExpandLess`, `Description`, `Flag`, `Share`, `OpenInNew`, `Search`.
 6. Coverage block. For a block with no partial count, pass `partial = null, partialLegend = null`.
    `KeywordCoverageMeter` already does this. `HhCoverageBlock(summary = ...)` adds one line between the
-   fraction and the bar (Gap analysis: "You cover 9 of 14 key terms"). `HhFitShareCard` takes the same two nullable
-   values.
-7. Home header. Settings uses `HhCompactHomeHeader`. A home screen with a list uses
-   `HhCollapsingHomeHeader`. Do not swap two headers on a scroll position. The swap moves the list by
+   fraction and the bar (Gap analysis: "You cover 9 of 14 key terms"). 
+7. Home header. A home screen with a list uses `HhCollapsingHomeHeader`. Do not swap two headers on a scroll position. The swap moves the list by
    the height difference in one frame, and the list flickers.
 8. Dock constants. Use `HhDockDefaults.height` and `inset`. Do not repeat the arithmetic.
 9. Motion. `HhTheme.motion` has `proofSpecs`, `hopSpecs`, and `reduced`. The old Int durations and easings are gone.
@@ -72,20 +70,12 @@ HireHop choices checked for contrast. The [brand kit](https://avvio.xyz/brand/) 
 different website and identity palette; its green-tinted darks and `#B9FA4B` lime do not set
 the app theme.
 
-The names `HhAccent.Coral`, `Jade`, and `Marigold` and matching pill-row styles remain
-source-compatible. They now render black, lime, and a pale neutral container. Their names do not
-set a red, jade, or yellow visual treatment. The `coral` color role remains error red for
-existing error states. `headerShape` remains for older feature callers but shared headers
-draw no decorative squiggles.
-
 ### Type (`HhTheme.typography`)
 
-Open Sans ships in `res/font/core_designsystem_open_sans.ttf` as a variable font with
-400 body, 500 headlines, 700 labels and buttons, and 800 key numbers. The source is
-[Google Fonts Open Sans](https://github.com/google/fonts/tree/main/ofl/opensans); the
-[OFL license](../core/designsystem/fonts-licenses/OpenSans-OFL.txt) ships beside it.
-IBM Plex Mono 500 remains for provenance fact IDs. Text uses `sp`, and the shared
-components grow at 200% font scale.
+Manrope (`res/font/core_designsystem_manrope.ttf`) is the UI face. Archivo Black
+(`core_designsystem_archivo_black.ttf`) sets uppercase headlines through `HhHeadline`. The OFL licenses are in
+`core/designsystem/fonts-licenses/`. Text uses `sp`, and the shared components grow at 200% font scale.
+The scale is in `Type.kt`.
 
 `displayL` 36/42, `displayM` 32/39, `headlineL` 28/36, `headlineM` 22/30,
 `titleL` 20/28, `titleM` 16/24, `titleS` 14/21, `bodyL` 16/24,
@@ -96,13 +86,12 @@ Values are size/line height in `sp`. Buttons have slight letter spacing.
 
 ### Shape (`HhTheme.shapes`)
 
-`sheet` and `modalSheet` have 24 dp top corners. `heroCard` is 22 dp; `card` and
-`pillRow` are 20 and 24 dp. `field` is 16 dp, `statusRow` is 18 dp, and
-`heroBottom` is 28 dp. Buttons and small chips remain pills.
+`sheet` and `modalSheet` have 28 dp top corners. `heroCard` is 22 dp; `card` and
+`pillRow` are 20 and 24 dp. `field` and `statusRow` are 18 dp. Buttons and small chips remain pills.
 
 ### Spacing (`HhTheme.spacing`)
 
-`gutter` 20, `cardPadding` 18, `sectionGap` 24, `touch` 48, plus the
+`gutter` 16, `cardPadding` 16, `sectionGap` 24, `touch` 48, plus the
 named spacing steps from 2 to 64 dp.
 
 ### Elevation (`HhTheme.elevation`)
@@ -195,25 +184,11 @@ Content runs behind the floating dock. It is not clipped. The bottom padding abo
 clear of the dock.
 
 ```kotlin
-fun HhHomeHeader(greeting: String, headline: String, modifier, trailing: @Composable RowScope.() -> Unit = {},
-    action: (@Composable () -> Unit)? = null, illustration: (@Composable BoxScope.() -> Unit)? = null)
-```
-Deep home header with an optional illustration slot. When no illustration is supplied, the headline uses the full width.
-
-```kotlin
-fun HhCompactHomeHeader(title: String, subtitle: String, modifier, trailing: @Composable RowScope.() -> Unit = {})
-```
-Compact: a tab screen with no illustration. Title first (`headlineL`), then one subtitle line, 164 dp
-plus the status bar, sheet overlap 24 dp. Use it for Settings. It works as `HhScreen(header = ...)`
-with `sheet = true`.
-
-```kotlin
 fun HhCollapsingHomeHeader(collapse: HhHeaderCollapseState, title: String, greeting: String, headline: String,
     modifier, trailing, action, illustration)
 fun rememberHhHeaderCollapseState(): HhHeaderCollapseState
 ```
-The home header for a screen with a list. The scroll sets the height. Fully expanded, it is the same
-frame as `HhHomeHeader`. Fully collapsed, it is a short Deep bar (84 dp including the 24 dp overlap)
+The home header for a screen with a list. The scroll sets the height. Fully collapsed, it is a short Deep bar (84 dp including the 24 dp overlap)
 with the title and the trailing slot. Put `Modifier.nestedScroll(collapse.connection)` on the list.
 A scroll up collapses the header before the list moves. A scroll down expands the header after the
 list is at the top. Parallax: the headline, the action, and the hero move up at half the speed of
@@ -285,20 +260,12 @@ fun HhSecondaryButton(...same...)   // tint
 fun HhOutlineButton(...same...)
 fun HhTextButton(...same...)
 fun HhDestructiveButton(label, onClick, modifier, enabled = true, leadingIcon = null)
-fun HhHeaderButton(label: String, onClick: () -> Unit, modifier, trailingIcon: ImageVector? = null) // outline on jade
 fun HhInkButton(label: String, onClick: () -> Unit, modifier, enabled = true, leadingIcon = null, trailingIcon = null) // ink fill, light in dark
 fun HhButton(onClick, modifier, enabled, contentPadding, content: RowScope.() -> Unit)      // primary, slot form
 fun HhButton(onClick, modifier, enabled, text: @Composable () -> Unit, leadingIcon: ...)
 fun HhOutlinedButton(...same two forms...)
 ```
 Board: Buttons.
-
-```kotlin
-fun HhSpecialButton(label: String, onClick: () -> Unit, modifier, caption: String? = null)
-fun HhSpecialDeclineButton(label: String, onClick: () -> Unit, modifier)
-fun HhSpecialOffer(label, declineLabel, onAccept, onDecline, modifier, caption: String? = null)
-```
-Lime pack purchase action. `HhSpecialOffer` pairs it with an equal-size "Not now" button. Board: Pack purchase.
 
 ```kotlin
 fun HhIconButton(icon: ImageVector, contentDescription: String, onClick, modifier, enabled = true, tint, containerColor, borderColor, shape, size: Dp = 48.dp)
@@ -313,21 +280,9 @@ fun HhBackButton(contentDescription, onClick, modifier, onHeader: Boolean = fals
 ```kotlin
 fun HhCard(modifier, contentPadding: PaddingValues? = null, trailingAction: (@Composable () -> Unit)? = null, onClick: (() -> Unit)? = null, content: ColumnScope.() -> Unit)
 fun HhHeroCard(modifier, contentPadding, onClick: (() -> Unit)? = null, content: ColumnScope.() -> Unit)
-fun HhSectionCard(modifier, contentPadding, trailingAction, content)
 fun HhMonogram(text: String, modifier, size: Dp = 40.dp)
 ```
 Card: quiet neutral fill, 1 dp border, 20 dp corners. Hero card: document fill, 22 dp corners, subtle shadow. Board: Application card, Bullet review card.
-
-```kotlin
-enum class HhAccent { Coral, Jade, Marigold }
-enum class HhOnColorChipStyle { White, Outline, Ink }
-fun HhSolidCard(accent: HhAccent, monogram: String, title: String, subtitle: String, modifier,
-    onOpen: (() -> Unit)? = null, openContentDescription: String = "",
-    decoration: HhDecorationKind? = null, chips: (@Composable RowScope.() -> Unit)? = null)
-fun HhOnColorChip(label: String, modifier, style: HhOnColorChipStyle = White, accent: HhAccent = Coral)
-```
-A solid colour card: a white circular monogram, an ink round open button, a title, a subtitle, and chips.
-Put `HhOnColorChip` in `chips`. The legacy accents map to Deep, Lime, and a quiet green panel.
 
 ```kotlin
 enum class HhPillRowStyle { Coral, Jade, Marigold, Ink, Neutral }
@@ -335,12 +290,6 @@ fun HhPillRow(title: String, onClick: () -> Unit, modifier, style = Coral, subti
     icon: ImageVector? = null, monogram: String? = null, trailingIcon: ImageVector? = ArrowForward)
 ```
 A pill list row: 72 dp tall, 24 dp radius, a 48 dp icon circle and a Deep, Lime, or quiet neutral surface. `Ink` inverts to light in dark. Board: Pill list rows.
-
-```kotlin
-enum class HhDecorationKind { Squiggle, Ring, Dots, Spark, Loop, Zigzag, Plus }
-fun HhDecoration(kind: HhDecorationKind, color: Color, modifier, strokeWidth: Dp = 2.6.dp)
-```
-The legacy decoration set remains for compatibility. Shared headers and solid cards omit it by default.
 
 ```kotlin
 fun HhIconActionBar(secondaryIcon: ImageVector, secondaryContentDescription: String, onSecondaryClick: () -> Unit,
@@ -355,14 +304,8 @@ badge) and a 60 dp primary pill. `ink = true` makes the primary an ink pill.
 enum HhStatusKind { Met, Partial, Gap }
 fun HhStatusDisc(kind, modifier, size: Dp = 18.dp, contentDescription: String? = null)
 fun HhStatusChip(kind, modifier, label: String? = null, onHero: Boolean = false)   // disc and word; onHero is a white pill
-fun HhStatusRow(kind: HhStatusKind, title: String, statusLine: String, modifier)   // 64 dp row, 24 dp radius, card fill
 fun HhApplicationStatusChip(kind: HhApplicationStatusKind, modifier, label: String? = null, dotSize: Dp)
 fun HhProvenanceChip(kind: HhProvenanceKind, modifier, label: String? = null)
-fun HhTrustChip(kind: HhTrustKind, modifier, label: String? = null)
-fun HhCreditsPill(count: String, label: String, modifier, contentDescription: String? = null)
-fun HhEditTypeTag(label: String, modifier)
-fun HhRequirementTag(label: String, mustHave: Boolean, modifier)
-fun HhTermChip(label: String, modifier)
 fun HhFactId(id: String, modifier)
 ```
 Always pass `label`. The default label is the enum name and is not user copy.
@@ -375,11 +318,7 @@ fun HhCoverageBar(met: Int, partial: Int, gap: Int, modifier)
 fun HhEvidenceMark(text: String, modifier, style: TextStyle? = null, tint: Color? = null)
 fun evidenceMarkSpanStyle(): SpanStyle
 fun HhEvidenceText(text: AnnotatedString, modifier, style, color)
-fun HhHeroNumeral(value: String, modifier, caption: String? = null, contentDescription: String? = null)
 fun HhStepProgress(stepNames: List<String>, currentStepIndex: Int, modifier, ordinalLabel: String? = null, stepDetails: List<String?> = emptyList(), footnote: String? = null)
-fun HhSegmentedCounter(current: Int, total: Int, modifier)
-fun HhPageDots(count: Int, selectedIndex: Int, modifier, onHeader: Boolean = true)
-fun HhListRow(modifier, onClick, showDivider, leading, trailing, content)
 fun HhFilterChip(label, selected, onClick, modifier, leadingIcon, count, colors)
 fun HhDivider(modifier, style, thickness, color)
 ```
@@ -391,13 +330,11 @@ For the evidence underline inside running text use `HhEvidenceText` with spans f
 ## Inputs and overlays
 ```kotlin
 fun HhTextField(value, onValueChange, modifier, label, placeholder, supportingText: (@Composable () -> Unit)?, errorText: String?, trailingSlot, enabled, singleLine, minLines, visualTransformation, keyboardOptions, keyboardActions)
-fun HhConsentRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier, supportingText: String? = null, linkLabel: String? = null, onLinkClick: (() -> Unit)? = null)
 fun HhCheckbox(checked, onCheckedChange, modifier, enabled = true)
 fun HhSwitch(checked, onCheckedChange, modifier, enabled = true)
 fun HhBottomSheet(onDismissRequest, modifier, sheetState, contentPadding, title: String? = null, subtitle: String? = null, content)
 fun HhSheetActionRow(icon: ImageVector, title: String, onClick, modifier, subtitle: String? = null)
 fun HhConfirmDialog(title, confirmLabel, cancelLabel, onConfirm, onCancel, modifier, message, destructive)
-fun HhConfirmSheet(title, confirmLabel, cancelLabel, onConfirm, onCancel, modifier, message, destructive, content)
 fun rememberHhToastState(): HhToastState
 suspend fun HhToastState.show(message: String, actionLabel: String? = null, duration: HhSnackbarDuration = Standard): HhToastResult
 fun HhToastState.dismiss()
@@ -417,14 +354,12 @@ Constitution II.5. `HhSnackbar` and `showHhSnackbar` are the parts of the toast.
 
 ## Frames
 ```kotlin
-fun HhExportPreviewFrame(meta: String, caption: String, modifier, badge: (@Composable () -> Unit)? = null, paper: ColumnScope.() -> Unit)
 object HhPaperColors { Page, Ink, Body, Rule }
-fun HhFitShareCard(eyebrow, headline, met, partial: Int?, gap, caption, metLegend, partialLegend: String?, gapLegend, matchedTerms: List<String>, footer, modifier)
 ```
-The paper is black on white in both themes. The share card is always light. Board: Export preview frame, JD fit share card.
+The export paper is black on white in both themes.
 
 ## Icons
 `HhIcons` also has `Lock`, `Link`, `Info`, `Download`, `ExpandMore`, `ExpandLess`, `Description`, `Flag`, `Share`, `OpenInNew`, `Search`.
 
 ## Illustration
-`HhSpotIllustration` is owned by the ILLUS package. Pass it into `HhHomeHeader.illustration`.
+`HhSpotIllustration` is owned by the ILLUS package. Pass it into `HhCollapsingHomeHeader.illustration`.

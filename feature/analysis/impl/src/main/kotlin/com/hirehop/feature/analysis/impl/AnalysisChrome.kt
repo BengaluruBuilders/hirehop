@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,17 +25,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.data.repository.UsageAllowance
 import com.hirehop.core.designsystem.component.HhBottomActionBar
-import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhHeadline
+import com.hirehop.core.designsystem.component.HhMonogram
 import com.hirehop.core.designsystem.component.HhPrimaryButton
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
@@ -40,49 +47,58 @@ private enum class WaitingPillKind { Done, InProgress, UpNext }
 
 @Composable
 internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: PaddingValues) {
-    val stepIndex = state.stepIndex
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = HhTheme.spacing.gutter)
-            .padding(top = contentPadding.calculateTopPadding() + 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(top = contentPadding.calculateTopPadding() + HhTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
+        JobCard(state)
+        listOf(
+            stringResource(R.string.feature_analysis_impl_step_read),
+            stringResource(R.string.feature_analysis_impl_step_match),
+            stringResource(R.string.feature_analysis_impl_step_sort),
+        ).forEachIndexed { position, title ->
+            val kind = pillKind(position = position, current = state.stepIndex)
+            WaitingPill(title = title, stateLabel = stringResource(kind.stateLabelRes()), kind = kind)
+        }
         Text(
-            text = stringResource(R.string.feature_analysis_impl_waiting_heading),
-            style = HhTheme.typography.titleL,
-            color = HhTheme.colors.onSurface,
-            modifier = Modifier.semantics { heading() },
+            text = stringResource(R.string.feature_analysis_impl_waiting_duration),
+            modifier = Modifier.fillMaxWidth().padding(top = HhTheme.spacing.sm),
+            style = HhTheme.typography.labelM,
+            color = HhTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            val readTitle = if (state.requirementCount != null && stepIndex > 0) {
-                pluralStringResource(
-                    R.plurals.feature_analysis_impl_step_read_done,
-                    state.requirementCount,
-                    state.requirementCount,
-                )
-            } else {
-                stringResource(R.string.feature_analysis_impl_step_read)
-            }
-            val matchTitle = if (state.factCount > 0) {
-                pluralStringResource(
-                    R.plurals.feature_analysis_impl_step_match_count,
-                    state.factCount,
-                    state.factCount,
-                )
-            } else {
-                stringResource(R.string.feature_analysis_impl_step_match)
-            }
-            listOf(
-                readTitle,
-                matchTitle,
-                stringResource(R.string.feature_analysis_impl_step_sort),
-            ).forEachIndexed { position, title ->
-                val kind = pillKind(position = position, current = stepIndex)
-                WaitingPill(title = title, stateLabel = stringResource(kind.stateLabelRes()), kind = kind)
+        Text(
+            text = stringResource(R.string.feature_analysis_impl_waiting_footnote),
+            modifier = Modifier.fillMaxWidth(),
+            style = HhTheme.typography.bodyS,
+            color = HhTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun JobCard(state: AnalysisUiState) {
+    val title = state.headerTitle()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(HhTheme.colors.card, HhTheme.shapes.card)
+            .padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HhMonogram(text = state.job.company.ifBlank { title }, size = 44.dp)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(text = title, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+            state.headerSubtitle()?.let {
+                Text(text = it, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
             }
         }
-        WaitingFootnote(text = stringResource(R.string.feature_analysis_impl_waiting_footnote))
     }
 }
 
@@ -105,88 +121,40 @@ private fun WaitingPill(title: String, stateLabel: String, kind: WaitingPillKind
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .background(
-                color = when (kind) {
-                    WaitingPillKind.Done -> colors.brand
-                    WaitingPillKind.InProgress -> colors.header
-                    WaitingPillKind.UpNext -> colors.card
-                },
-                shape = HhTheme.shapes.pill,
-            )
-            .then(
-                if (kind == WaitingPillKind.UpNext) {
-                    Modifier.border(1.dp, colors.outlineVariant, HhTheme.shapes.pill)
-                } else {
-                    Modifier
-                },
-            )
-            .padding(horizontal = 12.dp)
+            .defaultMinSize(minHeight = 56.dp)
+            .background(colors.card, HhTheme.shapes.statusRow)
+            .padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp)
             .semantics(mergeDescendants = true) { contentDescription = "$title. $stateLabel" },
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    if (kind == WaitingPillKind.InProgress) colors.onHeader.copy(alpha = 0.12f) else colors.surface,
-                    HhTheme.shapes.pill,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            when (kind) {
-                WaitingPillKind.Done -> Icon(
-                    imageVector = HhIcons.Check,
-                    contentDescription = null,
-                    tint = colors.primary,
-                    modifier = Modifier.size(24.dp),
-                )
-                WaitingPillKind.InProgress -> Icon(
-                    imageVector = HhIcons.Clock,
-                    contentDescription = null,
-                    tint = colors.onHeader,
-                    modifier = Modifier.size(24.dp),
-                )
-                WaitingPillKind.UpNext -> Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .border(2.dp, colors.outlineVariant, HhTheme.shapes.pill),
-                )
-            }
-        }
-        Column(
+        WaitingMark(kind)
+        Text(
+            text = title,
+            style = HhTheme.typography.titleS,
+            color = if (kind == WaitingPillKind.UpNext) colors.onSurfaceVariant else colors.onSurface,
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-        ) {
-            Text(
-                text = title,
-                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
-                color = when (kind) {
-                    WaitingPillKind.Done -> colors.onBrand
-                    WaitingPillKind.InProgress -> colors.onHeader
-                    WaitingPillKind.UpNext -> colors.onSurface
-                },
-            )
-            Text(
-                text = stateLabel,
-                style = HhTheme.typography.labelM,
-                color = when (kind) {
-                    WaitingPillKind.Done -> colors.onBrand
-                    WaitingPillKind.InProgress -> colors.onHeaderVariant
-                    WaitingPillKind.UpNext -> colors.onSurfaceVariant
-                },
-            )
-        }
+        )
+        Text(text = stateLabel, style = HhTheme.typography.labelM, color = colors.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun WaitingFootnote(text: String) {
+private fun WaitingMark(kind: WaitingPillKind) {
+    val colors = HhTheme.colors
+    val mark = Modifier.size(24.dp)
+    when (kind) {
+        WaitingPillKind.Done -> Box(mark.background(colors.brand, CircleShape), contentAlignment = Alignment.Center) {
+            Icon(HhIcons.Check, contentDescription = null, tint = colors.onBrand, modifier = Modifier.size(16.dp))
+        }
+        WaitingPillKind.InProgress -> Box(mark.border(2.dp, colors.primary, CircleShape))
+        WaitingPillKind.UpNext -> Box(mark.border(2.dp, colors.outlineVariant, CircleShape))
+    }
+}
+
+@Composable
+private fun InfoNote(text: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -196,12 +164,7 @@ private fun WaitingFootnote(text: String) {
             tint = HhTheme.colors.onSurfaceVariant,
             modifier = Modifier.size(18.dp),
         )
-        Text(
-            text = text,
-            style = HhTheme.typography.labelL,
-            color = HhTheme.colors.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-        )
+        Text(text = text, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
     }
 }
 
@@ -210,54 +173,46 @@ internal fun MessageContent(
     title: String,
     body: String,
     contentPadding: PaddingValues,
+    chip: String? = null,
     note: String? = null,
 ) {
-    val isError = note == null
+    val isError = chip == null
     val colors = HhTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = HhTheme.spacing.gutter)
-            .padding(top = contentPadding.calculateTopPadding() + 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(top = contentPadding.calculateTopPadding() + HhTheme.spacing.xxxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.lg),
     ) {
-        Text(
-            text = title,
-            style = HhTheme.typography.titleL,
-            color = colors.onSurface,
-            modifier = Modifier.semantics { heading() },
-        )
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(colors.card, HhTheme.shapes.card)
-                .border(1.dp, colors.outlineVariant, HhTheme.shapes.card)
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
+                .size(88.dp)
+                .background(if (isError) colors.errorContainer else colors.partialContainer, CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(colors.surface, HhTheme.shapes.pill)
-                    .border(1.dp, colors.outlineVariant, HhTheme.shapes.pill),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = if (isError) HhIcons.Error else HhIcons.Clock,
-                    contentDescription = null,
-                    tint = if (isError) colors.error else colors.gap,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            Text(
-                text = body,
-                style = HhTheme.typography.bodyL,
-                color = colors.body,
-                modifier = Modifier.weight(1f),
+            Icon(
+                imageVector = if (isError) HhIcons.Error else HhIcons.Clock,
+                contentDescription = null,
+                tint = if (isError) colors.error else colors.partial,
+                modifier = Modifier.size(40.dp),
             )
         }
-        if (note != null) WaitingFootnote(text = note)
+        HhHeadline(
+            text = title,
+            style = HhTheme.typography.headlineL.copy(textAlign = TextAlign.Center),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = body,
+            style = HhTheme.typography.bodyL,
+            color = colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        chip?.let { HhStatusChip(kind = HhStatusKind.Gap, label = it) }
+        note?.let { InfoNote(it) }
     }
 }
 
@@ -278,11 +233,16 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
         }
         is AnalysisUiState.Failed -> {
             {
-                HhBottomActionBar {
+                HhBottomActionBar(stacked = true, primaryLast = false) {
                     HhPrimaryButton(
                         label = stringResource(R.string.feature_analysis_impl_retry),
                         onClick = actions.onRetry,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    HhSecondaryButton(
+                        label = stringResource(R.string.feature_analysis_impl_back_to_job),
+                        onClick = actions.onBackToJobDescription,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -290,7 +250,7 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
         is AnalysisUiState.DailyLimit -> {
             {
                 HhBottomActionBar {
-                    HhOutlineButton(
+                    HhSecondaryButton(
                         label = stringResource(R.string.feature_analysis_impl_back_to_job),
                         onClick = actions.onBackToJobDescription,
                         modifier = Modifier.weight(1f),
@@ -308,10 +268,13 @@ internal fun analysisBottomBarNotice(uiState: AnalysisUiState): (@Composable () 
 private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
     HhBottomActionBar {
         HhPrimaryButton(
-            label = stringResource(R.string.feature_analysis_impl_tailor),
+            label = stringResource(
+                if (state.isOffline) R.string.feature_analysis_impl_tailor_offline else R.string.feature_analysis_impl_tailor,
+            ),
             onClick = actions.onTailor,
             modifier = Modifier.weight(1f),
             enabled = state.canTailor,
+            trailingIcon = HhIcons.ArrowForward,
         )
     }
 }
@@ -343,8 +306,12 @@ private fun BarNote(state: AnalysisUiState.Result) {
         else -> NoteCard(icon = HhIcons.Download) {
             Text(
                 text = boldNumber(
-                    stringResource(R.string.feature_analysis_impl_credit_note, state.freeCredits.toString()),
-                    state.freeCredits.toString(),
+                    pluralStringResource(
+                        R.plurals.feature_analysis_impl_credit_note,
+                        state.totalCredits,
+                        state.totalCredits,
+                    ),
+                    state.totalCredits.toString(),
                 ),
                 style = HhTheme.typography.bodyM,
                 color = HhTheme.colors.onSurface,
@@ -354,22 +321,21 @@ private fun BarNote(state: AnalysisUiState.Result) {
 }
 
 @Composable
-private fun NoteCard(icon: ImageVector, content: @Composable () -> Unit) {
+internal fun NoteCard(icon: ImageVector, content: @Composable () -> Unit) {
     val colors = HhTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.card, HhTheme.shapes.card)
-            .border(HhTheme.spacing.d2 / 2, colors.outlineVariant, HhTheme.shapes.card)
-            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.sm + HhTheme.spacing.xxs),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
+            .background(colors.card, HhTheme.shapes.banner)
+            .padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = colors.primary,
-            modifier = Modifier.padding(top = HhTheme.spacing.xxs).size(NOTE_ICON_SIZE),
+            tint = colors.onSurface,
+            modifier = Modifier.size(NOTE_ICON_SIZE),
         )
         Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) { content() }
     }
@@ -385,7 +351,7 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
     AnalysisToast.TailorFailed -> stringResource(R.string.feature_analysis_impl_toast_tailor_failed)
 }
 
-private val NOTE_ICON_SIZE = 18.dp
+private val NOTE_ICON_SIZE = 22.dp
 
 private fun boldNumber(text: String, number: String): AnnotatedString = buildAnnotatedString {
     append(text)

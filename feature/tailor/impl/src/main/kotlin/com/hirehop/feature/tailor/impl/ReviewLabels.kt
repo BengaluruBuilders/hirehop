@@ -19,18 +19,6 @@ internal fun EditType.labelRes(): Int = when (this) {
 }
 
 @StringRes
-internal fun BulletReviewState.labelRes(): Int? = when (this) {
-    BulletReviewState.TO_REVIEW -> R.string.feature_tailor_impl_state_to_review
-    BulletReviewState.FLAGGED -> R.string.feature_tailor_impl_state_flagged
-    BulletReviewState.ACCEPTED -> R.string.feature_tailor_impl_state_accepted
-    BulletReviewState.ORIGINAL_KEPT -> R.string.feature_tailor_impl_state_original_kept
-    BulletReviewState.REPAIR_FAILED -> R.string.feature_tailor_impl_state_original_kept
-    BulletReviewState.USER_EDITED -> R.string.feature_tailor_impl_state_user_edited
-    BulletReviewState.STALE -> R.string.feature_tailor_impl_state_source_changed
-    BulletReviewState.UNCHANGED -> null
-}
-
-@StringRes
 internal fun EntryCategory.headingRes(): Int = when (this) {
     EntryCategory.EXPERIENCE -> R.string.feature_tailor_impl_section_experience
     EntryCategory.PROJECT -> R.string.feature_tailor_impl_section_projects

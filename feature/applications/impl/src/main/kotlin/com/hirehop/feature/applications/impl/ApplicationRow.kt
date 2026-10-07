@@ -3,36 +3,40 @@ package com.hirehop.feature.applications.impl
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.hirehop.core.designsystem.component.HhApplicationStatusChip
-import com.hirehop.core.designsystem.component.HhCoverageBar
-import com.hirehop.core.designsystem.component.HhPillRow
-import com.hirehop.core.designsystem.component.HhPillRowStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.KeywordCoverage
-import com.hirehop.core.ui.ApplicationStatusKindMapper
 import kotlin.time.Instant
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -67,42 +71,144 @@ internal fun ApplicationRow(
             contentDescription = rowDescription
             customActions = listOf(changeStatusAction)
         }
-    val coverageLine = stringResource(
-        R.string.feature_applications_impl_coverage_key_terms,
-        row.coverage.covered,
-        row.coverage.total,
-    )
-    HhPillRow(
-        title = role,
-        onClick = onClick,
-        style = HhPillRowStyle.Neutral,
-        subtitle = stringResource(R.string.feature_applications_impl_row_company_updated, company, updatedLabel),
-        monogram = monogramOf(row.company),
-        titleMaxLines = 2,
+    val coverageLine = coverageLine(row.coverage)
+    HhCard(
         modifier = rowModifier,
+        contentPadding = PaddingValues(HhTheme.spacing.md),
+        onClick = onClick,
     ) {
-        HhCoverageBar(
-            met = row.coverage.covered,
-            partial = 0,
-            gap = row.coverage.total - row.coverage.covered,
-        )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            itemVerticalAlignment = Alignment.CenterVertically,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(RowGap),
         ) {
-            HhApplicationStatusChip(
-                kind = ApplicationStatusKindMapper().kindOf(row.status),
-                label = statusLabel,
-                modifier = Modifier
-                    .defaultMinSize(minHeight = HhTheme.spacing.touch)
-                    .clip(HhTheme.shapes.pill)
-                    .clickable(onClick = onStatusClick),
-            )
-            Text(text = coverageLine, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
-            if (row.isSyncPending) SyncPendingChip()
+            LogoTile(company = row.company)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            ) {
+                Column {
+                    Text(
+                        text = role,
+                        style = HhTheme.typography.titleL,
+                        color = HhTheme.colors.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.feature_applications_impl_row_company_updated,
+                            company,
+                            updatedLabel,
+                        ),
+                        style = HhTheme.typography.labelM,
+                        color = HhTheme.colors.onSurfaceVariant,
+                    )
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StatusChip(status = row.status, label = statusLabel, onClick = onStatusClick)
+                    if (row.isSyncPending) SyncPendingChip()
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = HhIcons.CheckCircle,
+                        contentDescription = null,
+                        tint = HhTheme.colors.met,
+                        modifier = Modifier.size(HhTheme.spacing.lg),
+                    )
+                    Text(
+                        text = coverageLine,
+                        style = HhTheme.typography.labelM,
+                        color = HhTheme.colors.onSurface,
+                    )
+                }
+            }
         }
     }
+}
+
+private val RowGap = 14.dp
+private val LogoTileSize = 44.dp
+private val LogoTileShape = RoundedCornerShape(14.dp)
+
+@Composable
+internal fun LogoTile(company: String, modifier: Modifier = Modifier, size: Dp = LogoTileSize) {
+    val tiles = HhTheme.colors.logoTiles
+    val fill = tiles[company.trim().lowercase().hashCode().mod(tiles.size)]
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(LogoTileShape)
+            .background(fill)
+            .clearAndSetSemantics {},
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = monogramOf(company).trim().take(1).uppercase(),
+            style = HhTheme.typography.titleL,
+            color = HhTheme.colors.onLogoTile,
+        )
+    }
+}
+
+@Composable
+internal fun StatusChip(
+    status: ApplicationStatus,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = HhTheme.colors
+    val tint = when (status) {
+        ApplicationStatus.INTERVIEW, ApplicationStatus.OFFER -> colors.met
+        ApplicationStatus.REJECTED, ApplicationStatus.NO_RESPONSE -> colors.onSurfaceVariant
+        else -> colors.onSurface
+    }
+    Box(
+        modifier = modifier
+            .heightIn(min = HhTheme.spacing.touch)
+            .clip(HhTheme.shapes.pill)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .heightIn(min = ChipHeight)
+                .clip(HhTheme.shapes.pill)
+                .background(colors.primaryContainer)
+                .padding(start = ChipStartPadding, end = HhTheme.spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = status.glyph(),
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(HhTheme.spacing.lg),
+            )
+            Text(
+                text = label,
+                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+                color = tint,
+            )
+        }
+    }
+}
+
+private val ChipHeight = 26.dp
+private val ChipStartPadding = 7.dp
+
+private fun ApplicationStatus.glyph(): ImageVector = when (this) {
+    ApplicationStatus.SAVED -> HhIcons.Bookmark
+    ApplicationStatus.APPLIED -> HhIcons.Send
+    ApplicationStatus.INTERVIEW -> HhIcons.Calendar
+    ApplicationStatus.OFFER -> HhIcons.Award
+    ApplicationStatus.REJECTED -> HhIcons.CancelCircle
+    ApplicationStatus.NO_RESPONSE -> HhIcons.Clock
 }
 
 @Composable

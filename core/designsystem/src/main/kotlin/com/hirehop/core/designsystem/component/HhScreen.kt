@@ -23,7 +23,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
@@ -55,8 +54,7 @@ fun HhScreen(
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val dockInset = LocalHhBottomInset.current
-    val dockExtra = if (dockInset > 0.dp && LocalDensity.current.fontScale >= 1.5f) HhDockLargeFontExtra else 0.dp
-    val resting = navBottom + dockInset + dockExtra
+    val resting = navBottom + dockInset
     val gutter = HhTheme.spacing.gutter
     val sheetTop = HhTheme.spacing.d24
     val collapse = rememberHhHeaderCollapseState()
@@ -169,7 +167,7 @@ private fun HhScreenDarkPreview() {
 @Composable
 private fun HhScreenSample() {
     HhScreen(
-        header = { HhInnerHeader(title = "Applications", onBack = {}, extended = false) },
+        header = { HhInnerHeader(title = "Applications", onBack = {}) },
         bottomBar = { HhBottomActionBar { HhPrimaryButton(label = "Export", onClick = {}) } },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding))

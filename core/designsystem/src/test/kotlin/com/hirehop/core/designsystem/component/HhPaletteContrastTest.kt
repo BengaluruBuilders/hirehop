@@ -12,19 +12,19 @@ import org.junit.Test
 
 class HhPaletteContrastTest {
     @Test
-    fun appSurfacePaletteMatchesPlayScreenshotSamples() {
+    fun appSurfacePaletteMatchesTheClaudeDesignCanvas() {
         with(HhLightColors) {
             assertEquals(Color(0xFFFFFFFF), background)
             assertEquals(Color(0xFFF4F6F1), card)
-            assertEquals(Color(0xFF000000), header)
-            assertEquals(Color(0xFFAAFF00), brand)
+            assertEquals(Color(0xFFFFFFFF), header)
+            assertEquals(Color(0xFFAEFF00), brand)
             assertEquals(Color(0xFF000000), onBrand)
         }
         with(HhDarkColors) {
             assertEquals(Color(0xFF000000), background)
-            assertEquals(Color(0xFF141614), card)
-            assertEquals(Color(0xFF252624), document)
-            assertEquals(Color(0xFFAAFF00), brand)
+            assertEquals(Color(0xFF161817), card)
+            assertEquals(Color(0xFF232524), document)
+            assertEquals(Color(0xFFAEFF00), brand)
             assertEquals(Color(0xFF000000), onBrand)
         }
     }
@@ -42,7 +42,7 @@ class HhPaletteContrastTest {
     @Test
     fun statusBarIconPolarityFollowsTheTopSurface() {
         assertTrue(hhDarkStatusBarIcons(lightTop = true, colors = HhLightColors))
-        assertFalse(hhDarkStatusBarIcons(lightTop = false, colors = HhLightColors))
+        assertTrue(hhDarkStatusBarIcons(lightTop = false, colors = HhLightColors))
         assertFalse(hhDarkStatusBarIcons(lightTop = true, colors = HhDarkColors))
         assertFalse(hhDarkStatusBarIcons(lightTop = false, colors = HhDarkColors))
     }

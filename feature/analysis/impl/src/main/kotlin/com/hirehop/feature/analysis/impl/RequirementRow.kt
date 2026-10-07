@@ -3,16 +3,13 @@ package com.hirehop.feature.analysis.impl
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -22,8 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -36,13 +31,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhButtonSize
+import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhSecondaryButton
-import com.hirehop.core.designsystem.component.HhStatusDisc
+import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -67,180 +61,158 @@ internal fun RequirementRow(
     val statusLabel = stringResource(item.status.labelRes())
     val priorityLabel = stringResource(item.priorityLabelRes())
     val description = rowDescription(item, statusLabel, priorityLabel)
-    val isMet = item.status == MatchStatus.MET
-    Box(
+    val shape = if (item.isGap) HhTheme.shapes.card else HhTheme.shapes.statusRow
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = hop.value
                 scaleY = hop.value
             }
-            .semantics { contentDescription = description },
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(HhTheme.shapes.card)
-                .background(HhTheme.colors.card)
-                .then(
-                    if (isMet) {
-                        Modifier
-                    } else {
-                        Modifier.border(1.dp, HhTheme.colors.outlineVariant, HhTheme.shapes.card)
-                    },
-                )
-                .then(
-                    if (item.hasSource) {
-                        Modifier.clickable(role = Role.Button) { actions.onSeeSource(item.id) }
-                    } else {
-                        Modifier
-                    },
-                )
-                .then(
-                    if (isMet) {
-                        Modifier
-                            .heightIn(min = 64.dp)
-                            .padding(horizontal = 14.dp, vertical = 12.dp)
-                    } else {
-                        Modifier.padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp)
-                    },
-                ),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    HhStatusDisc(kind = item.status.statusKind(), size = 26.dp)
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(if (item.hasMenu) Modifier.padding(end = 48.dp) else Modifier),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = item.requirement.text,
-                            style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
-                            color = HhTheme.colors.onSurface,
-                        )
-                        Text(
-                            text = statusLineText(item, statusLabel),
-                            style = HhTheme.typography.labelM,
-                            color = when (item.status) {
-                                MatchStatus.MET -> HhTheme.colors.met
-                                MatchStatus.PARTIAL -> HhTheme.colors.partial
-                                MatchStatus.GAP -> HhTheme.colors.body
-                            },
-                        )
-                    }
-                }
-                if (item.isGap && !item.hasSource) {
-                    GapActions(item, actions, Modifier.padding(start = 38.dp))
-                }
-            }
-        }
-        if (item.hasMenu) {
-            HhIconButton(
-                icon = HhIcons.More,
-                contentDescription = stringResource(R.string.feature_analysis_impl_more_actions),
-                onClick = { actions.onOpenMenu(item.id) },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = HhTheme.spacing.xxs, end = HhTheme.spacing.xs)
-                    .onGloballyPositioned { onMenuAnchor(it.boundsInRoot()) },
-                tint = HhTheme.colors.onSurfaceVariant,
-                containerColor = Color.Transparent,
-                borderColor = Color.Transparent,
+            .semantics { contentDescription = description }
+            .clip(shape)
+            .background(HhTheme.colors.card)
+            .then(
+                if (item.hasSource) {
+                    Modifier.clickable(role = Role.Button) { actions.onSeeSource(item.id) }
+                } else {
+                    Modifier
+                },
             )
+            .padding(
+                horizontal = HhTheme.spacing.lg,
+                vertical = if (item.isGap) HhTheme.spacing.lg else HhTheme.spacing.md,
+            ),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm + HhTheme.spacing.xxs),
+    ) {
+        if (item.isGap) {
+            GapBody(item, statusLabel, actions, onMenuAnchor)
+        } else {
+            FoundBody(item, statusLabel, actions, onMenuAnchor)
         }
     }
 }
 
 @Composable
-private fun statusLineText(item: RequirementItem, statusLabel: String): String = when {
-    item.factRefs.isNotEmpty() -> stringResource(
-        R.string.feature_analysis_impl_row_line,
-        statusLabel,
-        item.factRefs.joinToString(" ") { it.displayId },
-    )
-    item.status == MatchStatus.GAP ->
-        stringResource(R.string.feature_analysis_impl_row_line_no_fact, statusLabel)
-    else -> statusLabel
+private fun GapBody(
+    item: RequirementItem,
+    statusLabel: String,
+    actions: AnalysisActions,
+    onMenuAnchor: (Rect) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = item.requirement.text.headline(),
+            style = HhTheme.typography.titleM,
+            color = HhTheme.colors.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        RowMenuButton(item, actions, onMenuAnchor)
+    }
+    HhStatusChip(kind = HhStatusKind.Gap, label = statusLabel)
+    item.requirement.text.splitDetail().second?.let { detail ->
+        Text(
+            text = stringResource(R.string.feature_analysis_impl_asked_for, detail),
+            style = HhTheme.typography.bodyS,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+    }
+    if (!item.hasSource) GapActions(item, actions)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GapActions(item: RequirementItem, actions: AnalysisActions, modifier: Modifier = Modifier) {
+private fun FoundBody(
+    item: RequirementItem,
+    statusLabel: String,
+    actions: AnalysisActions,
+    onMenuAnchor: (Rect) -> Unit,
+) {
+    Row(
+        modifier = Modifier.heightIn(min = HhTheme.spacing.d32 + HhTheme.spacing.d12),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
+            Text(text = item.requirement.text.headline(), style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                item.factRefs.forEach { HhFactId(id = it.displayId) }
+                item.sourceLabel()?.let {
+                    Text(text = it, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
+                }
+            }
+        }
+        HhStatusChip(kind = item.status.statusKind(), label = statusLabel)
+        RowMenuButton(item, actions, onMenuAnchor)
+    }
+}
+
+@Composable
+private fun RowMenuButton(item: RequirementItem, actions: AnalysisActions, onMenuAnchor: (Rect) -> Unit) {
+    if (!item.hasMenu) return
+    HhIconButton(
+        icon = HhIcons.More,
+        contentDescription = stringResource(R.string.feature_analysis_impl_more_actions),
+        onClick = { actions.onOpenMenu(item.id) },
+        modifier = Modifier.onGloballyPositioned { onMenuAnchor(it.boundsInRoot()) },
+        tint = HhTheme.colors.onSurfaceVariant,
+        containerColor = Color.Transparent,
+        borderColor = Color.Transparent,
+    )
+}
+
+private fun RequirementItem.sourceLabel(): String? =
+    factRefs.firstOrNull()?.let { listOf(it.title, it.organization).filter(String::isNotBlank).joinToString(", ") }
+        ?.takeIf(String::isNotBlank)
+        ?: skills.joinToString().takeIf(String::isNotBlank)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GapActions(item: RequirementItem, actions: AnalysisActions) {
     val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
     val prepDescription = stringResource(R.string.feature_analysis_impl_prep_description, item.requirement.text)
     val prepState = stringResource(
         if (item.isInPrepPlan) R.string.feature_analysis_impl_prep_added else R.string.feature_analysis_impl_prep_not_added,
     )
     val iHaveThis: @Composable (Modifier) -> Unit = { buttonModifier ->
-        HhOutlineButton(
+        HhSecondaryButton(
             label = stringResource(R.string.feature_analysis_impl_i_have_this),
             onClick = { actions.onIHaveThis(item.id) },
-            modifier = buttonModifier.heightIn(min = GAP_BUTTON_HEIGHT),
+            modifier = buttonModifier,
+            leadingIcon = HhIcons.Edit,
             size = HhButtonSize.Compact,
         )
     }
     val prepPlan: @Composable (Modifier) -> Unit = { buttonModifier ->
-        HhSecondaryButton(
+        HhOutlineButton(
             label = stringResource(R.string.feature_analysis_impl_add_to_prep_plan),
             onClick = { actions.onTogglePrepPlan(item.id) },
-            modifier = buttonModifier
-                .heightIn(min = GAP_BUTTON_HEIGHT)
-                .semantics {
-                    contentDescription = prepDescription
-                    stateDescription = prepState
-                    role = Role.Switch
-                },
-            leadingIcon = if (item.isInPrepPlan) HhIcons.Check else null,
+            modifier = buttonModifier.semantics {
+                contentDescription = prepDescription
+                stateDescription = prepState
+                role = Role.Switch
+            },
+            leadingIcon = if (item.isInPrepPlan) HhIcons.Check else HhIcons.Add,
             size = HhButtonSize.Compact,
         )
     }
     if (stacked) {
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             iHaveThis(Modifier.fillMaxWidth())
             prepPlan(Modifier.fillMaxWidth())
         }
     } else {
         FlowRow(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
             iHaveThis(Modifier)
             prepPlan(Modifier)
-        }
-    }
-}
-
-@Composable
-internal fun SourceFactChip(factId: String, onClick: () -> Unit) {
-    val colors = HhTheme.colors
-    val description = stringResource(R.string.feature_analysis_impl_source_fact, factId)
-    val underline = HhTheme.spacing.xxs
-    Box(
-        modifier = Modifier
-            .heightIn(min = HhTheme.spacing.touch)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .height(HhTheme.spacing.d32 - HhTheme.spacing.d2)
-                .clip(HhTheme.shapes.pill)
-                .background(colors.evidence)
-                .drawBehind {
-                    val y = size.height - underline.toPx() / 2f
-                    drawLine(colors.evidenceLine, Offset(0f, y), Offset(size.width, y), underline.toPx())
-                }
-                .padding(horizontal = HhTheme.spacing.md),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = factId, style = HhTheme.typography.factId, color = colors.onSurface)
         }
     }
 }
@@ -274,7 +246,7 @@ private fun MatchStatus.labelRes(): Int = when (this) {
 }
 
 @StringRes
-private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
+internal fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
     R.string.feature_analysis_impl_priority_must_have
 } else {
     R.string.feature_analysis_impl_priority_nice_to_have
@@ -282,4 +254,3 @@ private fun RequirementItem.priorityLabelRes(): Int = if (isMustHave) {
 
 private const val STACK_FONT_SCALE = 1.3f
 private const val HOP_FROM_SCALE = 0.94f
-private val GAP_BUTTON_HEIGHT = 44.dp

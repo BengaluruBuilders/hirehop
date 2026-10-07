@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,18 +20,23 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhCoverageBar
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhSectionLabel
+import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.domain.displayKeywords
+import com.hirehop.core.model.MatchStatus
 
 @Composable
 internal fun ResultContent(
@@ -43,22 +50,32 @@ internal fun ResultContent(
         contentPadding = PaddingValues(
             start = HhTheme.spacing.gutter,
             end = HhTheme.spacing.gutter,
-            top = HhTheme.spacing.lg,
+            top = HhTheme.spacing.sm,
             bottom = contentPadding.calculateBottomPadding(),
         ),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md + HhTheme.spacing.xxs),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         if (state.isOffline) {
             item(key = "offline") {
                 HhOfflineBanner(message = stringResource(R.string.feature_analysis_impl_offline_banner))
             }
         }
+        item(key = "caption") { JobCaption(state) }
         item(key = "coverage") { CoverageCard(state) }
-        mustHavesHeading(state)
         resultSections(state, actions, onMenuAnchor)
     }
 }
 
+@Composable
+private fun JobCaption(state: AnalysisUiState.Result) {
+    Text(
+        text = listOfNotNull(state.headerTitle(), state.headerSubtitle()).joinToString(" · "),
+        style = HhTheme.typography.bodyS,
+        color = HhTheme.colors.onSurfaceVariant,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CoverageCard(state: AnalysisUiState.Result) {
     val coverage = state.keywordCoverage
@@ -67,8 +84,7 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
         coverage.covered.toString(),
         coverage.total.toString(),
     )
-    HhCard(contentPadding = PaddingValues(HhTheme.spacing.cardPadding)) {
-        CoverageLabel()
+    HhCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
         if (coverage.total == 0) {
             Text(
                 text = stringResource(R.string.feature_analysis_impl_coverage_empty),
@@ -81,25 +97,47 @@ private fun CoverageCard(state: AnalysisUiState.Result) {
             modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = summary },
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         ) {
-            Text(text = summary, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+            Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm), verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = coverage.covered.toString(),
+                    style = HhTheme.typography.numeralHero,
+                    color = HhTheme.colors.onSurface,
+                )
+                HhHeadline(
+                    text = stringResource(R.string.feature_analysis_impl_coverage_total, coverage.total.toString()),
+                    style = HhTheme.typography.headlineM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Text(text = summary, style = HhTheme.typography.titleS, color = HhTheme.colors.onSurface)
             HhCoverageBar(
                 met = coverage.covered,
                 partial = 0,
                 gap = coverage.total - coverage.covered,
             )
         }
+        SummaryChips(state)
         MissingTermsLine(state.missingKeyTerms())
         if (state.gapCount >= GAP_NOTE_THRESHOLD) GapNote(state.gapCount)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CoverageLabel() {
-    Text(
-        text = stringResource(R.string.feature_analysis_impl_keyword_coverage),
-        style = HhTheme.typography.labelM,
-        color = HhTheme.colors.onSurfaceVariant,
-    )
+private fun SummaryChips(state: AnalysisUiState.Result) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    ) {
+        listOf(
+            Triple(HhStatusKind.Met, state.countOf(MatchStatus.MET), R.string.feature_analysis_impl_summary_met),
+            Triple(HhStatusKind.Partial, state.countOf(MatchStatus.PARTIAL), R.string.feature_analysis_impl_summary_partial),
+            Triple(HhStatusKind.Gap, state.gapCount, R.string.feature_analysis_impl_summary_gap),
+        ).filter { it.second > 0 }.forEach { (kind, count, label) ->
+            HhStatusChip(kind = kind, label = stringResource(label, count))
+        }
+    }
 }
 
 @Composable
@@ -137,45 +175,10 @@ private fun GapNote(gapCount: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .background(HhTheme.colors.gapContainer, HhTheme.shapes.banner)
-            .padding(horizontal = HhTheme.spacing.cardPadding, vertical = HhTheme.spacing.md),
-        style = HhTheme.typography.bodyM,
+            .padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
+        style = HhTheme.typography.labelL,
         color = HhTheme.colors.onGapContainer,
     )
-}
-
-private fun LazyListScope.mustHavesHeading(state: AnalysisUiState.Result) {
-    val mustHaveCount = state.items.count { it.isMustHave }
-    if (mustHaveCount == 0) return
-    item(key = "must-haves") { MustHavesHeading(mustHaveCount, state.items.size) }
-}
-
-@Composable
-private fun MustHavesHeading(mustHaveCount: Int, totalCount: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = HhTheme.spacing.xs),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_must_haves_first),
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() },
-            style = HhTheme.typography.titleL,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(
-                R.string.feature_analysis_impl_must_haves_count,
-                mustHaveCount,
-                totalCount,
-            ),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
 }
 
 private fun LazyListScope.resultSections(
@@ -184,9 +187,7 @@ private fun LazyListScope.resultSections(
     onMenuAnchor: (String, Rect) -> Unit,
 ) {
     state.sections.forEach { section ->
-        if (section.group != RequirementGroup.MustHaveGaps) {
-            item(key = "header-${section.group}") { GroupHeader(section.group) }
-        }
+        item(key = "header-${section.group}") { GroupHeader(section.group, section.items.size) }
         items(section.items.size, key = { "requirement-${section.items[it].id}" }) { index ->
             val item = section.items[index]
             RequirementRow(
@@ -201,14 +202,10 @@ private fun LazyListScope.resultSections(
 }
 
 @Composable
-private fun GroupHeader(group: RequirementGroup) {
-    Text(
-        text = stringResource(group.titleRes()),
-        modifier = Modifier
-            .padding(top = HhTheme.spacing.sm)
-            .semantics { heading() },
-        style = HhTheme.typography.titleM,
-        color = HhTheme.colors.onSurface,
+private fun GroupHeader(group: RequirementGroup, count: Int) {
+    HhSectionLabel(
+        text = stringResource(group.titleRes(), count),
+        modifier = Modifier.padding(top = HhTheme.spacing.sm),
     )
 }
 

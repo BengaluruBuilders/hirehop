@@ -19,15 +19,18 @@ The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle
 
 ## Design source
 
-The current visual direction is `docs/AVVIO_REDESIGN.md`, requested on 2026-10-07. It and
-`docs/DESIGN_SYSTEM.md` supersede the Jade appearance rules and frame styling below. The exported
-frames still document screen content and states. Keep them read-only.
+The current visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
+(dark first, lime, Manrope and Archivo Black), requested on 2026-10-07. It covers all 24 screens in
+dark and light. It, `docs/AVVIO_REDESIGN.md` and `docs/DESIGN_SYSTEM.md` supersede the Jade appearance
+rules and frame styling below. The older exported frames still document states and copy that the
+canvas leaves out. Keep them read-only.
 
 If a task changes UI, read the frames for that flow before you write code.
 
 | Need | File |
 |---|---|
-| **Current look (restyle, wins first)** | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
+| **Current look (wins first)** | `design/avvio-canvas/README.md`, then `flow<N>-*.md` outlines |
+| Older restyle | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
 | Tokens: type, colour, surface, shape, spacing (older Jade board) | `design/claude-design/foundations/Main.dc.html`, `Colour.dc.html`, `Surface.dc.html` |
 | Motion registers `proof` and `hop` | `design/claude-design/foundations/Motion.dc.html` |
 | Characters and spot poses | `design/claude-design/foundations/Illustration.dc.html` |

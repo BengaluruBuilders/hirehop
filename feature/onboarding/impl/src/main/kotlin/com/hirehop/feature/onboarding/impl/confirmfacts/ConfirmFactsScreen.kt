@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,7 +51,6 @@ import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.icon.HhIcons
-import com.hirehop.core.designsystem.illustration.HhIllustration
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.feature.onboarding.impl.R
@@ -101,9 +100,9 @@ fun ConfirmFactsScreen(
             verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12 + HhTheme.spacing.xxs),
         ) {
             OnboardingStepBar(
-                step = CONFIRM_FACTS_STEP,
                 onBack = actions.onBack,
                 backContentDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_back_description),
+                title = stringResource(R.string.feature_onboarding_impl_confirm_facts_title),
             )
             when {
                 uiState.isLoading -> ConfirmFactsLoading()
@@ -120,8 +119,7 @@ private fun FactsToReviewBody(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
 ) {
-    FactsHeading(totalCount = uiState.totalCount)
-    FactsProgress(uiState = uiState, met = false)
+    FactsProgress(uiState = uiState)
     ConfirmFactsStatus(uiState)
     if (uiState.facts.any(ConfirmFactUi::isConfirmed)) {
         ConfirmedFactsGroup(uiState = uiState, actions = actions)
@@ -150,26 +148,7 @@ private fun FactsToReviewBody(
 }
 
 @Composable
-private fun FactsHeading(totalCount: Int) {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_title),
-            style = HhTheme.typography.headlineL,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_intro, totalCount),
-            style = HhTheme.typography.bodyL,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun FactsProgress(
-    uiState: ConfirmFactsUiState,
-    met: Boolean,
-) {
+private fun FactsProgress(uiState: ConfirmFactsUiState) {
     val counter = pluralStringResource(
         R.plurals.feature_onboarding_impl_confirm_facts_counter,
         uiState.confirmedCount,
@@ -180,38 +159,35 @@ private fun FactsProgress(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
-        if (met) {
-            HhStatusChip(kind = HhStatusKind.Met, label = counter)
-        } else {
-            Text(
-                text = counter,
-                style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.onSurface,
-            )
-        }
-        ProgressSegments(confirmed = uiState.confirmedCount, total = uiState.totalCount)
+        Text(
+            text = counter,
+            style = HhTheme.typography.headlineM,
+            color = HhTheme.colors.onSurface,
+        )
+        ProgressBar(confirmed = uiState.confirmedCount, total = uiState.totalCount)
     }
 }
 
 @Composable
-private fun ProgressSegments(
+private fun ProgressBar(
     confirmed: Int,
     total: Int,
 ) {
-    val colors = HhTheme.colors
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(PROGRESS_GAP),
+    val fraction = if (total == 0) 0f else confirmed.toFloat() / total
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PROGRESS_HEIGHT)
+            .clip(HhTheme.shapes.pill)
+            .background(HhTheme.colors.primaryContainer),
     ) {
-        repeat(total) { position ->
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(PROGRESS_HEIGHT)
-                    .clip(HhTheme.shapes.pill)
-                    .background(if (position < confirmed) colors.brand else colors.outlineVariant),
-            )
-        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(fraction)
+                .clip(HhTheme.shapes.pill)
+                .background(HhTheme.colors.brand),
+        )
     }
 }
 
@@ -226,8 +202,7 @@ private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
     }
     OnboardingNotice(
         text = stringResource(R.string.feature_onboarding_impl_confirm_facts_removed_banner),
-        icon = HhIcons.CheckCircle,
-        tone = NoticeTone.Success,
+        icon = HhIcons.Info,
     )
 }
 
@@ -298,44 +273,17 @@ private fun ConfirmedFactsBody(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
 ) {
-    ConfirmedFactsHero()
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_all_title, uiState.totalCount),
-            style = HhTheme.typography.headlineL,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_confirm_facts_all_body),
-            style = HhTheme.typography.bodyL,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-    FactsProgress(uiState = uiState, met = true)
+    FactsProgress(uiState = uiState)
+    OnboardingNotice(
+        text = pluralStringResource(
+            R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed,
+            uiState.totalCount,
+            uiState.totalCount,
+        ),
+        icon = HhIcons.CheckCircle,
+        tone = NoticeTone.Success,
+    )
     ReviewTheList(uiState = uiState, actions = actions)
-}
-
-@Composable
-private fun ConfirmedFactsHero() {
-    Box(
-        modifier = Modifier.fillMaxWidth().height(140.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(112.dp)
-                .clip(HhTheme.shapes.card)
-                .background(HhTheme.colors.header),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = HhIcons.CheckCircle,
-                contentDescription = null,
-                tint = HhTheme.colors.brand,
-                modifier = Modifier.size(52.dp),
-            )
-        }
-    }
 }
 
 @Composable
@@ -561,8 +509,7 @@ private fun ConfirmFactsLoading() {
 @Composable
 private fun ConfirmFactsEmpty(actions: ConfirmFactsActions) {
     StateCard(
-        illustration = HhIllustration.Empty,
-        illustrationDescription = stringResource(R.string.feature_onboarding_impl_confirm_facts_spot_empty_description),
+        icon = HhIcons.Description,
         title = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_title),
         body = stringResource(R.string.feature_onboarding_impl_confirm_facts_empty_body),
         extra = {
@@ -651,11 +598,9 @@ private fun sectionEmpty(section: ConfirmFactsSection): Int = when (section) {
     ConfirmFactsSection.Extras -> R.string.feature_onboarding_impl_confirm_facts_empty_extras
 }
 
-private const val CONFIRM_FACTS_STEP = 4
 private const val FACTS_PER_PAGE = 4
 private const val CONFIRMED_IDS_SHOWN = 6
 private val PROGRESS_HEIGHT = 8.dp
-private val PROGRESS_GAP = 4.dp
 private val BADGE_SIZE = 26.dp
 private const val DETAIL_SEPARATOR = " · "
 private const val LIST_SEPARATOR = " · "

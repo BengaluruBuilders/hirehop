@@ -194,7 +194,7 @@ class AnalysisViewModelTest {
     fun result_showsTheFreeCredits() = runTest {
         start()
 
-        assertThat(result().freeCredits).isEqualTo(1)
+        assertThat(result().totalCredits).isEqualTo(1)
     }
 
     @Test

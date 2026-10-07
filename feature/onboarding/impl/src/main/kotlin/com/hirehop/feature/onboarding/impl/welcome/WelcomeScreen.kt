@@ -1,5 +1,6 @@
 package com.hirehop.feature.onboarding.impl.welcome
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +27,18 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhCard
+import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhErrorCallout
+import com.hirehop.core.designsystem.component.HhFactId
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSectionLabel
+import com.hirehop.core.designsystem.component.HhStatusChip
+import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -79,7 +87,7 @@ private fun WelcomeContent(
         WelcomeNotices(uiState = uiState, actions = actions)
         WelcomeTopRow(actions = actions)
         WelcomeHeadline()
-        WelcomeStage()
+        WelcomeSample()
         if (uiState.isLoading) {
             WelcomeLoading()
         } else {
@@ -163,78 +171,56 @@ private fun WelcomeHeadline(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
-        Text(
+        HhHeadline(
             text = stringResource(R.string.feature_onboarding_impl_welcome_headline),
             style = HhTheme.typography.displayM,
             color = HhTheme.colors.onSurface,
         )
         Text(
             text = stringResource(R.string.feature_onboarding_impl_welcome_subline),
+            style = HhTheme.typography.titleM,
+            color = HhTheme.colors.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun WelcomeSample(modifier: Modifier = Modifier) {
+    HhCard(modifier = modifier.fillMaxWidth()) {
+        SampleLabel(R.string.feature_onboarding_impl_welcome_sample_original)
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_welcome_sample_original_text),
             style = HhTheme.typography.bodyL,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
+        SampleLabel(R.string.feature_onboarding_impl_welcome_sample_rewritten)
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_welcome_sample_rewritten_text),
+            style = HhTheme.typography.titleM,
+            color = HhTheme.colors.onSurface,
+        )
+        HhDivider()
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HhFactId(id = stringResource(R.string.feature_onboarding_impl_welcome_sample_fact_id))
+            HhStatusChip(
+                kind = HhStatusKind.Met,
+                label = stringResource(R.string.feature_onboarding_impl_welcome_sample_confirmed),
+            )
+        }
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_welcome_sample_source),
+            style = HhTheme.typography.bodyS,
             color = HhTheme.colors.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun WelcomeStage(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(HhTheme.shapes.card)
-            .background(HhTheme.colors.header)
-            .padding(HhTheme.spacing.cardPadding),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_welcome_process_heading),
-            style = HhTheme.typography.titleM,
-            color = HhTheme.colors.onHeader,
-        )
-        WelcomeStageRow(
-            mark = stringResource(R.string.feature_onboarding_impl_welcome_process_job_mark),
-            title = stringResource(R.string.feature_onboarding_impl_welcome_process_job),
-            detail = stringResource(R.string.feature_onboarding_impl_welcome_process_job_detail),
-            highlighted = true,
-        )
-        WelcomeStageRow(
-            mark = stringResource(R.string.feature_onboarding_impl_welcome_process_facts_mark),
-            title = stringResource(R.string.feature_onboarding_impl_welcome_process_facts),
-            detail = stringResource(R.string.feature_onboarding_impl_welcome_process_facts_detail),
-        )
-        WelcomeStageRow(
-            mark = stringResource(R.string.feature_onboarding_impl_welcome_process_draft_mark),
-            title = stringResource(R.string.feature_onboarding_impl_welcome_process_draft),
-            detail = stringResource(R.string.feature_onboarding_impl_welcome_process_draft_detail),
-        )
-    }
-}
-
-@Composable
-private fun WelcomeStageRow(
-    mark: String,
-    title: String,
-    detail: String,
-    highlighted: Boolean = false,
-) {
-    val colors = HhTheme.colors
-    val fill = if (highlighted) colors.brand else colors.onHeader.copy(alpha = 0.1f)
-    val content = if (highlighted) colors.onBrand else colors.onHeader
-    Row(
-        modifier = Modifier.fillMaxWidth().clip(HhTheme.shapes.statusRow).background(fill).padding(HhTheme.spacing.md),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = mark, style = HhTheme.typography.numeralM, color = content)
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs)) {
-            Text(text = title, style = HhTheme.typography.titleS, color = content)
-            Text(
-                text = detail,
-                style = HhTheme.typography.labelM,
-                color = if (highlighted) content else colors.onHeaderVariant,
-            )
-        }
-    }
+private fun SampleLabel(@StringRes label: Int) {
+    HhSectionLabel(text = stringResource(label))
 }
 
 @Composable
@@ -289,8 +275,8 @@ private fun CareerChoicePill(
 ) {
     val colors = HhTheme.colors
     val isSelected = selected == stage
-    val container = if (isSelected) colors.inverseSurface else colors.card
-    val content = if (isSelected) colors.inverseOnSurface else colors.onSurface
+    val container = if (isSelected) colors.brand else colors.card
+    val content = if (isSelected) colors.onBrand else colors.onSurface
     val shape = HhTheme.shapes.pill
     Box(
         modifier = modifier
@@ -315,13 +301,13 @@ private fun CareerChoicePill(
 @Composable
 private fun CareerChoiceDisc(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.size(CHOICE_DISC).background(HhTheme.colors.brand, HhTheme.shapes.pill),
+        modifier = modifier.size(CHOICE_DISC).background(HhTheme.colors.onBrand, HhTheme.shapes.pill),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = HhIcons.Check,
             contentDescription = null,
-            tint = HhTheme.colors.onBrand,
+            tint = HhTheme.colors.brand,
             modifier = Modifier.size(CHOICE_CHECK),
         )
     }

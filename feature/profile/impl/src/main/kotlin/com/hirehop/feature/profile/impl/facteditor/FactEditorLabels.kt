@@ -1,6 +1,8 @@
 package com.hirehop.feature.profile.impl.facteditor
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.model.EntryCategory
 import com.hirehop.feature.profile.impl.R
 
@@ -45,4 +47,12 @@ internal fun EntryCategory.organizationLabelRes(): Int = when (this) {
     EntryCategory.PROJECT -> R.string.feature_profile_impl_fact_editor_field_tools
     EntryCategory.CERTIFICATION -> R.string.feature_profile_impl_fact_editor_organization_certification
     EntryCategory.ACHIEVEMENT -> R.string.feature_profile_impl_fact_editor_organization_achievement
+}
+
+internal fun EntryCategory.icon(): ImageVector = when (this) {
+    EntryCategory.EDUCATION -> HhIcons.Description
+    EntryCategory.EXPERIENCE -> HhIcons.Applications
+    EntryCategory.PROJECT -> HhIcons.Facts
+    EntryCategory.CERTIFICATION -> HhIcons.Verified
+    EntryCategory.ACHIEVEMENT -> HhIcons.Flag
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import com.hirehop.core.designsystem.theme.HhTheme
 import kotlin.math.roundToInt
@@ -30,8 +31,8 @@ internal fun CreditCounter(
     suffix: String,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    style: TextStyle = HhTheme.typography.numeralHero,
 ) {
-    val style = HhTheme.typography.numeralHero
     val colors = HhTheme.colors
     val density = LocalDensity.current
     val lineHeight = with(density) { style.lineHeight.toPx() }.coerceAtLeast(1f)
@@ -63,6 +64,8 @@ internal fun CreditCounter(
                 modifier = Modifier.offset { IntOffset(0, (offset.value * lineHeight).roundToInt()) },
             )
         }
-        Text(text = " $suffix", style = style, color = colors.onSurface, maxLines = 1)
+        if (suffix.isNotEmpty()) {
+            Text(text = " $suffix", style = style, color = colors.onSurface, maxLines = 1)
+        }
     }
 }

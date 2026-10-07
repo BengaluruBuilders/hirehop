@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
@@ -30,23 +31,23 @@ fun HhErrorCallout(
         color = colors.errorContainer,
     ) {
         Row(
-            modifier = Modifier.padding(HhTheme.spacing.cardPadding),
+            modifier = Modifier.padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
             Icon(
                 imageVector = HhIcons.Error,
                 contentDescription = null,
-                tint = colors.onErrorContainer,
-                modifier = Modifier.padding(top = HhTheme.spacing.xxs).size(HhSizeIcon),
+                tint = colors.error,
+                modifier = Modifier.size(HhSizeIconControl),
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-                Text(text = title, style = HhTheme.typography.titleS, color = colors.onErrorContainer)
+                Text(text = title, style = HhTheme.typography.titleS, color = colors.onSurface)
                 if (supportingText != null) {
-                    Text(text = supportingText, style = HhTheme.typography.bodyM, color = colors.onErrorContainer)
+                    Text(text = supportingText, style = HhTheme.typography.bodyM, color = colors.onSurface)
                 }
                 if (actionLabel != null && onAction != null) {
                     HhOutlinedButton(onClick = onAction) {
-                        Text(text = actionLabel, style = HhTheme.typography.labelL, color = colors.onErrorContainer)
+                        Text(text = actionLabel, style = HhTheme.typography.labelL, color = colors.onSurface)
                     }
                 }
             }

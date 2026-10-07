@@ -194,7 +194,7 @@ private fun resultState(overlay: AnalysisOverlay = AnalysisOverlay.None) = Analy
         RequirementSection(RequirementGroup.Met, listOf(sql, bi, stats)),
         RequirementSection(RequirementGroup.NiceToHaveGaps, listOf(agile, python)),
     ),
-    freeCredits = 1,
+    totalCredits = 1,
     overlay = overlay,
 )
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,30 +35,23 @@ fun HhInnerHeader(
     backIcon: ImageVector = HhIcons.Back,
     trailing: (@Composable () -> Unit)? = null,
     belowTitle: (@Composable () -> Unit)? = null,
-    extended: Boolean = true,
-    overlap: Dp = if (extended) HhOverlap.HeroCard else HhOverlap.Sheet,
+    overlap: Dp = 0.dp,
 ) {
     val colors = HhTheme.colors
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val minHeight = if (extended) HhHeightInnerHeader else HhHeightInnerHeaderCompact
     Box(
         modifier = modifier
             .fillMaxWidth()
             .layoutId(HhHeaderData(drawsAboveContent = false, overlap = overlap))
-            .hhHeaderBackdrop(colors.header, null, if (extended) 0.dp else HhHeroBottomRadius)
-            .heightIn(min = minHeight + statusTop),
+            .hhHeaderBackdrop(colors.header, null)
+            .heightIn(min = HhHeightInnerHeader + statusTop),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = HhTheme.spacing.gutter,
-                    end = HhTheme.spacing.gutter,
-                    top = statusTop + HhTheme.spacing.gutter,
-                    bottom = if (extended) overlap else overlap + HhTheme.spacing.sm,
-                ),
+                .padding(top = statusTop, start = HhTheme.spacing.md, end = HhTheme.spacing.md),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (onBack != null) {
                 HhHeaderIconButton(icon = backIcon, contentDescription = backContentDescription, onClick = onBack)
@@ -80,7 +74,7 @@ private fun HhInnerHeaderTitle(
     modifier: Modifier,
 ) {
     Column(
-        modifier = modifier.padding(top = 2.dp),
+        modifier = modifier.padding(vertical = HhTheme.spacing.sm),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -89,6 +83,8 @@ private fun HhInnerHeaderTitle(
             style = HhTheme.typography.titleL,
             color = HhTheme.colors.onHeader,
             textAlign = TextAlign.Start,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         if (subtitle != null) {
             Text(
@@ -103,8 +99,6 @@ private fun HhInnerHeaderTitle(
         }
     }
 }
-
-private val HhHeroBottomRadius = 28.dp
 
 @Preview(showBackground = true)
 @Composable
@@ -125,6 +119,5 @@ private fun HhInnerHeaderSample() {
         subtitle = "Android Developer · 1 to 2 years",
         onBack = {},
         backContentDescription = "Back",
-        belowTitle = { HhPageDots(count = 3, selectedIndex = 0) },
     )
 }

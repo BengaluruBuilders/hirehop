@@ -1,17 +1,23 @@
 package com.hirehop.feature.profile.impl.evidencepath
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,22 +26,24 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
+import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhFactId
 import com.hirehop.core.designsystem.component.HhFilterChip
-import com.hirehop.core.designsystem.component.HhHeroCard
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOutlineButton
-import com.hirehop.core.designsystem.component.HhPillRow
-import com.hirehop.core.designsystem.component.HhPillRowStyle
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
 import com.hirehop.core.designsystem.component.HhScreen
+import com.hirehop.core.designsystem.component.HhSectionLabel
+import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhTextField
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
@@ -43,11 +51,15 @@ import com.hirehop.core.domain.fact.FactLineRenderer
 import com.hirehop.feature.profile.impl.R
 import com.hirehop.feature.profile.impl.common.FactCard
 import com.hirehop.feature.profile.impl.common.Note
+import com.hirehop.feature.profile.impl.common.NoteTone
 
 private val RowGap = 10.dp
 private val ChipGap = 6.dp
-private val CategoryPillStyles =
-    listOf(HhPillRowStyle.Coral, HhPillRowStyle.Jade, HhPillRowStyle.Marigold)
+private val CategoryCardHeight = 112.dp
+private val CategoryTile = 44.dp
+private val DiscSize = 88.dp
+private val ProgressHeight = 8.dp
+private const val CATEGORY_COLUMNS = 2
 private const val ANSWER_LINES = 5
 
 @Composable
@@ -62,8 +74,10 @@ internal fun EvidencePathScreen(
         sheet = false,
         header = {
             HhInnerHeader(
-                title = stringResource(R.string.feature_profile_impl_evidence_path_title),
-                subtitle = stringResource(R.string.feature_profile_impl_evidence_path_subtitle),
+                title = stringResource(
+                    uiState.category?.takeUnless { uiState.isDone }?.labelRes()
+                        ?: R.string.feature_profile_impl_evidence_path_title,
+                ),
                 onBack = onBack,
                 backContentDescription = stringResource(R.string.feature_profile_impl_evidence_path_back),
             )
@@ -81,7 +95,7 @@ internal fun EvidencePathScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
                     .padding(horizontal = HhTheme.spacing.gutter),
-                verticalArrangement = Arrangement.spacedBy(RowGap),
+                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
             ) {
                 Banners(uiState)
                 when {
@@ -123,18 +137,17 @@ private fun QuestionActionBar(
     uiState: EvidencePathUiState,
     actions: EvidencePathActions,
 ) {
-    HhBottomActionBar {
-        HhOutlineButton(
-            label = stringResource(R.string.feature_profile_impl_evidence_path_skip),
-            onClick = actions.onSkip,
-            enabled = !uiState.isSaving,
-            modifier = Modifier.weight(1f),
-        )
+    HhBottomActionBar(stacked = true, primaryLast = false) {
         HhPrimaryButton(
             label = stringResource(R.string.feature_profile_impl_evidence_path_save),
             onClick = actions.onSave,
             enabled = uiState.canSave,
-            trailingIcon = HhIcons.Check,
+            modifier = Modifier.weight(1f),
+        )
+        HhTextButton(
+            label = stringResource(R.string.feature_profile_impl_evidence_path_skip),
+            onClick = actions.onSkip,
+            enabled = !uiState.isSaving,
             modifier = Modifier.weight(1f),
         )
     }
@@ -142,66 +155,78 @@ private fun QuestionActionBar(
 
 @Composable
 private fun DoneActionBar(actions: EvidencePathActions) {
-    HhBottomActionBar {
-        HhOutlineButton(
-            label = stringResource(R.string.feature_profile_impl_evidence_path_add_more),
-            onClick = actions.onAddMore,
-            modifier = Modifier.weight(1f),
-        )
+    HhBottomActionBar(stacked = true, primaryLast = false) {
         HhPrimaryButton(
             label = stringResource(R.string.feature_profile_impl_evidence_path_back_to_profile),
             onClick = actions.onFinish,
-            leadingIcon = HhIcons.Profile,
+            modifier = Modifier.weight(1f),
+        )
+        HhTextButton(
+            label = stringResource(R.string.feature_profile_impl_evidence_path_add_more),
+            onClick = actions.onAddMore,
             modifier = Modifier.weight(1f),
         )
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PickerContent(
     uiState: EvidencePathUiState,
     actions: EvidencePathActions,
 ) {
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
-        Column(verticalArrangement = Arrangement.spacedBy(ChipGap)) {
-            Text(
-                text = stringResource(R.string.feature_profile_impl_evidence_path_picker_title),
-                style = HhTheme.typography.titleL,
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_profile_impl_evidence_path_picker_body),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.body,
+    HhHeadline(
+        text = stringResource(R.string.feature_profile_impl_evidence_path_subtitle),
+        style = HhTheme.typography.headlineL,
+    )
+    Text(
+        text = stringResource(R.string.feature_profile_impl_evidence_path_picker_title),
+        style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+        color = HhTheme.colors.onSurfaceVariant,
+    )
+    FlowRow(
+        maxItemsInEachRow = CATEGORY_COLUMNS,
+        horizontalArrangement = Arrangement.spacedBy(RowGap),
+        verticalArrangement = Arrangement.spacedBy(RowGap),
+    ) {
+        uiState.categoryOrder.forEach { category ->
+            CategoryCard(
+                category = category,
+                onClick = { actions.onCategoryChosen(category) },
+                modifier = Modifier.weight(1f),
             )
         }
     }
-    uiState.categoryOrder.forEachIndexed { index, category ->
-        CategoryRow(
-            category = category,
-            style = CategoryPillStyles[index % CategoryPillStyles.size],
-            onClick = { actions.onCategoryChosen(category) },
-        )
-    }
+    Note(
+        text = stringResource(R.string.feature_profile_impl_evidence_path_picker_body),
+        tone = NoteTone.Plain,
+        icon = HhIcons.Info,
+    )
 }
 
 @Composable
-private fun CategoryRow(
+private fun CategoryCard(
     category: EvidenceCategory,
-    style: HhPillRowStyle,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val label = stringResource(category.labelRes())
     val hint = stringResource(category.hintRes())
-    HhPillRow(
-        title = label,
+    HhCard(
         onClick = onClick,
-        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "$label. $hint" },
-        style = style,
-        subtitle = hint,
-        icon = category.icon(),
-        trailingIcon = HhIcons.ArrowForward,
-    )
+        modifier = modifier
+            .heightIn(min = CategoryCardHeight)
+            .semantics(mergeDescendants = true) { contentDescription = "$label. $hint" },
+        contentPadding = PaddingValues(HhTheme.spacing.md + HhTheme.spacing.xxs),
+    ) {
+        Box(
+            modifier = Modifier.size(CategoryTile).background(HhTheme.colors.primaryContainer, RoundedCornerShape(14.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(category.icon(), contentDescription = null, tint = HhTheme.colors.onSurface)
+        }
+        Text(text = label, style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.ExtraBold), color = HhTheme.colors.onSurface)
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -211,20 +236,19 @@ private fun QuestionContent(
     actions: EvidencePathActions,
 ) {
     val category = uiState.category ?: return
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.sm + HhTheme.spacing.xxs)) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(ChipGap),
-            verticalArrangement = Arrangement.spacedBy(ChipGap),
-        ) {
-            uiState.categoryOrder.forEach { item ->
-                HhFilterChip(
-                    label = stringResource(item.labelRes()),
-                    selected = item == category,
-                    onClick = { actions.onCategoryChosen(item) },
-                )
-            }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(ChipGap),
+        verticalArrangement = Arrangement.spacedBy(ChipGap),
+    ) {
+        uiState.categoryOrder.forEach { item ->
+            HhFilterChip(
+                label = stringResource(item.labelRes()),
+                selected = item == category,
+                onClick = { actions.onCategoryChosen(item) },
+            )
         }
     }
+    QuestionProgress(uiState = uiState)
     uiState.skipNote?.let { note ->
         Note(
             text = stringResource(
@@ -235,7 +259,36 @@ private fun QuestionContent(
         )
     }
     SavedCards(uiState = uiState, actions = actions)
-    QuestionCard(uiState = uiState, category = category, actions = actions)
+    QuestionCard(uiState = uiState, category = category)
+    TextArea(uiState = uiState, actions = actions)
+}
+
+@Composable
+private fun QuestionProgress(uiState: EvidencePathUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        Text(
+            text = stringResource(
+                R.string.feature_profile_impl_evidence_path_question_counter,
+                uiState.questionNumber,
+                uiState.questionTotal,
+            ),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+            color = HhTheme.colors.onSurface,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ProgressHeight)
+                .background(HhTheme.colors.primaryContainer, RoundedCornerShape(ProgressHeight / 2)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(uiState.questionNumber.toFloat() / uiState.questionTotal.coerceAtLeast(1))
+                    .height(ProgressHeight)
+                    .background(HhTheme.colors.brand, RoundedCornerShape(ProgressHeight / 2)),
+            )
+        }
+    }
 }
 
 @Composable
@@ -245,10 +298,10 @@ private fun SavedCards(
 ) {
     val cards = uiState.categoryCards
     if (cards.isEmpty()) return
-    Text(
+    Note(
         text = stringResource(R.string.feature_profile_impl_evidence_path_saved_caption),
-        style = HhTheme.typography.labelM,
-        color = HhTheme.colors.onSurfaceVariant,
+        tone = NoteTone.Positive,
+        icon = HhIcons.CheckCircle,
     )
     cards.forEachIndexed { index, card ->
         FactCard(
@@ -263,106 +316,85 @@ private fun SavedCards(
 private fun QuestionCard(
     uiState: EvidencePathUiState,
     category: EvidenceCategory,
-    actions: EvidencePathActions,
 ) {
-    val categoryLabel = stringResource(category.labelRes())
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg)) {
-        Column(verticalArrangement = Arrangement.spacedBy(RowGap)) {
-            Text(
-                text = stringResource(
-                    R.string.feature_profile_impl_evidence_path_question_counter,
-                    categoryLabel,
-                    uiState.questionNumber,
-                    uiState.questionTotal,
-                ),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(category.questionRes(uiState.questionIndex)),
-                style = HhTheme.typography.titleL,
-                color = HhTheme.colors.onSurface,
-            )
-            HhTextField(
-                value = uiState.answer,
-                onValueChange = actions.onAnswerChanged,
-                label = stringResource(R.string.feature_profile_impl_evidence_path_answer_label),
-                placeholder = stringResource(R.string.feature_profile_impl_evidence_path_answer_placeholder),
-                singleLine = false,
-                minLines = ANSWER_LINES,
-                errorText = uiState.problem?.let { stringResource(it.messageRes()) },
-                supportingText = {
-                    Text(text = stringResource(R.string.feature_profile_impl_evidence_path_own_words_note))
-                },
-            )
-        }
+    HhCard {
+        HhSectionLabel(text = stringResource(R.string.feature_profile_impl_evidence_path_one_question))
+        Text(
+            text = stringResource(category.questionRes(uiState.questionIndex)),
+            style = HhTheme.typography.headlineM,
+            color = HhTheme.colors.onSurface,
+        )
     }
 }
 
+@Composable
+private fun TextArea(
+    uiState: EvidencePathUiState,
+    actions: EvidencePathActions,
+) {
+    HhTextField(
+        value = uiState.answer,
+        onValueChange = actions.onAnswerChanged,
+        label = stringResource(R.string.feature_profile_impl_evidence_path_answer_label),
+        placeholder = stringResource(R.string.feature_profile_impl_evidence_path_answer_placeholder),
+        singleLine = false,
+        minLines = ANSWER_LINES,
+        errorText = uiState.problem?.let { stringResource(it.messageRes()) },
+        supportingText = {
+            Text(text = stringResource(R.string.feature_profile_impl_evidence_path_own_words_note))
+        },
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DoneContent(uiState: EvidencePathUiState) {
     val count = uiState.cards.size
-    HhHeroCard(contentPadding = PaddingValues(HhTheme.spacing.lg + HhTheme.spacing.xxs)) {
-        Column(verticalArrangement = Arrangement.spacedBy(ChipGap)) {
-            if (count == 0) {
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_evidence_path_done_nothing_title),
-                    style = HhTheme.typography.titleL,
-                    color = HhTheme.colors.onSurface,
-                )
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_evidence_path_done_nothing_body),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                )
-            } else {
-                val title = pluralStringResource(
-                    R.plurals.feature_profile_impl_evidence_path_done_title,
-                    count,
-                    count,
-                )
-                Row(
-                    modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = title },
-                    horizontalArrangement = Arrangement.spacedBy(RowGap),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    Text(
-                        text = count.toString(),
-                        style = HhTheme.typography.numeralHero,
-                        color = HhTheme.colors.onSurface,
-                    )
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.feature_profile_impl_evidence_path_done_caption,
-                            count,
-                        ),
-                        style = HhTheme.typography.titleM,
-                        color = HhTheme.colors.onSurface,
-                        modifier = Modifier.padding(bottom = HhTheme.spacing.xs),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.feature_profile_impl_evidence_path_done_body),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.body,
-                )
-                uiState.cards.forEach { card -> DoneRow(card) }
-            }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+    ) {
+        Box(
+            modifier = Modifier.size(DiscSize).background(HhTheme.colors.metContainer, HhTheme.shapes.pill),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(HhIcons.CheckCircle, contentDescription = null, tint = HhTheme.colors.met, modifier = Modifier.size(40.dp))
+        }
+        if (count == 0) {
+            HhHeadline(
+                text = stringResource(R.string.feature_profile_impl_evidence_path_done_nothing_title),
+                style = HhTheme.typography.headlineL,
+            )
+            DoneBody(R.string.feature_profile_impl_evidence_path_done_nothing_body)
+        } else {
+            HhHeadline(
+                text = pluralStringResource(R.plurals.feature_profile_impl_evidence_path_done_title, count, count),
+                style = HhTheme.typography.headlineL,
+            )
+            DoneBody(R.string.feature_profile_impl_evidence_path_done_body)
         }
     }
+    uiState.cards.forEach { card -> DoneRow(card) }
 }
 
 @Composable
+private fun DoneBody(@StringRes text: Int) {
+    Text(
+        text = stringResource(text),
+        style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+        color = HhTheme.colors.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun DoneRow(card: EvidenceFactCard) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = HhTheme.spacing.xs),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-    ) {
-        Row(
+    HhCard {
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
         ) {
             HhFactId(id = card.entry.id)
             HhProvenanceChip(
@@ -372,7 +404,7 @@ private fun DoneRow(card: EvidenceFactCard) {
         }
         Text(
             text = FactLineRenderer.render(card.entry),
-            style = HhTheme.typography.bodyM,
+            style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
             color = HhTheme.colors.onSurface,
         )
     }

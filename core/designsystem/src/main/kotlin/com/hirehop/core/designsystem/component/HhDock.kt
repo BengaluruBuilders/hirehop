@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -28,12 +29,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.designsystem.theme.hhShadow
@@ -43,7 +49,6 @@ fun HhDock(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val largeText = LocalDensity.current.fontScale >= 1.5f
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -56,19 +61,19 @@ fun HhDock(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(HhHeightDock + if (largeText) HhDockLargeFontExtra else 0.dp)
-                .hhShadow(HhTheme.elevation.dock, HhTheme.shapes.pill)
-                .clip(HhTheme.shapes.pill)
+                .height(HhDockHeight)
+                .hhShadow(HhTheme.elevation.dock, HhDockShape)
+                .clip(HhDockShape)
                 .background(HhTheme.colors.tool)
                 .then(
                     if (HhTheme.isDark) {
-                        Modifier.border(HhWidthHairline, HhTheme.colors.outlineSoft, HhTheme.shapes.pill)
+                        Modifier.border(HhWidthHairline, HhTheme.colors.outlineSoft, HhDockShape)
                     } else {
                         Modifier
                     },
                 )
-                .padding(horizontal = if (largeText) HhTheme.spacing.lg else 0.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(HhDockPadding),
+            horizontalArrangement = Arrangement.spacedBy(HhDockGap),
             verticalAlignment = Alignment.CenterVertically,
             content = content,
         )
@@ -83,11 +88,17 @@ fun RowScope.HhDockItem(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
 ) {
-    val largeText = LocalDensity.current.fontScale >= 1.5f
+    val iconOnly = LocalDensity.current.fontScale >= 1.5f
+    val colors = HhTheme.colors
     val tint by animateColorAsState(
-        targetValue = if (selected) HhTheme.colors.onToolSelected else HhTheme.colors.onToolVariant,
+        targetValue = if (selected) colors.onBrand else colors.onToolVariant,
         animationSpec = HhTheme.motion.proofSpecs.color,
         label = "dockTint",
+    )
+    val fill by animateColorAsState(
+        targetValue = if (selected) colors.brand else Color.Transparent,
+        animationSpec = HhTheme.motion.proofSpecs.color,
+        label = "dockFill",
     )
     val interactionSource = remember { MutableInteractionSource() }
     Column(
@@ -95,28 +106,44 @@ fun RowScope.HhDockItem(
             .weight(1f)
             .fillMaxHeight()
             .hhPressScale(interactionSource)
+            .clip(HhDockItemShape)
+            .background(fill)
             .selectable(
                 selected = selected,
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Tab,
                 onClick = onClick,
-            ),
+            )
+            .semantics { if (iconOnly) contentDescription = label },
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(HhDockItemGap, Alignment.CenterVertically),
     ) {
         CompositionLocalProvider(LocalContentColor provides tint) { icon() }
-        Text(
-            text = label,
-            style = HhTheme.typography.labelM,
-            color = tint,
-            textAlign = TextAlign.Center,
-            maxLines = if (largeText) 2 else 1,
-        )
+        if (!iconOnly) {
+            Text(
+                text = label,
+                style = HhTheme.typography.labelM.copy(
+                    fontSize = 12.sp,
+                    fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold,
+                ),
+                color = tint,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
     }
 }
 
-private val HhDockIconSize = HhSizeIcon + 2.dp
+private val HhDockHeight = 68.dp
+private val HhDockPadding = 6.dp
+private val HhDockGap = 4.dp
+private val HhDockItemGap = 3.dp
+private val HhDockShape = RoundedCornerShape(34.dp)
+private val HhDockItemShape = RoundedCornerShape(28.dp)
+
+private val HhDockIconSize = 22.dp
 
 @Composable
 fun HhDockIcon(icon: ImageVector) {

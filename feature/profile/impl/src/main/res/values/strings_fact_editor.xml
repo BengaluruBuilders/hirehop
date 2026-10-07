@@ -5,7 +5,6 @@
     <string name="feature_profile_impl_fact_editor_navigate_back">Back</string>
     <string name="feature_profile_impl_fact_editor_hint">HireHop can use only the numbers, names, tools, and dates you put here.</string>
     <string name="feature_profile_impl_fact_editor_loading">Loading this fact</string>
-    <string name="feature_profile_impl_fact_editor_new_caption">New %1$s · saved as user-stated</string>
 
     <string name="feature_profile_impl_fact_editor_field_title">Title</string>
     <string name="feature_profile_impl_fact_editor_field_title_placeholder">Name of the project</string>
@@ -40,16 +39,15 @@
     <string name="feature_profile_impl_fact_editor_live_empty">Start typing. This line shows how the fact will read.</string>
     <string name="feature_profile_impl_fact_editor_live_announcement">How this fact reads: %1$s</string>
 
-    <string name="feature_profile_impl_fact_editor_save">Save</string>
-    <string name="feature_profile_impl_fact_editor_cancel">Cancel</string>
-    <string name="feature_profile_impl_fact_editor_delete">Delete this fact</string>
+    <string name="feature_profile_impl_fact_editor_save">Save fact</string>
+    <string name="feature_profile_impl_fact_editor_delete">Delete fact</string>
 
-    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s from your profile?</string>
+    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s?</string>
     <string name="feature_profile_impl_fact_editor_delete_message">HireHop won’t use it in new tailoring. Resumes you already exported don’t change. You can add it again later.</string>
-    <string name="feature_profile_impl_fact_editor_delete_confirm">Delete %1$s</string>
-    <string name="feature_profile_impl_fact_editor_delete_cancel">Keep it</string>
+    <string name="feature_profile_impl_fact_editor_delete_confirm">Delete</string>
+    <string name="feature_profile_impl_fact_editor_delete_cancel">Cancel</string>
 
-    <string name="feature_profile_impl_fact_editor_offline">You’re offline. Your changes are saved on this phone and sync when you’re back.</string>
+    <string name="feature_profile_impl_fact_editor_offline">Your changes are saved on this phone and sync when you’re back.</string>
     <string name="feature_profile_impl_fact_editor_message_save_failed">HireHop could not save this fact. Your words are still here.</string>
     <string name="feature_profile_impl_fact_editor_unconfirmed">Not confirmed. HireHop will not use this until you save it.</string>
     <string name="feature_profile_impl_fact_editor_fact_announcement">%1$s. %2$s. %3$s. Fact %4$s.</string>

@@ -7,13 +7,17 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +35,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 
 @Composable
@@ -41,28 +46,25 @@ fun HhStepProgress(
     ordinalLabel: String? = null,
     stepDetails: List<String?> = emptyList(),
     footnote: String? = null,
+    stepStatuses: List<String?> = emptyList(),
 ) {
     if (stepNames.isEmpty()) return
     val index = currentStepIndex.coerceIn(0, stepNames.size - 1)
-    HhCardSurface(
-        modifier = modifier,
-        shape = HhTheme.shapes.card,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp),
-        trailingAction = null,
-        fill = HhTheme.colors.document,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = ordinalLabel ?: hhStepOrdinal(index, stepNames.size),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+        val ordinal = ordinalLabel ?: hhStepOrdinal(index, stepNames.size)
+        if (ordinal.isNotEmpty()) {
+            Text(text = ordinal, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
+        }
+        stepNames.forEachIndexed { position, name ->
+            HhStepRow(
+                name = name,
+                detail = stepDetails.getOrNull(position),
+                status = stepStatuses.getOrNull(position),
+                state = stepStateOf(position, index),
             )
-            stepNames.forEachIndexed { position, name ->
-                HhStepRow(name = name, detail = stepDetails.getOrNull(position), state = stepStateOf(position, index))
-            }
-            if (footnote != null) {
-                Text(text = footnote, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
-            }
+        }
+        if (footnote != null) {
+            Text(text = footnote, style = HhTheme.typography.bodyS, color = HhTheme.colors.onSurfaceVariant)
         }
     }
 }
@@ -76,14 +78,16 @@ private fun stepStateOf(position: Int, current: Int): HhStepState = when {
 }
 
 @Composable
-private fun HhStepRow(name: String, detail: String?, state: HhStepState) {
+private fun HhStepRow(name: String, detail: String?, status: String?, state: HhStepState) {
     val colors = HhTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 44.dp),
+            .background(colors.card, HhTheme.shapes.statusRow)
+            .defaultMinSize(minHeight = HhHeightStepRow)
+            .padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         HhStepMark(state = state)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -100,6 +104,9 @@ private fun HhStepRow(name: String, detail: String?, state: HhStepState) {
                 Text(text = detail, style = HhTheme.typography.bodyS, color = colors.onSurfaceVariant)
             }
         }
+        if (status != null) {
+            Text(text = status, style = HhTheme.typography.labelM, color = colors.onSurfaceVariant)
+        }
     }
 }
 
@@ -107,7 +114,12 @@ private fun HhStepRow(name: String, detail: String?, state: HhStepState) {
 private fun HhStepMark(state: HhStepState) {
     val colors = HhTheme.colors
     when (state) {
-        HhStepState.Done -> HhStatusDisc(kind = HhStatusKind.Met, size = HhSizeStepMark)
+        HhStepState.Done -> Box(
+            modifier = Modifier.size(HhSizeStepMark).background(colors.brand, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(HhIcons.Check, contentDescription = null, tint = colors.onBrand, modifier = Modifier.size(16.dp))
+        }
         HhStepState.Pending -> Canvas(Modifier.size(HhSizeStepMark).clearAndSetSemantics {}) {
             drawRing(colors.outline, dashed = true)
         }

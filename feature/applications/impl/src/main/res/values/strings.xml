@@ -6,7 +6,10 @@
     <string name="feature_applications_impl_greeting_anonymous">Hi there</string>
     <string name="feature_applications_impl_headline">Your facts, every job</string>
     <string name="feature_applications_impl_paste_job">Paste a job</string>
-    <string name="feature_applications_impl_credits_label">credits left</string>
+    <plurals name="feature_applications_impl_credits_pill">
+        <item quantity="one">%1$d credit left</item>
+        <item quantity="other">%1$d credits left</item>
+    </plurals>
     <plurals name="feature_applications_impl_credits_description">
         <item quantity="one">%1$d credit left. Open Credits and help</item>
         <item quantity="other">%1$d credits left. Open Credits and help</item>
@@ -14,6 +17,7 @@
 
     <string name="feature_applications_impl_list_heading">Your applications</string>
     <string name="feature_applications_impl_list_order">· newest update first</string>
+    <string name="feature_applications_impl_empty_title">No applications yet</string>
     <string name="feature_applications_impl_empty_message">Paste a JD to see where you stand. It’s free.</string>
 
     <string name="feature_applications_impl_role_not_set">Role not set</string>
@@ -23,7 +27,7 @@
     <string name="feature_applications_impl_row_description">%1$s at %2$s. %3$s. %4$s. %5$s.</string>
     <string name="feature_applications_impl_row_change_status">Change status</string>
     <string name="feature_applications_impl_coverage_fraction">%1$d / %2$d</string>
-    <string name="feature_applications_impl_coverage_key_terms">%1$d&#160;/&#160;%2$d&#160;key&#160;terms</string>
+    <string name="feature_applications_impl_coverage_key_terms">%1$d&#160;of&#160;%2$d&#160;key&#160;terms</string>
     <string name="feature_applications_impl_updated">updated %1$s</string>
     <string name="feature_applications_impl_updated_just_now">updated just now</string>
     <string name="feature_applications_impl_sync_pending">Sync pending</string>
@@ -70,9 +74,9 @@
     <string name="feature_applications_impl_workspace_resume_heading">Resume</string>
     <string name="feature_applications_impl_workspace_resume_absent">No tailored resume is saved for this application.</string>
     <string name="feature_applications_impl_workspace_resume_ready">Your tailored resume is ready to preview.</string>
-    <string name="feature_applications_impl_workspace_resume_preview">Preview export</string>
-    <string name="feature_applications_impl_workspace_resume_share_again">Share again</string>
-    <string name="feature_applications_impl_workspace_resume_review">Open review</string>
+    <string name="feature_applications_impl_workspace_resume_preview">Preview and export</string>
+    <string name="feature_applications_impl_workspace_resume_share_again">Share</string>
+    <string name="feature_applications_impl_workspace_resume_review">Open</string>
     <string name="feature_applications_impl_workspace_resume_file_meta">%1$s · exported %2$s</string>
     <plurals name="feature_applications_impl_workspace_resume_pages">
         <item quantity="one">%1$d page</item>
@@ -81,9 +85,9 @@
     <string name="feature_applications_impl_workspace_format_pdf">PDF</string>
     <string name="feature_applications_impl_workspace_format_docx">DOCX</string>
 
-    <string name="feature_applications_impl_workspace_gap_heading">Gap analysis</string>
+    <string name="feature_applications_impl_workspace_gap_heading">Gap check</string>
     <string name="feature_applications_impl_workspace_gap_unavailable">No gap analysis is saved for this application.</string>
-    <string name="feature_applications_impl_workspace_gap_caption">key terms · not a score</string>
+    <string name="feature_applications_impl_workspace_gap_summary">%1$s. This is not a score.</string>
     <plurals name="feature_applications_impl_workspace_gap_legend">
         <item quantity="one">Counted by requirement: %1$d requirement</item>
         <item quantity="other">Counted by requirement: %1$d requirements</item>
@@ -100,8 +104,8 @@
         <item quantity="one">%1$d To prepare</item>
         <item quantity="other">%1$d To prepare</item>
     </plurals>
-    <string name="feature_applications_impl_workspace_gap_open">Open full analysis</string>
-    <string name="feature_applications_impl_workspace_gap_close">Hide full analysis</string>
+    <string name="feature_applications_impl_workspace_gap_open">Open</string>
+    <string name="feature_applications_impl_workspace_gap_close">Hide</string>
     <string name="feature_applications_impl_match_met">Met</string>
     <string name="feature_applications_impl_match_partial">Partly met</string>
     <string name="feature_applications_impl_match_gap">To prepare</string>
@@ -127,7 +131,7 @@
     <string name="feature_applications_impl_workspace_questions_open">Open questions</string>
     <string name="feature_applications_impl_workspace_letter_heading">Cover letter</string>
     <string name="feature_applications_impl_workspace_letter_optional">Optional</string>
-    <string name="feature_applications_impl_workspace_letter_summary">Optional. Not written yet.</string>
+    <string name="feature_applications_impl_workspace_letter_summary">Not written yet.</string>
     <string name="feature_applications_impl_workspace_letter_open">Write one</string>
     <string name="feature_applications_impl_workspace_letter_open_written">Open</string>
     <plurals name="feature_applications_impl_workspace_letter_written">
@@ -174,7 +178,7 @@
     </plurals>
     <plurals name="feature_applications_impl_delete_note_credits">
         <item quantity="one">%1$d credit</item>
-        <item quantity="other">%1$d credits</item>
+        <item quantity="other">%1$d credits left</item>
     </plurals>
     <string name="feature_applications_impl_delete_note">Your %1$s and %2$s stay.</string>
 </resources>

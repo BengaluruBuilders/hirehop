@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhColors
@@ -24,7 +25,7 @@ fun HhProvenanceChip(
     val colors = HhTheme.colors
     val content = colors.provenanceContent(kind)
     HhPill(
-        container = colors.provenanceContainer(kind),
+        container = colors.primaryContainer,
         content = content,
         height = HhHeightChip,
         modifier = modifier,
@@ -35,20 +36,19 @@ fun HhProvenanceChip(
             tint = content,
             modifier = Modifier.size(HhSizeChipIcon),
         )
-        Text(text = label ?: kind.defaultLabel(), style = HhTheme.typography.labelM, color = content)
+        Text(
+            text = label ?: kind.defaultLabel(),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+            color = content,
+        )
     }
 }
 
-private fun HhColors.provenanceContainer(kind: HhProvenanceKind): Color = when (kind) {
-    HhProvenanceKind.Confirmed -> metContainer
-    HhProvenanceKind.UserStated -> partialContainer
-    HhProvenanceKind.UserEdited, HhProvenanceKind.Scanned -> neutralContainer
-}
-
 private fun HhColors.provenanceContent(kind: HhProvenanceKind): Color = when (kind) {
-    HhProvenanceKind.Confirmed -> onMetContainer
-    HhProvenanceKind.UserStated -> onPartialContainer
-    HhProvenanceKind.UserEdited, HhProvenanceKind.Scanned -> onNeutralContainer
+    HhProvenanceKind.Confirmed -> primary
+    HhProvenanceKind.UserStated -> partial
+    HhProvenanceKind.UserEdited -> onSurface
+    HhProvenanceKind.Scanned -> onSurfaceVariant
 }
 
 private fun HhProvenanceKind.glyph(): ImageVector = when (this) {

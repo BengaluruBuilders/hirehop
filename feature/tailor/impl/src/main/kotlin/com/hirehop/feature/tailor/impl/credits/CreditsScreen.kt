@@ -2,44 +2,37 @@ package com.hirehop.feature.tailor.impl.credits
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
-import com.hirehop.core.designsystem.component.HhAccent
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhErrorCallout
 import com.hirehop.core.designsystem.component.HhInnerHeader
 import com.hirehop.core.designsystem.component.HhLoadingWheel
-import com.hirehop.core.designsystem.component.HhOfflineBanner
-import com.hirehop.core.designsystem.component.HhOnColorChip
-import com.hirehop.core.designsystem.component.HhOnColorChipStyle
 import com.hirehop.core.designsystem.component.HhOutlineButton
-import com.hirehop.core.designsystem.component.HhPillRow
-import com.hirehop.core.designsystem.component.HhPillRowStyle
+import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSolidCard
+import com.hirehop.core.designsystem.component.HhSectionLabel
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.tailor.impl.R
+import com.hirehop.feature.tailor.impl.StatusPill
+import com.hirehop.feature.tailor.impl.exportpreview.IconTile
+import com.hirehop.feature.tailor.impl.exportpreview.NoticeBanner
+import com.hirehop.feature.tailor.impl.exportpreview.NoticeTone
 
 @Composable
 internal fun CreditsScreen(
@@ -53,7 +46,6 @@ internal fun CreditsScreen(
         header = {
             HhInnerHeader(
                 title = stringResource(R.string.feature_tailor_impl_credits_title),
-                subtitle = stringResource(R.string.feature_tailor_impl_credits_subtitle),
                 onBack = actions.onNavigateBack,
                 backContentDescription = stringResource(R.string.feature_tailor_impl_credits_navigation_back_description),
             )
@@ -84,16 +76,17 @@ internal fun CreditsScreen(
 
 @Composable
 private fun CreditsLoading() {
-    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
     val loading = stringResource(R.string.feature_tailor_impl_credits_loading)
-    if (largeFont) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+    val rowModifier = Modifier.fillMaxWidth()
+    if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) {
+        Column(modifier = rowModifier, verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
             HhLoadingWheel(contentDesc = loading)
             Text(text = loading, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
         }
         return
     }
     Row(
+        modifier = rowModifier,
         horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -107,81 +100,68 @@ private fun CreditsReady(
     uiState: CreditsUiState,
     actions: CreditsActions,
 ) {
-    HhOfflineBanner(
-        message = stringResource(R.string.feature_tailor_impl_credits_offline_banner),
-        visible = uiState.isOffline,
-    )
+    if (uiState.isOffline) {
+        NoticeBanner(
+            message = stringResource(R.string.feature_tailor_impl_credits_offline_banner),
+            tone = NoticeTone.Offline,
+        )
+    } else if (uiState.purchases.any { entry -> entry.isPending }) {
+        NoticeBanner(
+            message = stringResource(R.string.feature_tailor_impl_credits_pending_banner),
+            tone = NoticeTone.Warning,
+        )
+    }
     CreditsHero(uiState = uiState)
-    HhPillRow(
-        title = stringResource(R.string.feature_tailor_impl_credits_get_pack),
-        onClick = { if (uiState.canBuy) actions.onGetPack() },
-        style = HhPillRowStyle.Marigold,
-        icon = HhIcons.Download,
-        modifier = if (uiState.canBuy) {
-            Modifier
-        } else {
-            Modifier
-                .alpha(DISABLED_ALPHA)
-                .semantics { disabled() }
-        },
+    HhPrimaryButton(
+        label = stringResource(R.string.feature_tailor_impl_credits_get_pack),
+        onClick = actions.onGetPack,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = uiState.canBuy,
+        leadingIcon = HhIcons.Download,
     )
-    CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
+    HhSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
     CreditsPurchases(uiState = uiState)
-    CreditsSectionTitle(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
+    HhSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
     CreditsHelp(actions = actions)
 }
 
 @Composable
 private fun CreditsHero(uiState: CreditsUiState) {
     val left = uiState.totalCredits
-    val expiry = stringResource(
-        if (uiState.creditsNeverExpire) {
-            R.string.feature_tailor_impl_credits_never_expire
-        } else {
-            R.string.feature_tailor_impl_credits_may_expire
+    val caption = stringResource(
+        when {
+            uiState.showsFreeNote -> R.string.feature_tailor_impl_credits_free_note
+            uiState.creditsNeverExpire -> R.string.feature_tailor_impl_credits_never_expire
+            else -> R.string.feature_tailor_impl_credits_may_expire
         },
     )
-    val freeNote = if (uiState.showsFreeNote) stringResource(R.string.feature_tailor_impl_credits_free_note) else null
-    val description = listOfNotNull(
-        pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left),
-        expiry,
-        freeNote,
-    ).joinToString(" ")
-    val chips: (@Composable RowScope.() -> Unit)? = if (uiState.showsFreeNote) {
-        { HhOnColorChip(label = stringResource(R.string.feature_tailor_impl_credits_free_note)) }
-    } else {
-        null
+    val description = pluralStringResource(R.plurals.feature_tailor_impl_credits_left_description, left, left)
+    HhCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { contentDescription = "$description $caption" },
+    ) {
+        Text(
+            text = left.toString(),
+            style = HhTheme.typography.numeralHero,
+            color = HhTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_credits_left_caption, caption),
+            style = HhTheme.typography.titleS,
+            color = HhTheme.colors.onSurface,
+        )
     }
-    HhSolidCard(
-        accent = HhAccent.Marigold,
-        monogram = left.toString(),
-        title = pluralStringResource(R.plurals.feature_tailor_impl_credits_left, left, left),
-        subtitle = expiry,
-        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
-        chips = chips,
-    )
-}
-
-@Composable
-private fun CreditsSectionTitle(text: String) {
-    Text(
-        text = text,
-        style = HhTheme.typography.titleS,
-        color = HhTheme.colors.onSurfaceVariant,
-        modifier = Modifier.padding(top = HhTheme.spacing.xs),
-    )
 }
 
 @Composable
 private fun CreditsPurchases(uiState: CreditsUiState) {
     if (uiState.purchases.isEmpty()) {
-        HhCard(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_no_purchases),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_credits_no_purchases),
+            style = HhTheme.typography.bodyM,
+            color = HhTheme.colors.onSurfaceVariant,
+        )
         return
     }
     uiState.purchases.forEach { entry -> CreditsPurchaseRow(entry = entry) }
@@ -189,125 +169,99 @@ private fun CreditsPurchases(uiState: CreditsUiState) {
 
 @Composable
 private fun CreditsPurchaseRow(entry: CreditsPurchaseEntry) {
-    if (entry.isPending) {
-        val pending = stringResource(R.string.feature_tailor_impl_credits_pending)
-        Column(
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
-            modifier = Modifier.semantics(mergeDescendants = true) {},
-        ) {
-            HhSolidCard(
-                accent = HhAccent.Marigold,
-                monogram = "₹",
-                title = pluralStringResource(
-                    R.plurals.feature_tailor_impl_credits_purchase_title,
-                    entry.credits,
-                    entry.credits,
-                    entry.formattedPrice,
-                ),
-                subtitle = pluralStringResource(
-                    R.plurals.feature_tailor_impl_credits_pending_note,
-                    entry.credits,
-                    entry.credits,
-                ),
-                chips = {
-                    Icon(
-                        imageVector = HhIcons.Clock,
-                        contentDescription = null,
-                        tint = HhTheme.colors.onSpecial,
-                        modifier = Modifier.heightIn(min = HhTheme.spacing.d20),
-                    )
-                    HhOnColorChip(label = pending, style = HhOnColorChipStyle.Ink)
-                },
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
-                style = HhTheme.typography.labelM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-            CreditsPurchaseOrder(entry = entry)
-        }
-        return
-    }
+    val colors = HhTheme.colors
     HhCard(
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {},
     ) {
-        Text(
-            text = pluralStringResource(
-                R.plurals.feature_tailor_impl_credits_purchase_title,
-                entry.credits,
-                entry.credits,
-                entry.formattedPrice,
-            ),
-            style = HhTheme.typography.titleS,
-            color = HhTheme.colors.onSurface,
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+            Text(
+                text = pluralStringResource(
+                    R.plurals.feature_tailor_impl_credits_purchase_title,
+                    entry.credits,
+                    entry.credits,
+                ),
+                style = HhTheme.typography.titleM,
+                color = colors.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Text(text = entry.formattedPrice, style = HhTheme.typography.titleM, color = colors.onSurface)
+        }
         Text(
             text = stringResource(R.string.feature_tailor_impl_credits_purchase_meta, entry.formattedDate),
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
+            style = HhTheme.typography.bodyS,
+            color = colors.onSurfaceVariant,
         )
-        CreditsPurchaseOrder(entry = entry)
-    }
-}
-
-@Composable
-private fun CreditsPurchaseOrder(entry: CreditsPurchaseEntry) {
-    Text(
-        text = entry.orderId,
-        style = HhTheme.typography.factId,
-        color = HhTheme.colors.onSurface,
-    )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun CreditsHelp(actions: CreditsActions) {
-    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
-    HhCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_refund_summary),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.body,
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_credits_order_id, entry.orderId),
+            style = HhTheme.typography.bodyS,
+            color = colors.onSurfaceVariant,
+        )
+        if (entry.isPending) {
+            StatusPill(
+                label = stringResource(R.string.feature_tailor_impl_credits_pending),
+                icon = HhIcons.Clock,
+                color = colors.onSurface,
             )
-            if (largeFont) {
-                Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-                    HhOutlineButton(
-                        label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
-                        onClick = actions.onAskRefund,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    HhOutlineButton(
-                        label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
-                        onClick = actions.onContactHelp,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            } else {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                ) {
-                    HhOutlineButton(
-                        label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
-                        onClick = actions.onAskRefund,
-                    )
-                    HhOutlineButton(
-                        label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
-                        onClick = actions.onContactHelp,
-                    )
-                }
-            }
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_credits_help_summary),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.body,
+        } else {
+            StatusPill(
+                label = stringResource(R.string.feature_tailor_impl_credits_paid),
+                icon = HhIcons.CheckCircle,
+                color = colors.primary,
             )
         }
     }
 }
 
+@Composable
+private fun CreditsHelp(actions: CreditsActions) {
+    HelpCard(
+        icon = HhIcons.Info,
+        title = R.string.feature_tailor_impl_credits_help_refunds_title,
+        body = R.string.feature_tailor_impl_credits_refund_summary,
+    ) {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
+            onClick = actions.onAskRefund,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+    HelpCard(
+        icon = HhIcons.Chat,
+        title = R.string.feature_tailor_impl_credits_help_credit_title,
+        body = R.string.feature_tailor_impl_credits_help_credit_body,
+    )
+    HelpCard(
+        icon = HhIcons.Send,
+        title = R.string.feature_tailor_impl_credits_help_contact_title,
+        body = R.string.feature_tailor_impl_credits_help_summary,
+    ) {
+        HhOutlineButton(
+            label = stringResource(R.string.feature_tailor_impl_credits_contact_help),
+            onClick = actions.onContactHelp,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun HelpCard(
+    icon: ImageVector,
+    title: Int,
+    body: Int,
+    action: @Composable () -> Unit = {},
+) {
+    HhCard(modifier = Modifier.fillMaxWidth()) {
+        IconTile(icon = icon)
+        Text(text = stringResource(title), style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+        Text(
+            text = stringResource(body),
+            style = HhTheme.typography.bodyM,
+            color = HhTheme.colors.onSurface,
+        )
+        action()
+    }
+}
+
 private const val LARGE_FONT_SCALE = 1.5f
-private const val DISABLED_ALPHA = 0.38f

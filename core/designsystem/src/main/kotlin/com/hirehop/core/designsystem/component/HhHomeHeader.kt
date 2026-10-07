@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -32,31 +30,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import kotlin.math.max
 import kotlin.math.roundToInt
-
-@Composable
-fun HhHomeHeader(
-    greeting: String,
-    headline: String,
-    modifier: Modifier = Modifier,
-    trailing: @Composable RowScope.() -> Unit = {},
-    action: (@Composable () -> Unit)? = null,
-    illustration: (@Composable BoxScope.() -> Unit)? = null,
-) {
-    HhCollapsingHomeHeader(
-        collapse = remember { HhHeaderCollapseState() },
-        title = "",
-        greeting = greeting,
-        headline = headline,
-        modifier = modifier,
-        trailing = trailing,
-        action = action,
-        illustration = illustration,
-    )
-}
 
 @Composable
 private fun HhHomeHeaderHeadline(headline: String, action: (@Composable () -> Unit)?, hasIllustration: Boolean) {
@@ -67,50 +43,10 @@ private fun HhHomeHeaderHeadline(headline: String, action: (@Composable () -> Un
             .padding(top = HhTheme.spacing.d24, bottom = HhOverlap.Sheet + HhTheme.spacing.d24),
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d16),
     ) {
-        Text(text = headline, style = HhTheme.typography.headlineL, color = HhTheme.colors.onHeader)
+        HhHeadline(text = headline, style = HhTheme.typography.headlineL, color = HhTheme.colors.onHeader)
         if (action != null) {
             action()
         }
-    }
-}
-
-@Composable
-fun HhCompactHomeHeader(
-    title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier,
-    trailing: @Composable RowScope.() -> Unit = {},
-) {
-    val colors = HhTheme.colors
-    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .layoutId(HhHeaderData(drawsAboveContent = false, overlap = HhOverlap.Sheet))
-            .hhHeaderBackdrop(colors.header, HhOverlap.Sheet)
-            .heightIn(min = HhHeightCompactHomeHeader + statusTop)
-            .padding(
-                start = HhTheme.spacing.gutter,
-                end = HhTheme.spacing.gutter,
-                top = statusTop + HhTheme.spacing.lg,
-                bottom = HhOverlap.Sheet + HhTheme.spacing.lg,
-            ),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = title,
-                modifier = Modifier.weight(1f),
-                style = HhTheme.typography.headlineL,
-                color = colors.onHeader,
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-                content = trailing,
-            )
-        }
-        Text(text = subtitle, style = HhTheme.typography.bodyL, color = colors.onHeaderVariant)
     }
 }
 
@@ -224,26 +160,6 @@ private const val COLLAPSE_PARALLAX = 0.5f
 
 @Preview(showBackground = true)
 @Composable
-private fun HhHomeHeaderPreview() {
-    HhPreviewTheme(darkTheme = false) { HhHomeHeaderSample() }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HhHomeHeaderDarkPreview() {
-    HhPreviewTheme(darkTheme = true) { HhHomeHeaderSample() }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HhCompactHomeHeaderPreview() {
-    HhPreviewTheme(darkTheme = false) {
-        HhCompactHomeHeader(title = "Settings", subtitle = "priya@example.com", trailing = { HhCreditsPill(count = "4", label = "left") })
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
 private fun HhCollapsingHomeHeaderPreview() {
     HhPreviewTheme(darkTheme = true) {
         HhCollapsingHomeHeader(
@@ -251,20 +167,7 @@ private fun HhCollapsingHomeHeaderPreview() {
             title = "Applications",
             greeting = "Hi, Priya",
             headline = "Your facts, every job",
-            trailing = { HhCreditsPill(count = "4", label = "left") },
+            trailing = { Text("4 left") },
         )
     }
-}
-
-@Composable
-private fun HhHomeHeaderSample() {
-    HhHomeHeader(
-        greeting = "Hi, Priya",
-        headline = "Your facts, every job",
-        trailing = {
-            HhCreditsPill(count = "4", label = "left")
-            HhHeaderIconButton(icon = HhIcons.Bell, contentDescription = "Notifications", onClick = {})
-        },
-        action = { HhHeaderButton(label = "Paste a job", onClick = {}, trailingIcon = HhIcons.ArrowForward) },
-    )
 }

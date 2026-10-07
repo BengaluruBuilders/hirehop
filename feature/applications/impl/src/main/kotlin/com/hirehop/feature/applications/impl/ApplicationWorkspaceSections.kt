@@ -1,17 +1,17 @@
 package com.hirehop.feature.applications.impl
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,10 +19,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -32,12 +34,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.hirehop.core.designsystem.component.HhApplicationStatusChip
+import androidx.compose.ui.unit.dp
+import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhCheckbox
 import com.hirehop.core.designsystem.component.HhDivider
 import com.hirehop.core.designsystem.component.HhExpandable
-import com.hirehop.core.designsystem.component.HhHeroCard
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhOutlineButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
@@ -51,13 +53,14 @@ import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.ExportFormat
 import com.hirehop.core.model.KeywordCoverage
 import com.hirehop.core.model.MatchStatus
-import com.hirehop.core.ui.ApplicationStatusKindMapper
 import com.hirehop.core.ui.MatchStatusKindMapper
 import kotlin.time.Instant
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun WorkspaceStatusCard(
+internal fun WorkspaceIdentityCard(
+    role: String,
+    company: String,
     status: ApplicationStatus,
     updatedAt: Instant,
     now: Instant,
@@ -66,60 +69,76 @@ internal fun WorkspaceStatusCard(
 ) {
     val label = status.label()
     val description = stringResource(R.string.feature_applications_impl_status_chip_description, label)
-    HhHeroCard(
-        modifier = modifier,
-        contentPadding = PaddingValues(HhTheme.spacing.md - HhTheme.spacing.xxs),
-    ) {
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            itemVerticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
-                modifier = Modifier
-                    .heightIn(min = HhTheme.spacing.touch)
-                    .clickable(role = Role.Button, onClick = onStatusClick)
-                    .semantics { contentDescription = description },
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HhApplicationStatusChip(
-                    kind = ApplicationStatusKindMapper().kindOf(status),
-                    label = label,
+    HhCard(modifier = modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+            LogoTile(company = company, size = IDENTITY_TILE)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = roleOrFallback(role),
+                    style = HhTheme.typography.headlineM,
+                    color = HhTheme.colors.onSurface,
                 )
-                Icon(
-                    imageVector = HhIcons.ExpandMore,
-                    contentDescription = null,
-                    tint = HhTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.size(HhTheme.spacing.lg),
+                Text(
+                    text = stringResource(
+                        R.string.feature_applications_impl_row_company_updated,
+                        companyOrFallback(company),
+                        updatedSentence(updatedAt = updatedAt, now = now),
+                    ),
+                    style = HhTheme.typography.labelM,
+                    color = HhTheme.colors.onSurfaceVariant,
                 )
             }
-            Text(
-                text = updatedSentence(updatedAt = updatedAt, now = now),
-                style = HhTheme.typography.bodyS,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
         }
+        Row(modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description }) {
+            StatusChip(status = status, label = label, onClick = onStatusClick)
+        }
+        HhOutlineButton(
+            label = stringResource(R.string.feature_applications_impl_row_change_status),
+            onClick = onStatusClick,
+            modifier = Modifier.fillMaxWidth(),
+            size = HhButtonSize.Compact,
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+private val IDENTITY_TILE = 56.dp
+private val SECTION_TILE = 44.dp
+private val SECTION_TILE_SHAPE = RoundedCornerShape(14.dp)
+
 @Composable
 private fun WorkspaceSection(
     title: String,
+    icon: ImageVector,
     modifier: Modifier = Modifier,
     trailing: String? = null,
     content: @Composable () -> Unit,
 ) {
     HhCard(modifier = modifier) {
-        FlowRow(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-            itemVerticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md - HhTheme.spacing.xxs),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = title, style = HhTheme.typography.titleM, color = HhTheme.colors.onSurface)
+            Box(
+                modifier = Modifier
+                    .size(SECTION_TILE)
+                    .clip(SECTION_TILE_SHAPE)
+                    .background(HhTheme.colors.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = HhTheme.colors.onSurface,
+                    modifier = Modifier.size(HhTheme.spacing.xl),
+                )
+            }
+            Text(
+                text = title,
+                style = HhTheme.typography.titleM,
+                color = HhTheme.colors.onSurface,
+                modifier = Modifier.weight(1f),
+            )
             if (trailing != null) {
                 Text(text = trailing, style = HhTheme.typography.labelM, color = HhTheme.colors.onSurfaceVariant)
             }
@@ -139,6 +158,7 @@ internal fun WorkspaceResumeSection(
 ) {
     WorkspaceSection(
         title = stringResource(R.string.feature_applications_impl_workspace_resume_heading),
+        icon = HhIcons.Description,
         modifier = modifier,
     ) {
         when (resume) {
@@ -154,16 +174,17 @@ internal fun WorkspaceResumeSection(
             )
             is WorkspaceResume.Exported -> ExportedFile(resume = resume)
         }
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
         ) {
             when (resume) {
                 WorkspaceResume.Absent -> Unit
                 WorkspaceResume.NotExported -> HhPrimaryButton(
                     label = stringResource(R.string.feature_applications_impl_workspace_resume_preview),
                     onClick = onPreview,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     trailingIcon = HhIcons.ArrowForward,
                 )
                 is WorkspaceResume.Exported -> HhSecondaryButton(
@@ -171,13 +192,16 @@ internal fun WorkspaceResumeSection(
                     onClick = onShare,
                     modifier = Modifier.weight(1f),
                     trailingIcon = HhIcons.Share,
+                    size = HhButtonSize.Compact,
                 )
             }
             if (canReview) {
-                HhOutlineButton(
+                HhSecondaryButton(
                     label = stringResource(R.string.feature_applications_impl_workspace_resume_review),
                     onClick = onReview,
                     modifier = Modifier.weight(1f),
+                    trailingIcon = HhIcons.OpenInNew,
+                    size = HhButtonSize.Compact,
                 )
             }
         }
@@ -241,6 +265,7 @@ internal fun WorkspaceGapSection(
 ) {
     WorkspaceSection(
         title = stringResource(R.string.feature_applications_impl_workspace_gap_heading),
+        icon = HhIcons.CheckCircle,
         modifier = modifier,
     ) {
         if (gapCounts == null) {
@@ -252,57 +277,49 @@ internal fun WorkspaceGapSection(
             return@WorkspaceSection
         }
         if (coverage != null) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-                itemVerticalAlignment = Alignment.Bottom,
-            ) {
-                Text(
-                    text = coverageFraction(coverage),
-                    style = HhTheme.typography.displayM,
-                    color = HhTheme.colors.onSurface,
-                )
-                Text(
-                    text = stringResource(R.string.feature_applications_impl_workspace_gap_caption),
-                    style = HhTheme.typography.labelM,
-                    color = HhTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = HhTheme.spacing.xs),
-                )
-            }
-        }
-        val requirementTotal = gapCounts.met + gapCounts.partial + gapCounts.gap
-        Text(
-            text = pluralStringResource(
-                R.plurals.feature_applications_impl_workspace_gap_legend,
-                requirementTotal,
-                requirementTotal,
-            ),
-            style = HhTheme.typography.bodyS,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
-            HhStatusChip(
-                kind = MatchStatusKindMapper().kindOf(MatchStatus.MET),
-                label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_met, gapCounts.met, gapCounts.met),
-            )
-            HhStatusChip(
-                kind = MatchStatusKindMapper().kindOf(MatchStatus.PARTIAL),
-                label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_partial, gapCounts.partial, gapCounts.partial),
-            )
-            HhStatusChip(
-                kind = MatchStatusKindMapper().kindOf(MatchStatus.GAP),
-                label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_gap, gapCounts.gap, gapCounts.gap),
+            Text(
+                text = stringResource(
+                    R.string.feature_applications_impl_workspace_gap_summary,
+                    coverageLine(coverage),
+                ),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.onSurface,
             )
         }
         HhExpandable(expanded = isExpanded) {
             Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                val requirementTotal = gapCounts.met + gapCounts.partial + gapCounts.gap
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.feature_applications_impl_workspace_gap_legend,
+                        requirementTotal,
+                        requirementTotal,
+                    ),
+                    style = HhTheme.typography.bodyS,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+                ) {
+                    HhStatusChip(
+                        kind = MatchStatusKindMapper().kindOf(MatchStatus.MET),
+                        label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_met, gapCounts.met, gapCounts.met),
+                    )
+                    HhStatusChip(
+                        kind = MatchStatusKindMapper().kindOf(MatchStatus.PARTIAL),
+                        label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_partial, gapCounts.partial, gapCounts.partial),
+                    )
+                    HhStatusChip(
+                        kind = MatchStatusKindMapper().kindOf(MatchStatus.GAP),
+                        label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_gap, gapCounts.gap, gapCounts.gap),
+                    )
+                }
                 matches.forEach { match -> WorkspaceMatchRow(match = match) }
             }
         }
-        HhTextButton(
+        HhOutlineButton(
             label = stringResource(
                 if (isExpanded) {
                     R.string.feature_applications_impl_workspace_gap_close
@@ -311,7 +328,7 @@ internal fun WorkspaceGapSection(
                 },
             ),
             onClick = onToggle,
-            trailingIcon = if (isExpanded) null else HhIcons.ArrowForward,
+            size = HhButtonSize.Compact,
         )
     }
 }
@@ -357,6 +374,7 @@ internal fun WorkspacePrepPlanSection(
     val doneCount = tasks.count { task -> task.isDone }
     WorkspaceSection(
         title = stringResource(R.string.feature_applications_impl_workspace_tasks_heading),
+        icon = HhIcons.Check,
         modifier = modifier,
         trailing = if (tasks.isEmpty()) {
             null
@@ -465,6 +483,7 @@ internal fun WorkspaceNotesSection(
     }
     WorkspaceSection(
         title = stringResource(R.string.feature_applications_impl_workspace_notes_heading),
+        icon = HhIcons.Edit,
         modifier = modifier,
     ) {
         HhTextField(
@@ -521,6 +540,7 @@ internal fun WorkspaceJobDescriptionSection(
 ) {
     WorkspaceSection(
         title = stringResource(R.string.feature_applications_impl_workspace_jd_heading),
+        icon = HhIcons.Description,
         modifier = modifier,
         trailing = pluralStringResource(
             id = R.plurals.feature_applications_impl_workspace_jd_words,
@@ -552,15 +572,16 @@ internal fun WorkspaceJobDescriptionSection(
 @Composable
 internal fun WorkspaceEntrySection(
     title: String,
+    icon: ImageVector,
     summary: String,
     actionLabel: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     trailing: String? = null,
 ) {
-    WorkspaceSection(title = title, modifier = modifier, trailing = trailing) {
+    WorkspaceSection(title = title, icon = icon, modifier = modifier, trailing = trailing) {
         Text(text = summary, style = HhTheme.typography.bodyM, color = HhTheme.colors.body)
-        HhTextButton(label = actionLabel, onClick = onClick, trailingIcon = HhIcons.ArrowForward)
+        HhOutlineButton(label = actionLabel, onClick = onClick, size = HhButtonSize.Compact)
     }
 }
 

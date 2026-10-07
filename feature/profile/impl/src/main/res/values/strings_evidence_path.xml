@@ -33,25 +33,22 @@
     <string name="feature_profile_impl_evidence_path_question_competitions_1">Which contest or hackathon did you join? What did your team do?</string>
     <string name="feature_profile_impl_evidence_path_question_positions_1">Which club, event, or team did you help run? What was your role?</string>
 
-    <string name="feature_profile_impl_evidence_path_question_counter">%1$s · question %2$d of %3$d</string>
+    <string name="feature_profile_impl_evidence_path_question_counter">Question %1$d of %2$d</string>
+    <string name="feature_profile_impl_evidence_path_one_question">One question</string>
     <string name="feature_profile_impl_evidence_path_answer_label">Your answer</string>
-    <string name="feature_profile_impl_evidence_path_answer_placeholder">In your own words</string>
+    <string name="feature_profile_impl_evidence_path_answer_placeholder">Say it plainly, in one or two sentences.</string>
     <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. HireHop uses your words as facts.</string>
-    <string name="feature_profile_impl_evidence_path_saved_caption">Your answer, saved as a fact</string>
+    <string name="feature_profile_impl_evidence_path_saved_caption">Your answer is now a fact</string>
     <string name="feature_profile_impl_evidence_path_skipped_note">Skipped %1$s question %2$d. You can come back to it any time.</string>
 
-    <string name="feature_profile_impl_evidence_path_skip">Skip</string>
-    <string name="feature_profile_impl_evidence_path_save">Save as a fact</string>
+    <string name="feature_profile_impl_evidence_path_skip">Skip this one</string>
+    <string name="feature_profile_impl_evidence_path_save">Save answer</string>
     <string name="feature_profile_impl_evidence_path_add_more">Add more</string>
-    <string name="feature_profile_impl_evidence_path_back_to_profile">Back to Profile</string>
+    <string name="feature_profile_impl_evidence_path_back_to_profile">Go to Profile</string>
 
     <plurals name="feature_profile_impl_evidence_path_done_title">
         <item quantity="one">%1$d new fact added</item>
         <item quantity="other">%1$d new facts added</item>
-    </plurals>
-    <plurals name="feature_profile_impl_evidence_path_done_caption">
-        <item quantity="one">new fact added</item>
-        <item quantity="other">new facts added</item>
     </plurals>
     <string name="feature_profile_impl_evidence_path_done_body">Each one is in your words and marked user-stated. You can correct any of them from Profile.</string>
     <string name="feature_profile_impl_evidence_path_done_nothing_title">Nothing added, and that is fine</string>

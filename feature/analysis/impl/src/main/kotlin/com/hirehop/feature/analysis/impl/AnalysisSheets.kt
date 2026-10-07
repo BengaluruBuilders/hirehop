@@ -1,7 +1,6 @@
 package com.hirehop.feature.analysis.impl
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -33,19 +32,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomSheet
 import com.hirehop.core.designsystem.component.HhEvidenceText
 import com.hirehop.core.designsystem.component.HhFactId
-import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhProvenanceChip
 import com.hirehop.core.designsystem.component.HhProvenanceKind
-import com.hirehop.core.designsystem.component.HhStatusDisc
+import com.hirehop.core.designsystem.component.HhSecondaryButton
+import com.hirehop.core.designsystem.component.HhStatusChip
 import com.hirehop.core.designsystem.component.HhStatusKind
 import com.hirehop.core.designsystem.component.HhTextButton
 import com.hirehop.core.designsystem.component.HhTextField
@@ -243,41 +243,33 @@ private fun HhProvenanceKind.labelRes(): Int = when (this) {
     HhProvenanceKind.Scanned -> R.string.feature_analysis_impl_provenance_scanned
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
     var statement by rememberSaveable { mutableStateOf("") }
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(
-            text = stringResource(R.string.feature_analysis_impl_question_title),
-            style = HhTheme.typography.headlineM,
-            color = HhTheme.colors.onSurface,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .background(HhTheme.colors.card, HhTheme.shapes.pill)
-                .padding(horizontal = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    val name = item.requirement.text.headline()
+    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
+            itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            HhStatusDisc(kind = HhStatusKind.Gap, size = 22.dp)
+            HhStatusChip(kind = HhStatusKind.Gap, label = stringResource(R.string.feature_analysis_impl_status_gap))
             Text(
-                text = item.requirement.text.headline(),
-                style = HhTheme.typography.bodyL.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = stringResource(R.string.feature_analysis_impl_status_gap),
-                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.body,
+                text = stringResource(
+                    R.string.feature_analysis_impl_question_priority,
+                    stringResource(item.priorityLabelRes()),
+                    name,
+                ),
+                style = HhTheme.typography.bodyS.copy(fontWeight = FontWeight.Bold),
+                color = HhTheme.colors.onSurfaceVariant,
             )
         }
         Text(
-            text = stringResource(R.string.feature_analysis_impl_question_body),
-            style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.onSurfaceVariant,
+            text = stringResource(R.string.feature_analysis_impl_question_title, name),
+            style = HhTheme.typography.headlineM,
+            color = HhTheme.colors.onSurface,
+            modifier = Modifier.semantics { heading() },
         )
         if (notClosed) {
             val keywords = displayKeywords(item.requirement)
@@ -291,10 +283,6 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
                 color = HhTheme.colors.onSurface,
             )
         }
-        NewFactRow(
-            id = stringResource(R.string.feature_analysis_impl_question_new_fact_id),
-            text = stringResource(R.string.feature_analysis_impl_question_new_fact_text),
-        )
         HhTextField(
             value = statement,
             onValueChange = { statement = it },
@@ -302,48 +290,24 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             singleLine = false,
             minLines = QUESTION_MIN_LINES,
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            HhIconButton(
-                icon = HhIcons.Close,
-                contentDescription = stringResource(R.string.feature_analysis_impl_question_close),
-                onClick = actions.onDismissOverlay,
-                size = 60.dp,
-                containerColor = HhTheme.colors.card,
-                borderColor = HhTheme.colors.outlineVariant,
-            )
-            HhPrimaryButton(
-                label = stringResource(R.string.feature_analysis_impl_question_write),
-                onClick = { actions.onSubmitEvidence(item.id, statement) },
-                modifier = Modifier.weight(1f),
-                enabled = statement.isNotBlank(),
+        Row(horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+            HhFactId(id = stringResource(R.string.feature_analysis_impl_question_new_fact_id))
+            Text(
+                text = stringResource(R.string.feature_analysis_impl_question_note),
+                style = HhTheme.typography.bodyS,
+                color = HhTheme.colors.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun NewFactRow(id: String, text: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .background(HhTheme.colors.primaryContainer, HhTheme.shapes.pill)
-            .border(2.dp, HhTheme.colors.primary, HhTheme.shapes.pill)
-            .padding(start = 14.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
-    ) {
-        Text(
-            text = id,
-            style = HhTheme.typography.labelM,
-            color = HhTheme.colors.onSurfaceVariant,
+        HhPrimaryButton(
+            label = stringResource(R.string.feature_analysis_impl_question_write),
+            onClick = { actions.onSubmitEvidence(item.id, statement) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = statement.isNotBlank(),
         )
-        Text(
-            text = text,
-            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = HhTheme.colors.onPrimaryContainer,
+        HhSecondaryButton(
+            label = stringResource(R.string.feature_analysis_impl_question_cancel),
+            onClick = actions.onDismissOverlay,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

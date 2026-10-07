@@ -51,7 +51,6 @@ fun DebugScenarioMenu(
             HhInnerHeader(
                 title = stringResource(R.string.debug_scenario_title),
                 subtitle = stringResource(R.string.debug_scenario_intro),
-                extended = false,
             )
         },
     ) { padding ->

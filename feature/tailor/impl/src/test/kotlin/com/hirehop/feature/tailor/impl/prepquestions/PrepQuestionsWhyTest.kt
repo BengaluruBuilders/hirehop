@@ -61,8 +61,8 @@ class PrepQuestionsWhyTest {
             }
         }
 
-        composeRule.onNodeWithText("Why they may ask: the post asks for Experience with SQL.").assertExists()
+        composeRule.onNodeWithText("Why they may ask: the JD asks for Experience with SQL.").assertExists()
         composeRule.onAllNodesWithText("..", substring = true).assertCountEquals(0)
-        composeRule.onNodeWithText("1 gap to address").assertExists()
+        composeRule.onNodeWithText("Your gaps").assertExists()
     }
 }

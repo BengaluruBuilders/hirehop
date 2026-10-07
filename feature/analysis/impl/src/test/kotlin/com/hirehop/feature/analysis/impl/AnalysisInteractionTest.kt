@@ -56,7 +56,7 @@ class AnalysisInteractionTest {
             RequirementSection(RequirementGroup.MustHaveGaps, items.filter { it.isGap }),
             RequirementSection(RequirementGroup.Met, items.filter { !it.isGap }),
         ).filter { it.items.isNotEmpty() },
-        freeCredits = 1,
+        totalCredits = 1,
     )
 
     private val submitted = mutableListOf<String>()
@@ -70,7 +70,7 @@ class AnalysisInteractionTest {
         show(resultWith(gap, met))
 
         composeRule.onNodeWithText("I have this").performClick()
-        composeRule.onNodeWithText("Add to prep plan").performClick()
+        composeRule.onNodeWithText("Add to my prep plan").performClick()
 
         assertThat(calls).containsExactly("ihave:req-a", "prep:req-a").inOrder()
     }
@@ -79,7 +79,7 @@ class AnalysisInteractionTest {
     fun metRow_opensTheSourceFromTheRow() {
         show(resultWith(gap, met))
 
-        composeRule.onNodeWithText("Met · W-01").performScrollTo().performClick()
+        composeRule.onNodeWithText("W-01").performScrollTo().performClick()
 
         assertThat(calls).containsExactly("source:req-b")
     }
@@ -97,7 +97,7 @@ class AnalysisInteractionTest {
     fun header_sharesAndBar_tailors() {
         show(resultWith(met))
 
-        composeRule.onNodeWithText("Share my fit").performClick()
+        composeRule.onNodeWithContentDescription("Share my fit").performClick()
         composeRule.onNodeWithText("Tailor my resume").performClick()
 
         assertThat(calls).containsExactly("share", "tailor").inOrder()
@@ -106,8 +106,15 @@ class AnalysisInteractionTest {
     @Test
     fun tailor_isOffInOfflineAndFreeLimitStates() {
         show(resultWith(met).copy(isOffline = true))
-        composeRule.onNodeWithText("Tailor my resume").assertIsNotEnabled()
+        composeRule.onNodeWithText("Tailor when I'm back").assertIsNotEnabled()
         composeRule.onNodeWithText("Tailor needs a connection.").assertExists()
+    }
+
+    @Test
+    fun result_saysTheCountIsNotAScore() {
+        show(resultWith(met))
+
+        composeRule.onNodeWithText("You cover 1 of 2 key terms. This is not a score.").assertExists()
     }
 
     @Test
@@ -147,8 +154,7 @@ class AnalysisInteractionTest {
     fun blankRoleAndCompany_useTheFallbackText() {
         show(resultWith(met).copy(job = JobLabel()))
 
-        composeRule.onNodeWithText("Role not set").assertExists()
-        composeRule.onNodeWithText("Company not set").assertExists()
+        composeRule.onNodeWithText("Role not set · Company not set").assertExists()
     }
 
     @Test
@@ -193,10 +199,10 @@ class AnalysisInteractionTest {
             }
         }
 
-        composeRule.onNodeWithText("Do you have this?").assertExists()
-        composeRule.onNodeWithText("Write the fact").assertIsNotEnabled()
+        composeRule.onNodeWithText("Where have you used Cloud data warehouse?").assertExists()
+        composeRule.onNodeWithText("Save as new fact").assertIsNotEnabled()
         composeRule.onNode(hasSetTextAction()).performTextInput("Built a BigQuery warehouse")
-        composeRule.onNodeWithText("Write the fact").assertIsEnabled().performClick()
+        composeRule.onNodeWithText("Save as new fact").assertIsEnabled().performClick()
 
         assertThat(submitted).containsExactly("req-a:Built a BigQuery warehouse")
     }
@@ -212,7 +218,7 @@ class AnalysisInteractionTest {
             }
         }
 
-        composeRule.onNodeWithText("Never included: your name, company or facts").assertExists()
+        composeRule.onNodeWithText("Only the JD fit is shared. No name, contact details or resume facts.").assertExists()
         composeRule.onNodeWithText("Share to WhatsApp").performClick()
 
         assertThat(shared).containsExactly(

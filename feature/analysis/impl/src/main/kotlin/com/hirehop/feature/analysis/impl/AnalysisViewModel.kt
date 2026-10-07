@@ -110,7 +110,7 @@ class AnalysisViewModel @Inject constructor(
         Environment(
             scenario = activeScenario,
             online = online,
-            freeCredits = entitlement.freeCredits,
+            totalCredits = entitlement.totalCredits,
             hasCredit = entitlement.totalCredits > 0,
             freeTailoringsLeft = freeTailoringsLeft,
         )
@@ -427,7 +427,7 @@ class AnalysisViewModel @Inject constructor(
     private data class Environment(
         val scenario: DebugScenario,
         val online: Boolean,
-        val freeCredits: Int,
+        val totalCredits: Int,
         val hasCredit: Boolean,
         val freeTailoringsLeft: Int,
     )
@@ -455,7 +455,7 @@ class AnalysisViewModel @Inject constructor(
                     job = label,
                     keywordCoverage = phase.analysis.gap.keywordCoverage,
                     sections = phase.analysis.gap.matches.toSections(phase.profile, prepIds, reportedIds),
-                    freeCredits = env.freeCredits,
+                    totalCredits = env.totalCredits,
                     isOffline = env.scenario == DebugScenario.OFFLINE || !env.online,
                     tailorLimitReached = env.scenario == DebugScenario.PENDING || tailorLimitHit ||
                         (!env.hasCredit && env.freeTailoringsLeft <= 0 && !freeTailoringCounted),

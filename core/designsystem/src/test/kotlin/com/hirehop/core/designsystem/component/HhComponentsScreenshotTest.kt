@@ -54,46 +54,10 @@ class HhComponentsScreenshotTest {
     }
 
     @Test
-    fun solidCard() = capture("HhSolidCard") {
-        HhSolidCard(
-            accent = HhAccent.Coral,
-            monogram = "LH",
-            title = "Data Analyst",
-            subtitle = "Lumen Health · Pune",
-            openAction = HhOpenAction("Open Data Analyst") {},
-            chips = {
-                HhOnColorChip("Resume ready")
-                HhOnColorChip("11 met", style = HhOnColorChipStyle.Outline)
-            },
-        )
-        HhSolidCard(
-            accent = HhAccent.Jade,
-            monogram = "MC",
-            title = "Product Analyst",
-            subtitle = "Meridian Capital · Mumbai",
-            openAction = HhOpenAction("Open Product Analyst") {},
-        )
-        HhSolidCard(
-            accent = HhAccent.Marigold,
-            monogram = "NB",
-            title = "Operations Associate",
-            subtitle = "Northbay Logistics · Hyderabad",
-            chips = { HhOnColorChip("Draft", style = HhOnColorChipStyle.Ink) },
-        )
-    }
-
-    @Test
     fun pillRows() = capture("HhPillRow") {
         HhPillRowStyle.entries.forEach { style ->
             HhPillRow(title = style.name, subtitle = "Short supporting line", onClick = {}, style = style, monogram = "HH")
         }
-    }
-
-    @Test
-    fun statusRows() = capture("HhStatusRow") {
-        HhStatusRow(HhStatusKind.Met, "Unit testing", "Met")
-        HhStatusRow(HhStatusKind.Partial, "System design", "Partly met")
-        HhStatusRow(HhStatusKind.Gap, "Kotlin coroutines", "To prepare")
     }
 
     @Test

@@ -60,6 +60,8 @@ class HhColors(
     val special: Color,
     val onSpecial: Color,
     val scrim: Color,
+    val logoTiles: List<Color>,
+    val onLogoTile: Color,
 ) {
     val neutralContainer: Color get() = gapContainer
     val onNeutralContainer: Color get() = onGapContainer

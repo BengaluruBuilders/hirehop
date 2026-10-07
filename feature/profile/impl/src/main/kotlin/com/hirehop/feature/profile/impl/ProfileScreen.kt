@@ -90,7 +90,6 @@ private fun ProfileHomeScreen(
         ProfileUiState.Failure -> CenteredScreen(modifier) { ProfileFailure() }
 
         is ProfileUiState.Empty -> ProfileEmptyScreen(
-            state = uiState,
             navigation = navigation,
             modifier = modifier,
         )

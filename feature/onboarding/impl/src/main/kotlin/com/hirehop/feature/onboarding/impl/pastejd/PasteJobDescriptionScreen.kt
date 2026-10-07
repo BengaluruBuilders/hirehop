@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -38,10 +39,12 @@ import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhButtonSize
 import com.hirehop.core.designsystem.component.HhErrorCallout
-import com.hirehop.core.designsystem.component.HhIconActionBar
+import com.hirehop.core.designsystem.component.HhHeadline
 import com.hirehop.core.designsystem.component.HhIconButton
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhOutlineButton
+import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
 import com.hirehop.core.designsystem.component.HhSecondaryButton
 import com.hirehop.core.designsystem.component.HhTextField
@@ -49,18 +52,17 @@ import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.feature.onboarding.impl.R
 import com.hirehop.feature.onboarding.impl.common.DisclosureCard
+import com.hirehop.feature.onboarding.impl.common.NoticeTone
 import com.hirehop.feature.onboarding.impl.common.OnboardingNotice
 import com.hirehop.feature.onboarding.impl.common.OnboardingStepBar
 import com.hirehop.feature.onboarding.impl.common.ReasonText
 
-private val PASTE_STEP = 1
-private val PASTE_FIELD_HEIGHT_EMPTY = 330.dp
-private val PASTE_FIELD_HEIGHT_PASTED = 282.dp
-private val PASTE_FIELD_HEIGHT_TOO_SHORT = 168.dp
-private val PASTE_FIELD_CORNER = 28.dp
-private val PASTE_FIELD_BORDER = 1.5.dp
+private val PASTE_FIELD_HEIGHT_EMPTY = 300.dp
+private val PASTE_FIELD_HEIGHT_PASTED = 230.dp
+private val PASTE_FIELD_CORNER = 22.dp
+private val PASTE_FIELD_BORDER = 2.dp
 private val PASTE_FIELD_PADDING = 18.dp
-private val PASTE_FOOTER_RESERVE = 76.dp
+private val PASTE_FOOTER_RESERVE = 82.dp
 private val PASTE_ERROR_ICON = 22.dp
 private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
@@ -119,31 +121,34 @@ private fun PasteJobDescriptionContent(
         verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
     ) {
         OnboardingStepBar(
-            step = PASTE_STEP,
             onBack = actions.onBack,
             backContentDescription = stringResource(
                 R.string.feature_onboarding_impl_paste_jd_navigation_back_description,
             ),
         )
-        PasteJobDescriptionNotices(uiState = uiState, actions = actions)
         PasteJobDescriptionIntro()
+        PasteJobDescriptionNotices(uiState = uiState, actions = actions)
         PasteJobDescriptionField(uiState = uiState, actions = actions)
         val problem = uiState.problem
-        when (problem) {
-            PasteJobDescriptionProblem.TOO_SHORT -> TooShortHelp()
-            PasteJobDescriptionProblem.LINK_ONLY, PasteJobDescriptionProblem.TOO_LONG ->
-                OnboardingNotice(
-                    text = problemText(problem),
-                    icon = HhIcons.Block,
-                    tone = com.hirehop.feature.onboarding.impl.common.NoticeTone.Error,
-                )
-
-            null ->
-                if (uiState.text.isEmpty()) {
-                    PasteJobDescriptionHint()
-                } else {
-                    SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
-                }
+        if (problem != null) {
+            OnboardingNotice(
+                text = problemText(problem),
+                icon = if (problem == PasteJobDescriptionProblem.TOO_SHORT) HhIcons.Error else HhIcons.Block,
+                tone = if (problem == PasteJobDescriptionProblem.TOO_SHORT) NoticeTone.Warning else NoticeTone.Error,
+            )
+        } else if (uiState.text.isNotEmpty()) {
+            SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
+        }
+        if (uiState.isDailyLimitReached) {
+            OnboardingNotice(
+                text = pluralStringResource(
+                    R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
+                    FREE_ANALYSES_PER_DAY,
+                    FREE_ANALYSES_PER_DAY,
+                ),
+                icon = HhIcons.Error,
+                tone = NoticeTone.Warning,
+            )
         }
         if (revealsRoleAndCompany) {
             RoleAndCompanyFields(actions = actions, uiState = uiState)
@@ -152,40 +157,12 @@ private fun PasteJobDescriptionContent(
 }
 
 @Composable
-private fun PasteJobDescriptionHint() {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Icon(
-            imageVector = HhIcons.Info,
-            contentDescription = null,
-            tint = HhTheme.colors.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_hint, PASTE_JD_MIN_WORDS),
-            modifier = Modifier.weight(1f),
-            style = HhTheme.typography.bodyS,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
 private fun PasteJobDescriptionIntro() {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_heading),
-            style = HhTheme.typography.headlineL,
-            color = HhTheme.colors.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_intro),
-            style = HhTheme.typography.bodyL,
-            color = HhTheme.colors.onSurfaceVariant,
-        )
-    }
+    HhHeadline(
+        text = stringResource(R.string.feature_onboarding_impl_paste_jd_heading),
+        style = HhTheme.typography.headlineL,
+        color = HhTheme.colors.onSurface,
+    )
 }
 
 @Composable
@@ -208,11 +185,13 @@ private fun PasteJobDescriptionNotices(
         PasteJobDescriptionMessage.NOTHING_TO_READ -> OnboardingNotice(
             text = stringResource(R.string.feature_onboarding_impl_paste_jd_message_nothing_to_read),
             icon = HhIcons.Block,
+            tone = NoticeTone.Warning,
         )
 
         PasteJobDescriptionMessage.PASTE_PARTIAL -> OnboardingNotice(
             text = stringResource(R.string.feature_onboarding_impl_paste_jd_message_partial),
             icon = HhIcons.Block,
+            tone = NoticeTone.Warning,
         )
 
         null -> Unit
@@ -228,90 +207,68 @@ private fun PasteJobDescriptionField(
     actions: PasteJobDescriptionActions,
 ) {
     val colors = HhTheme.colors
-    val tooShort = uiState.problem == PasteJobDescriptionProblem.TOO_SHORT
-    val border = if (tooShort) colors.coral else colors.outlineVariant
-    val fieldHeight = when {
-        tooShort -> PASTE_FIELD_HEIGHT_TOO_SHORT
-        uiState.text.isNotEmpty() -> PASTE_FIELD_HEIGHT_PASTED
-        else -> PASTE_FIELD_HEIGHT_EMPTY
+    val outline = when (uiState.problem) {
+        PasteJobDescriptionProblem.TOO_SHORT -> colors.partial
+        PasteJobDescriptionProblem.LINK_ONLY, PasteJobDescriptionProblem.TOO_LONG -> colors.error
+        null -> null
     }
-    Column(
-        modifier = Modifier.padding(top = HhTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+    val shape = RoundedCornerShape(PASTE_FIELD_CORNER)
+    val fieldHeight = if (uiState.text.isEmpty()) PASTE_FIELD_HEIGHT_EMPTY else PASTE_FIELD_HEIGHT_PASTED
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = fieldHeight)
+            .clip(shape)
+            .background(colors.card)
+            .then(if (outline != null) Modifier.border(PASTE_FIELD_BORDER, outline, shape) else Modifier),
     ) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_field_label),
-            style = HhTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = colors.onSurface,
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = fieldHeight)
-                .clip(HhTheme.shapes.card)
-                .background(if (tooShort) colors.surface else colors.card)
-                .border(PASTE_FIELD_BORDER, border, HhTheme.shapes.card),
-        ) {
-            PasteJobDescriptionTextArea(uiState = uiState, onTextChange = actions.onTextChange)
-            PasteJobDescriptionFieldFooter(uiState = uiState, onPaste = actions.onPaste)
-        }
+        PasteJobDescriptionTextArea(uiState = uiState, onTextChange = actions.onTextChange)
+        PasteJobDescriptionFieldFooter(uiState = uiState, actions = actions)
     }
 }
 
 @Composable
 private fun BoxScope.PasteJobDescriptionFieldFooter(
     uiState: PasteJobDescriptionUiState,
-    onPaste: () -> Unit,
+    actions: PasteJobDescriptionActions,
 ) {
     Row(
         modifier = Modifier
             .align(Alignment.BottomStart)
             .fillMaxWidth()
-            .padding(start = PASTE_CHIP_PADDING + HhTheme.spacing.d2, end = PASTE_FIELD_PADDING, bottom = PASTE_CHIP_PADDING + HhTheme.spacing.d2),
+            .padding(start = PASTE_FIELD_PADDING, end = PASTE_FIELD_PADDING, bottom = PASTE_FIELD_PADDING),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HhSecondaryButton(
-            label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_paste),
-            onClick = onPaste,
-            size = HhButtonSize.Compact,
-            leadingIcon = HhIcons.Description,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        PasteJobDescriptionCount(uiState = uiState)
+        if (uiState.text.isEmpty()) {
+            HhSecondaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_paste),
+                onClick = actions.onPaste,
+                size = HhButtonSize.Compact,
+                leadingIcon = HhIcons.Description,
+            )
+        } else {
+            PasteJobDescriptionCount(uiState = uiState)
+            Spacer(modifier = Modifier.weight(1f))
+            HhOutlineButton(
+                label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_clear),
+                onClick = actions.onClear,
+                size = HhButtonSize.Compact,
+                leadingIcon = HhIcons.Close,
+            )
+        }
     }
 }
 
 @Composable
 private fun PasteJobDescriptionCount(uiState: PasteJobDescriptionUiState) {
-    when {
-        uiState.problem == PasteJobDescriptionProblem.TOO_SHORT -> Text(
-            text = stringResource(
-                R.string.feature_onboarding_impl_paste_jd_short_progress,
-                uiState.wordCount,
-                PASTE_JD_MIN_WORDS,
-            ),
-            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-            color = HhTheme.colors.coral,
+    if (uiState.problem == PasteJobDescriptionProblem.LINK_ONLY) {
+        Text(
+            text = stringResource(R.string.feature_onboarding_impl_paste_jd_link_count),
+            style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
+            color = HhTheme.colors.onSurfaceVariant,
         )
-
-        uiState.text.isNotBlank() -> Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs + HhTheme.spacing.xxs),
-        ) {
-            Icon(
-                imageVector = HhIcons.CheckCircle,
-                contentDescription = null,
-                tint = HhTheme.colors.primary,
-                modifier = Modifier.size(PASTE_WORD_ICON),
-            )
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_paste_jd_enough, uiState.wordCount),
-                style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.primary,
-            )
-        }
-
-        else -> PasteJobDescriptionWordCount(wordCount = uiState.wordCount)
+    } else {
+        PasteJobDescriptionWordCount(wordCount = uiState.wordCount)
     }
 }
 
@@ -323,7 +280,7 @@ private fun PasteJobDescriptionWordCount(wordCount: Int) {
     Text(
         text = wordCount.toString() + " " + unit,
         modifier = Modifier.clearAndSetSemantics { contentDescription = description },
-        style = HhTheme.typography.labelM,
+        style = HhTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
         color = HhTheme.colors.onSurfaceVariant,
     )
 }
@@ -431,77 +388,6 @@ private fun RoleAndCompanyFields(
 }
 
 @Composable
-private fun TooShortHelp() {
-    Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md)) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                imageVector = HhIcons.Error,
-                contentDescription = null,
-                tint = HhTheme.colors.coral,
-                modifier = Modifier
-                    .padding(top = HhTheme.spacing.xxs)
-                    .size(PASTE_ERROR_ICON),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xxs),
-            ) {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_impl_paste_jd_short_title),
-                    style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.Bold),
-                    color = HhTheme.colors.coral,
-                )
-                Text(
-                    text = stringResource(R.string.feature_onboarding_impl_paste_jd_short_body),
-                    style = HhTheme.typography.bodyM,
-                    color = HhTheme.colors.onSurfaceVariant,
-                )
-            }
-        }
-        HelpCard()
-    }
-}
-
-@Composable
-private fun HelpCard() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(HhTheme.shapes.card)
-            .background(HhTheme.colors.card)
-            .border(PASTE_FIELD_BORDER / 2, HhTheme.colors.outlineVariant, HhTheme.shapes.card)
-            .padding(PASTE_CHIP_PADDING + HhTheme.spacing.d2),
-        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        Icon(
-            imageVector = HhIcons.Applications,
-            contentDescription = null,
-            tint = HhTheme.colors.primary,
-            modifier = Modifier.size(40.dp),
-        )
-        Column(
-            modifier = Modifier.weight(1f).padding(bottom = PASTE_CHIP_PADDING),
-            verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs),
-        ) {
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_paste_jd_help_title),
-                style = HhTheme.typography.titleS.copy(fontWeight = FontWeight.Bold),
-                color = HhTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.feature_onboarding_impl_paste_jd_help_body),
-                style = HhTheme.typography.bodyM,
-                color = HhTheme.colors.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
 private fun SharedSourceChip() {
     Row(
         modifier = Modifier
@@ -545,20 +431,18 @@ private fun PasteJobDescriptionBottomBar(
     uiState: PasteJobDescriptionUiState,
     actions: PasteJobDescriptionActions,
 ) {
-    val label = if (uiState.isOffline) {
-        stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_later)
-    } else {
-        stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
+    val label = when {
+        uiState.isOffline -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_later)
+        uiState.canAnalyse -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
+        else -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_off)
     }
     HhBottomActionBar {
-        HhIconActionBar(
-            secondaryIcon = HhIcons.Close,
-            secondaryContentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_action_clear),
-            onSecondaryClick = if (uiState.canClear) actions.onClear else actions.onBack,
-            primaryLabel = label,
-            onPrimaryClick = actions.onAnalyse,
-            primaryEnabled = uiState.canAnalyse,
-            primaryTrailingIcon = HhIcons.ArrowForward,
+        HhPrimaryButton(
+            label = label,
+            onClick = actions.onAnalyse,
+            enabled = uiState.canAnalyse,
+            trailingIcon = if (uiState.canAnalyse) HhIcons.ArrowForward else null,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -566,45 +450,29 @@ private fun PasteJobDescriptionBottomBar(
 @Composable
 private fun PasteJobDescriptionBarNotice(uiState: PasteJobDescriptionUiState) {
     val reason = when {
-        uiState.isDailyLimitReached || uiState.canAnalyse -> null
+        uiState.isDailyLimitReached || uiState.canAnalyse || uiState.isOffline -> null
         uiState.problem == PasteJobDescriptionProblem.TOO_SHORT ||
             uiState.problem == PasteJobDescriptionProblem.TOO_LONG ->
             stringResource(R.string.feature_onboarding_impl_paste_jd_reason_incomplete)
         else -> stringResource(R.string.feature_onboarding_impl_paste_jd_reason_empty)
     }
     Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
-        PasteJobDescriptionDisclosure(uiState = uiState)
         if (reason != null) {
             ReasonText(text = reason)
         }
-    }
-}
-
-@Composable
-private fun PasteJobDescriptionDisclosure(uiState: PasteJobDescriptionUiState) {
-    val text = if (uiState.isDailyLimitReached) {
-        AnnotatedString(
-            pluralStringResource(
-                R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
-                FREE_ANALYSES_PER_DAY,
+        DisclosureCard(
+            text = AnnotatedString(stringResource(R.string.feature_onboarding_impl_paste_jd_disclosure)),
+            icon = HhIcons.Lock,
+        )
+        Text(
+            text = pluralStringResource(
+                R.plurals.feature_onboarding_impl_paste_jd_free_left,
+                uiState.freeAnalysesLeft,
+                uiState.freeAnalysesLeft,
                 FREE_ANALYSES_PER_DAY,
             ),
+            style = HhTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
+            color = HhTheme.colors.onSurfaceVariant,
         )
-    } else {
-        val count = stringResource(
-            R.string.feature_onboarding_impl_paste_jd_free_left,
-            uiState.freeAnalysesLeft,
-            FREE_ANALYSES_PER_DAY,
-        )
-        val full = stringResource(R.string.feature_onboarding_impl_paste_jd_disclosure, count)
-        androidx.compose.ui.text.buildAnnotatedString {
-            append(full)
-            addStyle(
-                androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold),
-                0,
-                count.length,
-            )
-        }
     }
-    DisclosureCard(text = text, icon = HhIcons.Lock)
 }

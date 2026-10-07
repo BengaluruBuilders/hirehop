@@ -28,7 +28,7 @@ import com.hirehop.core.designsystem.theme.HhTheme
 internal fun HhColors.statusColor(kind: HhStatusKind): Color = when (kind) {
     HhStatusKind.Met -> met
     HhStatusKind.Partial -> partial
-    HhStatusKind.Gap -> gap
+    HhStatusKind.Gap -> onSurface
 }
 
 @Composable

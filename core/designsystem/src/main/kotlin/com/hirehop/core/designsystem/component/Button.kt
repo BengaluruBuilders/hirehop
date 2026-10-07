@@ -37,10 +37,11 @@ enum class HhButtonSize { Large, Compact }
 enum class HhButtonKind { Primary, Secondary, Outline, Text, Destructive, Ink }
 
 object HhButtonDefaults {
-    val ContentPadding = PaddingValues(horizontal = 24.dp)
+    val ContentPadding = PaddingValues(horizontal = 22.dp)
     val TextContentPadding = PaddingValues(horizontal = 12.dp)
     val IconSize = 20.dp
-    val CompactContentPadding = PaddingValues(horizontal = 18.dp)
+    val CompactContentPadding = PaddingValues(horizontal = 16.dp)
+    val CompactIconSize = 17.dp
 }
 
 private class HhButtonPalette(val container: Color, val content: Color, val border: BorderStroke?)
@@ -49,17 +50,16 @@ private fun HhColors.buttonPalette(
     kind: HhButtonKind,
     surface: HhButtonSurface,
     pressed: Boolean,
-    size: HhButtonSize,
 ): HhButtonPalette = when (kind) {
     HhButtonKind.Primary -> HhButtonPalette(if (pressed) brandPressed else brand, onBrand, null)
     HhButtonKind.Ink -> HhButtonPalette(inverseSurface, inverseOnSurface, null)
     HhButtonKind.Secondary -> HhButtonPalette(primaryContainer, onPrimaryContainer, null)
     HhButtonKind.Destructive -> HhButtonPalette(error, onError, null)
-    HhButtonKind.Outline -> outlinePalette(surface, size)
+    HhButtonKind.Outline -> outlinePalette(surface)
     HhButtonKind.Text -> textPalette(surface)
 }
 
-private fun HhColors.outlinePalette(surface: HhButtonSurface, size: HhButtonSize): HhButtonPalette = when (surface) {
+private fun HhColors.outlinePalette(surface: HhButtonSurface): HhButtonPalette = when (surface) {
     HhButtonSurface.Header -> HhButtonPalette(
         Color.Transparent,
         onHeader,
@@ -68,11 +68,11 @@ private fun HhColors.outlinePalette(surface: HhButtonSurface, size: HhButtonSize
     HhButtonSurface.Default -> HhButtonPalette(
         Color.Transparent,
         onSurface,
-        BorderStroke(HhWidthStroke, if (size == HhButtonSize.Compact) outlineVariant else onSurface),
+        BorderStroke(HhWidthStroke, outlineVariant),
     )
 }
 
-private fun HhColors.disabledPalette(): HhButtonPalette = HhButtonPalette(outlineVariant, onSurfaceVariant, null)
+private fun HhColors.disabledPalette(): HhButtonPalette = HhButtonPalette(primaryContainer, onSurfaceVariant, null)
 
 private fun HhButtonKind.isFilled(): Boolean = this != HhButtonKind.Outline && this != HhButtonKind.Text
 
@@ -98,7 +98,7 @@ internal fun HhButtonBase(
     val palette = if (filledDisabled) {
         HhTheme.colors.disabledPalette()
     } else {
-        HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current, pressed, size)
+        HhTheme.colors.buttonPalette(kind, LocalHhButtonSurface.current, pressed)
     }
     val focused by source.collectIsFocusedAsState()
     Surface(
@@ -153,22 +153,23 @@ internal fun HhButtonLabeled(
             else -> HhButtonDefaults.ContentPadding
         },
     ) {
-        HhButtonIcon(leadingIcon)
+        HhButtonIcon(leadingIcon, size)
         var wrapped by remember { mutableStateOf(false) }
         Text(
             text = label,
-            style = if (size == HhButtonSize.Compact) HhTheme.typography.titleS else HhTheme.typography.button,
+            style = if (size == HhButtonSize.Compact) HhTheme.typography.labelL else HhTheme.typography.button,
             textAlign = if (wrapped) TextAlign.Center else TextAlign.Unspecified,
             onTextLayout = { wrapped = it.lineCount > 1 },
         )
-        HhButtonIcon(trailingIcon)
+        HhButtonIcon(trailingIcon, size)
     }
 }
 
 @Composable
-private fun HhButtonIcon(icon: ImageVector?) {
+private fun HhButtonIcon(icon: ImageVector?, size: HhButtonSize) {
     if (icon != null) {
-        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(HhButtonDefaults.IconSize))
+        val iconSize = if (size == HhButtonSize.Compact) HhButtonDefaults.CompactIconSize else HhButtonDefaults.IconSize
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(iconSize))
     }
 }
 
@@ -311,18 +312,6 @@ fun HhDestructiveButton(
     leadingIcon: ImageVector? = null,
 ) {
     HhButtonLabeled(HhButtonKind.Destructive, label, onClick, modifier, enabled, leadingIcon, null)
-}
-
-@Composable
-fun HhHeaderButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    trailingIcon: ImageVector? = null,
-) {
-    CompositionLocalProvider(LocalHhButtonSurface provides HhButtonSurface.Header) {
-        HhButtonLabeled(HhButtonKind.Outline, label, onClick, modifier, true, null, trailingIcon)
-    }
 }
 
 private const val DISABLED_ALPHA = 0.38f

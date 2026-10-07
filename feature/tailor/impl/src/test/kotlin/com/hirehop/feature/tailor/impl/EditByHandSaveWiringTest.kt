@@ -34,12 +34,12 @@ class EditByHandSaveWiringTest {
         composeRule.waitForIdle()
         clearEditField()
 
-        composeRule.onNodeWithText("Save my edit").performClick()
+        composeRule.onNodeWithText("Save line").performClick()
         composeRule.waitForIdle()
 
         assertThat(calls).isEmpty()
         composeRule.onNodeWithText("Add this to save.").assertIsDisplayed()
-        composeRule.onNodeWithText("Save my edit").assertIsDisplayed()
+        composeRule.onNodeWithText("Save line").assertIsDisplayed()
     }
 
     @Test
@@ -50,18 +50,18 @@ class EditByHandSaveWiringTest {
         composeRule.waitForIdle()
         clearEditField()
 
-        composeRule.onNodeWithText("Save my edit").performClick()
+        composeRule.onNodeWithText("Save line").performClick()
         composeRule.waitForIdle()
         assertThat(calls).isEmpty()
 
         composeRule.onNode(hasSetTextAction()).performTextInput("Cut p95 latency 40%")
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("Save my edit").performClick()
+        composeRule.onNodeWithText("Save line").performClick()
         composeRule.waitForIdle()
 
         assertThat(calls).containsExactly(ReviewFixtures.WEEKLY to "Cut p95 latency 40%")
-        assertThat(composeRule.onAllNodesWithText("Save my edit").fetchSemanticsNodes()).isEmpty()
+        assertThat(composeRule.onAllNodesWithText("Save line").fetchSemanticsNodes()).isEmpty()
     }
 
     private fun setContent() {

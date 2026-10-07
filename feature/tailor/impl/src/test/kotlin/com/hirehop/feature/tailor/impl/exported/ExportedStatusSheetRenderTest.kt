@@ -142,6 +142,6 @@ class ExportedStatusSheetRenderTest {
 
 private const val APPLICATION_ID = "application-northwind-1"
 
-private const val SAVE_LABEL = "Mark as Applied"
+private const val SAVE_LABEL = "Save status"
 
 private const val CANCEL_LABEL = "Not yet"

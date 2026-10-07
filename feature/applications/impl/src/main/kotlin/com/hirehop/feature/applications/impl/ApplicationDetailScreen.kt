@@ -118,8 +118,7 @@ fun ApplicationDetailScreen(
         snackbarHost = { HhToastHost(state = toast) },
         header = {
             HhInnerHeader(
-                title = ready?.let { roleOrFallback(it.jobTitle) }.orEmpty(),
-                subtitle = ready?.let { companyOrFallback(it.company) },
+                title = "",
                 onBack = { onAction(ApplicationWorkspaceAction.BackChosen) },
                 backContentDescription = stringResource(R.string.feature_applications_impl_workspace_back),
                 trailing = {
@@ -299,18 +298,13 @@ private fun WorkspaceContent(
         if (state.isOffline) {
             HhOfflineBanner(message = stringResource(R.string.feature_applications_impl_offline))
         }
-        WorkspaceStatusCard(
+        WorkspaceIdentityCard(
+            role = state.jobTitle,
+            company = state.company,
             status = state.status,
             updatedAt = state.updatedAt,
             now = now,
             onStatusClick = { onAction(ApplicationWorkspaceAction.StatusChipChosen) },
-        )
-        WorkspaceResumeSection(
-            resume = state.resume,
-            canReview = state.reviewProgress != null,
-            onPreview = { onAction(ApplicationWorkspaceAction.ResumePreviewChosen) },
-            onShare = { onAction(ApplicationWorkspaceAction.ResumeShareChosen) },
-            onReview = { onAction(ApplicationWorkspaceAction.ResumeReviewChosen) },
         )
         WorkspaceGapSection(
             gapCounts = state.gapCounts,
@@ -319,40 +313,18 @@ private fun WorkspaceContent(
             isExpanded = state.isGapExpanded,
             onToggle = { onAction(ApplicationWorkspaceAction.GapAnalysisToggled) },
         )
-        WorkspacePrepPlanSection(
-            tasks = state.prepTasks,
-            onToggle = { id -> onAction(ApplicationWorkspaceAction.PrepTaskToggled(id)) },
-            onReport = { id -> onAction(ApplicationWorkspaceAction.PrepTaskInaccuracyReported(id)) },
+        WorkspaceResumeSection(
+            resume = state.resume,
+            canReview = state.reviewProgress != null,
+            onPreview = { onAction(ApplicationWorkspaceAction.ResumePreviewChosen) },
+            onShare = { onAction(ApplicationWorkspaceAction.ResumeShareChosen) },
+            onReview = { onAction(ApplicationWorkspaceAction.ResumeReviewChosen) },
         )
-        WorkspaceNotesSection(
-            notes = state.notes,
-            notesState = state.notesState,
-            isFocused = state.isNotesFocused,
-            onNotesChange = { notes -> onAction(ApplicationWorkspaceAction.NotesChanged(notes)) },
-            onFocusChange = { focused -> onAction(ApplicationWorkspaceAction.NotesFocusChanged(focused)) },
-        )
-        WorkspaceJobDescriptionSection(
-            text = state.jobDescriptionText,
-            wordCount = state.jobDescriptionWordCount,
-            isExpanded = state.isJobDescriptionExpanded,
-            onToggle = { onAction(ApplicationWorkspaceAction.JobDescriptionToggled) },
-        )
-        if (state.prepQuestionCount > 0) {
-            WorkspaceEntrySection(
-                title = stringResource(R.string.feature_applications_impl_workspace_questions_heading),
-                summary = pluralStringResource(
-                    id = R.plurals.feature_applications_impl_workspace_questions_summary,
-                    count = state.prepQuestionCount,
-                    state.prepQuestionCount,
-                ),
-                actionLabel = stringResource(R.string.feature_applications_impl_workspace_questions_open),
-                onClick = { onAction(ApplicationWorkspaceAction.PrepQuestionsChosen) },
-            )
-        }
         if (state.hasCoverLetter) {
             val written = state.coverLetter
             WorkspaceEntrySection(
                 title = stringResource(R.string.feature_applications_impl_workspace_letter_heading),
+                icon = HhIcons.Edit,
                 summary = if (written == null) {
                     stringResource(R.string.feature_applications_impl_workspace_letter_summary)
                 } else {
@@ -378,5 +350,36 @@ private fun WorkspaceContent(
                 },
             )
         }
+        WorkspacePrepPlanSection(
+            tasks = state.prepTasks,
+            onToggle = { id -> onAction(ApplicationWorkspaceAction.PrepTaskToggled(id)) },
+            onReport = { id -> onAction(ApplicationWorkspaceAction.PrepTaskInaccuracyReported(id)) },
+        )
+        if (state.prepQuestionCount > 0) {
+            WorkspaceEntrySection(
+                title = stringResource(R.string.feature_applications_impl_workspace_questions_heading),
+                icon = HhIcons.Chat,
+                summary = pluralStringResource(
+                    id = R.plurals.feature_applications_impl_workspace_questions_summary,
+                    count = state.prepQuestionCount,
+                    state.prepQuestionCount,
+                ),
+                actionLabel = stringResource(R.string.feature_applications_impl_workspace_questions_open),
+                onClick = { onAction(ApplicationWorkspaceAction.PrepQuestionsChosen) },
+            )
+        }
+        WorkspaceNotesSection(
+            notes = state.notes,
+            notesState = state.notesState,
+            isFocused = state.isNotesFocused,
+            onNotesChange = { notes -> onAction(ApplicationWorkspaceAction.NotesChanged(notes)) },
+            onFocusChange = { focused -> onAction(ApplicationWorkspaceAction.NotesFocusChanged(focused)) },
+        )
+        WorkspaceJobDescriptionSection(
+            text = state.jobDescriptionText,
+            wordCount = state.jobDescriptionWordCount,
+            isExpanded = state.isJobDescriptionExpanded,
+            onToggle = { onAction(ApplicationWorkspaceAction.JobDescriptionToggled) },
+        )
     }
 }

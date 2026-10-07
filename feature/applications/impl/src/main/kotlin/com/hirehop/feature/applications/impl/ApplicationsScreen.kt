@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -33,14 +34,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hirehop.core.designsystem.component.HhCard
 import com.hirehop.core.designsystem.component.HhCollapsingHomeHeader
 import com.hirehop.core.designsystem.component.HhContentSwitch
-import com.hirehop.core.designsystem.component.HhCreditsPill
 import com.hirehop.core.designsystem.component.HhHeaderCollapseState
 import com.hirehop.core.designsystem.component.HhLoadingWheel
 import com.hirehop.core.designsystem.component.HhOfflineBanner
@@ -63,7 +64,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import com.hirehop.feature.applications.api.R as apiR
 
-private val SPOT_DIAMETER = 96.dp
+private val EMPTY_TILE = 44.dp
+private val EMPTY_TILE_SHAPE = RoundedCornerShape(14.dp)
 
 @Composable
 fun ApplicationsRoute(
@@ -182,13 +184,19 @@ private fun CreditsAction(
     Box(
         modifier = modifier
             .heightIn(min = HhTheme.spacing.touch)
-            .clickable(onClick = onClick),
+            .clip(HhTheme.shapes.pill)
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        HhCreditsPill(
-            count = credits.toString(),
-            label = stringResource(R.string.feature_applications_impl_credits_label),
-            contentDescription = description,
+        Text(
+            text = pluralStringResource(R.plurals.feature_applications_impl_credits_pill, credits, credits),
+            style = HhTheme.typography.labelL,
+            color = HhTheme.colors.onHeaderControl,
+            modifier = Modifier
+                .clip(HhTheme.shapes.pill)
+                .background(HhTheme.colors.headerControl)
+                .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm),
         )
     }
 }
@@ -279,37 +287,35 @@ private fun ApplicationsEmpty(
             .verticalScroll(rememberScrollState())
             .padding(padding)
             .padding(horizontal = HhTheme.spacing.gutter),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md - HhTheme.spacing.xxs),
     ) {
-        ListHeading(count = 0)
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .size(SPOT_DIAMETER)
-                .clip(HhTheme.shapes.pill)
-                .background(HhTheme.colors.header),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = HhIcons.Applications,
-                contentDescription = null,
-                tint = HhTheme.colors.brand,
-                modifier = Modifier.size(44.dp),
-            )
+        HhCard(modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm)) {
+                Box(
+                    modifier = Modifier
+                        .size(EMPTY_TILE)
+                        .clip(EMPTY_TILE_SHAPE)
+                        .background(HhTheme.colors.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = HhIcons.Applications,
+                        contentDescription = null,
+                        tint = HhTheme.colors.onSurface,
+                        modifier = Modifier.size(HhTheme.spacing.xl),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.feature_applications_impl_empty_title),
+                    style = HhTheme.typography.titleM,
+                    color = HhTheme.colors.onSurface,
+                )
+                Text(
+                    text = stringResource(R.string.feature_applications_impl_empty_message),
+                    style = HhTheme.typography.bodyM,
+                    color = HhTheme.colors.onSurfaceVariant,
+                )
+            }
         }
-        Text(
-            text = stringResource(R.string.feature_applications_impl_empty_message),
-            style = HhTheme.typography.bodyL,
-            color = HhTheme.colors.body,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        HhPrimaryButton(
-            label = stringResource(R.string.feature_applications_impl_paste_job),
-            onClick = { onAction(ApplicationsAction.PasteJobChosen) },
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = HhIcons.ArrowForward,
-        )
     }
 }
 

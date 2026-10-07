@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -15,11 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
+
+private val HhCheckboxShape = RoundedCornerShape(7.dp)
 
 @Composable
 fun HhCheckbox(
@@ -30,12 +34,12 @@ fun HhCheckbox(
 ) {
     val colors = HhTheme.colors
     val spec = HhTheme.motion.proofSpecs.color
-    val fill by animateColorAsState(if (checked) colors.primary else colors.surface, spec, label = "hhCheckboxFill")
-    val stroke by animateColorAsState(if (checked) colors.primary else colors.outline, spec, label = "hhCheckboxStroke")
+    val fill by animateColorAsState(if (checked) colors.brand else Color.Transparent, spec, label = "hhCheckboxFill")
+    val stroke by animateColorAsState(if (checked) colors.brand else colors.onSurfaceVariant, spec, label = "hhCheckboxStroke")
     val box = Modifier
         .size(HhSizeCheckbox)
-        .background(fill, HhTheme.shapes.tag)
-        .border(2.dp, stroke, HhTheme.shapes.tag)
+        .background(fill, HhCheckboxShape)
+        .border(2.dp, stroke, HhCheckboxShape)
     Box(
         modifier = modifier
             .size(HhHeightTouch)
@@ -49,7 +53,7 @@ fun HhCheckbox(
     ) {
         Box(modifier = box, contentAlignment = Alignment.Center) {
             if (checked) {
-                Icon(HhIcons.Check, contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(16.dp))
+                Icon(HhIcons.Check, contentDescription = null, tint = colors.onBrand, modifier = Modifier.size(16.dp))
             }
         }
     }

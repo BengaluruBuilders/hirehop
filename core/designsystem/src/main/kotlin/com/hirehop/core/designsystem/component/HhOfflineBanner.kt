@@ -45,18 +45,18 @@ private fun HhOfflineBannerBody(
         color = colors.neutralContainer,
     ) {
         Row(
-            modifier = Modifier.padding(start = 14.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
+            modifier = Modifier.padding(horizontal = HhTheme.spacing.lg, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.md),
         ) {
             Icon(
                 imageVector = HhIcons.Offline,
                 contentDescription = null,
-                tint = colors.onNeutralContainer,
-                modifier = Modifier.size(HhSizeIcon),
+                tint = colors.onSurface,
+                modifier = Modifier.size(HhSizeIconControl),
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(text = message, style = HhTheme.typography.bodyM, color = colors.onSurface)
+                Text(text = message, style = HhTheme.typography.titleS, color = colors.onSurface)
                 if (supportingText != null) {
                     Text(text = supportingText, style = HhTheme.typography.bodyS, color = colors.onSurfaceVariant)
                 }

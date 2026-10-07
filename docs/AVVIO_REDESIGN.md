@@ -19,8 +19,8 @@ the constitution and architecture.
 - [Avvio Personal](https://avvio.xyz/personal/): a further reference for the contrast between
   restrained neutral surfaces and lime product accents.
 
-Open Sans is the verified brand typeface. The phone screenshots do not establish the exact
-native app font. HireHop uses the brand font, bundled for offline use with its license.
+The Claude Design canvas (`design/avvio-canvas/README.md`) sets the type: Manrope for UI text and
+Archivo Black for uppercase headlines, both bundled for offline use with their OFL licenses.
 The HireHop name, product copy, and identity remain its own.
 
 ## Application rules

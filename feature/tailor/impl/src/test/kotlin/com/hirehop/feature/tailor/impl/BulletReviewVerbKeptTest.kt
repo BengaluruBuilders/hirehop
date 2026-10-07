@@ -37,7 +37,6 @@ class BulletReviewVerbKeptTest {
                     item = item,
                     position = 1,
                     total = state.totalCount,
-                    openCount = state.openCount,
                     actions = emptyActions(),
                 )
             }
@@ -74,7 +73,6 @@ class BulletReviewVerbKeptTest {
                     item = item,
                     position = 1,
                     total = state.totalCount,
-                    openCount = state.openCount,
                     actions = emptyActions(),
                 )
             }
@@ -85,7 +83,7 @@ class BulletReviewVerbKeptTest {
     }
 
     @Test
-    fun acceptedChange_showsTheRemainingCount() {
+    fun acceptedChange_saysTheLineIsInTheResume() {
         val state = ReviewFixtures.partlyReviewed()
         val item = ReviewFixtures.change(state, ReviewFixtures.ORDERS)
 
@@ -95,16 +93,13 @@ class BulletReviewVerbKeptTest {
                     item = item,
                     position = 2,
                     total = state.totalCount,
-                    openCount = state.openCount,
                     actions = emptyActions(),
                 )
             }
         }
 
-        assertThat(state.openCount).isGreaterThan(0)
-        composeRule.onAllNodes(
-            hasText("Accepted. ${state.openCount} left to review.", substring = true),
-        ).fetchSemanticsNodes().let { assertThat(it).isNotEmpty() }
+        assertThat(item.state).isEqualTo(BulletReviewState.ACCEPTED)
+        composeRule.onNode(hasText("Accepted. This line is now in your resume.")).assertExists()
     }
 
     private fun emptyActions() = BulletSheetActions(

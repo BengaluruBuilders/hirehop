@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.designsystem.theme.hhShadow
 
@@ -80,10 +81,9 @@ internal fun HhCardSurface(
     fill: Color = HhTheme.colors.card,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val border = BorderStroke(width = HhWidthHairline, color = HhTheme.colors.outlineVariant)
-    val padding = contentPadding ?: PaddingValues(HhTheme.spacing.cardPadding)
+    val padding = contentPadding ?: PaddingValues(HhTheme.spacing.lg)
     if (onClick == null) {
-        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = fill, border = border) {
+        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = fill) {
             HhCardBody(padding, trailingAction, content)
         }
     } else {
@@ -93,7 +93,6 @@ internal fun HhCardSurface(
             modifier = modifier.hhPressScale(source).fillMaxWidth(),
             shape = shape,
             color = fill,
-            border = border,
             interactionSource = source,
         ) {
             HhCardBody(padding, trailingAction, content)
@@ -109,7 +108,7 @@ private fun HhCardBody(
 ) {
     Column(
         modifier = Modifier.padding(padding),
-        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (trailingAction != null) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

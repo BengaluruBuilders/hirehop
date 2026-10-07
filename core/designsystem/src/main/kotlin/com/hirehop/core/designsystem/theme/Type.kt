@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.sp
 import com.hirehop.core.designsystem.R
 
 @OptIn(ExperimentalTextApi::class)
-private fun openSans(weight: FontWeight) = Font(
-    R.font.core_designsystem_open_sans,
+private fun manrope(weight: FontWeight) = Font(
+    R.font.core_designsystem_manrope,
     weight,
     variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
 )
@@ -26,14 +26,15 @@ private fun openSans(weight: FontWeight) = Font(
 @OptIn(ExperimentalTextApi::class)
 object HhFontFamilies {
     val sans = FontFamily(
-        openSans(FontWeight.Normal),
-        openSans(FontWeight.Medium),
-        openSans(FontWeight.Bold),
-        openSans(FontWeight.ExtraBold),
+        manrope(FontWeight.Normal),
+        manrope(FontWeight.Medium),
+        manrope(FontWeight.SemiBold),
+        manrope(FontWeight.Bold),
+        manrope(FontWeight.ExtraBold),
     )
 
-    val mono = FontFamily(
-        Font(R.font.core_designsystem_ibm_plex_mono_medium, FontWeight.Medium),
+    val display = FontFamily(
+        Font(R.font.core_designsystem_archivo_black, FontWeight.Black),
     )
 }
 
@@ -78,30 +79,32 @@ internal object HhTypographyTokens {
         lineHeightStyle = lineHeightStyle,
     )
 
+    private fun display(size: Int, line: Int) = TextStyle(
+        fontFamily = HhFontFamilies.display,
+        fontWeight = FontWeight.Black,
+        fontSize = size.sp,
+        lineHeight = line.sp,
+        letterSpacing = 0.em,
+        lineHeightStyle = lineHeightStyle,
+    )
+
     val Default = HhTypography(
-        displayL = sans(36, 42, FontWeight.Medium, (-0.02).em),
-        displayM = sans(32, 39, FontWeight.Medium, (-0.02).em),
-        headlineL = sans(28, 36, FontWeight.Medium, (-0.01).em),
-        headlineM = sans(22, 30, FontWeight.Medium, (-0.01).em),
-        titleL = sans(20, 28, FontWeight.Medium, 0.em),
-        titleM = sans(16, 24, FontWeight.Bold, 0.em),
-        titleS = sans(14, 21, FontWeight.Bold, 0.em),
-        bodyL = sans(16, 24, FontWeight.Normal, 0.em),
-        bodyM = sans(14, 22, FontWeight.Normal, 0.em),
-        labelL = sans(13, 19, FontWeight.Bold, 0.em),
-        labelM = sans(12, 18, FontWeight.Bold, 0.em),
-        button = sans(15, 22, FontWeight.Bold, 0.04.em),
-        bodyS = sans(12, 16, FontWeight.Normal, 0.01.em),
-        numeralHero = sans(44, 52, FontWeight.ExtraBold, (-0.02).em),
-        numeralM = sans(18, 26, FontWeight.ExtraBold, 0.em),
-        factId = TextStyle(
-            fontFamily = HhFontFamilies.mono,
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.02.em,
-            lineHeightStyle = lineHeightStyle,
-        ),
+        displayL = display(34, 36),
+        displayM = display(30, 32),
+        headlineL = display(28, 30),
+        headlineM = sans(22, 28, FontWeight.ExtraBold, (-0.01).em),
+        titleL = sans(18, 24, FontWeight.ExtraBold, 0.em),
+        titleM = sans(16, 22, FontWeight.ExtraBold, 0.em),
+        titleS = sans(15, 21, FontWeight.Bold, 0.em),
+        bodyL = sans(16, 23, FontWeight.SemiBold, 0.em),
+        bodyM = sans(15, 22, FontWeight.SemiBold, 0.em),
+        labelL = sans(14, 20, FontWeight.ExtraBold, 0.em),
+        labelM = sans(13, 18, FontWeight.Bold, 0.em),
+        button = sans(16, 22, FontWeight.ExtraBold, 0.em),
+        bodyS = sans(13, 18, FontWeight.SemiBold, 0.em),
+        numeralHero = display(52, 52),
+        numeralM = sans(22, 28, FontWeight.ExtraBold, 0.em),
+        factId = sans(12, 16, FontWeight.ExtraBold, 0.05.em),
     )
 }
 

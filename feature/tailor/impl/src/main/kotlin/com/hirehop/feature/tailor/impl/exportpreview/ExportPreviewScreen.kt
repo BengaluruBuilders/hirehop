@@ -1,42 +1,44 @@
 package com.hirehop.feature.tailor.impl.exportpreview
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import com.hirehop.core.designsystem.component.HhAccent
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.hirehop.core.designsystem.component.HhBottomActionBar
 import com.hirehop.core.designsystem.component.HhCard
-import com.hirehop.core.designsystem.component.HhExportPreviewFrame
 import com.hirehop.core.designsystem.component.HhInnerHeader
-import com.hirehop.core.designsystem.component.HhOfflineBanner
+import com.hirehop.core.designsystem.component.HhPaperColors
 import com.hirehop.core.designsystem.component.HhPrimaryButton
 import com.hirehop.core.designsystem.component.HhScreen
-import com.hirehop.core.designsystem.component.HhSolidCard
 import com.hirehop.core.designsystem.component.HhStepProgress
 import com.hirehop.core.designsystem.icon.HhIcons
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.model.ExportFormat
+import com.hirehop.feature.tailor.impl.NoteLine
 import com.hirehop.feature.tailor.impl.R
-import com.hirehop.feature.tailor.impl.jobLine
 
 @Composable
 internal fun ExportPreviewScreen(
@@ -50,7 +52,6 @@ internal fun ExportPreviewScreen(
         header = {
             HhInnerHeader(
                 title = stringResource(R.string.feature_tailor_impl_export_preview_title),
-                subtitle = jobLine(uiState.jobTitle, uiState.jobCompany),
                 onBack = actions.onNavigateBack,
                 backContentDescription = stringResource(
                     R.string.feature_tailor_impl_export_preview_navigation_back_description,
@@ -58,7 +59,6 @@ internal fun ExportPreviewScreen(
             )
         },
         bottomBar = exportPreviewBottomBar(uiState = uiState, actions = actions),
-        bottomBarNotice = exportPreviewBottomNotice(uiState),
     ) { padding ->
         Column(
             modifier = Modifier
@@ -79,7 +79,15 @@ private fun exportPreviewBottomBar(
     actions: ExportPreviewActions,
 ): (@Composable () -> Unit)? = when (uiState.stage) {
     ExportPreviewStage.PREVIEW_READY -> {
-        { ExportPreviewDownloadBar(uiState = uiState, actions = actions) }
+        { ExportPreviewDownloadBar(uiState = uiState, actions = actions, enabled = !uiState.isOffline) }
+    }
+
+    ExportPreviewStage.RENDERING -> {
+        { ExportPreviewDownloadBar(uiState = uiState, actions = actions, enabled = false) }
+    }
+
+    ExportPreviewStage.EXPORTING -> {
+        { ExportingSheet(uiState = uiState) }
     }
 
     ExportPreviewStage.PREVIEW_FAILED,
@@ -88,171 +96,192 @@ private fun exportPreviewBottomBar(
         { ExportPreviewRetryBar(onRetry = actions.onRetry) }
     }
 
+    ExportPreviewStage.NO_DOCUMENT -> null
+}
+
+@Composable
+private fun ExportPreviewBody(uiState: ExportPreviewUiState, actions: ExportPreviewActions) {
+    if (uiState.stage == ExportPreviewStage.NO_DOCUMENT) {
+        HhCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_export_preview_empty_title),
+                style = HhTheme.typography.titleM,
+                color = HhTheme.colors.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_export_preview_empty_body),
+                style = HhTheme.typography.bodyM,
+                color = HhTheme.colors.body,
+            )
+        }
+        return
+    }
+    val banner = exportPreviewBanner(uiState)
+    if (banner != null) NoticeBanner(message = banner.first, tone = banner.second)
+    ExportPreviewPage(uiState = uiState, compact = banner != null)
+    ExportPreviewFileDetails(uiState = uiState, actions = actions)
+}
+
+@Composable
+private fun exportPreviewBanner(uiState: ExportPreviewUiState): Pair<String, NoticeTone>? = when {
+    uiState.stage == ExportPreviewStage.PREVIEW_FAILED || uiState.stage == ExportPreviewStage.EXPORT_FAILED ->
+        stringResource(R.string.feature_tailor_impl_export_preview_error_body) to NoticeTone.Error
+
+    uiState.stage != ExportPreviewStage.PREVIEW_READY && uiState.stage != ExportPreviewStage.EXPORTING -> null
+
+    uiState.isOffline ->
+        stringResource(R.string.feature_tailor_impl_export_preview_offline_banner) to NoticeTone.Offline
+
+    uiState.isFreeBeta ->
+        stringResource(R.string.feature_tailor_impl_export_preview_credit_beta) to NoticeTone.Good
+
+    uiState.needsCredits ->
+        stringResource(R.string.feature_tailor_impl_export_preview_credit_none) to NoticeTone.Quiet
+
     else -> null
 }
 
 @Composable
-private fun exportPreviewBottomNotice(uiState: ExportPreviewUiState): (@Composable () -> Unit)? {
-    if (uiState.stage != ExportPreviewStage.PREVIEW_READY) return null
-    val creditLine = exportPreviewCreditLine(uiState)
-    return if (creditLine.isEmpty()) {
-        null
-    } else {
-        ({ ExportPreviewCreditDisclosure(uiState = uiState, line = creditLine) })
-    }
-}
-
-@Composable
-private fun ExportPreviewBody(
-    uiState: ExportPreviewUiState,
-    actions: ExportPreviewActions,
-) {
-    when (uiState.stage) {
-        ExportPreviewStage.RENDERING -> HhCard(modifier = Modifier.fillMaxWidth()) {
-            HhStepProgress(
-                modifier = Modifier.fillMaxWidth(),
-                stepNames = listOf(
-                    stringResource(R.string.feature_tailor_impl_export_preview_step_setting),
-                    stringResource(R.string.feature_tailor_impl_export_preview_step_checking),
-                ),
-                currentStepIndex = 0,
-                ordinalLabel = stringResource(R.string.feature_tailor_impl_export_preview_step_eyebrow),
-                stepDetails = listOf(stringResource(R.string.feature_tailor_impl_export_preview_step_setting_detail), null),
-                footnote = stringResource(R.string.feature_tailor_impl_export_preview_rendering_footnote),
-            )
-        }
-
-        ExportPreviewStage.EXPORTING -> HhCard(modifier = Modifier.fillMaxWidth()) {
-            HhStepProgress(
-                modifier = Modifier.fillMaxWidth(),
-                stepNames = listOf(
-                    stringResource(R.string.feature_tailor_impl_export_preview_step_setting),
-                    stringResource(R.string.feature_tailor_impl_export_preview_step_making, uiState.format.label()),
-                    stringResource(R.string.feature_tailor_impl_export_preview_step_saving),
-                ),
-                currentStepIndex = 1,
-                ordinalLabel = stringResource(
-                    if (uiState.isFreeBeta) {
-                        R.string.feature_tailor_impl_export_preview_exporting_eyebrow
-                    } else {
-                        R.string.feature_tailor_impl_export_preview_exporting_eyebrow_credit
-                    },
-                ),
-                footnote = stringResource(R.string.feature_tailor_impl_export_preview_exporting_footnote),
-            )
-        }
-
-        ExportPreviewStage.PREVIEW_READY -> ExportPreviewReady(uiState = uiState, actions = actions)
-
-        ExportPreviewStage.PREVIEW_FAILED,
-        ExportPreviewStage.EXPORT_FAILED,
-        -> {
-            val title = stringResource(R.string.feature_tailor_impl_export_preview_error_title)
-            HhSolidCard(
-                accent = HhAccent.Coral,
-                monogram = "!",
-                title = title,
-                subtitle = stringResource(R.string.feature_tailor_impl_export_preview_error_body),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-
-        ExportPreviewStage.NO_DOCUMENT -> {
-            val title = stringResource(R.string.feature_tailor_impl_export_preview_empty_title)
-            HhSolidCard(
-                accent = HhAccent.Jade,
-                monogram = "i",
-                title = title,
-                subtitle = stringResource(R.string.feature_tailor_impl_export_preview_empty_body),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExportPreviewReady(
-    uiState: ExportPreviewUiState,
-    actions: ExportPreviewActions,
-) {
-    HhOfflineBanner(
-        message = stringResource(R.string.feature_tailor_impl_export_preview_offline_banner),
-        visible = uiState.isOffline,
-    )
+private fun ExportPreviewPage(uiState: ExportPreviewUiState, compact: Boolean) {
     val sheet = uiState.sheet
-    if (sheet != null) {
-        val paperScroll = rememberScrollState()
-        HhExportPreviewFrame(
-            meta = stringResource(
-                R.string.feature_tailor_impl_export_preview_paper_meta,
-                uiState.format.label(),
-            ),
-            caption = stringResource(
-                if (paperScroll.canScrollForward) {
-                    R.string.feature_tailor_impl_export_preview_paper_caption_scroll
-                } else {
-                    R.string.feature_tailor_impl_export_preview_paper_caption_end
-                },
-            ),
-        ) {
-            ExportPaper(sheet = sheet, scrollState = paperScroll)
-        }
-    }
-    HhCard(
+    val paperWidth = if (compact) PAPER_WIDTH_COMPACT else PAPER_WIDTH
+    val widthModifier = Modifier.widthIn(max = paperWidth).fillMaxWidth()
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(HhTheme.spacing.d16 + HhTheme.spacing.d12),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
     ) {
+        val paperScroll = rememberScrollState()
+        when {
+            sheet != null -> Box(
+                modifier = widthModifier
+                    .aspectRatio(PAPER_ASPECT)
+                    .background(HhPaperColors.Page, RoundedCornerShape(HhTheme.spacing.d4 + HhTheme.spacing.d2))
+                    .padding(HhTheme.spacing.d20),
+            ) {
+                ExportPaper(sheet = sheet, scrollState = paperScroll)
+            }
+
+            uiState.stage == ExportPreviewStage.RENDERING -> PagePlaceholder(modifier = widthModifier) {
+                RenderingSteps()
+            }
+
+            else -> PagePlaceholder(modifier = widthModifier) {
+                Icon(
+                    imageVector = HhIcons.Description,
+                    contentDescription = null,
+                    tint = HhTheme.colors.onSurfaceVariant,
+                    modifier = Modifier.size(HhTheme.spacing.xxxl),
+                )
+                Text(
+                    text = stringResource(R.string.feature_tailor_impl_export_preview_failed_placeholder),
+                    style = HhTheme.typography.labelL,
+                    color = HhTheme.colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
         Text(
-            text = stringResource(R.string.feature_tailor_impl_export_preview_file_label),
+            text = pageCaption(uiState, paperScroll.canScrollForward),
             style = HhTheme.typography.labelM,
             color = HhTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
-        Text(
-            text = uiState.fileName,
-            style = HhTheme.typography.factId,
-            color = HhTheme.colors.onSurface,
-        )
-        ExportOptionRow(
-            options = ExportFormat.entries,
-            selected = uiState.format,
-            labelOf = { format -> format.label() },
-            onSelect = actions.onSelectFormat,
-            groupDescription = stringResource(R.string.feature_tailor_impl_export_preview_format_group),
-        )
-        ExportPreviewAtsNote()
     }
 }
 
 @Composable
-private fun ExportPreviewAtsNote() {
-    val icon = @Composable {
+private fun pageCaption(uiState: ExportPreviewUiState, canScrollForward: Boolean): String = when {
+    uiState.sheet == null && uiState.stage == ExportPreviewStage.RENDERING ->
+        stringResource(R.string.feature_tailor_impl_export_preview_rendering_caption)
+
+    uiState.sheet == null -> stringResource(R.string.feature_tailor_impl_export_preview_no_preview)
+
+    else -> stringResource(
+        R.string.feature_tailor_impl_export_preview_paper_meta,
+        uiState.format.label(),
+        stringResource(
+            if (canScrollForward) {
+                R.string.feature_tailor_impl_export_preview_paper_caption_scroll
+            } else {
+                R.string.feature_tailor_impl_export_preview_paper_caption_end
+            },
+        ),
+    )
+}
+
+@Composable
+private fun PagePlaceholder(modifier: Modifier, content: @Composable () -> Unit) {
+    Column(
+        modifier = modifier
+            .heightIn(min = HhTheme.spacing.d64 * PLACEHOLDER_HEIGHT_UNITS)
+            .background(HhTheme.colors.card, RoundedCornerShape(HhTheme.spacing.d4 + HhTheme.spacing.d2))
+            .border(
+                HhTheme.spacing.d2,
+                HhTheme.colors.outlineVariant,
+                RoundedCornerShape(HhTheme.spacing.d4 + HhTheme.spacing.d2),
+            )
+            .padding(HhTheme.spacing.d20),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.md, Alignment.CenterVertically),
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun RenderingSteps() {
+    HhStepProgress(
+        modifier = Modifier.fillMaxWidth(),
+        stepNames = listOf(
+            stringResource(R.string.feature_tailor_impl_export_preview_step_setting),
+            stringResource(R.string.feature_tailor_impl_export_preview_step_checking),
+        ),
+        currentStepIndex = 0,
+        ordinalLabel = stringResource(R.string.feature_tailor_impl_export_preview_step_eyebrow),
+        stepDetails = listOf(stringResource(R.string.feature_tailor_impl_export_preview_step_setting_detail), null),
+        footnote = stringResource(R.string.feature_tailor_impl_export_preview_rendering_footnote),
+    )
+}
+
+@Composable
+private fun ExportPreviewFileDetails(uiState: ExportPreviewUiState, actions: ExportPreviewActions) {
+    ExportOptionRow(
+        options = ExportFormat.entries,
+        selected = uiState.format,
+        labelOf = { format -> format.label() },
+        onSelect = actions.onSelectFormat,
+        groupDescription = stringResource(R.string.feature_tailor_impl_export_preview_format_group),
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(HhTheme.colors.card, HhTheme.shapes.field)
+            .defaultMinSize(minHeight = HhTheme.spacing.d64)
+            .padding(horizontal = HhTheme.spacing.d12 + HhTheme.spacing.xxs, vertical = HhTheme.spacing.d12),
+        horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Icon(
-            imageVector = HhIcons.Check,
+            imageVector = HhIcons.Description,
             contentDescription = null,
-            tint = HhTheme.colors.primary,
-            modifier = Modifier.size(HhTheme.spacing.lg),
+            tint = HhTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(HhTheme.spacing.xxl),
         )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.feature_tailor_impl_export_preview_file_label),
+                style = HhTheme.typography.labelM,
+                color = HhTheme.colors.onSurfaceVariant,
+            )
+            Text(text = uiState.fileName, style = HhTheme.typography.labelL, color = HhTheme.colors.onSurface)
+        }
     }
-    val text = @Composable {
-        Text(
+    if (uiState.stage == ExportPreviewStage.PREVIEW_READY) {
+        NoteLine(
             text = stringResource(R.string.feature_tailor_impl_export_preview_ats_note),
-            style = HhTheme.typography.bodyM,
-            color = HhTheme.colors.onSurface,
+            icon = HhIcons.Check,
         )
-    }
-    if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) {
-        Column(verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.xs)) {
-            icon()
-            text()
-        }
-    } else {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            icon()
-            text()
-        }
     }
 }
 
@@ -260,8 +289,23 @@ private fun ExportPreviewAtsNote() {
 private fun ExportPreviewDownloadBar(
     uiState: ExportPreviewUiState,
     actions: ExportPreviewActions,
+    enabled: Boolean,
 ) {
-    HhBottomActionBar {
+    val creditLine = exportPreviewCreditLine(uiState)
+    HhBottomActionBar(
+        creditDisclosure = if (creditLine.isEmpty()) {
+            null
+        } else {
+            {
+                Text(
+                    text = creditLine,
+                    style = HhTheme.typography.bodyS,
+                    color = HhTheme.colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        },
+    ) {
         HhPrimaryButton(
             label = stringResource(
                 when (uiState.format) {
@@ -271,7 +315,7 @@ private fun ExportPreviewDownloadBar(
             ),
             onClick = if (uiState.needsCredits) actions.onBuyCredits else actions.onExport,
             modifier = Modifier.weight(1f),
-            enabled = !uiState.isOffline,
+            enabled = enabled,
             trailingIcon = HhIcons.Download,
         )
     }
@@ -289,57 +333,58 @@ private fun ExportPreviewRetryBar(onRetry: () -> Unit) {
 }
 
 @Composable
-private fun ExportPreviewCreditDisclosure(uiState: ExportPreviewUiState, line: String) {
+private fun ExportingSheet(uiState: ExportPreviewUiState) {
     val colors = HhTheme.colors
-    val fill = when {
-        uiState.needsCredits -> colors.special
-        uiState.isOffline -> colors.neutralContainer
-        else -> colors.primaryContainer
-    }
-    val content = when {
-        uiState.needsCredits -> colors.onSpecial
-        uiState.isOffline -> colors.onNeutralContainer
-        else -> colors.onPrimaryContainer
-    }
-    val icon = when {
-        uiState.needsCredits -> HhIcons.Info
-        uiState.isOffline -> HhIcons.Info
-        else -> HhIcons.Download
-    }
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(HhTheme.shapes.pillRow)
-            .background(fill)
-            .defaultMinSize(minHeight = HhTheme.spacing.touch)
-            .padding(horizontal = HhTheme.spacing.md, vertical = HhTheme.spacing.sm),
-        contentAlignment = Alignment.CenterStart,
+            .background(colors.sheet, HhTheme.shapes.modalSheet)
+            .navigationBarsPadding()
+            .padding(
+                start = HhTheme.spacing.gutter,
+                end = HhTheme.spacing.gutter,
+                top = HhTheme.spacing.d12,
+                bottom = HhTheme.spacing.gutter,
+            ),
+        verticalArrangement = Arrangement.spacedBy(HhTheme.spacing.d12),
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(HhTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = content,
-                modifier = Modifier.size(HhTheme.spacing.lg),
-            )
-            Text(
-                text = line,
-                style = HhTheme.typography.bodyM,
-                color = content,
-            )
-        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(width = HhTheme.spacing.d32 + HhTheme.spacing.d4, height = HhTheme.spacing.d4)
+                .background(colors.outlineVariant, HhTheme.shapes.pill),
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_export_preview_exporting_title),
+            style = HhTheme.typography.headlineM,
+            color = colors.onSurface,
+        )
+        HhStepProgress(
+            modifier = Modifier.fillMaxWidth(),
+            stepNames = listOf(
+                stringResource(R.string.feature_tailor_impl_export_preview_step_making, uiState.format.label()),
+                stringResource(R.string.feature_tailor_impl_export_preview_step_saving),
+            ),
+            currentStepIndex = 0,
+            ordinalLabel = stringResource(
+                if (uiState.isFreeBeta) {
+                    R.string.feature_tailor_impl_export_preview_exporting_eyebrow
+                } else {
+                    R.string.feature_tailor_impl_export_preview_exporting_eyebrow_credit
+                },
+            ),
+            stepStatuses = listOf(
+                stringResource(R.string.feature_tailor_impl_export_preview_step_status_active),
+                stringResource(R.string.feature_tailor_impl_export_preview_step_status_waiting),
+            ),
+            footnote = stringResource(R.string.feature_tailor_impl_export_preview_exporting_footnote),
+        )
     }
 }
 
 @Composable
 private fun exportPreviewCreditLine(uiState: ExportPreviewUiState): String = when {
-    uiState.isOffline -> stringResource(R.string.feature_tailor_impl_export_preview_credit_offline)
-    uiState.isFreeBeta -> stringResource(R.string.feature_tailor_impl_export_preview_credit_beta)
-    !uiState.creditsKnown -> ""
-    uiState.needsCredits -> stringResource(R.string.feature_tailor_impl_export_preview_credit_none)
+    uiState.isOffline || uiState.isFreeBeta || !uiState.creditsKnown || uiState.needsCredits -> ""
     uiState.purchasedCredits == 0 -> pluralStringResource(
         R.plurals.feature_tailor_impl_export_preview_credit_free,
         uiState.freeCredits,
@@ -368,4 +413,7 @@ private fun ExportFormat.label(): String = stringResource(
     },
 )
 
-private const val LARGE_FONT_SCALE = 1.5f
+private val PAPER_WIDTH = 233.dp
+private val PAPER_WIDTH_COMPACT = 185.dp
+private const val PAPER_ASPECT = 233f / 330f
+private const val PLACEHOLDER_HEIGHT_UNITS = 4f

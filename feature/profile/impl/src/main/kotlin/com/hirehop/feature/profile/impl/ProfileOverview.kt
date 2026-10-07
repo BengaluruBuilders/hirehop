@@ -26,18 +26,7 @@ internal fun ProfileOverviewScreen(
 ) {
     var sheet by rememberSaveable { mutableStateOf<ProfileSheet?>(null) }
     val overview = state.overview
-    ProfileFrame(
-        header = ProfileHeaderState(
-            headerLine = overview.headlineLine,
-            factCount = overview.factCount,
-            confirmedCount = overview.confirmedCount,
-            userStatedCount = overview.userStatedCount,
-            toConfirmCount = overview.unconfirmedCount,
-        ),
-        onAddEvidence = navigation.onAddEvidence,
-        onEditContact = { sheet = ProfileSheet.Contact },
-        modifier = modifier,
-    ) {
+    ProfileFrame(modifier = modifier) {
         if (state.isOffline) {
             item(key = "offline") {
                 HhOfflineBanner(message = stringResource(R.string.feature_profile_impl_offline_message))
@@ -46,6 +35,7 @@ internal fun ProfileOverviewScreen(
         if (overview.unconfirmedCount > 0) {
             item(key = "to-confirm") {
                 Note(
+                    tone = NoteTone.Warning,
                     text = pluralStringResource(
                         R.plurals.feature_profile_impl_open_items_banner,
                         overview.unconfirmedCount,
@@ -56,8 +46,22 @@ internal fun ProfileOverviewScreen(
                 )
             }
         }
+        item(key = "profile-card") {
+            ProfileCard(
+                state = ProfileHeaderState(
+                    name = state.profile.fullName,
+                    role = state.profile.headline,
+                    factCount = overview.factCount,
+                    confirmedCount = overview.confirmedCount,
+                    userStatedCount = overview.userStatedCount,
+                    toConfirmCount = overview.unconfirmedCount,
+                ),
+                onAddEvidence = navigation.onAddEvidence,
+                onEditContact = { sheet = ProfileSheet.Contact },
+            )
+        }
         items(items = overview.sections, key = { "section-${it.kind.name}" }) { section ->
-            SectionCard(section = section, accent = sectionAccent(section.kind), onOpen = { onOpenSection(section.kind) })
+            SectionCard(section = section, onOpen = { onOpenSection(section.kind) })
         }
         item(key = "add-fact") {
             HhOutlineButton(
@@ -70,7 +74,7 @@ internal fun ProfileOverviewScreen(
         item(key = "file-note") {
             Note(
                 text = stringResource(R.string.feature_profile_impl_file_deleted_note),
-                tone = NoteTone.Positive,
+                tone = NoteTone.Plain,
                 icon = HhIcons.Delete,
             )
         }

@@ -30,8 +30,8 @@ fun HhIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     tint: Color = HhTheme.colors.onSurface,
-    containerColor: Color = HhTheme.colors.surface,
-    borderColor: Color = HhTheme.colors.outlineSoft,
+    containerColor: Color = HhTheme.colors.primaryContainer,
+    borderColor: Color = Color.Transparent,
     shape: Shape = HhTheme.shapes.pill,
     size: Dp = HhHeightTouch,
 ) {
@@ -51,7 +51,7 @@ fun HhIconButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = tint,
-                modifier = Modifier.size(HhSizeIcon),
+                modifier = Modifier.size(HhSizeIconControl),
             )
         }
     }
@@ -90,8 +90,6 @@ fun HhBackButton(
             contentDescription = contentDescription,
             onClick = onClick,
             modifier = modifier,
-            containerColor = HhTheme.colors.card,
-            borderColor = Color.Transparent,
         )
     }
 }

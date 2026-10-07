@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.designsystem.theme.HhTheme
 import com.hirehop.core.screenshot.HhTestDevices
 import org.junit.Rule
@@ -58,24 +57,17 @@ class CoverLetterWordRangeTest {
     }
 
     @Test
-    fun countInsideTheRange_saysInTheRange() {
+    fun countInsideTheRange_showsNoRangeNote() {
         show(wordCount = 180)
 
-        composeRule.onNodeWithText("180 words · in the 150 to 220 range").assertExists()
+        composeRule.onNodeWithText("180 words · 1 paragraph").assertExists()
+        composeRule.onAllNodesWithText("the range is 150 to 220", substring = true).assertCountEquals(0)
     }
 
     @Test
-    fun countOutsideTheRange_doesNotClaimTheRange() {
+    fun countOutsideTheRange_saysTheRange() {
         show(wordCount = 85)
 
         composeRule.onNodeWithText("85 words · the range is 150 to 220").assertExists()
-        composeRule.onAllNodesWithText("in the 150 to 220 range", substring = true).assertCountEquals(0)
-    }
-
-    @Test
-    fun initials_useTheFirstLetterOfEachWord() {
-        assertThat("Northwind GCC".initials()).isEqualTo("NG")
-        assertThat("  kestrel  ".initials()).isEqualTo("K")
-        assertThat("".initials()).isEqualTo("")
     }
 }
