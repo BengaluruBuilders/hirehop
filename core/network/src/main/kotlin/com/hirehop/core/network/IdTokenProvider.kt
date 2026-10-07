@@ -1,5 +1,5 @@
 package com.hirehop.core.network
 
 interface IdTokenProvider {
-    suspend fun idToken(forceRefresh: Boolean): String?
+    fun idToken(forceRefresh: Boolean): String?
 }

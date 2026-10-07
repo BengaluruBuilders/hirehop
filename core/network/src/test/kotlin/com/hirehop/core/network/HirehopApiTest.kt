@@ -153,7 +153,7 @@ class HirehopApiTest {
         var available = true
         private var issued = 0
 
-        override suspend fun idToken(forceRefresh: Boolean): String? {
+        override fun idToken(forceRefresh: Boolean): String? {
             forceRefreshCalls += forceRefresh
             return if (available) "token-${issued++}" else null
         }
