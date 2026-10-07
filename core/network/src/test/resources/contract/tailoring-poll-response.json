@@ -1,0 +1,20 @@
+{
+  "tailoring": {
+    "id": "tl_...",
+    "status": "SUCCEEDED",
+    "result": {
+      "generationId": "c2e0...",
+      "bullets": [
+        {
+          "id": "t-1",
+          "entryId": "EXP-01",
+          "sourceIds": ["EXP-01-1"],
+          "proposedText": "Cleaned and checked weekly sales data for 40 stores in Excel.",
+          "editTypes": ["REWORD"],
+          "keywordsUsed": ["excel"],
+          "verification": "PASSED"
+        }
+      ]
+    }
+  }
+}

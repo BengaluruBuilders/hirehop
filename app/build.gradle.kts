@@ -73,6 +73,8 @@ dependencies {
     implementation(projects.core.navigation)
     implementation(projects.core.ui)
 
+    "prodImplementation"(projects.core.network)
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)

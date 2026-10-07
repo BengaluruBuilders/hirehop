@@ -1,0 +1,11 @@
+{
+  "export": {
+    "generatedAt": "2026-10-07T09:30:00Z",
+    "user": { "id": "u-1", "createdAt": "2026-10-01T00:00:00Z" },
+    "consents": [],
+    "wallet": {},
+    "unlocks": [],
+    "purchases": [],
+    "contentReports": []
+  }
+}

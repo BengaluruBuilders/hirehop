@@ -43,6 +43,7 @@ The current look follows `docs/AVVIO_REDESIGN.md`. `docs/DESIGN_SYSTEM.md` holds
 | `:core:database` | library + room + hilt | Room DB, entities, DAOs, type converters. It holds the profile and the applications |
 | `:core:data` | library + hilt | Repository interfaces and offline-first implementations. `SessionRepository` and `ExportHistoryRepository` store their state in `MockStateStore` (DataStore). `ConnectivityMonitor` reports the network state |
 | `:core:domain` | library + hilt | JD analysis, gap match, tailoring, fabrication guard, resume text parser, cover letter, prep questions, fact validation, use cases. Gateways: `SignInGateway`, `PaymentGateway`, `AccountDataExporter`, `SampleDataController` |
+| `:core:network` | library + hilt | The one HTTP stack (I.5): OkHttp, Retrofit, kotlinx.serialization. `HirehopApi` (one function per route of `docs/BACKEND_CONTRACT.md`), the DTOs and their pure mappers to `core:model`, the `X-App-Id` and bearer interceptors with one 401 retry, the sealed `ApiError`, `apiResult`, and `IdTokenProvider`. Only `prod` bindings use it: `:app` adds it as `prodImplementation`, and no other module declares a network library |
 | `:core:testing` | library | Test repositories and gateways, contract tests, `MainDispatcherRule`, test data |
 | `:core:screenshot` | library | Roborazzi screenshot helpers and test devices |
 | `:feature:onboarding:{api,impl}` | feature | Welcome, Paste JD, Sign in, Consent, Import resume, Confirm your facts (Flow 1, S1 to S6) |
@@ -55,7 +56,8 @@ The current look follows `docs/AVVIO_REDESIGN.md`. `docs/DESIGN_SYSTEM.md` holds
 `docs/DESIGN_SYSTEM.md` and `design/02-screens.md` list the screens of each module.
 
 Dependency rules: features depend on `core:*` and on other features' `api` only. `core:domain` depends on
-`core:data` and `core:model`. `core:model` depends on nothing Android.
+`core:data` and `core:model`. `core:model` depends on nothing Android. `core:network` depends on `core:model` only,
+and only `:app` (as `prodImplementation`) and remote bindings of the `prod` flavour depend on it.
 
 ## 3. Shared models (`:core:model`, package `com.hirehop.core.model`)
 
