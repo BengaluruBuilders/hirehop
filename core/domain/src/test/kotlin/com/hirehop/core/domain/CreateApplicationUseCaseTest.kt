@@ -3,12 +3,14 @@ package com.hirehop.core.domain
 import com.google.common.truth.Truth.assertThat
 import com.hirehop.core.domain.offline.OfflineFabricationGuard
 import com.hirehop.core.domain.offline.OfflineGapMatcher
+import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
 import com.hirehop.core.domain.offline.OfflineResumeTailor
 import com.hirehop.core.domain.offline.resourceText
 import com.hirehop.core.domain.offline.sampleProfile
 import com.hirehop.core.model.ApplicationStatus
 import com.hirehop.core.model.CandidateProfile
+import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobDescription
 import com.hirehop.core.model.KeptJobDescription
@@ -28,7 +30,7 @@ class CreateApplicationUseCaseTest {
         idGenerator = SequentialIdGenerator("app"),
     )
     private val analysis = runBlocking {
-        AnalyzeJobUseCase(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())(
+        AnalyzeJobUseCase(OfflineJobAnalysisSource(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher()))(
             sampleProfile,
             resourceText("jd_android.txt"),
         )
@@ -58,7 +60,7 @@ class CreateApplicationUseCaseTest {
     @Test
     fun whenTheTailorFails_savesNothingAndRethrowsTheTypedFailure() = runTest {
         val failing = object : ResumeTailor {
-            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume =
+            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis, applicationId: String, section: EntryCategory?): TailoredResume =
                 throw AiException(AiFailure.NoCredit)
         }
         val failingUseCase = CreateApplicationUseCase(

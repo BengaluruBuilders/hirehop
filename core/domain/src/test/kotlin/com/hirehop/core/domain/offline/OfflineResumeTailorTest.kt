@@ -22,7 +22,7 @@ class OfflineResumeTailorTest {
         profile: CandidateProfile = sampleProfile,
     ): Pair<JobDescription, TailoredResume> {
         val job = analyzer.analyze(jd)
-        return job to tailor.tailor(profile, job, matcher.match(profile, job))
+        return job to tailor.tailor(profile, job, matcher.match(profile, job), "app-1", null)
     }
 
     private fun TailoredResume.bulletFor(sourceId: String): TailoredBullet = bullets.first { sourceId in it.sourceIds }
@@ -242,7 +242,7 @@ class OfflineResumeTailorTest {
         assertThat(resume.bullets.single().editTypes).isEmpty()
 
         val gap = matcher.match(profile, job)
-        val guarded = TailorResumeUseCase(tailor, OfflineFabricationGuard())(profile, job, gap)
+        val guarded = TailorResumeUseCase(tailor, OfflineFabricationGuard())(profile, job, gap, "app-1")
         assertThat(guarded.bullets.single().proposedText).isEqualTo("Administered Unix servers")
     }
 

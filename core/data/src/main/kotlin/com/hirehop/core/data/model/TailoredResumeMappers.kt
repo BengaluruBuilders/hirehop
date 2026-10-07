@@ -33,6 +33,7 @@ fun TailoredBullet.asDto() = TailoredBulletDto(
     keywordsUsed = keywordsUsed,
     violations = violations.map(GuardrailViolation::asDto),
     decision = decision,
+    generationId = generationId,
 )
 
 fun TailoredBulletDto.asExternalModel() = TailoredBullet(
@@ -45,6 +46,7 @@ fun TailoredBulletDto.asExternalModel() = TailoredBullet(
     keywordsUsed = keywordsUsed,
     violations = violations.map(GuardrailViolationDto::asExternalModel),
     decision = decision,
+    generationId = generationId,
 )
 
 fun TailoredResume.asDto() = TailoredResumeDto(bullets = bullets.map(TailoredBullet::asDto), entryIds = entryIds)

@@ -13,4 +13,5 @@ data class KeywordCoverage(val covered: Int, val total: Int)
 data class GapAnalysis(
     val matches: List<RequirementMatch>,
     val keywordCoverage: KeywordCoverage,
+    val generationId: String? = null,
 )

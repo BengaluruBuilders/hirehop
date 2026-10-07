@@ -39,6 +39,7 @@ data class TailoredBulletDto(
     val keywordsUsed: List<String>,
     val violations: List<GuardrailViolationDto>,
     val decision: BulletDecision,
+    val generationId: String? = null,
 )
 
 @Serializable

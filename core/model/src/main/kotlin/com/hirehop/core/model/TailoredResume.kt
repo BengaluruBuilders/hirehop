@@ -22,6 +22,7 @@ data class TailoredBullet(
     val keywordsUsed: List<String>,
     val violations: List<GuardrailViolation>,
     val decision: BulletDecision,
+    val generationId: String? = null,
 )
 
 data class TailoredResume(val bullets: List<TailoredBullet>, val entryIds: List<String>? = null)

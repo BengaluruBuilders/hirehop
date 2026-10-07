@@ -82,6 +82,8 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+    "testProdImplementation"(libs.okhttp.mockwebserver)
+    "testProdImplementation"(libs.kotlinx.coroutines.test)
 }
 
 dependencyGuard {

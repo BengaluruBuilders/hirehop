@@ -21,10 +21,11 @@ class CreateApplicationUseCase @Inject constructor(
         kept: KeptJobDescription? = null,
     ): String {
         val job = kept?.let { analysis.job.withKeptLabel(it) } ?: analysis.job
-        val tailored = tailorResume(profile, job, analysis.gap)
+        val applicationId = idGenerator.newId()
+        val tailored = tailorResume(profile, job, analysis.gap, applicationId)
         val now = clock.now()
         val application = JobApplication(
-            id = idGenerator.newId(),
+            id = applicationId,
             job = job,
             status = ApplicationStatus.SAVED,
             notes = "",

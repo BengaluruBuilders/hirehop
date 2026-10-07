@@ -1,14 +1,14 @@
 package com.hirehop.app.di
 
-import com.hirehop.core.domain.JobDescriptionAnalyzer
+import com.hirehop.app.ai.RemoteCoverLetterSource
+import com.hirehop.app.ai.RemoteJobAnalysisSource
+import com.hirehop.app.ai.RemotePrepQuestionSource
+import com.hirehop.app.ai.RemoteResumeTailor
+import com.hirehop.app.ai.RemoteResumeTextParser
+import com.hirehop.core.domain.JobAnalysisSource
 import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.domain.ResumeTextParser
 import com.hirehop.core.domain.coverletter.CoverLetterSource
-import com.hirehop.core.domain.coverletter.GenerateCoverLetterUseCase
-import com.hirehop.core.domain.offline.OfflineJobDescriptionAnalyzer
-import com.hirehop.core.domain.offline.OfflineResumeTailor
-import com.hirehop.core.domain.offline.OfflineResumeTextParser
-import com.hirehop.core.domain.prep.GeneratePrepQuestionsUseCase
 import com.hirehop.core.domain.prep.PrepQuestionSource
 import dagger.Binds
 import dagger.Module
@@ -19,17 +19,17 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface AiBindings {
     @Binds
-    fun bindJobDescriptionAnalyzer(impl: OfflineJobDescriptionAnalyzer): JobDescriptionAnalyzer
+    fun bindJobAnalysisSource(impl: RemoteJobAnalysisSource): JobAnalysisSource
 
     @Binds
-    fun bindResumeTailor(impl: OfflineResumeTailor): ResumeTailor
+    fun bindResumeTailor(impl: RemoteResumeTailor): ResumeTailor
 
     @Binds
-    fun bindResumeTextParser(impl: OfflineResumeTextParser): ResumeTextParser
+    fun bindResumeTextParser(impl: RemoteResumeTextParser): ResumeTextParser
 
     @Binds
-    fun bindCoverLetterSource(impl: GenerateCoverLetterUseCase): CoverLetterSource
+    fun bindCoverLetterSource(impl: RemoteCoverLetterSource): CoverLetterSource
 
     @Binds
-    fun bindPrepQuestionSource(impl: GeneratePrepQuestionsUseCase): PrepQuestionSource
+    fun bindPrepQuestionSource(impl: RemotePrepQuestionSource): PrepQuestionSource
 }

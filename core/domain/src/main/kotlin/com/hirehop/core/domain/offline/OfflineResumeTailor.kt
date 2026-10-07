@@ -4,6 +4,7 @@ import com.hirehop.core.domain.ResumeTailor
 import com.hirehop.core.model.BulletDecision
 import com.hirehop.core.model.CandidateProfile
 import com.hirehop.core.model.EditType
+import com.hirehop.core.model.EntryCategory
 import com.hirehop.core.model.EvidenceBullet
 import com.hirehop.core.model.GapAnalysis
 import com.hirehop.core.model.JobDescription
@@ -15,7 +16,13 @@ import com.hirehop.core.model.TailoredResume
 import javax.inject.Inject
 
 class OfflineResumeTailor @Inject constructor() : ResumeTailor {
-    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis): TailoredResume {
+    override suspend fun tailor(
+        profile: CandidateProfile,
+        job: JobDescription,
+        gap: GapAnalysis,
+        applicationId: String,
+        section: EntryCategory?,
+    ): TailoredResume {
         val weights = keywordWeights(gap)
         val rewriter = BulletRewriter(weights.keys)
         val jobKeywords = job.requirements.flatMap { it.keywords }.distinct()

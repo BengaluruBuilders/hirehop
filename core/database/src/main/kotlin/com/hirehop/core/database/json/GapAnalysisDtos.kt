@@ -31,4 +31,5 @@ data class KeywordCoverageDto(
 data class GapAnalysisDto(
     val matches: List<RequirementMatchDto>,
     val keywordCoverage: KeywordCoverageDto,
+    val generationId: String? = null,
 )

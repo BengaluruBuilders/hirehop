@@ -8,6 +8,7 @@ import com.hirehop.core.domain.AiFailure
 import com.hirehop.core.domain.AnalyzeJobUseCase
 import com.hirehop.core.domain.CreateApplicationUseCase
 import com.hirehop.core.domain.TailorResumeUseCase
+import com.hirehop.core.domain.offline.OfflineJobAnalysisSource
 import com.hirehop.core.domain.onboarding.NextOnboardingStepUseCase
 import com.hirehop.core.domain.onboarding.OnboardingStep
 import com.hirehop.core.model.CandidateProfile
@@ -97,7 +98,7 @@ class AnalysisViewModelTest {
         sessionRepository = sessionRepository,
         profileRepository = profileRepository,
         nextOnboardingStep = NextOnboardingStepUseCase(sessionRepository, profileRepository),
-        analyzeJob = AnalyzeJobUseCase(analyzer, matcher),
+        analyzeJob = AnalyzeJobUseCase(OfflineJobAnalysisSource(analyzer, matcher)),
         addUserStatedFact = AddUserStatedFactUseCase(profileRepository, ::newId),
         createApplication = CreateApplicationUseCase(
             applicationRepository = flakyApplicationRepository,
