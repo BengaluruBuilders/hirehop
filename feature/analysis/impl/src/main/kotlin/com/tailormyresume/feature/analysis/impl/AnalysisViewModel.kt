@@ -85,6 +85,7 @@ class AnalysisViewModel @Inject constructor(
     private val scenario = MutableStateFlow(DebugScenario.defaultValue)
     private val destinationChannel = Channel<AnalysisDestination>(Channel.BUFFERED)
     private var undoProfile: CandidateProfile? = null
+    private var undoClosedByEvidence: Set<String> = emptySet()
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
     private var submitting = false
@@ -155,6 +156,7 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             if (currentProfile() != ready.profile) {
                 undoProfile = null
+                undoClosedByEvidence = emptySet()
                 load()
             }
         }
@@ -233,13 +235,17 @@ class AnalysisViewModel @Inject constructor(
             try {
                 attempt {
                     val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
-                    val previewed = refreshed(ready, preview, requirementId)
+                    val previewed = refreshed(ready, preview, ready.closedByEvidence + requirementId)
                     val closed = previewed.analysis.gap.matches
                         .firstOrNull { it.requirement.id == requirementId }
                         ?.status != MatchStatus.GAP
                     if (closed) {
                         addUserStatedFact(requirement, statement)
-                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" }, requirementId)
+                        refreshed(
+                            ready,
+                            checkNotNull(currentProfile()) { "Profile is missing" },
+                            ready.closedByEvidence + requirementId,
+                        )
                     } else {
                         null
                     }
@@ -369,10 +375,11 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun applyEvidence(before: Phase.Ready, fresh: Phase.Ready, requirementId: String) {
         undoProfile = before.profile
+        undoClosedByEvidence = before.closedByEvidence
         dropClosedGapsFromPrepPlan(fresh)
         local.update {
             it.copy(
-                phase = fresh,
+                phase = fresh.copy(closedByEvidence = before.closedByEvidence + requirementId),
                 overlay = AnalysisOverlay.None,
                 closedId = requirementId,
             )
@@ -391,14 +398,16 @@ class AnalysisViewModel @Inject constructor(
         val ready = local.value.phase as? Phase.Ready ?: return
         val snapshot = undoProfile ?: return
         undoProfile = null
+        val previousClosedByEvidence = undoClosedByEvidence
+        undoClosedByEvidence = emptySet()
         viewModelScope.launch {
             attempt {
                 profileRepository.saveProfile(snapshot)
-                refreshed(ready, snapshot, null)
+                refreshed(ready, snapshot, previousClosedByEvidence)
             }.fold(
                 onSuccess = { fresh ->
                     dropClosedGapsFromPrepPlan(fresh)
-                    local.update { it.copy(phase = fresh) }
+                    local.update { it.copy(phase = fresh.copy(closedByEvidence = previousClosedByEvidence)) }
                     onToastDismiss()
                 },
                 onFailure = { showToast(AnalysisToast.EvidenceFailed) },
@@ -409,7 +418,7 @@ class AnalysisViewModel @Inject constructor(
     private suspend fun refreshed(
         ready: Phase.Ready,
         profile: CandidateProfile,
-        targetedRequirementId: String?,
+        targetedRequirementIds: Set<String>,
     ): Phase.Ready {
         val previous = ready.serverAnalysis
         val (local, baseline) = withContext(computeDispatcher) {
@@ -425,7 +434,7 @@ class AnalysisViewModel @Inject constructor(
             total = previous.gap.keywordCoverage.total,
         )
         val matches = previous.gap.matches.map { old ->
-            val targeted = old.requirement.id == targetedRequirementId
+            val targeted = old.requirement.id in targetedRequirementIds
             val upgraded = localById[old.requirement.id]
                 ?.takeIf { candidate ->
                     candidate.status.ordinal < old.status.ordinal &&
@@ -478,6 +487,7 @@ class AnalysisViewModel @Inject constructor(
             val analysis: JobAnalysisResult,
             val serverAnalysis: JobAnalysisResult = analysis,
             val baselineProfile: CandidateProfile = profile,
+            val closedByEvidence: Set<String> = emptySet(),
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(
