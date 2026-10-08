@@ -25,7 +25,7 @@ class RemotePaymentGatewayTest {
     @After
     fun tearDown() = server.shutdown()
 
-    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid))
+    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid), idleScope())
 
     private fun reply(code: Int, body: String) = server.enqueue(MockResponse().setResponseCode(code).setBody(body))
 

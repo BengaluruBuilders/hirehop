@@ -7,7 +7,15 @@ import com.tailormyresume.core.network.TailorMyResumeApiConfig
 import com.tailormyresume.core.network.tailormyresumeApi
 import com.tailormyresume.core.network.tailormyresumeJson
 import com.tailormyresume.core.network.tailormyresumeOkHttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -17,7 +25,7 @@ class PurchaseSettleTest {
     private val server = MockWebServer().apply { start() }
     private val billing = FakePlayBilling()
     private val api = tailormyresumeApi(TailorMyResumeApiConfig(server.url("/").toString()), tailormyresumeOkHttpClient(FixedToken), tailormyresumeJson())
-    private val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"))
+    private val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), idleScope())
     private val ownedToken = PlayPurchase("application_pack_5", "token-1", PlayPurchaseState.PURCHASED)
 
     @After
@@ -26,6 +34,17 @@ class PurchaseSettleTest {
     private fun reply(code: Int, body: String) = server.enqueue(MockResponse().setResponseCode(code).setBody(body))
 
     private fun playUnavailable(times: Int) = repeat(times) { reply(502, errorJson("PLAY_UNAVAILABLE")) }
+
+    private suspend fun TestScope.realIoPause(millis: Long = REAL_IO_PAUSE_MILLIS) {
+        runCurrent()
+        withContext(Dispatchers.Default) { delay(millis) }
+        runCurrent()
+    }
+
+    private suspend fun TestScope.advanceVirtualSeconds(seconds: Int) = repeat(seconds) {
+        advanceTimeBy(1_000)
+        realIoPause()
+    }
 
     private fun played() {
         billing.purchaseResult = PlayPurchaseResult.Done(ownedToken)
@@ -128,6 +147,76 @@ class PurchaseSettleTest {
     }
 
     @Test
+    fun aHeldPurchaseIsPostedAgainByTheAppScopedJobAndCompletes() = runTest {
+        val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), backgroundScope)
+        played()
+        playUnavailable(times = 3)
+        reply(201, purchaseJson(walletJson(purchased = 5)))
+
+        val result = gateway.purchase("application_pack_5") as PurchaseResult.Pending
+        advanceVirtualSeconds(60)
+
+        assertThat(result.entitlement.pendingPackIds).containsExactly("application_pack_5")
+        assertThat(server.requestCount).isEqualTo(4)
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+    }
+
+    @Test
+    fun theAppScopedJobGivesUpAfterABoundedNumberOfPostsAndKeepsThePackPending() = runTest {
+        val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), backgroundScope)
+        played()
+        playUnavailable(times = 20)
+
+        gateway.purchase("application_pack_5")
+        advanceVirtualSeconds(120)
+
+        assertThat(server.requestCount).isEqualTo(8)
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).containsExactly("application_pack_5")
+    }
+
+    @Test
+    fun theAppScopedJobStopsOnARejectionAndTheResultIsNotPending() = runTest {
+        val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), backgroundScope)
+        played()
+        playUnavailable(times = 3)
+        reply(400, errorJson("PURCHASE_INVALID"))
+
+        gateway.purchase("application_pack_5")
+        advanceVirtualSeconds(120)
+
+        assertThat(server.requestCount).isEqualTo(4)
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+    }
+
+    @Test
+    fun cancellingTheCallerMidPurchaseStillHoldsThePackAndKeepsPosting() = runTest {
+        val gateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), backgroundScope)
+        played()
+        playUnavailable(times = 1)
+        reply(201, purchaseJson(walletJson(purchased = 5)))
+
+        val caller = launch { gateway.purchase("application_pack_5") }
+        runCurrent()
+        caller.cancel()
+        runCurrent()
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).containsExactly("application_pack_5")
+        advanceVirtualSeconds(60)
+
+        assertThat(server.requestCount).isEqualTo(2)
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+    }
+
+    @Test
+    fun anAlreadyOwnedAnswerWithNoOwnedTokenIsUnconfirmedNotUnavailable() = runTest {
+        billing.purchaseResult = PlayPurchaseResult.AlreadyOwned
+        billing.owned = emptyList()
+
+        val result = gateway.purchase("application_pack_5") as PurchaseResult.Failed
+
+        assertThat(result.reason).isEqualTo(PurchaseFailureReason.PaymentUnconfirmed)
+    }
+
+    @Test
     fun aPlayFailureBeforePurchasedStaysFailedAndNothingIsPosted() = runTest {
         billing.purchaseResult = PlayPurchaseResult.Failed
 
@@ -135,5 +224,9 @@ class PurchaseSettleTest {
 
         assertThat(result.reason).isEqualTo(PurchaseFailureReason.PaymentUnavailable)
         assertThat(server.requestCount).isEqualTo(0)
+    }
+
+    private companion object {
+        const val REAL_IO_PAUSE_MILLIS = 15L
     }
 }
