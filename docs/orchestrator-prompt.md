@@ -143,7 +143,7 @@ Lane budget: at most 8 `delegate` calls and 60 minutes per Coder pass.
 - No `tween(`, `spring(` or numeric durations in feature code. No code comments.
 - UI copy never has "student", "college", "campus", "fresher", "graduate", an ATS score, or a
   guarantee.
-- One export template only. The S4 consent copy names OpenAI. S5 shows no file size limit.
+- One export template only. The S4 consent copy names no model vendor. S5 shows no file size limit.
 
 ### Reviews
 

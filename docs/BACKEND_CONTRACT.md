@@ -58,6 +58,7 @@ The codes in the first table exist in `src/core/errors.ts`. The second table is 
 | 403 | `CROSS_APP_TOKEN`, `FORBIDDEN` | Token of another app; a resource of another user |
 | 404 | `NOT_FOUND` | Unknown id, or a TailorMyResume route called with another `X-App-Id` |
 | 409 | `ACCOUNT_DELETED` | Deletion pending or done |
+| 409 | `ANALYSIS_IN_PROGRESS` | The same JD is still being analysed. No model call. The app shows its retry state and does not retry by itself, because every run counts |
 | 413 | `PAYLOAD_TOO_LARGE` | Body over the route limit |
 | 429 | `RATE_LIMITED` | Request rate. `Retry-After` header |
 | 429 | `QUOTA_EXCEEDED`, `BUDGET_EXCEEDED` | Core AI quota (per user per UTC day) or app cost cap |
@@ -66,11 +67,11 @@ The codes in the first table exist in `src/core/errors.ts`. The second table is 
 
 | Status | Code | When |
 |---|---|---|
-| 402 | `NO_CREDIT` | Unlock or tailoring with no credit, no unlock, and no free tailoring left |
+| 402 | `NO_CREDIT` | Unlock or tailoring with no credit, no unlock, and no free tailoring left. A section regeneration with no unlock, no credit, and no full tailoring of that application earlier the same day |
 | 403 | `CONSENT_REQUIRED` | AI route without a grant of `ai-processing` and `age-18-plus` for the current notice version. The app opens the Consent screen |
 | 409 | `PURCHASE_PENDING` | Play reports the purchase as pending |
 | 400 | `PURCHASE_INVALID` | Play reports the purchase as cancelled, or answers 400 or 404 for the token |
-| 429 | `ALLOWANCE_EXHAUSTED` | No TailorMyResume daily analysis left for a new JD |
+| 429 | `ALLOWANCE_EXHAUSTED` | No TailorMyResume daily analysis left |
 | 502 | `PLAY_UNAVAILABLE` | The Google Play Developer API did not answer, or answered 401, 403, 429, or 5xx. The app keeps the token and tries again |
 
 ## 3. Shared shapes
@@ -250,9 +251,12 @@ Rules:
 1. One match per requirement, in requirement order.
 2. The server removes evidence ids that are not evidence ids of the request. A `MET` or `PARTIAL`
    match with no id left becomes `GAP`.
-3. Daily allowance: 3 distinct JDs per TailorMyResume day. The key is SHA-256 of `jobText` after trim and
-   whitespace collapse. A second analysis of the same key on the same day is free. A failed analysis
-   counts nothing. With 0 left and a new key: `429 ALLOWANCE_EXHAUSTED`, and the model is not called.
+3. Daily allowance: 3 analyses per TailorMyResume day. Every run counts, including a repeat of the same
+   JD. The claim key is SHA-256 of `jobText` after trim and whitespace collapse, plus a run number. A
+   failed analysis counts nothing. With 0 left: `429 ALLOWANCE_EXHAUSTED`, and the model is not called.
+   A second POST of a JD whose first run is still in flight: `409 ANALYSIS_IN_PROGRESS`, no model call,
+   no claim. The app blocks Analyse at 0 left, keeps the first result of a JD for the session, and
+   re-matches on the device when the profile changes. It never calls this route again for that.
 4. The count is a claim, because the model call cannot be inside a database transaction. Before the
    call, under the per-user advisory lock, the server checks the count and inserts a `PENDING` claim
    (unique on user, day, kind, key). Pending claims count as used. On success the claim becomes
@@ -284,15 +288,17 @@ Backs `ResumeTailor`. Needs consent. Body limit 256 KB.
 | `applicationId` | `^[A-Za-z0-9_-]{1,64}$`. Device id of the application |
 | `section` | `null` for the full resume. An `EntryCategory` to regenerate one section |
 
-Response `202`: `{"tailoring":{"id":"tl_...","status":"RUNNING"}}`. Repeat of a `requestId`: `200` with the current job.
+Response `202`: `{"tailoring":{"id":"tl_...","status":"RUNNING"}}`. Repeat of a `requestId`: `200` with the current job. A second full tailoring of the same application with a new `requestId` while the first runs: `200` with the running job. The app polls that job as it does a `202`.
 
 Who may tailor. The server checks, in this order: the application is unlocked; the wallet has a
 credit; a free tailoring of this application is already `USED` (any day); a free tailoring is left
 today. If none is true: `402 NO_CREDIT`. When only the last check allows a full (not a section)
 tailoring, the server inserts a `PENDING` free-tailoring claim keyed by `applicationId` before the job
 starts, as in 4.3 rule 4. It becomes `USED` when the job succeeds and is deleted when the job fails.
-A section regeneration never makes a claim. The device keeps the 2-regeneration limit
-(`TailoringReviewStateRepository`); the core AI quota bounds the cost (D12).
+A section regeneration never makes a claim. It needs an unlock of the application, a wallet credit, or
+a `USED` free-tailoring claim of the application made the same TailorMyResume day. Otherwise
+`402 NO_CREDIT`, with no model call. The app shows a toast and spends no regeneration. The device keeps
+the 2-regeneration limit (`TailoringReviewStateRepository`); the core AI quota bounds the cost (D12).
 
 At most 4 jobs run at the same time on one API machine. A start over that limit gets
 `429 RATE_LIMITED` with `Retry-After: 10`.
@@ -539,16 +545,24 @@ Backs the server part of `AccountDataExporter`. The app adds it to the zip as `s
 ```json
 {
   "export": {
-    "generatedAt": "...",
+    "generatedAt": "2026-10-08T10:00:00Z",
     "user": { "id": "...", "createdAt": "..." },
-    "consents": [],
-    "wallet": {},
-    "unlocks": [],
+    "consents": [{ "purpose": "ai-processing", "granted": true, "policyVersion": "...", "recordedAt": "..." }],
+    "wallet": {
+      "freeCredits": 1, "purchasedCredits": 0, "analysesLeftToday": 3, "freeTailoringsLeftToday": 1,
+      "day": "2026-10-08", "resetsAt": "...", "unlockedApplicationIds": []
+    },
+    "unlocks": [{ "applicationId": "...", "creditKind": "...", "unlockedAt": "..." }],
     "purchases": [],
-    "contentReports": []
+    "contentReports": [
+      { "id": "...", "applicationId": "...", "itemKind": "...", "itemId": "...", "generationId": "...", "itemText": "...", "reportedAt": "..." }
+    ]
   }
 }
 ```
+
+Times are ISO strings. `purchases` is always `[]` until the backend stores Google Play purchases
+(apps-backend #33). The app keeps the sub-objects as opaque JSON.
 
 ## 5. Limits that bind the app
 
@@ -556,7 +570,7 @@ Backs the server part of `AccountDataExporter`. The app adds it to the zip as `s
 |---|---|---|
 | AI calls per user per UTC day | 50 (core). One tailoring is up to 4 calls | Core config |
 | AI cost per app per day | $5 (core). Raise before launch | Core config |
-| Analyses per TailorMyResume day | 3 distinct JDs | TailorMyResume config |
+| Analyses per TailorMyResume day | 3 runs, repeats count | TailorMyResume config |
 | Free tailorings per TailorMyResume day | 1, only with no credit and no unlock | TailorMyResume config |
 | Free credits for a new user | 1 | TailorMyResume config |
 | Requests per user per minute | 60 (core) | Core config |
@@ -566,7 +580,7 @@ Backs the server part of `AccountDataExporter`. The app adds it to the zip as `s
 | Table | Holds | Kept until |
 |---|---|---|
 | `tailormyresume_wallets` | user id, free and purchased credits | Account deletion |
-| `tailormyresume_usage_claims` | user id, day, kind (`ANALYSIS`, `FREE_TAILORING`), key (JD hash or application id), status, time | 30 days, or account deletion. A `USED` free-tailoring claim is kept until account deletion, because it allows the regenerations of that application |
+| `tailormyresume_usage_claims` | user id, day, kind (`ANALYSIS`, `FREE_TAILORING`), key (JD hash or application id), status, time | 30 days, or account deletion. A `USED` free-tailoring claim is kept until account deletion, because it allows the section regenerations of that application on the day it was earned |
 | `tailormyresume_unlocks` | user id, application id, credit kind, time | Account deletion |
 | `tailormyresume_purchases` | user id, token, order id, product, purchase type, credits, times, consumed time | Account deletion |
 | `tailormyresume_tailorings` | user id, request id, boot id, status, result (tailored bullets), times | 24 hours after the job ends, or account deletion |
@@ -578,17 +592,21 @@ record and keeps the order and tax records, so TailorMyResume keeps no copy.
 
 Two tables hold text derived from the user: the tailored bullets for 24 hours, and the text of a
 reported item for 180 days. The resume text, the JD text, and the request bodies are never written to
-a table or a log. Model calls use `store: false` (already set in `src/core/ai/provider.ts`). Zero
-Data Retention with OpenAI is a launch item (PRD 10.4).
+a table or a log. Anthropic has no per-request `store: false`: retention is an organisation-level setting (see
+`docs/compliance.md` of `apps-backend`, and PRD 10.4).
 
 ## 7. Model use
 
+The provider is Anthropic Claude (decided 2026-10-08). `default`, `extraction`, and `generation` use
+`claude-sonnet-5-5`. `verifier` uses `claude-opus-5-5`. The backend sends `reasoningEffort` as
+`providerOptions.anthropic.effort`.
+
 | Route | Calls | Model tier |
 |---|---|---|
-| Resume parse | 1 | `extraction` (small) |
+| Resume parse | 1 | `extraction` |
 | Analysis | 1 | `extraction` |
 | Prep questions | 1 | `extraction` |
-| Tailoring | up to 4 | `generation` (mid), then `verifier` |
+| Tailoring | up to 4 | `generation`, then `verifier` |
 | Cover letter | up to 4 | `generation`, then `verifier` |
 
 The `verifier` model must differ from the `generation` model. The backend picks the models and keeps

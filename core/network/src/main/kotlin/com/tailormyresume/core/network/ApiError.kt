@@ -25,6 +25,7 @@ sealed interface ApiError {
     data object PurchasePending : ApiError
     data object PurchaseInvalid : ApiError
     data object AllowanceExhausted : ApiError
+    data object AnalysisInProgress : ApiError
     data object PlayUnavailable : ApiError
     data object Offline : ApiError
     data object Timeout : ApiError
@@ -62,6 +63,7 @@ internal fun apiErrorOf(httpStatus: Int, code: String?, retryAfterSeconds: Int?)
     "PURCHASE_PENDING" -> ApiError.PurchasePending
     "PURCHASE_INVALID" -> ApiError.PurchaseInvalid
     "ALLOWANCE_EXHAUSTED" -> ApiError.AllowanceExhausted
+    "ANALYSIS_IN_PROGRESS" -> ApiError.AnalysisInProgress
     "PLAY_UNAVAILABLE" -> ApiError.PlayUnavailable
     else -> ApiError.Unknown(httpStatus)
 }

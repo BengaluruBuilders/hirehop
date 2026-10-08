@@ -51,6 +51,7 @@ class AiFailureMappingTest {
             (400 to "INVALID_INPUT") to AiFailure.InvalidInput,
             (413 to "PAYLOAD_TOO_LARGE") to AiFailure.InvalidInput,
             (409 to "ACCOUNT_DELETED") to AiFailure.AccountDeleted,
+            (409 to "ANALYSIS_IN_PROGRESS") to AiFailure.Unavailable,
             (502 to "AI_PROVIDER_ERROR") to AiFailure.Unavailable,
             (500 to "INTERNAL_ERROR") to AiFailure.Unavailable,
             (429 to "QUOTA_EXCEEDED") to AiFailure.Unavailable,

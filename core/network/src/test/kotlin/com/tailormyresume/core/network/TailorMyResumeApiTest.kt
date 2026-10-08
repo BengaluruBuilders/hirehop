@@ -106,7 +106,11 @@ class TailorMyResumeApiTest {
             ),
             404 to listOf("NOT_FOUND" to ApiError.NotFound),
             405 to listOf("METHOD_NOT_ALLOWED" to ApiError.MethodNotAllowed),
-            409 to listOf("ACCOUNT_DELETED" to ApiError.AccountDeleted, "PURCHASE_PENDING" to ApiError.PurchasePending),
+            409 to listOf(
+                "ACCOUNT_DELETED" to ApiError.AccountDeleted,
+                "PURCHASE_PENDING" to ApiError.PurchasePending,
+                "ANALYSIS_IN_PROGRESS" to ApiError.AnalysisInProgress,
+            ),
             413 to listOf("PAYLOAD_TOO_LARGE" to ApiError.PayloadTooLarge),
             429 to listOf(
                 "QUOTA_EXCEEDED" to ApiError.QuotaExceeded,

@@ -173,7 +173,7 @@ Only the Gradle builds are serialised.
 - New behaviour: S1 career choice ("Just starting out", "1 to 2 years in") with the line "We use
   this to pick which questions to ask about your projects and internships". Store it and use it to
   order the evidence path questions (S19). Step chips "Step 1 of 5" to "Step 5 of 5".
-- S4 copy names OpenAI as the AI provider. S5 has no file size limit text.
+- S4 copy says an AI provider processes the text and does not name a vendor. S5 has no file size limit text.
 - S3 "Continue with Google" needs Google's official mark before release (placeholder until C8).
 - Keep existing states that the restyle does not show (offline, daily limit, errors).
 - Accept: each frame matches; dev menu forced states still work; gates pass; emulator walk-through
@@ -363,6 +363,6 @@ All are low severity. They come from reviews and walk-throughs.
 ### 9.5 Next actions for C7 to C10 (need the user)
 
 - C7, R0 spikes: the user gives 10 real resumes and agrees to their use.
-- C8: the user decides the I.5 amendment. The user gives the Firebase project and the Fly.io and Neon accounts, the OpenAI keys (backend only) and the Google sign-in client.
+- C8: the user decides the I.5 amendment. The user gives the Firebase project and the Fly.io and Neon accounts, the Anthropic API key (backend only) and the Google sign-in client.
 - C9: the user opens a Play developer account and makes the 5-pack product in Play Console.
 - C10: the user gives the support email, the privacy policy URL and the delete-account URL. The user also fills the data safety form, runs the closed test (12 or more testers, 14 days) and orders a legal check of the consent copy.

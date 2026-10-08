@@ -23,7 +23,7 @@ Voice mock interviews, broader job discovery, and professional profile photos ca
 ## Planned approach
 
 - Native Android with Kotlin and Jetpack Compose.
-- OpenAI text and document capabilities through an authenticated backend.
+- Anthropic Claude text capabilities through an authenticated backend.
 - Keep permanent API credentials on the backend.
 - Preserve user control over edits and exports. Suggestions must not invent qualifications or experience.
 - Explain formatting and job-requirement checks without claiming guaranteed ATS acceptance or employment.

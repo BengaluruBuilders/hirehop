@@ -339,9 +339,9 @@ Retention: job search is episodic. Users leave when they get a job. Do not use D
 
 - **App.** Kotlin, Jetpack Compose, Room as the local source of truth, and WorkManager for queued jobs and sync.
 - **Sign-in.** Google through Credential Manager. Firebase Auth turns it into the ID token that the backend checks.
-- **Backend.** `apps-backend` on Fly.io with Neon Postgres and Firebase Auth. The TailorMyResume routes are the model gateway (`docs/BACKEND_CONTRACT.md`). The OpenAI key stays on the server.
-- **Model calls.** OpenAI Responses API with Structured Outputs and `store: false`. Short steps are synchronous routes that the server stops after 45 s. Tailoring is an asynchronous job that the app polls (`docs/BACKEND_CONTRACT.md` section 4.4).
-- **Model tiers.** Use a small, low-cost model for extraction, JD analysis, gap match, and prep questions. Use a mid-tier model for tailoring and the cover letter. Use a different model for the verifier. Keep model IDs in config. The research reports disagree on the current OpenAI model names and prices (R3 against R5). Confirm them on the official pricing page before the build.
+- **Backend.** `apps-backend` on Fly.io with Neon Postgres and Firebase Auth. The TailorMyResume routes are the model gateway (`docs/BACKEND_CONTRACT.md`). The Anthropic API key stays on the server.
+- **Model calls.** Anthropic Claude through the backend (`claude-sonnet-5-5` generates, `claude-opus-5-5` verifies) with structured outputs. Short steps are synchronous routes that the server stops after 45 s. Tailoring is an asynchronous job that the app polls (`docs/BACKEND_CONTRACT.md` section 4.4).
+- **Model tiers.** Use a small, low-cost model for extraction, JD analysis, gap match, and prep questions. Use a mid-tier model for tailoring and the cover letter. Use a different model for the verifier. Keep model IDs in config. The owner chose the Anthropic models on 2026-10-08. Set the prices from the official pricing page before launch.
 - **Abuse control.** Per-user and per-device rate limits, the Play Integrity API, and a daily cap on free model calls.
 
 ### 10.2 Performance
@@ -394,12 +394,12 @@ This section is a product reading of the research. It is not legal advice. Get a
 3. Target API level 36.
 4. A closed test with 12 or more testers for 14 days, if the developer account is a personal account created after 13 Nov 2023 (R6).
 
-**OpenAI.**
+**Anthropic.**
 
-1. Use `store: false` on all calls.
-2. Apply for Zero Data Retention.
-3. Treat OpenAI as a data processor in the privacy policy.
-4. India data residency is storage-only, needs a contract amendment, and adds 10% to the cost. Decide on it before launch.
+1. Anthropic has no per-request `store: false`. Retention is an organisation-level setting. Confirm it and record it in `docs/compliance.md` of `apps-backend`.
+2. Ask Anthropic about Zero Data Retention for the organisation.
+3. Treat Anthropic as a data processor in the privacy policy.
+4. Decide on India data residency before launch.
 
 **Security.**
 
@@ -494,12 +494,12 @@ Put the Play developer account on the critical path now. The closed test needs 1
 ## 14. Open questions
 
 1. Is "re-entering my background" a real pain? Answer it in the Phase 0 interviews.
-2. Which OpenAI models and prices apply now? The two reports disagree. Check the official pricing page.
+2. Which prices apply to `claude-sonnet-5-5` and `claude-opus-5-5`? Check the official pricing page.
 3. Does Google Play allow new auto-renewing subscriptions in India today? It is not needed for MVP.
 4. Does Naukri's AI Resume Maker tailor to a JD? Is Indeed Career Scout live in India?
 5. Does Android `PdfDocument` output keep selectable text? Answer it in the week-1 spike.
 6. Personal or organization Play developer account?
-7. Is India data residency for OpenAI needed at launch?
+7. Is India data residency for Anthropic needed at launch?
 8. One engineer or two for the build (section 12.2)?
 
 ## 15. Research index

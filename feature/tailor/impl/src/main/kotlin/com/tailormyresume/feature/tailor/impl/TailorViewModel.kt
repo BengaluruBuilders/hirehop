@@ -20,10 +20,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -46,6 +49,10 @@ internal class TailorViewModel @AssistedInject constructor(
 ) : ViewModel() {
 
     private val decisionMutex = Mutex()
+
+    private val regenerateFailureChannel = Channel<RegenerateResult>(Channel.BUFFERED)
+
+    val regenerateFailures: Flow<RegenerateResult> = regenerateFailureChannel.receiveAsFlow()
 
     private val activeScenario = MutableStateFlow(scenario)
 
@@ -83,7 +90,8 @@ internal class TailorViewModel @AssistedInject constructor(
 
     fun onRegenerate(category: EntryCategory) {
         viewModelScope.launch {
-            decisionMutex.withLock { regenerateSection(applicationId, category) }
+            val result = decisionMutex.withLock { regenerateSection(applicationId, category) }
+            if (result == RegenerateResult.NoCredit || result == RegenerateResult.Failed) regenerateFailureChannel.send(result)
         }
     }
 

@@ -54,6 +54,10 @@ internal sealed interface ReviewToastState {
     data class Accepted(val bulletId: String, val position: Int) : ReviewToastState
 
     data object Reported : ReviewToastState
+
+    data object RegenerateNoCredit : ReviewToastState
+
+    data object RegenerateFailed : ReviewToastState
 }
 
 @Stable
@@ -194,11 +198,13 @@ private fun RegenerateButton(state: TailorUiState.Success, interaction: ReviewIn
 private fun ReviewToastState.messageRes(): Int = when (this) {
     is ReviewToastState.Accepted -> R.string.feature_tailor_impl_toast_accepted
     ReviewToastState.Reported -> R.string.feature_tailor_impl_report_thanks
+    ReviewToastState.RegenerateNoCredit -> R.string.feature_tailor_impl_regenerate_no_credit
+    ReviewToastState.RegenerateFailed -> R.string.feature_tailor_impl_regenerate_failed
 }
 
 private fun ReviewToastState.messageArgs(): Array<Any> = when (this) {
     is ReviewToastState.Accepted -> arrayOf(position)
-    ReviewToastState.Reported -> emptyArray()
+    ReviewToastState.Reported, ReviewToastState.RegenerateNoCredit, ReviewToastState.RegenerateFailed -> emptyArray()
 }
 
 @Composable

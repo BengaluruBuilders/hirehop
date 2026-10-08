@@ -4,6 +4,7 @@ import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.TailoringReviewStateRepository
 import com.tailormyresume.core.domain.AiException
+import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.TailorResumeUseCase
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.EntryCategory
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.time.Clock
 
+internal enum class RegenerateResult { Done, Skipped, NoCredit, Failed }
+
 internal class RegenerateSectionUseCase @Inject constructor(
     private val applicationRepository: ApplicationRepository,
     private val profileRepository: ProfileRepository,
@@ -19,11 +22,11 @@ internal class RegenerateSectionUseCase @Inject constructor(
     private val reviewState: TailoringReviewStateRepository,
     private val clock: Clock,
 ) {
-    suspend operator fun invoke(applicationId: String, category: EntryCategory): Boolean {
-        if (reviewState.observe(applicationId).first().regenerationsUsed >= MAX_REGENERATIONS) return false
-        val application = applicationRepository.observeApplication(applicationId).first() ?: return false
-        val profile = profileRepository.observeProfile().first() ?: return false
-        val gap = application.gapAnalysis ?: return false
+    suspend operator fun invoke(applicationId: String, category: EntryCategory): RegenerateResult {
+        if (reviewState.observe(applicationId).first().regenerationsUsed >= MAX_REGENERATIONS) return RegenerateResult.Skipped
+        val application = applicationRepository.observeApplication(applicationId).first() ?: return RegenerateResult.Skipped
+        val profile = profileRepository.observeProfile().first() ?: return RegenerateResult.Skipped
+        val gap = application.gapAnalysis ?: return RegenerateResult.Skipped
         val sectionEntryIds = profile.entries
             .filter { it.isConfirmed && it.category == category }
             .map { it.id }
@@ -31,8 +34,8 @@ internal class RegenerateSectionUseCase @Inject constructor(
         val existing = application.tailoredResume?.bullets.orEmpty()
         val fresh = try {
             tailorResume(profile, application.job, gap, applicationId, category).bullets
-        } catch (_: AiException) {
-            return false
+        } catch (e: AiException) {
+            return if (e.failure == AiFailure.NoCredit) RegenerateResult.NoCredit else RegenerateResult.Failed
         }
             .filter { it.entryId in sectionEntryIds }
             .map { it.copy(decision = BulletDecision.PENDING) }
@@ -48,6 +51,6 @@ internal class RegenerateSectionUseCase @Inject constructor(
         )
         reviewState.clearEdited(applicationId, existing.filter { it.entryId in sectionEntryIds }.map { it.id })
         reviewState.recordRegeneration(applicationId, category.name)
-        return true
+        return RegenerateResult.Done
     }
 }

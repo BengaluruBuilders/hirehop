@@ -1,6 +1,7 @@
 package com.tailormyresume.feature.tailor.impl
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -33,5 +34,15 @@ internal fun TailorRoute(
             onBulletSheetClosed = onBulletSheetClosed,
         )
     }
-    TailorScreen(uiState = uiState, actions = actions, modifier = modifier, initialBulletId = initialBulletId)
+    val interaction = remember { ReviewInteraction(initialBulletId) }
+    LaunchedEffect(viewModel) {
+        viewModel.regenerateFailures.collect { result ->
+            interaction.toast = if (result == RegenerateResult.NoCredit) {
+                ReviewToastState.RegenerateNoCredit
+            } else {
+                ReviewToastState.RegenerateFailed
+            }
+        }
+    }
+    TailorScreen(uiState = uiState, actions = actions, modifier = modifier, interaction = interaction)
 }

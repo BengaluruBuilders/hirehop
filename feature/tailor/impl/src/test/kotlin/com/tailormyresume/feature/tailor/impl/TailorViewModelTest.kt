@@ -34,6 +34,7 @@ import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestClock
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -417,6 +418,35 @@ class TailorViewModelTest {
 
         assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
         assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
+    fun onRegenerate_whenTheServerNeedsACredit_reportsNoCreditAndSpendsNoRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        tailor.failure = AiFailure.NoCredit
+        val failures = mutableListOf<RegenerateResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.regenerateFailures.toList(failures) }
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(failures).containsExactly(RegenerateResult.NoCredit)
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
+    fun onRegenerate_whenTheServerFails_reportsTheFailure() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        tailor.failure = AiFailure.Unavailable
+        val failures = mutableListOf<RegenerateResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.regenerateFailures.toList(failures) }
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(failures).containsExactly(RegenerateResult.Failed)
     }
 
     @Test

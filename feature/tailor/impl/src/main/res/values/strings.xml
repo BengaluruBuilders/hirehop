@@ -45,6 +45,8 @@
     </plurals>
     <string name="feature_tailor_impl_regenerate_confirm">Regenerate, use %1$d of %2$d</string>
     <string name="feature_tailor_impl_regenerate_cancel">Keep this section</string>
+    <string name="feature_tailor_impl_regenerate_no_credit">Regenerating a section needs a credit. Unlock this resume first.</string>
+    <string name="feature_tailor_impl_regenerate_failed">We couldn\'t regenerate this section. Nothing changed.</string>
     <string name="feature_tailor_impl_report_thanks">Thanks. We will check this.</string>
     <string name="feature_tailor_impl_loading_caption">Up to 60 seconds, runs in the background</string>
     <string name="feature_tailor_impl_loading_step_pick">Picking your facts for this JD</string>

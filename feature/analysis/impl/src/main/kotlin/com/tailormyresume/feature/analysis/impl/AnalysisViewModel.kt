@@ -16,6 +16,7 @@ import com.tailormyresume.core.domain.AddUserStatedFactUseCase
 import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.CreateApplicationUseCase
+import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.IdGenerator
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.PaymentGateway
@@ -29,7 +30,6 @@ import com.tailormyresume.core.model.KeptJobDescription
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
-import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.tailor.api.navigation.TailorNavKey
@@ -64,6 +64,7 @@ class AnalysisViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val analyzeJob: AnalyzeJobUseCase,
+    private val gapMatcher: GapMatcher,
     private val addUserStatedFact: AddUserStatedFactUseCase,
     private val createApplication: CreateApplicationUseCase,
     private val prepPlanRepository: PrepPlanRepository,
@@ -404,17 +405,11 @@ class AnalysisViewModel @Inject constructor(
     }
 
     private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
-        val fresh = analyze(ready.kept, profile)
-        val freshByText = fresh.gap.matches.associateBy { it.requirement.text.normalizedRequirementText() }
         val previous = ready.analysis
-        val matches = previous.gap.matches.map { old ->
-            freshByText[old.requirement.text.normalizedRequirementText()]
-                ?.let { RequirementMatch(old.requirement, it.status, it.evidenceIds) }
-                ?: old
-        }
+        val local = withContext(computeDispatcher) { gapMatcher.match(profile, previous.job) }
         return ready.copy(
             profile = profile,
-            analysis = JobAnalysisResult(previous.job, fresh.gap.copy(matches = matches)),
+            analysis = JobAnalysisResult(previous.job, local.copy(generationId = previous.gap.generationId)),
         )
     }
 
@@ -522,8 +517,6 @@ class AnalysisViewModel @Inject constructor(
         const val APPLICATION_ID_KEY = "application-id-"
     }
 }
-
-private fun String.normalizedRequirementText(): String = trim().lowercase().replace(Regex("\\s+"), " ")
 
 private fun CandidateProfile.confirmedFactCount(): Int = factCounts().confirmed
 

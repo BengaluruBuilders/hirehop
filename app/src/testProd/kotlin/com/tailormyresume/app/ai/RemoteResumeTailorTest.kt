@@ -52,6 +52,18 @@ class RemoteResumeTailorTest {
     }
 
     @Test
+    fun aStartThatAnswers200WithTheRunningJobKeepsPolling() = runTest {
+        backend.reply(200, tailoringBody("RUNNING"))
+        backend.reply(200, tailoringBody("SUCCEEDED", tailoringResult("Cleaned and checked weekly sales data in Excel.")))
+
+        val resume = tailor.tailor(candidate, job, gap, "app-1", null)
+
+        assertThat(backend.server.takeRequest().method).isEqualTo("POST")
+        assertThat(backend.server.takeRequest().path).isEqualTo("/v1/tailormyresume/tailorings/tl_1")
+        assertThat(resume.bullets.single().proposedText).isEqualTo("Cleaned and checked weekly sales data in Excel.")
+    }
+
+    @Test
     fun aSectionRegenerationSendsTheSection() = runTest {
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
 

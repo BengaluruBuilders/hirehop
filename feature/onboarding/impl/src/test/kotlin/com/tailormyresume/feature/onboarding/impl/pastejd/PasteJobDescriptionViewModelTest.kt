@@ -1,7 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
 import com.google.common.truth.Truth.assertThat
-import com.tailormyresume.core.data.repository.AnalysisLimitPolicy
 import com.tailormyresume.core.data.repository.UsageAllowance
 import com.tailormyresume.core.domain.AiException
 import com.tailormyresume.core.domain.AiFailure
@@ -45,10 +44,6 @@ class PasteJobDescriptionViewModelTest {
     private val analyzer = LabelAnalyzer()
     private lateinit var viewModel: PasteJobDescriptionViewModel
 
-    private var limitPolicy: AnalysisLimitPolicy = object : AnalysisLimitPolicy {
-        override val isCountedOnDevice = true
-    }
-
     @Before
     fun setup() {
         viewModel = PasteJobDescriptionViewModel(
@@ -56,7 +51,6 @@ class PasteJobDescriptionViewModelTest {
             nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
             connectivityMonitor = connectivity,
             usageAllowance = usage,
-            limitPolicy = limitPolicy,
             proposeJobLabel = ProposeJobLabelUseCase(analyzer),
             discardJobDrafts = DiscardJobDraftsUseCase(prepPlan, reports),
             computeDispatcher = UnconfinedTestDispatcher(),
@@ -452,23 +446,6 @@ class PasteJobDescriptionViewModelTest {
         assertThat(viewModel.uiState.value.canAnalyse).isFalse()
         assertThat(viewModel.uiState.value.nextStep).isNull()
         assertThat(session.observeKeptJobDescription().first()).isNull()
-    }
-
-    @Test
-    fun onAction_analyse_whenTheServerCountsAnalyses_isNotBlockedAtZeroLeft() = runTest {
-        limitPolicy = object : AnalysisLimitPolicy {
-            override val isCountedOnDevice = false
-        }
-        setup()
-        repeat(UsageAllowance.DAILY_ANALYSES) { usage.consumeAnalysis() }
-        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
-        viewModel.onAction(PasteJobDescriptionAction.TextChanged(SAMPLE_JD))
-
-        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
-
-        assertThat(viewModel.uiState.value.isDailyLimitReached).isFalse()
-        assertThat(viewModel.uiState.value.nextStep).isNotNull()
-        assertThat(session.observeKeptJobDescription().first()).isNotNull()
     }
 
     @Test

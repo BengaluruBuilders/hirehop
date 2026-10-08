@@ -70,20 +70,11 @@ class AnalysisViewModelTest {
     private val tailor = EmptyResumeTailor()
     private val matcher = KeywordGapMatcher()
     private var nextId = 0
-    private var renumberAfterFirstCall = false
     private var analysisCalls = 0
-    private val renumberingSource = object : JobAnalysisSource {
+    private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
-            val result = OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
-            return if (!renumberAfterFirstCall || analysisCalls++ == 0) {
-                result
-            } else {
-                val renumbered = result.gap.matches.map { it.copy(requirement = it.requirement.copy(id = "n-${it.requirement.id}")) }
-                JobAnalysisResult(
-                    job = result.job.copy(requirements = renumbered.map { it.requirement }),
-                    gap = result.gap.copy(matches = renumbered),
-                )
-            }
+            analysisCalls++
+            return OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
         }
     }
 
@@ -117,7 +108,8 @@ class AnalysisViewModelTest {
         sessionRepository = sessionRepository,
         profileRepository = profileRepository,
         nextOnboardingStep = NextOnboardingStepUseCase(sessionRepository, profileRepository),
-        analyzeJob = AnalyzeJobUseCase(renumberingSource),
+        analyzeJob = AnalyzeJobUseCase(countingSource),
+        gapMatcher = matcher,
         addUserStatedFact = AddUserStatedFactUseCase(profileRepository, ::newId),
         createApplication = CreateApplicationUseCase(
             applicationRepository = flakyApplicationRepository,
@@ -422,13 +414,16 @@ class AnalysisViewModelTest {
     }
 
     @Test
-    fun iHaveThis_whenTheServerRenumbersRequirements_keepsTheIdsOfTheShownJob() = runTest {
-        renumberAfterFirstCall = true
+    fun iHaveThis_rematchesOnTheDevice_andDoesNotAnalyseAgain() = runTest {
         start()
+        val callsBefore = analysisCalls
+        val idsBefore = result().items.map { it.id }
 
         viewModel.onSubmitEvidence("req-sql", "  I wrote SQL queries during my internship.  ")
 
         val result = result()
+        assertThat(analysisCalls).isEqualTo(callsBefore)
+        assertThat(result.items.map { it.id }).containsExactlyElementsIn(idsBefore)
         assertThat(result.item("req-sql").status).isEqualTo(MatchStatus.MET)
         assertThat(result.closedRequirementId).isEqualTo("req-sql")
     }
