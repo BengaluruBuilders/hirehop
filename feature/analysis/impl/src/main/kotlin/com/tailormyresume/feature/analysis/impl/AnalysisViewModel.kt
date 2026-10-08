@@ -30,6 +30,7 @@ import com.tailormyresume.core.model.KeptJobDescription
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
+import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.tailor.api.navigation.TailorNavKey
@@ -405,11 +406,18 @@ class AnalysisViewModel @Inject constructor(
     }
 
     private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
-        val previous = ready.analysis
+        val previous = ready.serverAnalysis
         val local = withContext(computeDispatcher) { gapMatcher.match(profile, previous.job) }
+        val localById = local.matches.associateBy { it.requirement.id }
+        val coverage = maxOf(previous.gap.keywordCoverage, local.keywordCoverage, compareBy { it.covered })
+        val matches = previous.gap.matches.map { old ->
+            val upgraded = localById[old.requirement.id]?.takeIf { it.status.ordinal < old.status.ordinal }
+                ?: return@map old
+            RequirementMatch(old.requirement, upgraded.status, (old.evidenceIds + upgraded.evidenceIds).distinct())
+        }
         return ready.copy(
             profile = profile,
-            analysis = JobAnalysisResult(previous.job, local.copy(generationId = previous.gap.generationId)),
+            analysis = JobAnalysisResult(previous.job, previous.gap.copy(matches = matches, keywordCoverage = coverage)),
         )
     }
 
@@ -449,6 +457,7 @@ class AnalysisViewModel @Inject constructor(
             val kept: KeptJobDescription,
             val profile: CandidateProfile,
             val analysis: JobAnalysisResult,
+            val serverAnalysis: JobAnalysisResult = analysis,
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(

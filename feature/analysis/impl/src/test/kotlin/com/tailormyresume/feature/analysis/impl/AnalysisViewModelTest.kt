@@ -71,10 +71,15 @@ class AnalysisViewModelTest {
     private val matcher = KeywordGapMatcher()
     private var nextId = 0
     private var analysisCalls = 0
+    private var serverOnlyMetIds = emptySet<String>()
     private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
             analysisCalls++
-            return OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
+            val result = OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
+            val matches = result.gap.matches.map {
+                if (it.requirement.id in serverOnlyMetIds) it.copy(status = MatchStatus.MET) else it
+            }
+            return result.copy(gap = result.gap.copy(matches = matches))
         }
     }
 
@@ -426,6 +431,17 @@ class AnalysisViewModelTest {
         assertThat(result.items.map { it.id }).containsExactlyElementsIn(idsBefore)
         assertThat(result.item("req-sql").status).isEqualTo(MatchStatus.MET)
         assertThat(result.closedRequirementId).isEqualTo("req-sql")
+    }
+
+    @Test
+    fun iHaveThis_neverDowngradesAMatchTheServerFound() = runTest {
+        serverOnlyMetIds = setOf("req-docker")
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
     }
 
     @Test
