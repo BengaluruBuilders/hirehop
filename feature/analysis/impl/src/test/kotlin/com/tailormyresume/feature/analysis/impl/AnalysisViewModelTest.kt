@@ -27,6 +27,7 @@ import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
+import com.tailormyresume.core.testing.gateway.TestSignInGateway
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.repository.TestContentReportRepository
 import com.tailormyresume.core.testing.repository.TestPrepPlanRepository
@@ -66,6 +67,7 @@ class AnalysisViewModelTest {
     private val contentReportRepository = TestContentReportRepository()
     private val usageAllowance = TestUsageAllowance(TestClock())
     private var paymentGateway = TestPaymentGateway()
+    private val signInGateway = TestSignInGateway(sessionRepository)
     private val analyzer = FixedJobDescriptionAnalyzer()
     private val tailor = EmptyResumeTailor()
     private val matcher = KeywordGapMatcher()
@@ -109,6 +111,8 @@ class AnalysisViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
     }
 
+    private fun failed() = viewModel.uiState.value as AnalysisUiState.Failed
+
     private fun createViewModel(compute: CoroutineDispatcher = UnconfinedTestDispatcher()) = AnalysisViewModel(
         sessionRepository = sessionRepository,
         profileRepository = profileRepository,
@@ -126,6 +130,7 @@ class AnalysisViewModelTest {
         contentReportRepository = contentReportRepository,
         usageAllowance = usageAllowance,
         paymentGateway = paymentGateway,
+        signInGateway = signInGateway,
         clock = FixedClock,
         idGenerator = ::newId,
         savedState = SavedStateHandle(),
@@ -318,6 +323,51 @@ class AnalysisViewModelTest {
             viewModel.onRetry()
             assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Result::class.java)
         }
+    }
+
+    @Test
+    fun rateLimited_showsTheWaitState_namingTheWait_andRetryRecovers() = runTest {
+        analyzer.failure = AiFailure.RateLimited
+        analyzer.retryAfterSeconds = 30
+        start()
+
+        assertThat(failed().cause).isEqualTo(FailureCause.RateLimited(30))
+        analyzer.failure = null
+        viewModel.onRetry()
+        assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Result::class.java)
+    }
+
+    @Test
+    fun analysisInProgress_showsTheStillAnalysingState_andDoesNotRetryByItself() = runTest {
+        analyzer.failure = AiFailure.AnalysisInProgress
+        start()
+        advanceUntilIdle()
+
+        assertThat(failed().cause).isEqualTo(FailureCause.InProgress)
+        assertThat(analysisCalls).isEqualTo(1)
+        analyzer.failure = null
+        viewModel.onRetry()
+        assertThat(analysisCalls).isEqualTo(2)
+        assertThat(viewModel.uiState.value).isInstanceOf(AnalysisUiState.Result::class.java)
+    }
+
+    @Test
+    fun quotaExceeded_showsTheDailyAiLimitState() = runTest {
+        analyzer.failure = AiFailure.QuotaExceeded
+        start()
+
+        assertThat(failed().cause).isEqualTo(FailureCause.QuotaReached)
+        assertThat(usageAllowance.observeAnalysesLeft().first()).isEqualTo(UsageAllowance.DAILY_ANALYSES)
+    }
+
+    @Test
+    fun signInRequired_showsTheSignInAgainState_andUsesTheReSignInPath() = runTest {
+        analyzer.failure = AiFailure.SignInRequired
+        start()
+
+        assertThat(failed().cause).isEqualTo(FailureCause.SignInRequired)
+        viewModel.onSignInAgain()
+        assertThat(sessionRepository.observeAccount().first()).isNull()
     }
 
     @Test

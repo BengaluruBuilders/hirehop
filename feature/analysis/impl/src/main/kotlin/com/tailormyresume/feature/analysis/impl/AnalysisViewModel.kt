@@ -20,6 +20,7 @@ import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.IdGenerator
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.PaymentGateway
+import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.domain.isAiFailure
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
@@ -72,6 +73,7 @@ class AnalysisViewModel @Inject constructor(
     private val contentReportRepository: ContentReportRepository,
     private val usageAllowance: UsageAllowance,
     private val paymentGateway: PaymentGateway,
+    private val signInGateway: SignInGateway,
     private val clock: Clock,
     private val idGenerator: IdGenerator,
     private val savedState: SavedStateHandle,
@@ -147,6 +149,8 @@ class AnalysisViewModel @Inject constructor(
     }
 
     fun onRetry() = load()
+
+    fun onSignInAgain() = Unit
 
     fun onResume() {
         val ready = local.value.phase as? Phase.Ready ?: return

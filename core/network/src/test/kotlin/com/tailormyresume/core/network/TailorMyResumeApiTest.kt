@@ -165,6 +165,46 @@ class TailorMyResumeApiTest {
     }
 
     @Test
+    fun statusFallbackMapsPaymentRequiredAndRateLimitedWithoutAnEnvelope() {
+        server.enqueue(jsonResponse(402, "<html>pay</html>"))
+        server.enqueue(jsonResponse(429, "<html>slow</html>").setHeader("Retry-After", "7"))
+        server.enqueue(jsonResponse(429, "").setHeader("Retry-After", "7"))
+        server.enqueue(error(429, "TEAPOT").setHeader("Retry-After", "9"))
+        server.enqueue(jsonResponse(401, ""))
+        val api = api()
+        tokens.available = false
+
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.NoCredit)
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.RateLimited(7))
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.RateLimited(7))
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.RateLimited(9))
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.Unauthenticated)
+    }
+
+    @Test
+    fun aKnownCodeWinsOverTheStatusFallback() {
+        server.enqueue(error(429, "ALLOWANCE_EXHAUSTED"))
+        server.enqueue(error(402, "FORBIDDEN"))
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        val api = api()
+        tokens.available = false
+
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.AllowanceExhausted)
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.Forbidden)
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.InvalidToken)
+    }
+
+    @Test
+    fun serverFailuresWithoutAnEnvelopeStayUnknown() {
+        server.enqueue(jsonResponse(500, "<html>boom</html>"))
+        server.enqueue(jsonResponse(502, ""))
+        val api = api()
+
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.Unknown(500))
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.Unknown(502))
+    }
+
+    @Test
     fun rateLimitedKeepsRetryAfter() {
         server.enqueue(error(429, "RATE_LIMITED").setHeader("Retry-After", "10"))
         assertThat(failureOf { api().wallet() }).isEqualTo(ApiError.RateLimited(10))

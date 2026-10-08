@@ -1,5 +1,6 @@
 package com.tailormyresume.app.ai
 
+import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.tailormyresume.core.domain.AiException
 import com.tailormyresume.core.domain.AiFailure
@@ -9,6 +10,8 @@ import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
+import com.tailormyresume.core.network.ApiError
+import com.tailormyresume.core.network.ApiException
 import com.tailormyresume.core.testing.mock.TestMockStateStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -63,6 +66,38 @@ class AiFailureMappingTest {
                 assertWithMessage("$name ${response.second}").that(failureOf(route)).isEqualTo(failure)
             }
         }
+    }
+
+    @Test
+    fun rateLimitedKeepsRetryAfterAndIsNotUnavailable() {
+        assertThat(ApiError.RateLimited(12).toAiFailure()).isEqualTo(AiFailure.RateLimited)
+        val thrown = runCatching { Result.failure<Unit>(ApiException(ApiError.RateLimited(12))).orAiFailure() }
+            .exceptionOrNull() as AiException
+        assertThat(thrown.failure).isEqualTo(AiFailure.RateLimited)
+        assertThat(thrown.retryAfterSeconds).isEqualTo(12)
+    }
+
+    @Test
+    fun analysisInProgressIsItsOwnFailure() {
+        assertThat(ApiError.AnalysisInProgress.toAiFailure()).isEqualTo(AiFailure.AnalysisInProgress)
+    }
+
+    @Test
+    fun quotaAndBudgetMapToQuotaExceeded() {
+        assertThat(ApiError.QuotaExceeded.toAiFailure()).isEqualTo(AiFailure.QuotaExceeded)
+        assertThat(ApiError.BudgetExceeded.toAiFailure()).isEqualTo(AiFailure.QuotaExceeded)
+    }
+
+    @Test
+    fun unauthenticatedAndInvalidTokenMapToSignInRequired() {
+        assertThat(ApiError.Unauthenticated.toAiFailure()).isEqualTo(AiFailure.SignInRequired)
+        assertThat(ApiError.InvalidToken.toAiFailure()).isEqualTo(AiFailure.SignInRequired)
+    }
+
+    @Test
+    fun serverFaultsStayUnavailable() {
+        listOf(ApiError.Unknown(503), ApiError.HttpError, ApiError.InternalError, ApiError.AiProviderError)
+            .forEach { assertThat(it.toAiFailure()).isEqualTo(AiFailure.Unavailable) }
     }
 
     @Test
