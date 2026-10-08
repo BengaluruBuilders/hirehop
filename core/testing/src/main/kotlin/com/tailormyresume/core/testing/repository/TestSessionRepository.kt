@@ -38,6 +38,11 @@ class TestSessionRepository : SessionRepository {
         this.account.value = account
     }
 
+    override suspend fun lastAccountId(): String? = null
+
+    override suspend fun saveLastAccountId(id: String) {
+    }
+
     override suspend fun recordConsent(record: ConsentRecord) {
         consent.value = record
     }

@@ -5,6 +5,7 @@ import com.tailormyresume.app.billing.RemotePaymentGateway
 import com.tailormyresume.core.data.mock.MockStateStore
 import com.tailormyresume.core.data.repository.PendingReportQueue
 import com.tailormyresume.core.data.repository.SessionRepository
+import com.tailormyresume.core.domain.account.ExportedFiles
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,7 @@ class SignOutCleaner @Inject constructor(
     private val reports: PendingReportQueue,
     private val store: MockStateStore,
     private val sessionRepository: SessionRepository,
+    private val exportedFiles: ExportedFiles = ExportedFiles.None,
 ) {
     suspend fun clear() {
         payments.clearCredits()

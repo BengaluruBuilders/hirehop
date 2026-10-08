@@ -22,6 +22,7 @@ class RemoteSignInGateway @Inject constructor(
     private val api: TailorMyResumeApi,
     private val sessionRepository: SessionRepository,
     private val cleaner: SignOutCleaner,
+    private val wiper: LocalDataWiper = LocalDataWiper.None,
 ) : SignInGateway {
 
     override suspend fun currentAccount(): SignInAccount? = sessionRepository.observeAccount().first()

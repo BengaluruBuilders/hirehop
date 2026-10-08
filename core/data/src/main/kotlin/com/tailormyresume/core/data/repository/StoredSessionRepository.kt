@@ -49,6 +49,11 @@ internal class StoredSessionRepository @Inject constructor(
         store.writeValue(ACCOUNT_KEY, AccountDto.serializer(), AccountDto(account.id, account.displayName, account.email))
     }
 
+    override suspend fun lastAccountId(): String? = null
+
+    override suspend fun saveLastAccountId(id: String) {
+    }
+
     override suspend fun recordConsent(record: ConsentRecord) {
         val dto = ConsentDto(
             purposes = record.purposes.map(ConsentPurpose::name).sorted(),

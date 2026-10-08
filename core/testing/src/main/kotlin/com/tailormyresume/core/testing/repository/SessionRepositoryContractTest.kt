@@ -148,4 +148,39 @@ abstract class SessionRepositoryContractTest {
 
         assertThat(session.observeAccount().first()).isNull()
     }
+
+    @Test
+    fun theLastAccountIdIsUnknownOnANewSession() = runTest {
+        assertThat(createSessionRepository().lastAccountId()).isNull()
+    }
+
+    @Test
+    fun aSavedLastAccountIdIsReadBack() = runTest {
+        val session = createSessionRepository()
+
+        session.saveLastAccountId("uid-1")
+
+        assertThat(session.lastAccountId()).isEqualTo("uid-1")
+    }
+
+    @Test
+    fun signOutKeepsTheLastAccountId() = runTest {
+        val session = createSessionRepository()
+        session.saveAccount(SignInAccount.localAccount)
+        session.saveLastAccountId("uid-1")
+
+        session.signOut()
+
+        assertThat(session.lastAccountId()).isEqualTo("uid-1")
+    }
+
+    @Test
+    fun clearRemovesTheLastAccountId() = runTest {
+        val session = createSessionRepository()
+        session.saveLastAccountId("uid-1")
+
+        session.clear()
+
+        assertThat(session.lastAccountId()).isNull()
+    }
 }
