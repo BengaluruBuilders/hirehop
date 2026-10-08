@@ -66,7 +66,7 @@ class RemotePaymentGateway @Inject constructor(
         val uid = uids.uid() ?: return failed(PurchaseFailureReason.PurchaseUnavailable)
         return when (val outcome = billing.launchPurchase(packId, obfuscatedAccountId(uid))) {
             PlayPurchaseResult.Cancelled -> PurchaseResult.Cancelled
-            PlayPurchaseResult.Failed -> failed(PurchaseFailureReason.PaymentUnavailable)
+            PlayPurchaseResult.Failed, PlayPurchaseResult.AlreadyOwned -> failed(PurchaseFailureReason.PaymentUnavailable)
             is PlayPurchaseResult.Done -> settle(outcome.purchase)
         }
     }

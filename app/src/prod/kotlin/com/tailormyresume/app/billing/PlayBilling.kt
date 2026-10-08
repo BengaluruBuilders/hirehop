@@ -23,5 +23,7 @@ sealed interface PlayPurchaseResult {
 
     data object Cancelled : PlayPurchaseResult
 
+    data object AlreadyOwned : PlayPurchaseResult
+
     data object Failed : PlayPurchaseResult
 }
