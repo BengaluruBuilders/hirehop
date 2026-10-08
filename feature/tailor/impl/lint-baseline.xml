@@ -18,7 +18,7 @@
         errorLine1="            canvas.save()"
         errorLine2="            ~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/feature/tailor/impl/export/PdfPageWriter.kt"
+            file="src/main/kotlin/com/tailormyresume/feature/tailor/impl/export/PdfPageWriter.kt"
             line="55"
             column="13"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="        canvas.save()"
         errorLine2="        ~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/feature/tailor/impl/export/PdfPageWriter.kt"
+            file="src/main/kotlin/com/tailormyresume/feature/tailor/impl/export/PdfPageWriter.kt"
             line="60"
             column="9"/>
     </issue>

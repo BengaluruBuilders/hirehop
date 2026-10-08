@@ -1,3 +1,3 @@
 plugins {
-    alias(libs.plugins.hirehop.jvm.library)
+    alias(libs.plugins.tailormyresume.jvm.library)
 }

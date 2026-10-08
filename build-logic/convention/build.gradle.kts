@@ -4,7 +4,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "com.hirehop.buildlogic"
+group = "com.tailormyresume.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -39,51 +39,51 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplicationCompose") {
-            id = libs.plugins.hirehop.android.application.compose.get().pluginId
+            id = libs.plugins.tailormyresume.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidApplication") {
-            id = libs.plugins.hirehop.android.application.asProvider().get().pluginId
+            id = libs.plugins.tailormyresume.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = libs.plugins.hirehop.android.library.compose.get().pluginId
+            id = libs.plugins.tailormyresume.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = libs.plugins.hirehop.android.library.asProvider().get().pluginId
+            id = libs.plugins.tailormyresume.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidLibraryScreenshot") {
-            id = libs.plugins.hirehop.android.library.screenshot.get().pluginId
-            implementationClass = "HireHopAndroidLibraryScreenshotPlugin"
+            id = libs.plugins.tailormyresume.android.library.screenshot.get().pluginId
+            implementationClass = "TailorMyResumeAndroidLibraryScreenshotPlugin"
         }
         register("androidFeatureImpl") {
-            id = libs.plugins.hirehop.android.feature.impl.get().pluginId
+            id = libs.plugins.tailormyresume.android.feature.impl.get().pluginId
             implementationClass = "AndroidFeatureImplConventionPlugin"
         }
         register("androidFeatureApi") {
-            id = libs.plugins.hirehop.android.feature.api.get().pluginId
+            id = libs.plugins.tailormyresume.android.feature.api.get().pluginId
             implementationClass = "AndroidFeatureApiConventionPlugin"
         }
         register("hilt") {
-            id = libs.plugins.hirehop.hilt.get().pluginId
+            id = libs.plugins.tailormyresume.hilt.get().pluginId
             implementationClass = "HiltConventionPlugin"
         }
         register("androidRoom") {
-            id = libs.plugins.hirehop.android.room.get().pluginId
+            id = libs.plugins.tailormyresume.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("jvmLibrary") {
-            id = libs.plugins.hirehop.jvm.library.get().pluginId
+            id = libs.plugins.tailormyresume.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
         register("kover") {
-            id = libs.plugins.hirehop.kover.get().pluginId
-            implementationClass = "HireHopKoverPlugin"
+            id = libs.plugins.tailormyresume.kover.get().pluginId
+            implementationClass = "TailorMyResumeKoverPlugin"
         }
         register("root") {
-            id = libs.plugins.hirehop.root.get().pluginId
+            id = libs.plugins.tailormyresume.root.get().pluginId
             implementationClass = "RootPlugin"
         }
     }

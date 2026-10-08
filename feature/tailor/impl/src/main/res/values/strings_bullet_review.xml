@@ -19,10 +19,10 @@
     <string name="feature_tailor_impl_bullet_scale_flag">Scale: “%1$s” — from %2$s</string>
     <string name="feature_tailor_impl_bullet_flag_other">%1$s Check that this is true for you.</string>
     <string name="feature_tailor_impl_bullet_repair_failed">We kept your original line. The rewrite added something we couldn’t match to your facts. No decision needed: this change counts as reviewed.</string>
-    <string name="feature_tailor_impl_bullet_user_edited_note">Your own words. HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_bullet_user_edited_note">Your own words. TailorMyResume does not check hand edits.</string>
     <string name="feature_tailor_impl_bullet_description">Change %1$d of %2$d. Original: %3$s. New: %4$s. Source %5$s.</string>
     <string name="feature_tailor_impl_bullet_description_kept">Change %1$d of %2$d. Original kept: %3$s. Source %4$s.</string>
-    <string name="feature_tailor_impl_bullet_description_edited">Change %1$d of %2$d. Your edit: %3$s. User-edited. HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_bullet_description_edited">Change %1$d of %2$d. Your edit: %3$s. User-edited. TailorMyResume does not check hand edits.</string>
     <string name="feature_tailor_impl_bullet_removed_words">Removed or changed words: %1$s</string>
     <string name="feature_tailor_impl_bullet_changed_words">Added or changed words: %1$s</string>
     <string name="feature_tailor_impl_edit_reworded">Reword</string>
@@ -34,7 +34,7 @@
     <string name="feature_tailor_impl_violation_number">The number %1$s is not in your profile.</string>
     <string name="feature_tailor_impl_violation_term">The term \"%1$s\" is not in your profile.</string>
     <string name="feature_tailor_impl_edit_sheet_label">Your line</string>
-    <string name="feature_tailor_impl_edit_sheet_note">Your own words. HireHop does not check hand edits. The line shows “User-edited”.</string>
+    <string name="feature_tailor_impl_edit_sheet_note">Your own words. TailorMyResume does not check hand edits. The line shows “User-edited”.</string>
     <string name="feature_tailor_impl_edit_sheet_cancel">Cancel</string>
     <string name="feature_tailor_impl_edit_sheet_save">Save line</string>
     <string name="feature_tailor_impl_edit_sheet_error_required">Add this to save.</string>
@@ -67,7 +67,7 @@
         <item quantity="other">%1$d words</item>
     </plurals>
     <string name="feature_tailor_impl_edit_hand_linked_to">Linked to</string>
-    <string name="feature_tailor_impl_edit_hand_unchecked">HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_edit_hand_unchecked">TailorMyResume does not check hand edits.</string>
     <string name="feature_tailor_impl_edit_hand_new_fact_a">Adding something new, like a date or a number?</string>
     <string name="feature_tailor_impl_edit_hand_new_fact_b">Add it as a fact</string>
     <string name="feature_tailor_impl_edit_hand_new_fact_c">" first, so your resume stays true to what you\'ve confirmed."</string>

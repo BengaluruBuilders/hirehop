@@ -1,9 +1,9 @@
 plugins {
-    alias(libs.plugins.hirehop.android.library.screenshot)
+    alias(libs.plugins.tailormyresume.android.library.screenshot)
 }
 
 android {
-    namespace = "com.hirehop.core.screenshot"
+    namespace = "com.tailormyresume.core.screenshot"
 }
 
 dependencies {

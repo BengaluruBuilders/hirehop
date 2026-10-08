@@ -30,7 +30,7 @@
 
     <string name="feature_analysis_impl_coverage_title">You cover %1$s of %2$s key terms. This is not a score.</string>
     <string name="feature_analysis_impl_coverage_total">of %1$s key terms</string>
-    <string name="feature_analysis_impl_coverage_empty">HireHop found no key terms in this JD. Go back and paste more of it.</string>
+    <string name="feature_analysis_impl_coverage_empty">TailorMyResume found no key terms in this JD. Go back and paste more of it.</string>
     <plurals name="feature_analysis_impl_gap_note">
         <item quantity="one">%d gap. Each one can become a prep task.</item>
         <item quantity="other">%d gaps. Each one can become a prep task.</item>
@@ -90,7 +90,7 @@
 
     <string name="feature_analysis_impl_share_chooser">Share JD fit</string>
     <string name="feature_analysis_impl_share_title">Share</string>
-    <string name="feature_analysis_impl_share_brand">HireHop</string>
+    <string name="feature_analysis_impl_share_brand">TailorMyResume</string>
     <string name="feature_analysis_impl_share_label">JD fit</string>
     <string name="feature_analysis_impl_share_covers">Covers %1$s of %2$s key terms</string>
     <string name="feature_analysis_impl_share_not_score">This is not a score.</string>
@@ -98,7 +98,7 @@
     <string name="feature_analysis_impl_share_cancel">Cancel</string>
     <string name="feature_analysis_impl_share_whatsapp">Share to WhatsApp</string>
     <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s partly met, %6$s to prepare</string>
-    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with HireHop.</string>
+    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with TailorMyResume.</string>
     <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
     <string name="feature_analysis_impl_question_priority">%1$s · %2$s</string>
     <string name="feature_analysis_impl_question_note">Your answer is saved as a User-stated fact.</string>

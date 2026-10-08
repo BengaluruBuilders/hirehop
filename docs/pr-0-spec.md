@@ -1,6 +1,6 @@
 # PR 0 — UI foundations
 
-> Planning artifact for the HireHop UI implementation task. Written during the planning phase, before any production code.
+> Planning artifact for the TailorMyResume UI implementation task. Written during the planning phase, before any production code.
 
 ## Purpose
 
@@ -40,6 +40,6 @@ Flow 1 lands after Flow 4 because the flow-1 "confirm your facts" screen needs t
 - `docs/ARCHITECTURE.md` still says Gradle 9.7.1. The wrapper is 9.8.0.
 - `docs/ARCHITECTURE.md` section 6 lists five navigation keys. The design adds settings, your data, delete account, credits, and consent, so section 6 must be extended before the flow PRs land.
 - `feature/tailor/impl/.../TailorApplicationStatus.kt` discards the result of `Navigator.goBack()` at the root of the back stack.
-- `Result` is declared and never used in `HireHopApplication.kt`.
+- `Result` is declared and never used in `TailorMyResumeApplication.kt`.
 - `DemoProfileProvider` is a test double in the release main source set.
 - `core:data` and `core:testing` form a test-scope cycle.

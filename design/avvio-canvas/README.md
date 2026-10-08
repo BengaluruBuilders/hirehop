@@ -15,7 +15,7 @@ one element: `"text" bg=<token> r=<radius> h=<height> pad=<padding> <size>/<weig
 
 ## Tokens
 
-| Token | Dark | Light | `HhColors` |
+| Token | Dark | Light | `TmrColors` |
 |---|---|---|---|
 | bg | #000000 | #FFFFFF | `background`, `ground` |
 | card | #161817 | #F4F6F1 | `card`, `surface` |
@@ -34,35 +34,35 @@ Light mode only: progress bars, step bars, spinners and rings are #3C6208 on a #
 placeholder and disabled text is #646762 (4.5:1 on white and both light cards). Every disabled
 button has a short line under it, with an info icon, that says why it is off.
 
-Type: Manrope (UI) and Archivo Black (uppercase headlines, through `HhHeadline`). Scale in `Type.kt`.
+Type: Manrope (UI) and Archivo Black (uppercase headlines, through `TmrHeadline`). Scale in `Type.kt`.
 
 ## Components
 
-| Canvas part | Spec | `Hh*` |
+| Canvas part | Spec | `Tmr*` |
 |---|---|---|
-| Main button | min 56, radius 28, 16/800, LIME fill, black text | `HhButton` Large Primary |
-| Secondary button | card2 fill, text colour | `HhButton` Secondary |
-| Outline button | transparent, 1.5 line outline | `HhButton` Outline |
-| Small button | 48 high, radius 24, 14/800, icon 17 | `HhButton` Compact |
-| Icon button | 48 circle, card2, icon 22 text colour | `HhIconButton`, `HhBackButton` |
-| Top bar | 64 high, padding 0 12, back button, title 18/800 | `HhInnerHeader` |
-| Screen headline | Archivo Black uppercase 30 (28 on messages, 34 on Welcome) | `HhHeadline` |
-| Body | padding 16 sides, gap 12; footer padding 12 16, gap 8 | `HhScreen` |
-| Card | card, radius 20, padding 16, gap 10 | `HhCard` |
-| Banner | tone fill, radius 18, padding 14 16, icon 22, 14.5/700 text colour | `HhOfflineBanner`, `HhErrorCallout` |
+| Main button | min 56, radius 28, 16/800, LIME fill, black text | `TmrButton` Large Primary |
+| Secondary button | card2 fill, text colour | `TmrButton` Secondary |
+| Outline button | transparent, 1.5 line outline | `TmrButton` Outline |
+| Small button | 48 high, radius 24, 14/800, icon 17 | `TmrButton` Compact |
+| Icon button | 48 circle, card2, icon 22 text colour | `TmrIconButton`, `TmrBackButton` |
+| Top bar | 64 high, padding 0 12, back button, title 18/800 | `TmrInnerHeader` |
+| Screen headline | Archivo Black uppercase 30 (28 on messages, 34 on Welcome) | `TmrHeadline` |
+| Body | padding 16 sides, gap 12; footer padding 12 16, gap 8 | `TmrScreen` |
+| Card | card, radius 20, padding 16, gap 10 | `TmrCard` |
+| Banner | tone fill, radius 18, padding 14 16, icon 22, 14.5/700 text colour | `TmrOfflineBanner`, `TmrErrorCallout` |
 | Note | icon 18 mute, 14/600 mute | — |
-| Fact ID chip | 24 high, radius 8, card2, acc text 12/800 tracking .05em | `HhFactId` |
-| Status chip | 26 high, radius 13, card2, icon 16 and 13/800 in status colour | `HhStatusChip`, `HhProvenanceChip` |
+| Fact ID chip | 24 high, radius 8, card2, acc text 12/800 tracking .05em | `TmrFactId` |
+| Status chip | 26 high, radius 13, card2, icon 16 and 13/800 in status colour | `TmrStatusChip`, `TmrProvenanceChip` |
 | Status colours | Met and Confirmed acc; Partly met warn; To prepare text; Pending mute; Failed err | `statusColor` |
-| Checkbox | 24, radius 7; on LIME with black check; off 2 mute border; row min 48, 15.5/700 | `HhCheckbox` |
+| Checkbox | 24, radius 7; on LIME with black check; off 2 mute border; row min 48, 15.5/700 | `TmrCheckbox` |
 | Progress | 8 high, radius 4, card2 track, LIME fill | — |
-| Step row | card, radius 18, padding 14 16, min 56; done LIME disc with black check; now ring; waiting dim; trailing 13/700 mute word | `HhStepProgress` |
-| Text area | card, radius 22, padding 16; error 2 outline | `HhTextField` |
-| Field | card, radius 18, padding 12 16, min 64; label 13/700 mute; value 16/700 | `HhTextField` |
+| Step row | card, radius 18, padding 14 16, min 56; done LIME disc with black check; now ring; waiting dim; trailing 13/700 mute word | `TmrStepProgress` |
+| Text area | card, radius 22, padding 16; error 2 outline | `TmrTextField` |
+| Field | card, radius 18, padding 12 16, min 64; label 13/700 mute; value 16/700 | `TmrTextField` |
 | Section label | 13/800 uppercase tracking .06em mute | — |
-| Sheet | sheet fill, radius 28 top, handle 36 x 4 line colour | `HhBottomSheet` |
-| Message state | 88 circle tone fill, icon 40; headline 28; text 16 | `HhSpotIllustration` |
-| Logo tile | 44, radius 14, colour fill, 18/800 black letter | `HhMonogram` |
+| Sheet | sheet fill, radius 28 top, handle 36 x 4 line colour | `TmrBottomSheet` |
+| Message state | 88 circle tone fill, icon 40; headline 28; text 16 | `TmrSpotIllustration` |
+| Logo tile | 44, radius 14, colour fill, 18/800 black letter | `TmrMonogram` |
 
 ## outline.js
 

@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.hirehop.android.feature.api)
+    alias(libs.plugins.tailormyresume.android.feature.api)
 }
 
 android {
-    namespace = "com.hirehop.feature.tailor.api"
+    namespace = "com.tailormyresume.feature.tailor.api"
 }

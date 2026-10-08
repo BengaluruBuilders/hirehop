@@ -24,7 +24,7 @@
         <item quantity="one">You\'ve used today\'s %1$d free analysis. You get %1$d more tomorrow.</item>
         <item quantity="other">You\'ve used today\'s %1$d free analyses. You get %1$d more tomorrow.</item>
     </plurals>
-    <string name="feature_onboarding_impl_paste_jd_problem_link_only">Paste the JD text, not the link. HireHop does not open links.</string>
+    <string name="feature_onboarding_impl_paste_jd_problem_link_only">Paste the JD text, not the link. TailorMyResume does not open links.</string>
     <string name="feature_onboarding_impl_paste_jd_problem_too_short">This looks shorter than a job description. Paste the full text.</string>
     <string name="feature_onboarding_impl_paste_jd_problem_too_long">This is longer than one job description. Paste just the role you are applying for.</string>
     <string name="feature_onboarding_impl_paste_jd_offline_message">You\'re offline. Your JD is saved on this phone.</string>

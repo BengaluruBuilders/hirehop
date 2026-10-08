@@ -12,7 +12,7 @@ bg=bg r=28px h=800px w=360px
 bg=bg r=28px h=800px w=360px
  "Profile" 18/800
  bg=warnBg r=18px pad=12px 8px 12px 16px gap=12px icon
-  "2 items are not confirmed. HireHop won't use them." 14.5/700
+  "2 items are not confirmed. TailorMyResume won't use them." 14.5/700
   "Review" outline=1.5px line h=48px gap=7px 14/800 text
  bg=card r=20px pad=16px gap=10px
   "PD" bg=#2E6B4F r=28px h=56px w=56px 19/800 text

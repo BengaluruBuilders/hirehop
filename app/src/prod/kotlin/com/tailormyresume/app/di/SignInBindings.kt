@@ -1,0 +1,66 @@
+package com.tailormyresume.app.di
+
+import com.tailormyresume.app.BuildConfig
+import com.tailormyresume.app.auth.ConsentRevoker
+import com.tailormyresume.app.auth.CredentialManagerGoogleSource
+import com.tailormyresume.app.auth.FirebaseAuthClient
+import com.tailormyresume.app.auth.FirebaseConfig
+import com.tailormyresume.app.auth.FirebaseSessionClient
+import com.tailormyresume.app.auth.ForegroundActivity
+import com.tailormyresume.app.auth.ForegroundActivityTracker
+import com.tailormyresume.app.auth.GoogleCredentialSource
+import com.tailormyresume.app.auth.RemoteConsentUploader
+import com.tailormyresume.app.auth.RemoteServerAccountDeleter
+import com.tailormyresume.app.auth.RemoteSignInGateway
+import com.tailormyresume.core.domain.ConsentUploader
+import com.tailormyresume.core.domain.FirebaseUidProvider
+import com.tailormyresume.core.domain.SignInGateway
+import com.tailormyresume.core.domain.account.ServerAccountDeleter
+import com.tailormyresume.core.network.ConsentRequiredListener
+import com.tailormyresume.core.network.IdTokenProvider
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+@Module
+@InstallIn(SingletonComponent::class)
+interface SignInBindings {
+    @Binds
+    fun bindSignInGateway(impl: RemoteSignInGateway): SignInGateway
+
+    @Binds
+    fun bindGoogleCredentialSource(impl: CredentialManagerGoogleSource): GoogleCredentialSource
+
+    @Binds
+    fun bindFirebaseSessionClient(impl: FirebaseAuthClient): FirebaseSessionClient
+
+    @Binds
+    fun bindIdTokenProvider(impl: FirebaseAuthClient): IdTokenProvider
+
+    @Binds
+    fun bindFirebaseUidProvider(impl: FirebaseAuthClient): FirebaseUidProvider
+
+    @Binds
+    fun bindConsentUploader(impl: RemoteConsentUploader): ConsentUploader
+
+    @Binds
+    fun bindConsentRequiredListener(impl: ConsentRevoker): ConsentRequiredListener
+
+    @Binds
+    fun bindServerAccountDeleter(impl: RemoteServerAccountDeleter): ServerAccountDeleter
+
+    companion object {
+        @Provides
+        fun foregroundActivity(): ForegroundActivity = ForegroundActivityTracker
+
+        @Provides
+        fun firebaseConfig(): FirebaseConfig = FirebaseConfig(
+            apiKey = BuildConfig.TAILORMYRESUME_FIREBASE_API_KEY,
+            appId = BuildConfig.TAILORMYRESUME_FIREBASE_APP_ID,
+            projectId = BuildConfig.TAILORMYRESUME_FIREBASE_PROJECT_ID,
+            webClientId = BuildConfig.TAILORMYRESUME_WEB_CLIENT_ID,
+        )
+    }
+}

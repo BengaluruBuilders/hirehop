@@ -4,7 +4,7 @@
     <string name="feature_settings_impl_your_data_back">Back</string>
     <string name="feature_settings_impl_your_data_offline_message">You\'re offline. You can see your data. Downloading and deleting need a connection.</string>
 
-    <string name="feature_settings_impl_your_data_headline">What HireHop holds about you</string>
+    <string name="feature_settings_impl_your_data_headline">What TailorMyResume holds about you</string>
 
     <string name="feature_settings_impl_your_data_profile_title">Profile facts</string>
     <plurals name="feature_settings_impl_your_data_profile_summary">
@@ -59,6 +59,6 @@
     <string name="feature_settings_impl_your_data_delete_confirm">Delete application</string>
     <string name="feature_settings_impl_your_data_delete_keep">Keep application</string>
 
-    <string name="feature_settings_impl_your_data_share_subject">Your HireHop data</string>
-    <string name="feature_settings_impl_your_data_share_chooser">Share your HireHop data</string>
+    <string name="feature_settings_impl_your_data_share_subject">Your TailorMyResume data</string>
+    <string name="feature_settings_impl_your_data_share_chooser">Share your TailorMyResume data</string>
 </resources>

@@ -9,12 +9,12 @@
     <string name="feature_onboarding_impl_sign_in_offline_message">You\'re offline. Sign-in needs a connection.</string>
     <string name="feature_onboarding_impl_sign_in_failure_message">Google sign-in didn’t finish. Nothing was sent. Try again.</string>
     <string name="feature_onboarding_impl_sign_in_cancelled_message">Sign-in was cancelled. Nothing was sent.</string>
-    <string name="feature_onboarding_impl_sign_in_under_18_title">HireHop is for people 18 and over</string>
+    <string name="feature_onboarding_impl_sign_in_under_18_title">TailorMyResume is for people 18 and over</string>
     <string name="feature_onboarding_impl_sign_in_under_18_close_description">Close</string>
     <string name="feature_onboarding_impl_sign_in_under_18_body">Nothing from this phone was sent.</string>
     <string name="feature_onboarding_impl_sign_in_under_18_action_back">Back to start</string>
     <string name="feature_onboarding_impl_sign_in_heading">Sign in to analyse</string>
-    <string name="feature_onboarding_impl_sign_in_age_support">Next, your JD and resume go to HireHop\'s server to be read. They stay private to your account.</string>
+    <string name="feature_onboarding_impl_sign_in_age_support">Next, your JD and resume go to TailorMyResume\'s server to be read. They stay private to your account.</string>
     <string name="feature_onboarding_impl_sign_in_legal_prefix">We only use Google to sign you in. By continuing you agree to the\u0020</string>
     <string name="feature_onboarding_impl_sign_in_legal_terms">Terms</string>
     <string name="feature_onboarding_impl_sign_in_legal_and">\u0020and\u0020</string>

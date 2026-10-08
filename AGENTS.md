@@ -1,6 +1,6 @@
-# HireHop
+# TailorMyResume
 
-HireHop is an Android app. It turns a candidate's confirmed background and a job description into a
+TailorMyResume is an Android app. It turns a candidate's confirmed background and a job description into a
 tailored application. It never invents facts about the candidate.
 
 ## Read these first
@@ -9,7 +9,7 @@ tailored application. It never invents facts about the candidate.
 2. `docs/ARCHITECTURE.md` — modules, models, interfaces, and navigation.
 3. `docs/PRD.md` — product scope and release gates.
 4. `docs/REDESIGN.md` — the rules and the procedure for the "Friendly hero, Jade" design.
-5. `docs/DESIGN_SYSTEM.md` — the tokens and the `Hh*` components in `core:designsystem`.
+5. `docs/DESIGN_SYSTEM.md` — the tokens and the `Tmr*` components in `core:designsystem`.
 6. `docs/MOCK_BACKEND.md` — the interfaces and the on-device state behind every screen.
 7. `docs/MVP_PLAN.md` — the MVP build plan, chunk state, and the orchestrator runbook. Start here
    if you are asked to continue the MVP build.
@@ -56,10 +56,10 @@ If the design changes, export the frames again and replace the folder in one PR.
 ## Motion
 
 - Two registers only: `proof` (default) and `hop` (gap closed, exported, pack purchased, first fact confirmed).
-- Read specs from `HhTheme.motion`. Do not add a duration scale or an easing scale.
+- Read specs from `TmrTheme.motion`. Do not add a duration scale or an easing scale.
 - Motion code lives in `core:designsystem`. Navigation wiring lives in `:app`.
-- A feature calls an `Hh*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
-- If `HhTheme.motion.reduced` is true, nothing moves. The state change stays visible.
+- A feature calls an `Tmr*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
+- If `TmrTheme.motion.reduced` is true, nothing moves. The state change stays visible.
 - In a lazy list, animate `graphicsLayer` alpha, translation, and scale only.
 - Do not build the multi-frame sequences of the board.
 - A settled frame must not change. Do not record a screenshot baseline again for a motion change.
@@ -75,7 +75,7 @@ If the design changes, export the frames again and replace the folder in one PR.
 | Run unit tests | `./gradlew testDebugUnitTest :app:testDemoDebugUnitTest :app:testProdDebugUnitTest` |
 | Record screenshot baselines for one module | `./gradlew :feature:<name>:impl:recordRoborazziDebug` |
 | Verify screenshot baselines | `./gradlew verifyRoborazziDebug` |
-| Run one test class | `./gradlew :core:domain:testDebugUnitTest --tests "com.hirehop.core.domain.TailorResumeUseCaseTest"` |
+| Run one test class | `./gradlew :core:domain:testDebugUnitTest --tests "com.tailormyresume.core.domain.TailorResumeUseCaseTest"` |
 | Run lint | `./gradlew lintRelease :app:lintDemoRelease :app:lintProdRelease` |
 | Check the release classpath | `./gradlew dependencyGuard` |
 | Update the release classpath baseline | `./gradlew dependencyGuardBaseline` |
@@ -87,11 +87,11 @@ If the design changes, export the frames again and replace the folder in one PR.
 ## Flavours
 
 `:app` has the flavour dimension `backend`. `demo` is offline and has no `INTERNET` permission. `prod` talks to
-the HireHop backend (Constitution I.5). The debug build below belongs to `demo`.
+the TailorMyResume backend (Constitution I.5). The debug build below belongs to `demo`.
 
 ## Debug build
 
-The debug build installs a second launcher entry, "HireHop dev". It loads sample data, resets the app,
+The debug build installs a second launcher entry, "TailorMyResume dev". It loads sample data, resets the app,
 and switches the app offline. It also opens any screen in a forced state.
 
 ## Continuous integration

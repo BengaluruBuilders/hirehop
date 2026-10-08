@@ -1,8 +1,8 @@
-Design all the screens of HireHop, an Android app.
+Design all the screens of TailorMyResume, an Android app.
 
 ## What the app is
 
-HireHop turns a person's confirmed background and a job description into a tailored application: a resume, an optional cover letter, and interview prep. It never invents facts. Every rewritten line traces back to a fact the user confirmed. Users are early-career and 1-to-2-years-in job seekers in India. Payments are in rupees through Google Play.
+TailorMyResume turns a person's confirmed background and a job description into a tailored application: a resume, an optional cover letter, and interview prep. It never invents facts. Every rewritten line traces back to a fact the user confirmed. Users are early-career and 1-to-2-years-in job seekers in India. Payments are in rupees through Google Play.
 
 ## Features
 

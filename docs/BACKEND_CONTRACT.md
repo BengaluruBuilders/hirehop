@@ -1,6 +1,6 @@
-# HireHop backend contract, v1
+# TailorMyResume backend contract, v1
 
-Status: proposed 2026-10-07. Owner: the HireHop app. The backend is `BengaluruBuilders/apps-backend`.
+Status: proposed 2026-10-07. Owner: the TailorMyResume app. The backend is `BengaluruBuilders/apps-backend`.
 The app decides the shapes in this file. The backend may change an internal detail. A change to a
 request, a response, a status, or an error code needs a change to this file first.
 
@@ -12,21 +12,21 @@ the interfaces that each route backs.
 | # | Decision | Why |
 |---|---|---|
 | D1 | The device keeps the profile and the applications (Room). The server stores no profile, no application, no resume, and no JD after a request ends. Only tailored bullets wait 24 hours for the app to collect them (section 6). Sync is after the MVP. | Smallest DPDP surface. A lost profile is re-imported in 3 minutes. Credits, the money part, live on the server. |
-| D2 | The device reads the text of the PDF or DOCX (it does this today). The app uploads no file. HireHop does not use `/v1/files`. | PRD F1.6 ("delete the file after extraction") holds by design. No R2 object to delete. |
-| D3 | HireHop gets typed routes under `/v1/hirehop/`. It does not call `/v1/ai/extract` directly. The routes reuse the core reserve and settle code. | The server checks every cited id against the facts it got, counts the daily allowance in the same transaction, and runs the verifier model. A generic `input` string cannot do this. |
+| D2 | The device reads the text of the PDF or DOCX (it does this today). The app uploads no file. TailorMyResume does not use `/v1/files`. | PRD F1.6 ("delete the file after extraction") holds by design. No R2 object to delete. |
+| D3 | TailorMyResume gets typed routes under `/v1/tailormyresume/`. It does not call `/v1/ai/extract` directly. The routes reuse the core reserve and settle code. | The server checks every cited id against the facts it got, counts the daily allowance in the same transaction, and runs the verifier model. A generic `input` string cannot do this. |
 | D4 | The server owns the counts: credits, daily analyses, the daily free tailoring, unlocked applications, purchases. The device stops counting. | A reinstall must not reset a count. Purchased credits must survive a lost phone. |
 | D5 | One credit unlocks one application, once. Every later export of that application is free (PDF, DOCX, again). | PRD 8.1 sells "5 full applications". Today the app spends a credit on every export, so PDF plus DOCX costs 2. |
 | D6 | Tailoring is a job: start, then poll. The other AI routes answer in the same request. | Tailoring runs up to 4 model calls (generate, verify, repair, verify) and can pass 60 s. A dropped mobile connection must not bill twice. |
 | D7 | Two fabrication defences. The server checks cited ids, keyword grounding, and claim support (a second model, one repair). The device then runs the existing `FabricationGuard` as the last gate. | Constitution I.1 keeps its CI gate on the device. PRD 6.4 item 4 needs a different model as verifier. |
 | D8 | AI routes never get the name, the email, or the phone. They get confirmed facts only (except resume parse, which gets the resume text). | Data minimisation, DPDP. The app adds the name to the cover letter and the export. |
 | D9 | The server refuses AI routes until the user has granted `ai-processing` and `age-18-plus` for the current notice version. | Processing needs consent first (DPDP). A grant of an old notice does not count. The check is one query. |
-| D10 | The HireHop day is the calendar day in `Asia/Kolkata`. | India-only product. "Today" must mean the user's day. The core AI quota keeps its UTC day. |
+| D10 | The TailorMyResume day is the calendar day in `Asia/Kolkata`. | India-only product. "Today" must mean the user's day. The core AI quota keeps its UTC day. |
 | D11 | The server checks each Google Play purchase and consumes it. The purchase is bound to the user through `obfuscatedAccountId`. | A replayed token from another account gets no credit. The client has one less step that can fail. |
 | D12 | The paywall is enforced on the device. The server limits cost, not access. | The device renders the PDF and DOCX, so the server never sees an export. A modified client can skip the unlock. The per-user AI quota and the app cost cap bound what such a client can spend. Binding unlocks to content would not close the export path. |
 
 ### Backend prerequisites
 
-The current `apps-backend` has none of these yet. HireHop issue 1 and issue 2 add them.
+The current `apps-backend` has none of these yet. TailorMyResume issue 1 and issue 2 add them.
 
 - Status `402` in `ApiStatus` and the new codes of section 2 in `ApiErrorCode` (`src/core/errors.ts`).
 - Model tiers `extraction`, `generation`, `verifier`, each with its own price. Today `src/apps.ts` has
@@ -37,11 +37,11 @@ The current `apps-backend` has none of these yet. HireHop issue 1 and issue 2 ad
 ## 2. Conventions
 
 - Base URL: the Fly.io host of `apps-backend`. All paths start with `/v1`.
-- Every request sends `X-App-Id: hirehop` and `Authorization: Bearer <Firebase ID token>`.
-  An unknown `X-App-Id` gets the core `400 APP_ID_INVALID` or `400 APP_NOT_FOUND`. A `/v1/hirehop/*`
+- Every request sends `X-App-Id: tailormyresume` and `Authorization: Bearer <Firebase ID token>`.
+  An unknown `X-App-Id` gets the core `400 APP_ID_INVALID` or `400 APP_NOT_FOUND`. A `/v1/tailormyresume/*`
   route called with another registered app id answers `404 NOT_FOUND`.
 - JSON bodies, UTF-8, `camelCase` keys. Enum values are the Kotlin enum names (`MET`, `EXPERIENCE`).
-- Times are ISO 8601 in UTC (`2026-10-07T18:30:00Z`). A HireHop day is `YYYY-MM-DD` in `Asia/Kolkata`.
+- Times are ISO 8601 in UTC (`2026-10-07T18:30:00Z`). A TailorMyResume day is `YYYY-MM-DD` in `Asia/Kolkata`.
 - An unknown field in a request body is `400 INVALID_INPUT`. A response can get new fields; the app ignores unknown fields.
 - Errors use the existing envelope: `{"error":{"code":"...","message":"..."}}`. The app branches on `code`, never on `message`.
 - The server never logs a request body, a response body, a resume, a JD, or a fact.
@@ -56,7 +56,7 @@ The codes in the first table exist in `src/core/errors.ts`. The second table is 
 | 400 | `INVALID_INPUT` | Bad body, a limit in this file is broken |
 | 401 | `UNAUTHENTICATED`, `INVALID_TOKEN` | No token, bad token. The app gets a fresh Firebase token and tries once more |
 | 403 | `CROSS_APP_TOKEN`, `FORBIDDEN` | Token of another app; a resource of another user |
-| 404 | `NOT_FOUND` | Unknown id, or a HireHop route called with another `X-App-Id` |
+| 404 | `NOT_FOUND` | Unknown id, or a TailorMyResume route called with another `X-App-Id` |
 | 409 | `ACCOUNT_DELETED` | Deletion pending or done |
 | 413 | `PAYLOAD_TOO_LARGE` | Body over the route limit |
 | 429 | `RATE_LIMITED` | Request rate. `Retry-After` header |
@@ -70,7 +70,7 @@ The codes in the first table exist in `src/core/errors.ts`. The second table is 
 | 403 | `CONSENT_REQUIRED` | AI route without a grant of `ai-processing` and `age-18-plus` for the current notice version. The app opens the Consent screen |
 | 409 | `PURCHASE_PENDING` | Play reports the purchase as pending |
 | 400 | `PURCHASE_INVALID` | Play reports the purchase as cancelled, or answers 400 or 404 for the token |
-| 429 | `ALLOWANCE_EXHAUSTED` | No HireHop daily analysis left for a new JD |
+| 429 | `ALLOWANCE_EXHAUSTED` | No TailorMyResume daily analysis left for a new JD |
 | 502 | `PLAY_UNAVAILABLE` | The Google Play Developer API did not answer, or answered 401, 403, 429, or 5xx. The app keeps the token and tries again |
 
 ## 3. Shared shapes
@@ -141,36 +141,36 @@ unchanged in later requests.
 
 Every AI answer carries a `generationId`: the id of the first `ai_usage` row of that request. The app
 stores it with the content and sends it with a content report. The `ai_usage.task` value of a
-HireHop call names the prompt version (`hirehop.tailor.v1`), so a report links to the model and
+TailorMyResume call names the prompt version (`tailormyresume.tailor.v1`), so a report links to the model and
 the prompt version with no new column.
 
 ## 4. Routes
 
 ### 4.1 Account (exists in core)
 
-| Route | Use in HireHop |
+| Route | Use in TailorMyResume |
 |---|---|
 | `GET /v1/me` | Call once after each Firebase sign-in. It creates the user row |
 | `POST /v1/me/consents` | One call per purpose on the Consent screen. Body `{"purpose","granted","policyVersion"}` |
-| `DELETE /v1/me` | Delete account. It must also delete every HireHop table in this file (section 6) |
+| `DELETE /v1/me` | Delete account. It must also delete every TailorMyResume table in this file (section 6) |
 
-HireHop consent purposes (one row each):
+TailorMyResume consent purposes (one row each):
 
 | Purpose | Screen text it records |
 |---|---|
 | `read-and-build` | Read my resume and build my profile |
-| `ai-processing` | Send my resume text, confirmed facts, and job descriptions to HireHop servers and our AI provider to analyse and tailor. Replaces today's "analyse on device" |
+| `ai-processing` | Send my resume text, confirmed facts, and job descriptions to TailorMyResume servers and our AI provider to analyse and tailor. Replaces today's "analyse on device" |
 | `keep-confirmed-facts` | Keep my confirmed facts on this device |
 | `age-18-plus` | I am 18 or older |
 
 `policyVersion` is `ConsentRecord.CURRENT_NOTICE_VERSION` in lower case (today `2026-10-b`). It must
-change when the notice text changes. The server holds the current version in HireHop config
+change when the notice text changes. The server holds the current version in TailorMyResume config
 (`noticeVersion`). The AI routes need the newest row of `ai-processing` and of `age-18-plus` to be
 `granted = true` with `policyVersion` equal to `noticeVersion`. A new notice version makes every
 user consent again; the app reacts to `403 CONSENT_REQUIRED` by opening the Consent screen.
 A withdrawal does not stop a tailoring job that already runs.
 
-### 4.2 `POST /v1/hirehop/resume/parse`
+### 4.2 `POST /v1/tailormyresume/resume/parse`
 
 Backs `ResumeTextParser`. Sync. Counts against the core AI quota. Does not use a daily analysis.
 Needs consent. Body limit 128 KB.
@@ -221,7 +221,7 @@ Rules:
    `CASTE`, `MARITAL_STATUS`, `GENDER`. The app tells the user (PRD F1.7).
 4. A resume with no entries gives `200` with empty `entries`. The app opens the guided form.
 
-### 4.3 `POST /v1/hirehop/analyses`
+### 4.3 `POST /v1/tailormyresume/analyses`
 
 Backs `AnalyzeJobUseCase` (JD analysis and gap match in one route). Sync. Needs consent. Body limit
 256 KB.
@@ -250,7 +250,7 @@ Rules:
 1. One match per requirement, in requirement order.
 2. The server removes evidence ids that are not evidence ids of the request. A `MET` or `PARTIAL`
    match with no id left becomes `GAP`.
-3. Daily allowance: 3 distinct JDs per HireHop day. The key is SHA-256 of `jobText` after trim and
+3. Daily allowance: 3 distinct JDs per TailorMyResume day. The key is SHA-256 of `jobText` after trim and
    whitespace collapse. A second analysis of the same key on the same day is free. A failed analysis
    counts nothing. With 0 left and a new key: `429 ALLOWANCE_EXHAUSTED`, and the model is not called.
 4. The count is a claim, because the model call cannot be inside a database transaction. Before the
@@ -265,7 +265,7 @@ Rules:
 
 Backs `ResumeTailor`. Needs consent. Body limit 256 KB.
 
-#### `POST /v1/hirehop/tailorings`
+#### `POST /v1/tailormyresume/tailorings`
 
 ```json
 {
@@ -297,7 +297,7 @@ A section regeneration never makes a claim. The device keeps the 2-regeneration 
 At most 4 jobs run at the same time on one API machine. A start over that limit gets
 `429 RATE_LIMITED` with `Retry-After: 10`.
 
-#### `GET /v1/hirehop/tailorings/{id}`
+#### `GET /v1/tailormyresume/tailorings/{id}`
 
 ```json
 {
@@ -349,7 +349,7 @@ Rules:
 7. The app polls every 2 s while the screen is open, and from a WorkManager job when it is not, then
    notifies the user (PRD F3 acceptance).
 
-### 4.5 `POST /v1/hirehop/prep-questions`
+### 4.5 `POST /v1/tailormyresume/prep-questions`
 
 Backs `PrepQuestionSource`. Sync. Needs consent. Body limit 256 KB. No credit check: the core AI
 quota bounds the cost (D12).
@@ -384,7 +384,7 @@ Rules:
 3. `GAP`: the requirement is `GAP`, `backingFactIds` is empty, `gapAdvice` is one honest way to talk
    about the gap. A gap is never the premise of a `STRENGTH` or `CLARIFY` question (PRD F3.7).
 
-### 4.6 `POST /v1/hirehop/cover-letters`
+### 4.6 `POST /v1/tailormyresume/cover-letters`
 
 Backs `CoverLetterSource`. Sync. Needs consent. Body limit 256 KB. No credit check (D12).
 
@@ -419,7 +419,7 @@ Rules:
 
 Backs `UsageAllowance` and the credit part of `PaymentGateway`.
 
-#### `GET /v1/hirehop/wallet`
+#### `GET /v1/tailormyresume/wallet`
 
 The first call creates the wallet with 1 free credit (insert, `ON CONFLICT DO NOTHING`).
 
@@ -439,7 +439,7 @@ The first call creates the wallet with 1 free credit (insert, `ON CONFLICT DO NO
 
 Daily values: 3 analyses, 1 free tailoring. They are server config, not app constants.
 
-#### `POST /v1/hirehop/applications/{applicationId}/unlock`
+#### `POST /v1/tailormyresume/applications/{applicationId}/unlock`
 
 No body. Spends one credit, free first, once per application.
 
@@ -450,7 +450,7 @@ No body. Spends one credit, free first, once per application.
 The app calls it before the first export of an application. It records `creditKind` in the
 `ExportRecord` of that first export, and `null` for every later export.
 
-#### `GET /v1/hirehop/packs`
+#### `GET /v1/tailormyresume/packs`
 
 ```json
 { "packs": [{ "productId": "application_pack_5", "credits": 5, "creditsExpire": false }] }
@@ -466,7 +466,7 @@ Backs the purchase part of `PaymentGateway`.
 The app sets `obfuscatedAccountId` in `BillingFlowParams` to the lower-case hex SHA-256 of the
 Firebase uid (64 characters).
 
-#### `POST /v1/hirehop/purchases`
+#### `POST /v1/tailormyresume/purchases`
 
 ```json
 { "productId": "application_pack_5", "purchaseToken": "opaque token from Play" }
@@ -480,7 +480,7 @@ Server steps:
 1. `productId` must be in the pack list, else `400 INVALID_INPUT`. `purchaseToken` at most 4,096 characters.
 2. A token already stored for this user returns the stored purchase, `200`, with no Play call except
    a consume that is still due (step 6).
-3. Call `purchases.products.get` for package `com.hirehop.app` and the given `productId`.
+3. Call `purchases.products.get` for package `com.tailormyresume.app` and the given `productId`.
    `purchaseState` 0 goes on, 2 is `409 PURCHASE_PENDING`, 1 is `400 PURCHASE_INVALID`. Play 400 or
    404 is `400 PURCHASE_INVALID`. No answer, or Play 401, 403, 429, or 5xx, is `502 PLAY_UNAVAILABLE`.
 4. `obfuscatedExternalAccountId` must equal the hex SHA-256 of the caller's uid. A missing or other
@@ -510,11 +510,11 @@ Response `201` (first grant) or `200` (repeat):
 The app does not call `consumeAsync`. A pending purchase stays on the device (Play state) and shows
 as pending; the server does not know it.
 
-#### `GET /v1/hirehop/purchases`
+#### `GET /v1/tailormyresume/purchases`
 
 `{"purchases":[Purchase]}`, newest first.
 
-### 4.9 `POST /v1/hirehop/content-reports`
+### 4.9 `POST /v1/tailormyresume/content-reports`
 
 Backs `ContentReportRepository.report`. Body limit 8 KB.
 
@@ -532,7 +532,7 @@ Backs `ContentReportRepository.report`. Body limit 8 KB.
 `201 {"report":{"id","reportedAt"}}`. The same user, `applicationId`, kind, and id again: `200` with
 the first report. No consent check: a report must always work.
 
-### 4.10 `GET /v1/hirehop/me/export`
+### 4.10 `GET /v1/tailormyresume/me/export`
 
 Backs the server part of `AccountDataExporter`. The app adds it to the zip as `server.json`.
 
@@ -556,25 +556,25 @@ Backs the server part of `AccountDataExporter`. The app adds it to the zip as `s
 |---|---|---|
 | AI calls per user per UTC day | 50 (core). One tailoring is up to 4 calls | Core config |
 | AI cost per app per day | $5 (core). Raise before launch | Core config |
-| Analyses per HireHop day | 3 distinct JDs | HireHop config |
-| Free tailorings per HireHop day | 1, only with no credit and no unlock | HireHop config |
-| Free credits for a new user | 1 | HireHop config |
+| Analyses per TailorMyResume day | 3 distinct JDs | TailorMyResume config |
+| Free tailorings per TailorMyResume day | 1, only with no credit and no unlock | TailorMyResume config |
+| Free credits for a new user | 1 | TailorMyResume config |
 | Requests per user per minute | 60 (core) | Core config |
 
 ## 6. Server storage and deletion
 
 | Table | Holds | Kept until |
 |---|---|---|
-| `hirehop_wallets` | user id, free and purchased credits | Account deletion |
-| `hirehop_usage_claims` | user id, day, kind (`ANALYSIS`, `FREE_TAILORING`), key (JD hash or application id), status, time | 30 days, or account deletion. A `USED` free-tailoring claim is kept until account deletion, because it allows the regenerations of that application |
-| `hirehop_unlocks` | user id, application id, credit kind, time | Account deletion |
-| `hirehop_purchases` | user id, token, order id, product, purchase type, credits, times, consumed time | Account deletion |
-| `hirehop_tailorings` | user id, request id, boot id, status, result (tailored bullets), times | 24 hours after the job ends, or account deletion |
-| `hirehop_content_reports` | user id, application id, kind, item id, generation id, item text, time | 180 days, or account deletion |
+| `tailormyresume_wallets` | user id, free and purchased credits | Account deletion |
+| `tailormyresume_usage_claims` | user id, day, kind (`ANALYSIS`, `FREE_TAILORING`), key (JD hash or application id), status, time | 30 days, or account deletion. A `USED` free-tailoring claim is kept until account deletion, because it allows the regenerations of that application |
+| `tailormyresume_unlocks` | user id, application id, credit kind, time | Account deletion |
+| `tailormyresume_purchases` | user id, token, order id, product, purchase type, credits, times, consumed time | Account deletion |
+| `tailormyresume_tailorings` | user id, request id, boot id, status, result (tailored bullets), times | 24 hours after the job ends, or account deletion |
+| `tailormyresume_content_reports` | user id, application id, kind, item id, generation id, item text, time | 180 days, or account deletion |
 
 `DELETE /v1/me` deletes all of them in the rows step, with tests for partial failure and retry, as
 the backend definition of done requires. That includes purchases: Google Play is the merchant of
-record and keeps the order and tax records, so HireHop keeps no copy.
+record and keeps the order and tax records, so TailorMyResume keeps no copy.
 
 Two tables hold text derived from the user: the tailored bullets for 24 hours, and the text of a
 reported item for 180 days. The resume text, the JD text, and the request bodies are never written to
@@ -592,7 +592,7 @@ Data Retention with OpenAI is a launch item (PRD 10.4).
 | Cover letter | up to 4 | `generation`, then `verifier` |
 
 The `verifier` model must differ from the `generation` model. The backend picks the models and keeps
-them in `src/apps.ts`. The `ai_usage.task` of each call is `hirehop.<route>.v<prompt version>`.
+them in `src/apps.ts`. The `ai_usage.task` of each call is `tailormyresume.<route>.v<prompt version>`.
 
 Prompt injection. All resume, JD, and fact text is untrusted.
 
@@ -602,7 +602,7 @@ Prompt injection. All resume, JD, and fact text is untrusted.
 3. The verifier gets only the cited source facts and the proposed text, never the JD.
 4. The prompt-injection set of the evaluation (PRD 10.3) is a release gate.
 
-A prompt, schema, or model change needs a run of the HireHop evaluation set before merge.
+A prompt, schema, or model change needs a run of the TailorMyResume evaluation set before merge.
 
 ## 8. Work on the app side
 

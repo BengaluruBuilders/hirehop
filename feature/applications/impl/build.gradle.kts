@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.hirehop.android.feature.impl)
-    alias(libs.plugins.hirehop.android.library.compose)
+    alias(libs.plugins.tailormyresume.android.feature.impl)
+    alias(libs.plugins.tailormyresume.android.library.compose)
 }
 
 android {
-    namespace = "com.hirehop.feature.applications.impl"
+    namespace = "com.tailormyresume.feature.applications.impl"
 }
 
 dependencies {

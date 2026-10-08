@@ -781,7 +781,7 @@ bg=bg r=28px h=800px w=360px
     bg=LIME h=18px w=2px
   "Linked to" gap=8px 13.5/700 mute
    "W-01" bg=card2 r=8px h=24px pad=0 8px 12/800 LIME
-  "HireHop does not check hand edits." 
+  "TailorMyResume does not check hand edits." 
   "Save line" bg=LIME r=28px minh=56px pad=0 22px gap=10px 16/800 bg
   "Cancel" bg=card2 r=28px minh=56px pad=0 22px gap=10px 16/800 text
   bg=text r=2px h=4px w=108px
@@ -817,7 +817,7 @@ bg=bg r=28px h=800px w=360px
   "Made sales reports every week." 15/600 mute
   "Your line" 12/800 UP mute
   "Built weekly sales reports in Excel for 40 stores across Pune." 16.5/800 text
-  "Your own words. HireHop does not check hand edits." 
+  "Your own words. TailorMyResume does not check hand edits." 
   "Source fact" 12/800 UP mute
   bg=card r=16px pad=12px 14px gap=6px
    "W-01" bg=card2 r=8px h=24px pad=0 8px 12/800 LIME
@@ -965,7 +965,7 @@ bg=bg r=28px h=800px w=360px
  bg=card2 r=24px h=48px w=48px icon
  "Cover letter" 18/800
  bg=card2 r=24px h=48px w=48px icon
- "User-edited. Your own words. HireHop does not check hand edits." 
+ "User-edited. Your own words. TailorMyResume does not check hand edits." 
  bg=card r=20px pad=16px gap=10px
   "Dear Hiring Team at Northwind GCC," 14/700
   "I'm applying for the Associate Analyst, Business Intelligence role. At Saffron Retail in Pune I build weekly sales reports in Excel for 40 stores and check daily stock data before those reports go out." 14/600

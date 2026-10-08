@@ -1,6 +1,6 @@
 # MVP build plan and orchestrator runbook
 
-Last update: 2026-10-07. This file lets a new agent take over as orchestrator and build the HireHop
+Last update: 2026-10-07. This file lets a new agent take over as orchestrator and build the TailorMyResume
 MVP. Read it from top to bottom before you act. When this file and `docs/CONSTITUTION.md` disagree,
 the constitution wins. Update section 2 and the chunk table each time a chunk changes state.
 
@@ -21,24 +21,24 @@ below. Product scope and implementation state are unchanged.
 ## 2. Current state
 
 - `main` has all 24 screens on the on-device mock backend. PDF and DOCX export, the share card
-  (`HhFitShareCard`), prep questions and the cover letter exist.
+  (`TmrFitShareCard`), prep questions and the cover letter exist.
 - The app has no network code. Constitution I.5 forbids it until an amendment.
 - C0 merged in PR #59. The app has one export template. `ExportTemplate` is removed.
   `ExportRecord.templateName` records "Plain".
-- C1 merged in PR #60. It has the Jade restyle tokens and the `Hh*` components. Fonts are Plus
+- C1 merged in PR #60. It has the Jade restyle tokens and the `Tmr*` components. Fonts are Plus
   Jakarta Sans (variable) and IBM Plex Mono 500. The OFL texts are in
-  `core/designsystem/fonts-licenses/`. `HhButtonSize.Compact` is 44 dp with a 48 dp touch area.
+  `core/designsystem/fonts-licenses/`. `TmrButtonSize.Compact` is 44 dp with a 48 dp touch area.
   Pressed jade is #064D3A. The dark sheet-item border is #3A404A. The dock is 76 dp with a stepped
   shadow.
 - C0 to C6 are merged: C0 #59, C1 #60, C2 #64, C3 #62, C4 #67, C5 #63, C6 #65.
 - Fixes are merged: #66 (the whole application card opens the workspace), #68 (status-bar icons
-  follow the top colour through `HhScreen(lightTop)`), and #70 (the sign-in back arrow shows in dark).
+  follow the top colour through `TmrScreen(lightTop)`), and #70 (the sign-in back arrow shows in dark).
 - Docs are merged: #51, #61, #69.
 - The final emulator walk-through of all five flows on `main` (929ca73) passed in light, dark and
   200% font. No crash occurred. Its one medium defect is fixed in #70.
 - Open lows that stay:
   - The S3b dark under-18 disc needs a dark illustration variant in `core:designsystem`.
-  - The inner header 200% layout should move into `HhInnerHeader` (follow-up task).
+  - The inner header 200% layout should move into `TmrInnerHeader` (follow-up task).
   - C5 cosmetic notes: 200% "14 facts" spacing, header strip alignment on S17 and S18, S18 Employer placeholder.
   - C6 notes: the Sign out icon, the small Delete text on S23.
 
@@ -59,7 +59,7 @@ Flows 3, 4 and 5 have no restyle frames. A screen chunk for these flows can star
 frames plus the C1 components. If the user wants restyle frames first, run Claude Design:
 
 1. Open the canvas https://claude.ai/artifact/766P2hFnsULQbnXVeKj3rM chat in the built-in browser
-   pane. The chat is "HireHop Android app design" in https://claude.ai/artifacts/design.
+   pane. The chat is "TailorMyResume Android app design" in https://claude.ai/artifacts/design.
 2. Type in the reply box. Shift+Enter makes a new line. Enter sends. A run takes 25 to 35 minutes.
    The browser pane cannot upload images, so describe references in words.
 3. Send one flow per message. Use this text, changed for the flow:
@@ -112,12 +112,12 @@ the screen chunks through the `/parallel-issues-minimax` skill.
 4. Screenshot captures go through `captureScreenHh` in `core/screenshot`. It fixes a Robolectric
    4.16 rounded-corner race. Never raise thresholds to hide drift.
 5. A visual change re-records the baselines of each module it changes. A motion change does not.
-6. No code comments (Constitution III.2). No mocking library (IV.2). Features use `Hh*` only (II.5).
+6. No code comments (Constitution III.2). No mocking library (IV.2). Features use `Tmr*` only (II.5).
 7. Gates before a PR: `./gradlew spotlessApply`, the module tests, `verifyRoborazziDebug`,
    `./gradlew lintRelease`, then `tools/ci/verify-local.sh` (warnings are errors there).
 8. Ask the user before a push, a PR, or a merge. GitHub auto-merge is not allowed here.
    PR title: `type(scope): summary`. PR body: what, why, how verified, in simple English.
-9. Verify UI on the emulator `emulator-5554`. Launch `com.hirehop.app/.MainActivity` by name
+9. Verify UI on the emulator `emulator-5554`. Launch `com.tailormyresume.app/.MainActivity` by name
    (the debug build has two launcher entries). Mobile MCP `type_keys` does not type into Compose
    fields; use `adb shell input text`.
 
@@ -158,7 +158,7 @@ Only the Gradle builds are serialised.
 ### C1 · Design system restyle
 
 - Goal: `core:designsystem` matches `design/jade-restyle/` foundations, light and dark.
-- Work: token values (colour with a new coral role, shapes, spacing, type); restyle the `Hh*`
+- Work: token values (colour with a new coral role, shapes, spacing, type); restyle the `Tmr*`
   components; add only what has no equivalent: solid colour card with monogram, pill list row
   (72 dp, 36 dp radius), squiggle set, bottom action bar (60 dp round secondary + 60 dp pill
   primary); dock as a full-width ink bar with 28 dp top corners, active icon in a raised jade
@@ -211,11 +211,11 @@ Only the Gradle builds are serialised.
 
 Each item is its own PR, in this order. All stay in-harness with a security review.
 
-1. Amendment PR: change I.5 to allow network access to the HireHop backend only, name the
+1. Amendment PR: change I.5 to allow network access to the TailorMyResume backend only, name the
    consent screen S4, keep backups off and analytics off unless the optional switch is on.
 2. Google sign-in with Credential Manager; Firebase Auth turns it into the ID token for the backend.
 3. Neon Postgres schema in `apps-backend`, with migrations committed there.
-4. HireHop routes in `apps-backend` as the model gateway, one route per step: extract resume, analyse JD,
+4. TailorMyResume routes in `apps-backend` as the model gateway, one route per step: extract resume, analyse JD,
    tailor, verify, prep questions, cover letter. `store: false`. Model IDs and prices in config.
 5. Guardrails: the deterministic checks of PRD 6.4 item 4.3 on the server, a verifier on a
    different model, one repair pass, fall back to the original bullet.
@@ -227,7 +227,7 @@ Each item is its own PR, in this order. All stay in-harness with a security revi
 C8 status, 2026-10-08. App side: the I.5 amendment, the `demo` and `prod` flavours, `core:network`,
 content reports posted to the backend (retry on the next app start), and `server.json` in the data
 export are built and tested against a fake server. Not yet verified against a live server.
-Backend: the HireHop routes are open PRs #41 to #50 in `BengaluruBuilders/apps-backend` and are not
+Backend: the TailorMyResume routes are open PRs #41 to #50 in `BengaluruBuilders/apps-backend` and are not
 deployed. Purchase verification (#33) is not started, so C9 stays blocked.
 
 ### C9 · Play Billing
@@ -256,7 +256,7 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-06 | C1 | Use the google/fonts files as shipped. Plus Jakarta Sans is a variable TTF, wired with `FontVariation` weights 400, 600, 700, 800. | Only the google/fonts download was authorized; no font tool is installed. |
 | 2026-10-06 | C1 | Add the compact button, pressed jade and the dark sheet-item border in C1. | Screen chunks need them; this is smaller than a detour in C2. |
 | 2026-10-07 | C1 | Error stays coral #B94C37. | Every error path pairs an icon or a word with the colour; the frame lists coral for errors. |
-| 2026-10-07 | C1 | The dock follows the frame now: 76 dp and a shadow. | C2 to C6 take their bottom padding from `HhDockDefaults.inset`; a later change would re-record every screen. |
+| 2026-10-07 | C1 | The dock follows the frame now: 76 dp and a shadow. | C2 to C6 take their bottom padding from `TmrDockDefaults.inset`; a later change would re-record every screen. |
 | 2026-10-07 | C1 | The dock shadow is drawn as stepped rings in one layer, not a blur. | Robolectric baselines must match on macOS and on the Linux CI runner. |
 | 2026-10-07 | C1 | Accept the wide dock shadow halo as an open low finding. | The extra final review was used; the issue is cosmetic; C6 tunes it on the emulator. |
 | 2026-10-07 | C0 | Remove SPACIOUS and the `ExportTemplate` enum, not only COMPACT. Keep `templateName` and record "Plain". | One template remains; old records still show a name. |
@@ -265,15 +265,15 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-07 | docs | A docs-only record PR gets a lead read of the diff, not an Opus review. | It has no code; the lead read meets the review condition of the merge rule. |
 | 2026-10-07 | C3 | Regenerate stays per section. | It keeps the existing behaviour and tests; the PRD counts 2 regenerations per application either way. |
 | 2026-10-07 | C3 | Export stays blocked until every line is reviewed. | Constitution I.2: nothing reaches an export without an explicit accept. The constitution wins over frame S8b. |
-| 2026-10-07 | C3 | Keep the centred `HhInnerHeader`. | The frame is left-aligned, but that needs a `core:designsystem` change outside C3; this is the smaller option. |
+| 2026-10-07 | C3 | Keep the centred `TmrInnerHeader`. | The frame is left-aligned, but that needs a `core:designsystem` change outside C3; this is the smaller option. |
 | 2026-10-07 | C3 | Fact-sheet page numbers stay out. | `TailoredBulletSource` and `FactSource` carry no page data; adding it needs `core:model`. |
 | 2026-10-07 | C2 | The small time overrun ends Coder pass 1. It is not a block. | The pass stopped at the budget and opened the PR with the unmet list, as the lane rule says. |
 | 2026-10-07 | C2 | The JD minimum stays at 20 words. The hint shows the code value, not the 80 of the frame. | It keeps the existing behaviour and tests; the frame decides the look only. |
-| 2026-10-07 | C2 | Drop the S4 "Help improve HireHop" row. | Constitution I.5 forbids analytics until an amendment. |
+| 2026-10-07 | C2 | Drop the S4 "Help improve TailorMyResume" row. | Constitution I.5 forbids analytics until an amendment. |
 | 2026-10-07 | C2 | Drop the S3 role line, the S2b location chip and the referral field. | The state holds no such data; the app does not parse location; referral credit is cut from the MVP (PRD 6.1.1). |
 | 2026-10-07 | C2 | The career choice is optional. | This is the conservative option; Continue keeps working as before. |
 | 2026-10-07 | C5 | Restore the per-fact status chips on the profile home cards. | The status rule (shape, word and colour) wins over a cleaner card. |
-| 2026-10-07 | C5 | Fix the vertical padding of `HhPillRow` inside the C5 PR with one `core:designsystem` modifier. | 200% font clipping fails a C5 criterion; this is smaller than a separate designsystem PR. The affected baselines are re-recorded. |
+| 2026-10-07 | C5 | Fix the vertical padding of `TmrPillRow` inside the C5 PR with one `core:designsystem` modifier. | 200% font clipping fails a C5 criterion; this is smaller than a separate designsystem PR. The affected baselines are re-recorded. |
 | 2026-10-07 | C5 | Ordering the evidence path by career choice is a C2 item. | C2 PR #64 builds it. |
 | 2026-10-07 | C2 | S6 fact cards have no Remove action. Confirm is full width. Delete the unused string. | `main` has no remove behaviour; adding one is new scope. |
 | 2026-10-07 | C6 | The home pill rows show exported applications (`ExportHistoryRepository`). The cards show applications that are not exported. | This follows the MVP_PLAN card text, and the data exists. |
@@ -283,11 +283,11 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-07 | C3 | The file-name wrap and the company monogram stay open lows. C4 fixes them. | The extra final review was used; both are lows; the C4 lane works in the same module. |
 | 2026-10-07 | C2 | S7c keeps one "New fact" path. S7d has no Save image. S5b has no "page 2 of 2". | The state has no confirmed-fact list, no save action and no page count; adding them is new scope. |
 | 2026-10-07 | C3 | Remove the `tools:ignore PluralsCandidate` suppressions from the PR and use plurals. Fix the two open lows now. | Constitution VII.4: a suppression is an amendment. A fix pass is needed anyway, so the lows cost little now. |
-| 2026-10-07 | C6 | The C6 Fixer tunes the dock halo in `HhDock` (maximum reach 24 dp) and re-records the dock baselines. | MVP_PLAN section 2 assigns it to C6; a constant change is small. |
+| 2026-10-07 | C6 | The C6 Fixer tunes the dock halo in `TmrDock` (maximum reach 24 dp) and re-records the dock baselines. | MVP_PLAN section 2 assigns it to C6; a constant change is small. |
 | 2026-10-07 | C5 | The four cosmetic walk-through notes become listed open lows. They do not start a new pass. | No criterion fails; the final review budget is used. |
 | 2026-10-07 | C6 | PR #65 merges after a Flow 5 walk-through. The all-flows walk-through runs once on `main` after the last chunk merges. | The goal names one final walk-through of all flows; running it per PR would repeat it on heads that change again. |
 | 2026-10-07 | All | After a pure "merge main and re-record baselines" update, verify with CI green, a scope check and a lead view of the changed baselines. Do not run a new emulator walk. | The delta has no behaviour change; the earlier walk-through still holds. |
-| 2026-10-07 | C3 | Fix the 200% header at feature level (the `TailorScreen` pattern), not in `HhInnerHeader`. | It keeps the scope and avoids re-recording every module now. The root fix in `HhInnerHeader` is a follow-up. |
+| 2026-10-07 | C3 | Fix the 200% header at feature level (the `TailorScreen` pattern), not in `TmrInnerHeader`. | It keeps the scope and avoids re-recording every module now. The root fix in `TmrInnerHeader` is a follow-up. |
 | 2026-10-07 | C6 | Merge with the card-body tap regression as a listed low. Fix it in a small follow-up PR in this run. | The arrow and TalkBack still open the workspace; a fix cycle would push C2 and C3 behind `main` again. |
 | 2026-10-07 | PR #66 | Verify with CI, a scope check and the click test. The final all-flows walk-through on `main` covers the tap. | It is a 2-file behaviour fix with a direct test. |
 | 2026-10-07 | C2 | Under-18 also clears the stored career choice. | The screen says "Nothing was kept"; truthful copy wins. It is one line and a test. |
@@ -295,7 +295,7 @@ more testers for 14 days, legal check of the consent copy.
 | 2026-10-07 | C4 | The hero cards on Exported and Credits use marigold, not coral. | Coral is also the error colour (C1); a coral success card can read as an error. |
 | 2026-10-07 | C4 | Keep the "Get an application pack" row visible and disabled offline. | It keeps the existing behaviour; this is the smaller change. |
 | 2026-10-07 | C4 | Keep "Price includes GST" and "No subscription. Nothing renews." at 200%. | The price disclosure must stay; truthful copy wins over the frame. |
-| 2026-10-07 | Status bar | Add an explicit `HhScreen` `lightTop` flag. The default is header == null. Profile is false. The C2 consent and import screens are true. The fixer runs after C2 merges. | A header does not tell the top colour; the defect lives on the C2 branch. |
+| 2026-10-07 | Status bar | Add an explicit `TmrScreen` `lightTop` flag. The default is header == null. Profile is false. The C2 consent and import screens are true. The fixer runs after C2 merges. | A header does not tell the top colour; the defect lives on the C2 branch. |
 | 2026-10-07 | All | Use `gh pr update-branch` when a PR is behind `main` only by a docs PR. | It makes a merge commit on the server. It needs no force push and no local Gradle build. CI runs again on the new head. |
 | 2026-10-07 | C4 | Remove the ₹49 single-application option from S13. | PRD 6.1.1 cuts the single-application product. The MVP has the 5-application pack only. |
 | 2026-10-07 | C4 | Accept ₹149 and "5 applications" in the hero and on the button. Accept the "DOCX · Plain" meta. | The hero and the button have different roles. "Plain" follows the C0 decision. |
@@ -334,7 +334,7 @@ None of the lanes was blocked. These items were not done:
 
 All are low severity. They come from reviews and walk-throughs.
 
-- `HhInnerHeader` 200% layout should move into the component. A follow-up task exists.
+- `TmrInnerHeader` 200% layout should move into the component. A follow-up task exists.
 - S3b dark: the under-18 disc needs a dark illustration variant in `core:designsystem`.
 - S3 at 200% in dark: the Privacy Notice line overlaps "I'm under 18".
 - S7 sticky footer says "You have 0 free" while Credits shows credits. Check the real flow.

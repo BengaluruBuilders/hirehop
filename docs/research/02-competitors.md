@@ -1,4 +1,4 @@
-# HireHop Research 02: Competitor Landscape
+# TailorMyResume Research 02: Competitor Landscape
 
 Date of research: 2026-09-30.
 Author: research agent 2 of 6.
@@ -15,14 +15,14 @@ Scope: web AI resume tools, Indian job platforms, platform AI, and Android apps 
 
 ## 1. Executive summary
 
-1. The market is crowded with resume builders. It is thin in the area that HireHop targets: one saved profile that feeds honest, per-job tailoring, on a phone, at Indian prices.
+1. The market is crowded with resume builders. It is thin in the area that TailorMyResume targets: one saved profile that feeds honest, per-job tailoring, on a phone, at Indian prices.
 2. The web tools (Teal, Huntr, Careerflow, Kickresume, Rezi) already do JD match, tailoring, cover letters, and a tracker. They are desktop-first and priced in USD (USD 9 to USD 49 per month). Their Android presence is weak or absent.
 3. The top Android apps by installs are template builders. Their strongest common complaint is the paywall at download time and surprise charges. AI tailoring against a JD is rare in these apps.
-4. The Indian incumbents have huge distribution (Naukri 50M+ installs, apna 50M+, Indeed 100M+, LinkedIn 1B+). Naukri launched an AI Resume Maker on 2025-11-21. Internshala, Naukri Campus, and apna give free resume builders to freshers. Free is the price anchor for HireHop's target user.
-5. Indeed Career Scout is the closest platform product to HireHop's idea (AI coach in a mobile app that tailors the resume). It is US, Canada, and UK only as of the last source (Oct 2025, grade C). Indeed expanded its ChatGPT app to India on 2026-05-01 (grade C, trade press).
+4. The Indian incumbents have huge distribution (Naukri 50M+ installs, apna 50M+, Indeed 100M+, LinkedIn 1B+). Naukri launched an AI Resume Maker on 2025-11-21. Internshala, Naukri Campus, and apna give free resume builders to freshers. Free is the price anchor for TailorMyResume's target user.
+5. Indeed Career Scout is the closest platform product to TailorMyResume's idea (AI coach in a mobile app that tailors the resume). It is US, Canada, and UK only as of the last source (Oct 2025, grade C). Indeed expanded its ChatGPT app to India on 2026-05-01 (grade C, trade press).
 6. No competitor has a clear "we never invent qualifications" guardrail as a product feature. LinkedIn warns users to check its AI output for accuracy. One Play review of Sprout says the app changed the user's name on a resume without consent. This is the white space for an honesty guardrail, and also a trust risk that every AI tool shares.
 
-## 2. Top 5 competitors for HireHop (ranked by relevance)
+## 2. Top 5 competitors for TailorMyResume (ranked by relevance)
 
 | Rank | Competitor | Why it matters |
 |---|---|---|
@@ -44,7 +44,7 @@ Honorable mentions: LinkedIn Premium (AI resume tips, desktop and English only),
 | Huntr | Web, Chrome extension, Android app (rating 3.62, 197 reviews, 10K+) | Active job seekers | Tracker, AI resume, job-tailored resumes, AI cover letters, autofill. Free: 100 tracked jobs, 2 tailored resumes. | Pro: USD 40 per month, USD 30 per month billed quarterly (USD 90), USD 26.66 per month billed every 6 months (USD 160). | None found. | Android reviews: many users cannot log in (invalid email, no Google sign-in, no password reset). | A (pricing page), A (Play) |
 | Careerflow | Web + Chrome extension. No Android app found. | Job seekers, LinkedIn-heavy | LinkedIn optimizer, resume builder, tracker, autofill, AI cover letter, skill gap score, mock interview (Plus tier). | Free (1 resume, tracker limits). Premium USD 8.99 per week, USD 23.99 per month, USD 14.41 per month yearly (USD 172.99). Premium Plus USD 44.99 per month. | None found. | Free tier is capped. No mobile app. | A |
 | Kickresume | Web, iOS, Android (4.17, 2,552 ratings, 100K+ installs) | General, polished templates | AI writer, resume and cover letter, ATS checker, tailoring, LinkedIn and PDF import, Career Map. | Pricing page (fetched today): USD 9 per month, USD 6 per month billed quarterly (USD 18), USD 4 per month yearly (USD 48). Play in-app range: INR 520 to INR 2,250 per item. One Play review says about USD 20 per month, so the price differs by page or region. | The listing says the AI will "tailor your resume to each job". No stated guardrail. | Reviews: paywall for basic items (references), PDF and DOCX errors, and "AI writer does not remember anything about you, so it will not be tailored" (profile reuse gap). | A |
-| Rezi | Web (no Android app found) | General, ATS-focused | AI resume writer, keyword targeting from a JD, Rezi Score, cover letter, AI interviews. | Free (1 resume, 3 PDF downloads). Pro USD 29 per month. Lifetime USD 149. Enterprise USD 99 per month per 200 users. 30-day refund. | Claims "fully ATS-optimized" and a "62.18% interview rate" on its own site. This is an unverified outcome claim. It is the opposite of HireHop's rule. | Not found in this pass. | A |
+| Rezi | Web (no Android app found) | General, ATS-focused | AI resume writer, keyword targeting from a JD, Rezi Score, cover letter, AI interviews. | Free (1 resume, 3 PDF downloads). Pro USD 29 per month. Lifetime USD 149. Enterprise USD 99 per month per 200 users. 30-day refund. | Claims "fully ATS-optimized" and a "62.18% interview rate" on its own site. This is an unverified outcome claim. It is the opposite of TailorMyResume's rule. | Not found in this pass. | A |
 | Jobscan | Web + Chrome extension | Active job seekers, ATS-focused | Resume vs JD scan, AI optimize, cover letter check, LinkedIn optimization. | About USD 49.95 per month, USD 89.95 per quarter, USD 299.40 per year, free 5 scans per month (affiliate and review blogs). Official page not readable. | Not found. | Highest price in class. Web only. | C |
 | Resume Worded | Web | General, LinkedIn-heavy | Score My Resume, Targeted Resume against a JD, AutoFix line rewrites, LinkedIn review. | Pro USD 49 per month, USD 33 per month billed as USD 99 per quarter, USD 19 per month billed as USD 229 per year (review blogs). | Not found. | Official page returned 404. | C |
 | Enhancv | Web | Design-aware professionals | AI resume checker, one-click tailoring from a pasted job ad, cover letter tools, ATS check. | Pro price could not be read (the page showed "NaN"). Free tier has 12 item limit. | Not found. | Price not visible in the fetch. | A (partial) |
@@ -52,7 +52,7 @@ Honorable mentions: LinkedIn Premium (AI resume tips, desktop and English only),
 | Final Round AI | Desktop app (macOS, Windows), web | Interview candidates, often US tech | Live interview copilot, mock interviews, job description parsing and prep checklist. | Pro "USD 25+ per month" on the official page. Review sites list much higher monthly prices (USD 149 monthly). No free trial of live sessions. | Live copilot is a "hidden answer" tool. It sits at the edge of honest use. | Not a resume tool. Desktop only. | A (official), C (other prices) |
 | LazyApply | Chrome extension | Volume applicants | Auto-apply. Plans by applications per day. | Basic USD 99 per year (15 per day). Premium USD 149 per year (150 per day). Ultimate USD 999 per year (1,500 per day). 30-day refund. Needs a Gmail account. | Mass apply is the opposite of tailored honesty. | Not evaluated in this pass. | A |
 | Jobright | Web, Chrome extension, Android app (4.32, 708 ratings, 50K+) | US job seekers | AI job match, resume tailoring, 1-click autofill, "Orion" AI copilot, insider referrals. Claims 2M+ users. | Free entry ("Try for free"). Paid price not found. | Not found. | Play reviews: the jobs are US only, useless in India; resume upload spins forever; auto-renewal is hard to cancel; autofill fails. | A |
-| Wonsulting | Web | Early-career and career changers | WonsultingAI suite: resume builder, job tracker, cover letter, interview AI, auto-apply. Human coaching with a "job offer in 120 days or you do not pay" guarantee. | Free AI tools. Paid coaching prices not public. | Guarantee is a job outcome promise. HireHop must not copy this. | Not evaluated. | A (partial) |
+| Wonsulting | Web | Early-career and career changers | WonsultingAI suite: resume builder, job tracker, cover letter, interview AI, auto-apply. Human coaching with a "job offer in 120 days or you do not pay" guarantee. | Free AI tools. Paid coaching prices not public. | Guarantee is a job outcome promise. TailorMyResume must not copy this. | Not evaluated. | A (partial) |
 | Resume.io | Web | General | Templates, resume and cover letter builder. | India storefront (fetched today): free tier is limited to one resume, TXT download only. INR 249 for one week, INR 1,999 for one year (as stated on the page). 7-day trial then auto-renew to a monthly plan. | Not found. | Auto-renewal terms. | A |
 | Zety | Web | General | Template builder. | Page timed out. Not captured. | ? | ? | ? |
 | Novoresume | Web | General | Templates, cover letter (paid). | India storefront: INR 1,299 per month, INR 2,499 per quarter, INR 8,499 per year. Free plan has one resume, one page. No AI features listed on the pricing page. | Not found. | No AI on the pricing page. | A |
@@ -165,7 +165,7 @@ Columns:
 | ChatGPT / Gemini (general) | No | Yes (if prompted) | Yes | Yes | No | Yes | Yes (apps) | Yes (free tier) |
 | Top Play builders (Intelligent CV, CV Engineer, etc.) | Part | No | Part | Part | No | No | Yes | Part |
 | Sprout | Part | Part | Part | ? | Part | Part | Yes | No (about INR 650 per week per one review) |
-| **HireHop (target)** | Yes | Yes | Yes (truth-locked) | Yes | Yes | Yes | Yes | Yes (target) |
+| **TailorMyResume (target)** | Yes | Yes | Yes (truth-locked) | Yes | Yes | Yes | Yes | Yes (target) |
 
 Reading the matrix: no single row is fully "Yes" in the last four columns for a fresher in India. Teal, Huntr, and Careerflow cover the features but not mobile or INR. The Indian platforms cover mobile and INR but not JD gap and honest tailoring.
 
@@ -189,7 +189,7 @@ What is not served well:
 
 ## 6. Threat assessment
 
-| Threat | How it could copy HireHop | Speed | Barrier | Rating |
+| Threat | How it could copy TailorMyResume | Speed | Barrier | Rating |
 |---|---|---|---|---|
 | Naukri (Info Edge) | Add JD input to the Naukri Pro AI Resume Maker. It already has the profile, a resume maker, mock interviews, and payments. It can use the saved Naukri profile as truth. | Fast: months | Its business model sells recruiter access and paid profile boosts. Reviews show distrust of its paid services. Its resume tool is a funnel to Naukri jobs, not a neutral assistant. | High |
 | Indeed (Career Scout) | Launch Career Scout in India in the Indeed app. It already tailors resumes and prepares interviews for free. | Medium: depends on the India launch decision | Indeed India is a smaller brand for freshers than Naukri. No saved application workspace outside Indeed. | High if it launches in India |
@@ -199,11 +199,11 @@ What is not served well:
 | ChatGPT and Gemini (general) | A user pastes a resume and JD and gets a tailored letter for free. No product needed. This is the largest substitute. | Already here | Weak on saved profile, structured export, tracker, and a truth check. Users must prompt well. | High as a substitute |
 | Sprout and similar auto-apply apps | Add resume tailoring. They have large review counts and Play reach. | Fast | Trust problems in reviews (billing, name change). | Low to medium |
 
-Fastest copier: Naukri. It has the profile, the traffic, the payments, and an AI resume maker already in market. Its weakness is trust and neutrality. HireHop must not fight it on job listings.
+Fastest copier: Naukri. It has the profile, the traffic, the payments, and an AI resume maker already in market. Its weakness is trust and neutrality. TailorMyResume must not fight it on job listings.
 
 Second: Indeed Career Scout, if launched in India. It is free and mobile.
 
-Real long-run risk: free general chatbots plus the Play Store reflex of "free". HireHop must be better than a raw prompt at three things: it remembers the profile, it refuses to invent, and it saves and exports the application set.
+Real long-run risk: free general chatbots plus the Play Store reflex of "free". TailorMyResume must be better than a raw prompt at three things: it remembers the profile, it refuses to invent, and it saves and exports the application set.
 
 ## 7. Implications for the PRD
 
@@ -223,14 +223,14 @@ Add:
 - Import from an existing resume PDF and from a Naukri or LinkedIn profile export (a manual paste is enough for the MVP).
 
 Cut or delay:
-- Any "ATS score" number as a headline. Competitors use it. It invites outcome claims that HireHop must not make. If shown, label it as a keyword coverage check, not a pass rate.
+- Any "ATS score" number as a headline. Competitors use it. It invites outcome claims that TailorMyResume must not make. If shown, label it as a keyword coverage check, not a pass rate.
 - Job discovery. Naukri, apna, Indeed, and LinkedIn win here. It is already a "later" item. Keep it later.
 - Live interview copilot features. They conflict with the honesty stance and Final Round AI, Interview Pilot, and OfferGoose already occupy them. Voice mock interviews stay a later, prep-only feature.
 - Auto-apply. It has weak trust in reviews.
 - A large template library. Ten clean ATS-safe templates are enough. Users do not need more.
 
 Pricing hints (hypotheses, not validated):
-- Free anchors: Internshala, Naukri Campus, apna free resume. HireHop needs a free tier that shows the gap analysis and one tailored document.
+- Free anchors: Internshala, Naukri Campus, apna free resume. TailorMyResume needs a free tier that shows the gap analysis and one tailored document.
 - Paid anchors: Naukri Pro INR 999 per month; Resume.io INR 249 per week or INR 1,999 per year; ResumeGyani INR 299 per week-plan; Kickresume Play INR 520 to INR 2,250. A one-time application pack under about INR 199 to INR 499 sits below the anchors. The active-job-search plan can sit near INR 299 to INR 999 per month. Validate with a price test.
 
 Open questions to resolve before the PRD is final:

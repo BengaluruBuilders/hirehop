@@ -29,9 +29,9 @@
     <string name="feature_settings_impl_settings_grievance_address">Contact not set in this build</string>
     <string name="feature_settings_impl_settings_address_pending">Copy pending</string>
 
-    <string name="feature_settings_impl_settings_about_promise">HireHop never invents anything about you.</string>
+    <string name="feature_settings_impl_settings_about_promise">TailorMyResume never invents anything about you.</string>
     <string name="feature_settings_impl_settings_about_version_row">Version</string>
-    <string name="feature_settings_impl_settings_about_version_missing">HireHop for Android</string>
+    <string name="feature_settings_impl_settings_about_version_missing">TailorMyResume for Android</string>
 
     <string name="feature_settings_impl_settings_row_delete_account">Delete account</string>
     <string name="feature_settings_impl_settings_delete_web_lead">You can also delete your account on the web:</string>

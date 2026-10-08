@@ -1,4 +1,4 @@
-# HireHop
+# TailorMyResume
 
 **Your next move, better prepared.**
 

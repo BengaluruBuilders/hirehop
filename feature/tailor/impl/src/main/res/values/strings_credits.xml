@@ -33,10 +33,10 @@
     <string name="feature_tailor_impl_credits_pending">Pending</string>
     <string name="feature_tailor_impl_credits_help_title">Help</string>
     <string name="feature_tailor_impl_credits_refund_summary">You paid through Google Play, so refunds are handled by Google Play. Find the order in your Google Play purchase history to ask for one.</string>
-    <string name="feature_tailor_impl_credits_help_summary">Email support@hirehop.app. We reply in plain words, usually within 2 working days.</string>
+    <string name="feature_tailor_impl_credits_help_summary">Email support@tailormyresume.app. We reply in plain words, usually within 2 working days.</string>
     <string name="feature_tailor_impl_credits_ask_refund">Ask for a refund</string>
     <string name="feature_tailor_impl_credits_contact_help">Contact help</string>
     <string name="feature_tailor_impl_credits_refund_mail_subject">Refund request for order %1$s</string>
     <string name="feature_tailor_impl_credits_refund_mail_subject_no_order">Refund request</string>
-    <string name="feature_tailor_impl_credits_help_mail_subject">HireHop help</string>
+    <string name="feature_tailor_impl_credits_help_mail_subject">TailorMyResume help</string>
 </resources>

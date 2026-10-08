@@ -1,0 +1,5 @@
+package com.tailormyresume.feature.tailor.impl.export
+
+import java.io.File
+
+internal data class RenderedResume(val file: File, val pageCount: Int?)

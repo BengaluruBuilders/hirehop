@@ -1,4 +1,4 @@
-import com.hirehop.buildlogic.configureSpotlessForRootProject
+import com.tailormyresume.buildlogic.configureSpotlessForRootProject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 

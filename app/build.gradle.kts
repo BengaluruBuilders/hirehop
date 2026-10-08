@@ -1,15 +1,15 @@
 plugins {
-    alias(libs.plugins.hirehop.android.application)
-    alias(libs.plugins.hirehop.android.application.compose)
-    alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.tailormyresume.android.application)
+    alias(libs.plugins.tailormyresume.android.application.compose)
+    alias(libs.plugins.tailormyresume.hilt)
     alias(libs.plugins.dependency.guard)
 }
 
 android {
-    namespace = "com.hirehop.app"
+    namespace = "com.tailormyresume.app"
 
     defaultConfig {
-        applicationId = "com.hirehop.app"
+        applicationId = "com.tailormyresume.app"
         versionCode = 1
         versionName = "0.1.0"
     }
@@ -25,26 +25,26 @@ android {
         }
         create("prod") {
             dimension = "backend"
-            buildConfigField("String", "HIREHOP_API_BASE_URL", "\"https://apps-backend.fly.dev\"")
+            buildConfigField("String", "TAILORMYRESUME_API_BASE_URL", "\"https://apps-backend.fly.dev\"")
             buildConfigField(
                 "String",
-                "HIREHOP_WEB_CLIENT_ID",
-                "\"${providers.gradleProperty("hirehopWebClientId").getOrElse("")}\"",
+                "TAILORMYRESUME_WEB_CLIENT_ID",
+                "\"${providers.gradleProperty("tailormyresumeWebClientId").getOrElse("")}\"",
             )
             buildConfigField(
                 "String",
-                "HIREHOP_FIREBASE_API_KEY",
-                "\"${providers.gradleProperty("hirehopFirebaseApiKey").getOrElse("")}\"",
+                "TAILORMYRESUME_FIREBASE_API_KEY",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseApiKey").getOrElse("")}\"",
             )
             buildConfigField(
                 "String",
-                "HIREHOP_FIREBASE_APP_ID",
-                "\"${providers.gradleProperty("hirehopFirebaseAppId").getOrElse("")}\"",
+                "TAILORMYRESUME_FIREBASE_APP_ID",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseAppId").getOrElse("")}\"",
             )
             buildConfigField(
                 "String",
-                "HIREHOP_FIREBASE_PROJECT_ID",
-                "\"${providers.gradleProperty("hirehopFirebaseProjectId").getOrElse("")}\"",
+                "TAILORMYRESUME_FIREBASE_PROJECT_ID",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseProjectId").getOrElse("")}\"",
             )
         }
     }

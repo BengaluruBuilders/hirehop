@@ -1,4 +1,4 @@
-# HireHop Constitution
+# TailorMyResume Constitution
 
 This document binds every contributor: people, Claude, and delegated agents.
 If this document and another document disagree, this document wins.
@@ -23,11 +23,11 @@ These rules come from the core promise in `docs/PRD.md`: "We never invent anythi
 | I.2 | The candidate decides. Every suggestion starts as `PENDING`. Nothing reaches an export without an explicit accept. | `UpdateBulletDecisionUseCaseTest`, `TailorViewModelTest` |
 | I.3 | UI copy never claims an ATS score, an ATS pass, or a job, interview, or placement guarantee. Say "keyword coverage" and "readable by common ATS parsers" (PRD 6.4, 7). | Policy I.3 on `res/values*/*.xml` |
 | I.4 | No API key, token, or private key goes into the app or the repository. Model credentials live on the backend only. | Policy I.4; gitleaks |
-| I.5 | Candidate data leaves the device only to the HireHop backend (`apps-backend`), only in the `prod` flavour, and only after the candidate accepts consent screen S4 (PRD 10.4). The app has one HTTP stack: OkHttp, Retrofit, and kotlinx.serialization. Firebase Auth, Credential Manager (Google sign-in), and Google Play Billing are allowed. The `demo` flavour has no `INTERNET` permission. Backups stay off. Analytics, crash, and ad SDKs stay forbidden. | Policy I.5: `INTERNET` only in `app/src/prod/AndroidManifest.xml`, no `allowBackup="true"`, no analytics, crash, or ad library, network libraries only in `core:network` or as `prodImplementation` in `:app`; Dependency Guard (`dependencyGuard`) locks the release classpath of both flavours |
+| I.5 | Candidate data leaves the device only to the TailorMyResume backend (`apps-backend`), only in the `prod` flavour, and only after the candidate accepts consent screen S4 (PRD 10.4). The app has one HTTP stack: OkHttp, Retrofit, and kotlinx.serialization. Firebase Auth, Credential Manager (Google sign-in), and Google Play Billing are allowed. The `demo` flavour has no `INTERNET` permission. Backups stay off. Analytics, crash, and ad SDKs stay forbidden. | Policy I.5: `INTERNET` only in `app/src/prod/AndroidManifest.xml`, no `allowBackup="true"`, no analytics, crash, or ad library, network libraries only in `core:network` or as `prodImplementation` in `:app`; Dependency Guard (`dependencyGuard`) locks the release classpath of both flavours |
 
 ## Article II — Architecture
 
-HireHop follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the detail.
+TailorMyResume follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the detail.
 
 | # | Rule | Gate |
 |---|---|---|
@@ -35,9 +35,9 @@ HireHop follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the detail.
 | II.2 | Unidirectional data flow. A `ViewModel` exposes one `StateFlow` of a sealed `UiState` through `stateIn(WhileSubscribed(5_000))`. A screen composable is stateless. A `...Route` wrapper collects state with `collectAsStateWithLifecycle`. | Review |
 | II.3 | No `GlobalScope`. No `runBlocking` in production code. No `!!`, not even in string literals: put UI text in resources. | Policy II.3 |
 | II.4 | Inject every dispatcher with `@Dispatcher`. Only `core:common` refers to `Dispatchers.IO` or `Dispatchers.Default` directly. | Policy II.4 |
-| II.5 | Features use `Hh*` components from `core:designsystem`, not raw Material components. | Review |
+| II.5 | Features use `Tmr*` components from `core:designsystem`, not raw Material components. | Review |
 | II.6 | Each "AI" step sits behind an interface in `core:domain`. A backend implementation replaces the offline one through a Hilt binding. | Review |
-| II.7 | Debug builds run StrictMode. If StrictMode logs disk or network access on the main thread, fix it. | `HireHopApplication`; review |
+| II.7 | Debug builds run StrictMode. If StrictMode logs disk or network access on the main thread, fix it. | `TailorMyResumeApplication`; review |
 
 ## Article III — Code quality
 
@@ -93,8 +93,8 @@ When protection is available, require the `Constitution policy` and `Build, lint
 
 ## Ledger
 
-The ledger compares HireHop with the NiA production setup (commit a49ed25).
-HireHop already has: convention plugins, a version catalog, Spotless, warnings as errors, lint with
+The ledger compares TailorMyResume with the NiA production setup (commit a49ed25).
+TailorMyResume already has: convention plugins, a version catalog, Spotless, warnings as errors, lint with
 baselines, Dependabot, gitleaks, an R8 release build, a Room schema check, and weekly instrumented tests.
 
 | Next | Why | Trigger |
@@ -120,7 +120,7 @@ never reach the app binary, so they do not conflict with I.5. Robolectric downlo
 `android-all` jars from Maven at test runtime; that is build tooling, not app network access, and
 the release APK still requests no network permission.
 
-### Ledger amendment — 2026-10-08, network access for the HireHop backend (I.5)
+### Ledger amendment — 2026-10-08, network access for the TailorMyResume backend (I.5)
 
 Adopted under Article VII in the PR that adds the `demo` and `prod` flavours.
 

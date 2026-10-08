@@ -69,7 +69,7 @@
     </plurals>
     <string name="feature_tailor_impl_pack_purchase_cancelled_body">No payment was made. Your resume stays saved in Applications.</string>
     <string name="feature_tailor_impl_pack_purchase_cancelled_body_credits">No payment was made. You can get an application pack whenever you choose.</string>
-    <string name="feature_tailor_impl_pack_purchase_failed_body">Google Play couldn’t complete the payment. HireHop added no charge.</string>
-    <string name="feature_tailor_impl_pack_purchase_failed_body_unavailable">Google Play is not available right now. HireHop added no charge. Your resume stays saved.</string>
-    <string name="feature_tailor_impl_pack_purchase_failed_body_pack_unavailable">This pack is not available right now. HireHop added no charge. Your resume stays saved.</string>
+    <string name="feature_tailor_impl_pack_purchase_failed_body">Google Play couldn’t complete the payment. TailorMyResume added no charge.</string>
+    <string name="feature_tailor_impl_pack_purchase_failed_body_unavailable">Google Play is not available right now. TailorMyResume added no charge. Your resume stays saved.</string>
+    <string name="feature_tailor_impl_pack_purchase_failed_body_pack_unavailable">This pack is not available right now. TailorMyResume added no charge. Your resume stays saved.</string>
 </resources>

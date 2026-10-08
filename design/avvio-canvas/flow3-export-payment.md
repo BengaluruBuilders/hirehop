@@ -27,7 +27,7 @@ Repeated blocks are written once. All screens: 360 x 800, status bar, 48 card2 c
 - Purchase pending: message state, 88 circle warnBg, "Payment pending" AB 28 UP, "We'll add your credits when Google Play confirms it. You don't need to pay again.", chip "Waiting for Google Play", secondary "Back to my resume".
 - Success: okBg circle, "Payment confirmed" AB 28 UP, "5 credits, credits never expire.", chip "5 left" (LIME), LIME "Download PDF".
 - Cancelled: default plus card banner "No payment was made. Your resume stays saved in Applications."
-- Payment failed: default plus errBg banner "Google Play couldn't complete the payment. HireHop added no charge."; button "Try again".
+- Payment failed: default plus errBg banner "Google Play couldn't complete the payment. TailorMyResume added no charge."; button "Try again".
 - Offline: card2 banner "You're offline. Buying needs a connection."; disabled "Buy 5 applications".
 
 ## S14 Exported

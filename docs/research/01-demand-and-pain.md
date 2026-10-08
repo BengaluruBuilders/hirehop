@@ -43,7 +43,7 @@ Rank uses two factors: how often sources report the pain, and how strongly peopl
 | 3 | No feedback: candidate does not know why rejected | High | Medium | B/C | LinkedIn India: 66% say hiring is impersonal. |
 | 4 | Time and effort to tailor each application | High | Medium | C | 44 minutes per application (US vendor survey). |
 | 5 | Fear of ATS rejection | High | Medium | C | Widely repeated. Recruiter evidence says the fear is mostly a myth (see below). |
-| 6 | Weak fit: lack of experience or skills | High | High | B | Unstop: 83% of engineering graduates without an offer. HireHop cannot fix this. It can only explain the gap. |
+| 6 | Weak fit: lack of experience or skills | High | High | B | Unstop: 83% of engineering graduates without an offer. TailorMyResume cannot fix this. It can only explain the gap. |
 | 7 | AI output is generic, invented, or detectable | Medium | High | B/C | Hallucinated metrics and buzzwords. Employers may reject the result. |
 | 8 | Interview anxiety and lack of prep | Medium | Medium | B | LinkedIn India: 66% say AI boosts interview confidence. |
 | 9 | Ghost jobs and fake postings | Medium | Medium | B | Greenhouse: 18-22% of postings. 60% of US seekers applied to a suspected ghost job (search snippet). |
@@ -190,7 +190,7 @@ Reading: phone access is near universal for Indian youth, so a phone-first app c
 5. **The ATS fear is mostly a myth.** In a study by Enhancv, 23 of 25 recruiters (92%) said their ATS does not auto-reject resumes. The "75% rejected by ATS" claim has no source. Volume, not automation, drives rejection. Grade C (vendor, small sample). Tools that sell "ATS score" may feed a false fear.
 6. **The bottleneck may be skills, not resume text.** Unstop: 83% of engineering graduates have no offer. Vendor sources report 80% of employers struggle to find skilled freshers. Better wording does not close a skills gap. Grade B/C.
 7. **Candidate distrust of employer AI is high.** Greenhouse: only 8% of job seekers call AI hiring fair. 38% quit a process because of an AI interview (search snippets). Grade A (vendor). This concerns employer AI. It may raise wariness of any AI tool.
-8. **An arms race.** Recruiters say they are overwhelmed by volume. More tailored applications may worsen the volume problem. HireHop must avoid "mass apply" features.
+8. **An arms race.** Recruiters say they are overwhelmed by volume. More tailored applications may worsen the volume problem. TailorMyResume must avoid "mass apply" features.
 9. **Fresher hiring is recovering.** Naukri shows fresher hiring up in most months of 2026. Pain of "no jobs at all" may ease. Non-IT sectors lead the growth.
 10. **Evidence is thin for India freshers.** Most numeric data is US. India numbers come from vendors (Apna, Unstop, Naukri, LinkedIn).
 

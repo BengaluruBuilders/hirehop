@@ -42,6 +42,6 @@
 
     <string name="feature_settings_impl_delete_account_done_illustration">A goodbye wave</string>
     <string name="feature_settings_impl_delete_account_done_title">Account deleted</string>
-    <string name="feature_settings_impl_delete_account_done_body">Your account and data are deleted. Thank you for using HireHop.</string>
+    <string name="feature_settings_impl_delete_account_done_body">Your account and data are deleted. Thank you for using TailorMyResume.</string>
     <string name="feature_settings_impl_delete_account_done_action">Back to Welcome</string>
 </resources>

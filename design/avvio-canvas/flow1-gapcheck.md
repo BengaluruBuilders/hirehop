@@ -29,7 +29,7 @@ Top bar on every state: 48 dp circle back button (card2), title "Gap check" 18/8
 
 ### S7 Share card
 - Top bar "Share"
-- Card: LIME logo tile 36 r=11 + "HireHop" 19/800, "JD fit" 12/800 UP mute, title 17/800, "Northwind Global Capability Centre · Bengaluru" 13.5/600 mute, "Covers 9 of 14 key terms" AB 30 UP, "This is not a score." 15/700, chips "9 Met", "5 To prepare"
+- Card: LIME logo tile 36 r=11 + "TailorMyResume" 19/800, "JD fit" 12/800 UP mute, title 17/800, "Northwind Global Capability Centre · Bengaluru" 13.5/600 mute, "Covers 9 of 14 key terms" AB 30 UP, "This is not a score." 15/700, chips "9 Met", "5 To prepare"
 - Note card `bg=card r=18 pad=14 16 gap=12` with icon: "Only the JD fit is shared. No name, contact details or resume facts." 14.5/700
 - "Share image" LIME main button, "Cancel" secondary button
 

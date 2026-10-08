@@ -1,4 +1,4 @@
-# HireHop visual direction — Avvio reference
+# TailorMyResume visual direction — Avvio reference
 
 Requested on 2026-10-07. This direction replaces the Jade visual rules. Product scope,
 navigation, candidate-fact integrity, consent, and the offline backend stay as specified in
@@ -21,11 +21,11 @@ the constitution and architecture.
 
 The Claude Design canvas (`design/avvio-canvas/README.md`) sets the type: Manrope for UI text and
 Archivo Black for uppercase headlines, both bundled for offline use with their OFL licenses.
-The HireHop name, product copy, and identity remain its own.
+The TailorMyResume name, product copy, and identity remain its own.
 
 ## Application rules
 
-1. Use `HhTheme` and shared `Hh*` components throughout all five flows. The current token values
+1. Use `TmrTheme` and shared `Tmr*` components throughout all five flows. The current token values
    and component contracts are in `DESIGN_SYSTEM.md`.
 2. Light mode uses white and pale neutral surfaces with black text. Dark mode uses black and
    neutral charcoal with white text. App lime marks main actions, selection, and progress.

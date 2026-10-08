@@ -1,7 +1,7 @@
 import com.android.build.api.dsl.ApplicationExtension
-import com.hirehop.buildlogic.configureAndroidLint
-import com.hirehop.buildlogic.configureKotlinAndroid
-import com.hirehop.buildlogic.configureSpotlessForAndroid
+import com.tailormyresume.buildlogic.configureAndroidLint
+import com.tailormyresume.buildlogic.configureKotlinAndroid
+import com.tailormyresume.buildlogic.configureSpotlessForAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

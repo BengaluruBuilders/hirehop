@@ -7,7 +7,7 @@
     <string name="feature_onboarding_impl_import_resume_try_again">Try again</string>
     <string name="feature_onboarding_impl_import_resume_review_facts">Review facts</string>
     <string name="feature_onboarding_impl_import_resume_start_guided_form">Start the guided form</string>
-    <string name="feature_onboarding_impl_import_resume_no_storage_permission">HireHop asks for no storage permission.</string>
+    <string name="feature_onboarding_impl_import_resume_no_storage_permission">TailorMyResume asks for no storage permission.</string>
 
     <string name="feature_onboarding_impl_import_resume_progress_description">Reading progress</string>
     <string name="feature_onboarding_impl_import_resume_reading_time">Up to 30 seconds</string>
@@ -24,7 +24,7 @@
         <item quantity="other">%1$d facts ready to check</item>
     </plurals>
 
-    <string name="feature_onboarding_impl_import_resume_unsupported_body">HireHop reads PDF and DOCX files only. This file is a %1$s.</string>
+    <string name="feature_onboarding_impl_import_resume_unsupported_body">TailorMyResume reads PDF and DOCX files only. This file is a %1$s.</string>
     <string name="feature_onboarding_impl_import_resume_no_facts_body">We found no facts in this file. Add your details step by step, or choose another file.</string>
     <string name="feature_onboarding_impl_import_resume_empty_body">This file is empty. Nothing was kept.</string>
     <string name="feature_onboarding_impl_import_resume_too_large_body">This file is too large to read. Nothing from it was kept.</string>

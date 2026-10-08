@@ -19,8 +19,8 @@
         <item quantity="other">%1$d not confirmed</item>
     </plurals>
     <plurals name="feature_profile_impl_open_items_banner">
-        <item quantity="one">%1$d item is not confirmed. HireHop won’t use it.</item>
-        <item quantity="other">%1$d items are not confirmed. HireHop won’t use them.</item>
+        <item quantity="one">%1$d item is not confirmed. TailorMyResume won’t use it.</item>
+        <item quantity="other">%1$d items are not confirmed. TailorMyResume won’t use them.</item>
     </plurals>
     <string name="feature_profile_impl_open_items_review">Review</string>
     <string name="feature_profile_impl_file_deleted_note">Your uploaded file was deleted after reading. Only these facts are kept.</string>
@@ -32,7 +32,7 @@
     <string name="feature_profile_impl_header_name_placeholder">Add your name</string>
     <string name="feature_profile_impl_edit_contact">Edit contact details</string>
     <string name="feature_profile_impl_contact_title">Contact details</string>
-    <string name="feature_profile_impl_contact_subtitle">HireHop shows these on your resume. It never asks for a photo, date of birth, or other personal details.</string>
+    <string name="feature_profile_impl_contact_subtitle">TailorMyResume shows these on your resume. It never asks for a photo, date of birth, or other personal details.</string>
     <string name="feature_profile_impl_field_full_name">Full name</string>
     <string name="feature_profile_impl_field_email">Email</string>
     <string name="feature_profile_impl_field_phone">Phone</string>
@@ -68,6 +68,6 @@
     <string name="feature_profile_impl_build_step_by_step">Answer questions</string>
     <string name="feature_profile_impl_empty_illustration">An empty sheet of paper waiting for your facts</string>
 
-    <string name="feature_profile_impl_error_headline">HireHop could not open your profile.</string>
+    <string name="feature_profile_impl_error_headline">TailorMyResume could not open your profile.</string>
     <string name="feature_profile_impl_error_body">Your facts are still on this phone. Try again in a moment.</string>
 </resources>

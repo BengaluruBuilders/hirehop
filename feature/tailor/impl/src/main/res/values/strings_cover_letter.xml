@@ -19,7 +19,7 @@
         <item quantity="one">%1$d paragraph</item>
         <item quantity="other">%1$d paragraphs</item>
     </plurals>
-    <string name="feature_tailor_impl_cover_letter_editing_subtitle">User-edited. Your own words. HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_cover_letter_editing_subtitle">User-edited. Your own words. TailorMyResume does not check hand edits.</string>
         <string name="feature_tailor_impl_cover_letter_leave">Back to my resume</string>
     <string name="feature_tailor_impl_cover_letter_label">Cover letter · optional</string>
     <plurals name="feature_tailor_impl_cover_letter_words">
@@ -33,7 +33,7 @@
     <string name="feature_tailor_impl_cover_letter_edit_save">Save</string>
     <string name="feature_tailor_impl_cover_letter_edit_cancel">Cancel</string>
     <string name="feature_tailor_impl_cover_letter_edit_label">Paragraph %1$d</string>
-    <string name="feature_tailor_impl_cover_letter_user_edited_note">Your own words. HireHop does not check hand edits.</string>
+    <string name="feature_tailor_impl_cover_letter_user_edited_note">Your own words. TailorMyResume does not check hand edits.</string>
     <string name="feature_tailor_impl_cover_letter_flag_note">Check this line: “%1$s” describes %2$s in new words. Keep it only if it is true for you.</string>
     <string name="feature_tailor_impl_cover_letter_sources_title">Sources for paragraph %1$d</string>
     <string name="feature_tailor_impl_cover_letter_preview_export">Preview export</string>

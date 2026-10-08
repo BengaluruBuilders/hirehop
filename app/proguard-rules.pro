@@ -1,1 +1,1 @@
--keep,allowobfuscation class com.hirehop.core.network.dto.**
+-keep,allowobfuscation class com.tailormyresume.core.network.dto.**

@@ -1,8 +1,8 @@
-# HireHop — Product Requirements Document
+# TailorMyResume — Product Requirements Document
 
 | Field | Value |
 |---|---|
-| Product | HireHop — "Your next move, better prepared." |
+| Product | TailorMyResume — "Your next move, better prepared." |
 | Platform | Native Android (Kotlin, Jetpack Compose) with a small backend |
 | Primary market | India. Final-year students and candidates with 0 to 2 years of experience. |
 | Status | Draft 1. Build is gated on the Phase 0 validation test (section 12). |
@@ -11,9 +11,9 @@
 
 ## 1. Summary
 
-HireHop turns one saved candidate profile and one job description (JD) into an honest, tailored application.
+TailorMyResume turns one saved candidate profile and one job description (JD) into an honest, tailored application.
 
-The candidate imports a resume once and confirms the facts. For each job, HireHop shows which requirements the candidate meets, partly meets, or does not meet. It then rewrites the resume for that job using only confirmed facts. Every tailored line links to the profile fact behind it. The candidate accepts or rejects each change, then exports a clean PDF or DOCX.
+The candidate imports a resume once and confirms the facts. For each job, TailorMyResume shows which requirements the candidate meets, partly meets, or does not meet. It then rewrites the resume for that job using only confirmed facts. Every tailored line links to the profile fact behind it. The candidate accepts or rejects each change, then exports a clean PDF or DOCX.
 
 The core promise is **"We never invent anything about you."** No competitor states this rule (R2). Plain AI rewrites add unsupported claims in most outputs (R5, section 6.1). Recruiters distrust generic and exaggerated AI text, not AI use itself (R1, R4).
 
@@ -105,7 +105,7 @@ Main threats (R2):
 2. **Free chatbots** (ChatGPT, Gemini). ChatGPT Go is free for one year in India (R3).
 3. **Indeed Career Scout**, if it launches in India.
 
-HireHop must sell the workflow and the trust, not the raw text. Raw text is free.
+TailorMyResume must sell the workflow and the trust, not the raw text. Raw text is free.
 
 ## 6. Scope
 
@@ -339,7 +339,7 @@ Retention: job search is episodic. Users leave when they get a job. Do not use D
 
 - **App.** Kotlin, Jetpack Compose, Room as the local source of truth, and WorkManager for queued jobs and sync.
 - **Sign-in.** Google through Credential Manager. Firebase Auth turns it into the ID token that the backend checks.
-- **Backend.** `apps-backend` on Fly.io with Neon Postgres and Firebase Auth. The HireHop routes are the model gateway (`docs/BACKEND_CONTRACT.md`). The OpenAI key stays on the server.
+- **Backend.** `apps-backend` on Fly.io with Neon Postgres and Firebase Auth. The TailorMyResume routes are the model gateway (`docs/BACKEND_CONTRACT.md`). The OpenAI key stays on the server.
 - **Model calls.** OpenAI Responses API with Structured Outputs and `store: false`. Short steps are synchronous routes that the server stops after 45 s. Tailoring is an asynchronous job that the app polls (`docs/BACKEND_CONTRACT.md` section 4.4).
 - **Model tiers.** Use a small, low-cost model for extraction, JD analysis, gap match, and prep questions. Use a mid-tier model for tailoring and the cover letter. Use a different model for the verifier. Keep model IDs in config. The research reports disagree on the current OpenAI model names and prices (R3 against R5). Confirm them on the official pricing page before the build.
 - **Abuse control.** Per-user and per-device rate limits, the Play Integrity API, and a daily cap on free model calls.
@@ -375,7 +375,7 @@ In production: add a "Report inaccurate content" action on every generated item.
 
 This section is a product reading of the research. It is not legal advice. Get a legal review before launch.
 
-**DPDP Act 2023 and DPDP Rules 2025.** The main duties start on 13 May 2027. HireHop processes personal data, because a resume is personal data. The MVP must have:
+**DPDP Act 2023 and DPDP Rules 2025.** The main duties start on 13 May 2027. TailorMyResume processes personal data, because a resume is personal data. The MVP must have:
 
 1. A standalone, itemised consent notice before any upload.
 2. An 18+ confirmation at sign-up.

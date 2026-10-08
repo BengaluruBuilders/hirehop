@@ -4,7 +4,7 @@
     <string name="feature_profile_impl_guided_form_back">Back</string>
     <string name="feature_profile_impl_guided_form_loading">Getting your profile ready</string>
     <string name="feature_profile_impl_guided_form_load_failed">We could not open this form. Your answers are still on this phone.</string>
-    <string name="feature_profile_impl_guided_form_save_failed">HireHop could not save this step. Your answers are still here.</string>
+    <string name="feature_profile_impl_guided_form_save_failed">TailorMyResume could not save this step. Your answers are still here.</string>
 
     <string name="feature_profile_impl_guided_form_scanned_arrival">Your PDF is a scan, so we couldn’t read it.</string>
     <string name="feature_profile_impl_guided_form_offline_message">You’re offline. Your answers are saved on this phone and sync when you’re back.</string>
@@ -51,7 +51,7 @@
 
     <string name="feature_profile_impl_guided_form_error_required">Add this to save.</string>
     <string name="feature_profile_impl_guided_form_error_end_before_start">This date comes before the start date.</string>
-    <string name="feature_profile_impl_guided_form_error_too_long">This is longer than HireHop stores. Keep the main line.</string>
+    <string name="feature_profile_impl_guided_form_error_too_long">This is longer than TailorMyResume stores. Keep the main line.</string>
     <string name="feature_profile_impl_guided_form_error_invalid_email">Enter an email like name@example.com.</string>
     <string name="feature_profile_impl_guided_form_error_invalid_phone">Enter a phone number with 7 to 15 digits.</string>
 </resources>

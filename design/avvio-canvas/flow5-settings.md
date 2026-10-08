@@ -31,7 +31,7 @@ bg=card r=20px
 bg=card r=20px (Privacy policy, Consent notice with summary, Grievance contact)
 "About" 13/800 UP mute
 bg=card r=20px
-  "HireHop never invents anything about you." 15.5/700 text
+  "TailorMyResume never invents anything about you." 15.5/700 text
   bg=line h=1px
   "Version" 15.5/700 text
   "1.0.3 (beta)" 13/600 mute
@@ -56,7 +56,7 @@ bg=card2 r=18px pad=14px 16px gap=12px icon
 ### S23 Default Dark
 bg=card2 r=24px h=48px w=48px icon      (back button)
 "Your data" 18/800
-"What HireHop holds about you" AB 26/ UP text
+"What TailorMyResume holds about you" AB 26/ UP text
 bg=card r=20px pad=16px gap=10px
   bg=card2 r=14px h=44px w=44px icon
   "Profile facts" 16/800
@@ -84,7 +84,7 @@ bg=card r=20px pad=16px gap=10px
 
 ### S23 Scrolled Dark
 (same cards scrolled up; note above the buttons)
-"HireHop keeps no date of birth and no photo."
+"TailorMyResume keeps no date of birth and no photo."
 
 ### S23 Export preparing Dark
 (S23 Default behind a sheet)
@@ -149,7 +149,7 @@ bg=card r=18px minh=56px pad=14px 16px gap=12px icon
 ### S24 Done Dark
 bg=okBg r=44px h=88px w=88px icon
 "Account deleted" AB 28/ UP text
-"Your account and data are deleted. Thank you for using HireHop." 16/600 mute
+"Your account and data are deleted. Thank you for using TailorMyResume." 16/600 mute
 "Back to Welcome" bg=LIME r=28px minh=56px pad=0 22px gap=10px 16/800 bg
 
 ### S24 Error Dark

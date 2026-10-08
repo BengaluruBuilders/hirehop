@@ -1,6 +1,6 @@
 # 06 - Distribution, Acquisition, Retention, and Validation
 
-Product: HireHop (native Android AI job application assistant for Indian freshers).
+Product: TailorMyResume (native Android AI job application assistant for Indian freshers).
 Report date: 2026-09-30.
 Author: research agent 6 of 6.
 
@@ -16,7 +16,7 @@ Author: research agent 6 of 6.
 
 1. Paid acquisition does not fit a low-price, episodic product. A Meta or Google install costs about INR 13 to 60 (grade C). A payer costs INR 1,000 to 3,000 at a 1% to 2.6% install-to-paid rate (ESTIMATE). A pack at INR 99 to 199 cannot pay for that.
 2. Organic and community channels must carry launch. The best fit is college WhatsApp and Telegram groups, T&P (placement) officers, founder-led LinkedIn, and small student-community pages.
-3. The Play Store head terms are taken. "Resume builder" apps hold 5M to 50M+ installs (grade A, observed on Play listings today). HireHop must win long-tail terms: JD match, tailored resume, cover letter for freshers, application tracker.
+3. The Play Store head terms are taken. "Resume builder" apps hold 5M to 50M+ installs (grade A, observed on Play listings today). TailorMyResume must win long-tail terms: JD match, tailored resume, cover letter for freshers, application tracker.
 4. Retention will be episodic. Cross-industry Day 30 retention is 5% to 7% (grade B/C). No source gives a job-app benchmark. Design for repeat packs and referral, not for daily use.
 5. Timing matters. Today (30 Sep 2026) is the start of the Sep to Nov off-campus peak. The next peak is Jan to Apr 2027 (mass IT recruiters). A test that runs in October uses real demand.
 6. Google Play blocks a fast launch. A new personal account needs 12 testers opted in for 14 days, then a review of up to 7 days. Plan at least 4 to 5 weeks from first testable build to public release.
@@ -46,7 +46,7 @@ Recommendation: run channels 1, 2, 3 in the first 8 weeks. Add channel 4 only as
 - WhatsApp groups: Do not spam. Ask a known member to post one message. Offer a free JD gap check. Add a consent notice before you collect a phone number (see section 9).
 - T&P sessions: Offer a session on "How to read a job description and fix your resume for it." Give each student one free check. The T&P officer then sees value and repeats the invitation.
 - LinkedIn: Post one real teardown each week. Remove all personal data. Ask permission first.
-- Creators: Ask for an honest review. Do not offer money to claim "guaranteed ATS pass". HireHop must not make that claim.
+- Creators: Ask for an honest review. Do not offer money to claim "guaranteed ATS pass". TailorMyResume must not make that claim.
 
 ## 3. CAC and CPI benchmarks (India)
 
@@ -108,7 +108,7 @@ Findings:
 | Head | resume builder, CV maker | Very high | Do not target in title. |
 | Mid | ATS resume, resume for freshers, cover letter generator | High | Use in short description and long description. |
 | Long-tail | JD match, tailor resume to job description, job application tracker, interview questions for freshers | Medium to low (unverified) | Use in title and first line of the description. |
-| Brand | HireHop | None at launch | Build with community and creators. |
+| Brand | TailorMyResume | None at launch | Build with community and creators. |
 
 I could not get per-keyword volume or difficulty for the Play Store India. Sensor Tower and Business of Apps blocked automated access. Do a free check with a tool such as AppTweak or ASOTools before you write the listing. After launch, read the Play Console search-term report.
 
@@ -142,7 +142,7 @@ Reading: Users have an active window of 1 to 6 months. After they get a job, the
 | Google Play subscriptions lose about one third of cancellations to billing failure (RevenueCat). | Avoid subscriptions in MVP. If you add "active-job-search plan", sell it as a fixed 30 or 60 day pass with UPI. |
 | Users come back only in placement season. | Send re-engagement in Sep to Nov and Jan to Apr: "New drive: tailor your resume in 2 minutes." Use WhatsApp opt-in, not only push. |
 | Placed users have no reason to stay. | Keep the profile as a "career vault". Prompt at natural events: first appraisal (12 months), first switch (18 to 24 months). This is a hypothesis to test, not evidence. |
-| Each batch leaves after 1 year. | Ask placed users to pass HireHop to juniors. Next year's batch is the growth source. |
+| Each batch leaves after 1 year. | Ask placed users to pass TailorMyResume to juniors. Next year's batch is the growth source. |
 | Weak habit loop. | Track applications per user per month, not sessions. Add the job tracker with status reminders. |
 
 ### 5.3 Metrics to track (instead of Day 30)
@@ -156,7 +156,7 @@ Reading: Users have an active window of 1 to 6 months. After they get a job, the
 
 Sources agree on two peaks: Jan to Mar and Sep to Nov. December is the slowest month. Dates vary by year. Check each company page.
 
-| Month | Intensity | Activity | HireHop action |
+| Month | Intensity | Activity | TailorMyResume action |
 |---|---|---|---|
 | Jan | Peak | IT services announce large drives. Consulting starts year intake. | Launch window for mass-recruiter freshers. |
 | Feb | Peak | TCS NQT 2026 registration ran 18 Feb to 20 Mar. Infosys and others compete. | Run the "NQT / drive" campaign. |
@@ -200,7 +200,7 @@ I found no data on "share your resume" loops. The ideas below are hypotheses. Te
 | Placement-group code | Each college group gets a code. The group with the most tailored applications gets a public thank-you. | Low | Leaderboards can pressure users. Keep it opt-in. |
 | Senior-to-junior pass | Placed users get a link to give juniors a free pack. | Low | Needs a placement trigger. Ask "Got a job?" in the tracker. |
 | Ambassador links | 10 to 20 student partners get tracked links and free packs. Pay INR 20 to 30 per paid pack (ESTIMATE). | Medium | Quality control. Internshala says the model needs a dedicated team. |
-| Resume footer link | "Made with HireHop" on the exported PDF. | Free | Recruiters may dislike it. Make it optional and off by default. |
+| Resume footer link | "Made with TailorMyResume" on the exported PDF. | Free | Recruiters may dislike it. Make it optional and off by default. |
 
 Rule: Never reward false claims. Never let a referral reward change resume content.
 

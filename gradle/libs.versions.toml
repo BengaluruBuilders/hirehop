@@ -120,15 +120,15 @@ roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
-hirehop-android-application = { id = "hirehop.android.application" }
-hirehop-android-application-compose = { id = "hirehop.android.application.compose" }
-hirehop-android-feature-api = { id = "hirehop.android.feature.api" }
-hirehop-android-feature-impl = { id = "hirehop.android.feature.impl" }
-hirehop-android-library = { id = "hirehop.android.library" }
-hirehop-android-library-compose = { id = "hirehop.android.library.compose" }
-hirehop-android-library-screenshot = { id = "hirehop.android.library.screenshot" }
-hirehop-android-room = { id = "hirehop.android.room" }
-hirehop-hilt = { id = "hirehop.hilt" }
-hirehop-jvm-library = { id = "hirehop.jvm.library" }
-hirehop-kover = { id = "hirehop.kover" }
-hirehop-root = { id = "hirehop.root" }
+tailormyresume-android-application = { id = "tailormyresume.android.application" }
+tailormyresume-android-application-compose = { id = "tailormyresume.android.application.compose" }
+tailormyresume-android-feature-api = { id = "tailormyresume.android.feature.api" }
+tailormyresume-android-feature-impl = { id = "tailormyresume.android.feature.impl" }
+tailormyresume-android-library = { id = "tailormyresume.android.library" }
+tailormyresume-android-library-compose = { id = "tailormyresume.android.library.compose" }
+tailormyresume-android-library-screenshot = { id = "tailormyresume.android.library.screenshot" }
+tailormyresume-android-room = { id = "tailormyresume.android.room" }
+tailormyresume-hilt = { id = "tailormyresume.hilt" }
+tailormyresume-jvm-library = { id = "tailormyresume.jvm.library" }
+tailormyresume-kover = { id = "tailormyresume.kover" }
+tailormyresume-root = { id = "tailormyresume.root" }

@@ -3,7 +3,7 @@
     <string name="feature_profile_impl_fact_editor_title_new">New fact</string>
     <string name="feature_profile_impl_fact_editor_title_edit">Edit fact</string>
     <string name="feature_profile_impl_fact_editor_navigate_back">Back</string>
-    <string name="feature_profile_impl_fact_editor_hint">HireHop can use only the numbers, names, tools, and dates you put here.</string>
+    <string name="feature_profile_impl_fact_editor_hint">TailorMyResume can use only the numbers, names, tools, and dates you put here.</string>
     <string name="feature_profile_impl_fact_editor_loading">Loading this fact</string>
 
     <string name="feature_profile_impl_fact_editor_field_title">Title</string>
@@ -43,13 +43,13 @@
     <string name="feature_profile_impl_fact_editor_delete">Delete fact</string>
 
     <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s?</string>
-    <string name="feature_profile_impl_fact_editor_delete_message">HireHop won’t use it in new tailoring. Resumes you already exported don’t change. You can add it again later.</string>
+    <string name="feature_profile_impl_fact_editor_delete_message">TailorMyResume won’t use it in new tailoring. Resumes you already exported don’t change. You can add it again later.</string>
     <string name="feature_profile_impl_fact_editor_delete_confirm">Delete</string>
     <string name="feature_profile_impl_fact_editor_delete_cancel">Cancel</string>
 
     <string name="feature_profile_impl_fact_editor_offline">Your changes are saved on this phone and sync when you’re back.</string>
-    <string name="feature_profile_impl_fact_editor_message_save_failed">HireHop could not save this fact. Your words are still here.</string>
-    <string name="feature_profile_impl_fact_editor_unconfirmed">Not confirmed. HireHop will not use this until you save it.</string>
+    <string name="feature_profile_impl_fact_editor_message_save_failed">TailorMyResume could not save this fact. Your words are still here.</string>
+    <string name="feature_profile_impl_fact_editor_unconfirmed">Not confirmed. TailorMyResume will not use this until you save it.</string>
     <string name="feature_profile_impl_fact_editor_fact_announcement">%1$s. %2$s. %3$s. Fact %4$s.</string>
 
     <string name="feature_profile_impl_fact_editor_category_education">Education</string>

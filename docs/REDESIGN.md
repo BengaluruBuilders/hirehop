@@ -1,4 +1,4 @@
-# HireHop redesign
+# TailorMyResume redesign
 
 ## Current direction — 2026-10-07
 
@@ -56,7 +56,7 @@ new components.
 |---|---|---|
 | Home header | Welcome and the three top-level tabs | Jade header, two soft circles, greeting, credits pill, bold headline, outline pill button. The woman hero pose stands in front of the sheet |
 | Sheet | Below a home header | Surface with 28 dp top corners that overlaps the header |
-| Inner header | Every pushed screen | Shorter jade header, 48 dp tinted circular back button with a white chevron (`HhBackButton`), centred title and subtitle. Hero cards (24 dp radius) overlap it |
+| Inner header | Every pushed screen | Shorter jade header, 48 dp tinted circular back button with a white chevron (`TmrBackButton`), centred title and subtitle. Hero cards (24 dp radius) overlap it |
 | Dock | The three top-level tabs only | Floating `tool` pill, inset from the screen edges. Each item is an icon above a label; the active item is `onToolSelected`. Never on onboarding or pushed screens |
 | Bottom action bar | Screens with 1 to 3 main actions | `tool` bar. Content has an inset, so the bar never covers content |
 | Status | Met, partly met, to prepare | Shape plus word plus colour. The gap word in the UI is "To prepare" |
@@ -133,7 +133,7 @@ Two roots. The app shell shows one of two navigation roots, and it switches when
 - **First-run root**: one back stack that starts at Welcome. No dock.
 - **Main root**: the three tabs (Applications, Profile, Settings) with the dock on the tab screens only.
 
-Each root has its own `ViewModelStore` (`RootViewModelStores` in `app`). The store of a root is cleared when the app switches to the other root. A configuration change keeps it. So Paste JD after a sign-out and a new sign-in starts with a new ViewModel. `PendingNavigation` also serves the first-run root: Delete account sets `AccountDeletedNavKey` before it runs, and `HhFirstRunRoot` pushes it on top of Welcome.
+Each root has its own `ViewModelStore` (`RootViewModelStores` in `app`). The store of a root is cleared when the app switches to the other root. A configuration change keeps it. So Paste JD after a sign-out and a new sign-in starts with a new ViewModel. `PendingNavigation` also serves the first-run root: Delete account sets `AccountDeletedNavKey` before it runs, and `TmrFirstRunRoot` pushes it on top of Welcome.
 
 A feature never resets a back stack itself. To leave the first-run root, call
 `SessionRepository.markOnboardingComplete()`. To return to it, sign out or delete the account
@@ -149,7 +149,7 @@ tab, and `NextOnboardingStepUseCase` still decides the next screen.
 2. Put every UI string in the module's `strings*.xml` with the module resource prefix. Use plain,
    short sentences. Never write "ATS score", a guarantee, or the words "student", "college",
    "campus", "fresher", or "graduate" in UI copy. Sample resume facts may use them.
-3. Features use only `Hh*` components and `HhTheme` tokens. No raw Material component, no
+3. Features use only `Tmr*` components and `TmrTheme` tokens. No raw Material component, no
    `MaterialTheme.*`, no `Color(0x...)`, no `RoundedCornerShape` literal, and no raw `dp` or `sp`
    literal where a token exists.
 4. Keep unidirectional data flow: stateless `...Screen`, a `...Route` that collects state, one
@@ -170,13 +170,13 @@ tab, and `NextOnboardingStepUseCase` still decides the next screen.
    Read the light frame of each state as text. Read a dark frame only to check a colour role.
 3. For each screen, rewrite the `...Screen` composable and its parts to match the frames: layout,
    order, spacing, radii, type styles, copy, and every state in the index that the code can reach.
-   Use `HhScreen` with `HhInnerHeader` or `HhHomeHeader`. Use the new token names only.
+   Use `TmrScreen` with `TmrInnerHeader` or `TmrHomeHeader`. Use the new token names only.
    A frame marked "system" (Google account picker, file picker, share sheet, notification shade,
    Play purchase sheet) is Android UI. Do not build it.
    A `{{PLACEHOLDER}}` in a frame is copy that is not written. Show a string resource with a
    clear neutral value, as the old code does for missing addresses.
 4. If the catalogue has no component for a part, build the part in your module from Compose
-   foundation primitives and `HhTheme` tokens. List each such part in your report. Do not edit
+   foundation primitives and `TmrTheme` tokens. List each such part in your report. Do not edit
    `core/designsystem`.
 5. Keep the ViewModel logic unless the design, the navigation contract (section 6), or the mock
    backend document needs a change. Remove display data that a ViewModel or a screen builds inline;
@@ -186,7 +186,7 @@ tab, and `NextOnboardingStepUseCase` still decides the next screen.
    that the screen renders. Delete the old baseline images of your module, record new ones, then
    run the verify task. Open at least four recorded images (two screens, light and dark) and
    compare them with the frames. Fix what differs.
-8. Motion: use `HhTheme.motion.proofSpecs` for transitions and `hopSpecs` only where the flow
+8. Motion: use `TmrTheme.motion.proofSpecs` for transitions and `hopSpecs` only where the flow
    prompt allows it. Honour the reduced-motion flag. Do not build the multi-frame animations
    ("premium move") beyond a simple enter or state transition.
 9. Accessibility: 48 dp touch targets, a content description on each icon-only control, merged
