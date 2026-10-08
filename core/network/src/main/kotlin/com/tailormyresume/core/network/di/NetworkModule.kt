@@ -25,7 +25,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun okHttpClient(tokens: IdTokenProvider, consentListener: ConsentRequiredListener): OkHttpClient =
-        tailormyresumeOkHttpClient(tokens, consentListener)
+        tailormyresumeOkHttpClient(tokens, consentListener = consentListener)
 
     @Provides
     @Singleton

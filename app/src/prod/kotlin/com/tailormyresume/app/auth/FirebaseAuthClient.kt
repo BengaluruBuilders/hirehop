@@ -85,3 +85,5 @@ private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { conti
 }
 
 private const val TOKEN_TIMEOUT_SECONDS = 10L
+
+internal fun Throwable.isSessionExpiry(): Boolean = false

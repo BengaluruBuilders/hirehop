@@ -14,6 +14,7 @@ fun tailormyresumeJson(): Json = Json {
 
 fun tailormyresumeOkHttpClient(
     tokens: IdTokenProvider,
+    sessionListener: SessionExpiredListener = SessionExpiredListener {},
     consentListener: ConsentRequiredListener = ConsentRequiredListener {},
 ): OkHttpClient = OkHttpClient.Builder()
     .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)

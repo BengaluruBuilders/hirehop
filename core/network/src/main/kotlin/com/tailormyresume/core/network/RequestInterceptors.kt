@@ -27,6 +27,10 @@ internal class AuthInterceptor(private val tokens: IdTokenProvider) : Intercepto
         newBuilder().header("Authorization", "Bearer $token").build()
 }
 
+fun interface SessionExpiredListener {
+    fun onSessionExpired()
+}
+
 fun interface ConsentRequiredListener {
     fun onConsentRequired()
 }
