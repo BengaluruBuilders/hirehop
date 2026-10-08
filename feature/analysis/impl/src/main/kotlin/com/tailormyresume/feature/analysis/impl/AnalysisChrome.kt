@@ -233,10 +233,13 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
         }
         is AnalysisUiState.Failed -> {
             {
+                val signIn = uiState.cause == FailureCause.SignInRequired
                 TmrBottomActionBar(stacked = true, primaryLast = false) {
                     TmrPrimaryButton(
-                        label = stringResource(R.string.feature_analysis_impl_retry),
-                        onClick = actions.onRetry,
+                        label = stringResource(
+                            if (signIn) R.string.feature_analysis_impl_sign_in_again else R.string.feature_analysis_impl_retry,
+                        ),
+                        onClick = if (signIn) actions.onSignInAgain else actions.onRetry,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     TmrSecondaryButton(

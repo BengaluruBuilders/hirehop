@@ -18,6 +18,19 @@
     <string name="feature_analysis_impl_error_title">The gap check didn’t finish</string>
     <string name="feature_analysis_impl_error_body">This one did not count towards today’s free analyses.</string>
     <string name="feature_analysis_impl_retry">Try again</string>
+    <string name="feature_analysis_impl_busy_title">Still analysing this job</string>
+    <string name="feature_analysis_impl_busy_body">The same job is already being analysed. Wait a moment, then tap Try again.</string>
+    <string name="feature_analysis_impl_rate_limited_title">Too many requests</string>
+    <string name="feature_analysis_impl_rate_limited_body">Please wait a little, then tap Try again.</string>
+    <plurals name="feature_analysis_impl_rate_limited_wait">
+        <item quantity="one">Please wait %1$d second, then tap Try again.</item>
+        <item quantity="other">Please wait %1$d seconds, then tap Try again.</item>
+    </plurals>
+    <string name="feature_analysis_impl_quota_title">Daily AI limit reached</string>
+    <string name="feature_analysis_impl_quota_body">The AI has reached its limit for today. Try again tomorrow. Your job is saved.</string>
+    <string name="feature_analysis_impl_sign_in_title">Please sign in again</string>
+    <string name="feature_analysis_impl_sign_in_body">Your session has ended. Sign in again to continue. Your job is saved.</string>
+    <string name="feature_analysis_impl_sign_in_again">Sign in again</string>
     <string name="feature_analysis_impl_daily_limit_title">No free analyses left today</string>
     <string name="feature_analysis_impl_daily_limit_body">You\'ve used today\'s 3 free analyses. You get 3 more tomorrow.</string>
     <string name="feature_analysis_impl_daily_limit_note">This JD is saved. Open it tomorrow and tap Analyse.</string>

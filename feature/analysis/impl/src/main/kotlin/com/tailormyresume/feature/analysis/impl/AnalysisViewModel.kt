@@ -13,6 +13,7 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.data.repository.UsageAllowance
 import com.tailormyresume.core.domain.AddUserStatedFactUseCase
+import com.tailormyresume.core.domain.AiException
 import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.CreateApplicationUseCase
@@ -150,7 +151,9 @@ class AnalysisViewModel @Inject constructor(
 
     fun onRetry() = load()
 
-    fun onSignInAgain() = Unit
+    fun onSignInAgain() {
+        viewModelScope.launch { signInGateway.signOut() }
+    }
 
     fun onResume() {
         val ready = local.value.phase as? Phase.Ready ?: return
@@ -309,7 +312,7 @@ class AnalysisViewModel @Inject constructor(
                     val phase = if (failure.isAiFailure(AiFailure.AllowanceExhausted)) {
                         Phase.DailyLimit(kept)
                     } else {
-                        Phase.Failed(kept)
+                        Phase.Failed(kept, failure.toFailureCause())
                     }
                     local.update { it.copy(phase = phase) }
                 },
@@ -449,7 +452,7 @@ class AnalysisViewModel @Inject constructor(
             override val facts: Int get() = factCount
         }
 
-        data class Failed(val kept: KeptJobDescription) : Phase {
+        data class Failed(val kept: KeptJobDescription, val cause: FailureCause = FailureCause.Generic) : Phase {
             override val label: JobLabel get() = JobLabel(kept.role, kept.company)
         }
 
@@ -505,7 +508,7 @@ class AnalysisViewModel @Inject constructor(
                 env.scenario == DebugScenario.ERROR -> AnalysisUiState.Failed(label)
                 env.scenario == DebugScenario.EMPTY -> AnalysisUiState.DailyLimit(label)
                 phase is Phase.Analyzing -> AnalysisUiState.Analyzing(label, factCount)
-                phase is Phase.Failed -> AnalysisUiState.Failed(label)
+                phase is Phase.Failed -> AnalysisUiState.Failed(label, phase.cause)
                 phase is Phase.DailyLimit -> AnalysisUiState.DailyLimit(label)
                 phase is Phase.Ready -> AnalysisUiState.Result(
                     job = label,
@@ -528,6 +531,17 @@ class AnalysisViewModel @Inject constructor(
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
         const val APPLICATION_ID_KEY = "application-id-"
+    }
+}
+
+private fun Throwable.toFailureCause(): FailureCause {
+    val ai = this as? AiException ?: return FailureCause.Generic
+    return when (ai.failure) {
+        AiFailure.RateLimited -> FailureCause.RateLimited(ai.retryAfterSeconds)
+        AiFailure.AnalysisInProgress -> FailureCause.InProgress
+        AiFailure.QuotaExceeded -> FailureCause.QuotaReached
+        AiFailure.SignInRequired -> FailureCause.SignInRequired
+        else -> FailureCause.Generic
     }
 }
 
