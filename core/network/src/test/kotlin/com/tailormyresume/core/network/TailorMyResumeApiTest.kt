@@ -93,10 +93,9 @@ class TailorMyResumeApiTest {
     @Test
     fun aSessionExpiredTokenSignalsTheListener() {
         tokens.expired = true
-        server.enqueue(error(401, "UNAUTHENTICATED"))
         assertThat(failureOf { api().me() }).isEqualTo(ApiError.Unauthenticated)
         assertThat(expirySignals).isEqualTo(1)
-        assertThat(server.takeRequest().getHeader("Authorization")).isNull()
+        assertThat(server.requestCount).isEqualTo(0)
     }
 
     @Test
