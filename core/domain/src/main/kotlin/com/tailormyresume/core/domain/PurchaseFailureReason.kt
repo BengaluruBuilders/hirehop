@@ -4,4 +4,5 @@ enum class PurchaseFailureReason {
     PaymentUnavailable,
     PaymentDeclined,
     PurchaseUnavailable,
+    PaymentUnconfirmed,
 }

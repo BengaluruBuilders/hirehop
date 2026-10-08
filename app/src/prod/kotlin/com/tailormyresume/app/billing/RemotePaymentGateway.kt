@@ -1,5 +1,6 @@
 package com.tailormyresume.app.billing
 
+import com.tailormyresume.core.common.network.di.ApplicationScope
 import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.CreditSpend
 import com.tailormyresume.core.domain.FirebaseUidProvider
@@ -15,10 +16,16 @@ import com.tailormyresume.core.network.ApiException
 import com.tailormyresume.core.network.TailorMyResumeApi
 import com.tailormyresume.core.network.apiResult
 import com.tailormyresume.core.network.dto.PurchaseRequest
+import com.tailormyresume.core.network.dto.PurchaseResponse
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,8 +37,10 @@ class RemotePaymentGateway @Inject constructor(
     private val wallet: WalletSource,
     private val billing: PlayBilling,
     private val uids: FirebaseUidProvider,
+    @ApplicationScope private val scope: CoroutineScope,
 ) : PaymentGateway {
     private val pending = MutableStateFlow<List<String>>(emptyList())
+    private val reposts = mutableMapOf<String, Job>()
 
     override suspend fun packs(): List<ApplicationPack> = apiResult { api.packs().packs }.getOrThrow().mapNotNull { pack ->
         billing.productDetails(pack.productId)?.let { product ->
@@ -67,12 +76,13 @@ class RemotePaymentGateway @Inject constructor(
         return when (val outcome = billing.launchPurchase(packId, obfuscatedAccountId(uid))) {
             PlayPurchaseResult.Cancelled -> PurchaseResult.Cancelled
             PlayPurchaseResult.Failed -> failed(PurchaseFailureReason.PaymentUnavailable)
-            is PlayPurchaseResult.Done -> settle(outcome.purchase)
+            PlayPurchaseResult.AlreadyOwned -> settleOwned(packId)
+            is PlayPurchaseResult.Done -> settle(outcome.purchase, SETTLE_RETRIES)
         }
     }
 
     override suspend fun restorePurchases(): PurchaseEntitlement {
-        billing.ownedPurchases().forEach { owned -> settle(owned) }
+        billing.ownedPurchases().forEach { owned -> settle(owned, retries = 0) }
         return entitlement()
     }
 
@@ -96,21 +106,70 @@ class RemotePaymentGateway @Inject constructor(
         return NO_CREDITS
     }
 
-    private suspend fun settle(purchase: PlayPurchase): PurchaseResult {
+    private suspend fun settleOwned(packId: String): PurchaseResult {
+        val owned = billing.ownedPurchases().firstOrNull { it.productId == packId }
+            ?: return failed(PurchaseFailureReason.PaymentUnconfirmed)
+        return settle(owned, SETTLE_RETRIES)
+    }
+
+    private suspend fun settle(purchase: PlayPurchase, retries: Int): PurchaseResult {
         if (purchase.state == PlayPurchaseState.PENDING) return hold(purchase.productId)
+        return try {
+            post(purchase, retries)
+        } catch (cancellation: CancellationException) {
+            hold(purchase.productId)
+            repostInBackground(purchase)
+            throw cancellation
+        }
+    }
+
+    private suspend fun post(purchase: PlayPurchase, retries: Int): PurchaseResult {
         val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
-        val response = result.getOrElse { failure -> return failureResult(failure, purchase.productId) }
+        val response = result.getOrElse { failure ->
+            if (failure.isRejection()) return unconfirmed(purchase.productId)
+            val held = hold(purchase.productId)
+            if (retries == 0 || (failure as? ApiException)?.error == ApiError.PurchasePending) {
+                repostInBackground(purchase)
+                return held
+            }
+            delay(RETRY_DELAY_MILLIS * (SETTLE_RETRIES - retries + 1))
+            return post(purchase, retries - 1)
+        }
+        return recorded(purchase.productId, response)
+    }
+
+    private fun repostInBackground(purchase: PlayPurchase) = synchronized(reposts) {
+        if (reposts[purchase.productId]?.isActive != true) reposts[purchase.productId] = scope.launch { repost(purchase) }
+    }
+
+    private suspend fun repost(purchase: PlayPurchase) {
+        for (wait in REPOST_BACKOFF_MILLIS) {
+            delay(wait)
+            if (purchase.productId !in pending.value) return
+            val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
+            result.onSuccess {
+                recorded(purchase.productId, it)
+                return
+            }
+            if (result.exceptionOrNull()?.isRejection() == true) {
+                unconfirmed(purchase.productId)
+                return
+            }
+        }
+    }
+
+    private fun recorded(productId: String, response: PurchaseResponse): PurchaseResult {
         wallet.update(response.wallet)
-        pending.value -= purchase.productId
+        pending.value -= productId
         return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
     }
 
-    private fun failureResult(failure: Throwable, productId: String): PurchaseResult = when ((failure as? ApiException)?.error) {
-        ApiError.PurchasePending -> hold(productId)
-        ApiError.PurchaseInvalid -> failed(PurchaseFailureReason.PaymentDeclined)
-        ApiError.Forbidden -> failed(PurchaseFailureReason.PurchaseUnavailable)
-        else -> failed(PurchaseFailureReason.PaymentUnavailable)
+    private fun unconfirmed(productId: String): PurchaseResult {
+        pending.value -= productId
+        return failed(PurchaseFailureReason.PaymentUnconfirmed)
     }
+
+    private fun Throwable.isRejection() = (this as? ApiException)?.error in REJECTIONS
 
     private fun hold(productId: String): PurchaseResult {
         if (productId !in pending.value) pending.value += productId
@@ -124,5 +183,9 @@ class RemotePaymentGateway @Inject constructor(
     private companion object {
         const val MICROS_PER_PAISE = 10_000L
         const val HTTP_CREATED = 201
+        const val SETTLE_RETRIES = 2
+        val REJECTIONS = setOf(ApiError.PurchaseInvalid, ApiError.Forbidden)
+        const val RETRY_DELAY_MILLIS = 1_000L
+        val REPOST_BACKOFF_MILLIS = listOf(2_000L, 4_000L, 8_000L, 16_000L, 32_000L)
     }
 }

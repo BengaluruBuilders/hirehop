@@ -58,6 +58,5 @@
     <string name="feature_tailor_impl_cover_letter_edit_fact_in_profile">Edit fact in Profile</string>
     <string name="feature_tailor_impl_cover_letter_done">Done</string>
     <string name="feature_tailor_impl_cover_letter_edited_by_you">User-edited</string>
-    <string name="feature_tailor_impl_cover_letter_still_backed">Still backed by your facts</string>
     <string name="feature_tailor_impl_cover_letter_done_editing">Done editing</string>
 </resources>
