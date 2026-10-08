@@ -29,8 +29,8 @@ class RoomLocalDataWiper @Inject constructor(
     override suspend fun wipeAll() {
         withContext(NonCancellable) {
             withContext(ioDispatcher) { database.clearAllTables() }
-            store.clear()
             exportedFiles.deleteAll()
+            store.clear()
         }
     }
 }
