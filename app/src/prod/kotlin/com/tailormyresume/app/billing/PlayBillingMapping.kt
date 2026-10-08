@@ -18,6 +18,7 @@ internal fun purchaseResultOf(result: BillingResult, purchases: List<Purchase>?)
     val purchase = purchases.orEmpty().flatMap(Purchase::toPlayPurchases).firstOrNull()
     return when {
         result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED -> PlayPurchaseResult.Cancelled
+        result.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> PlayPurchaseResult.AlreadyOwned
         result.responseCode == BillingClient.BillingResponseCode.OK && purchase != null ->
             PlayPurchaseResult.Done(purchase)
         else -> PlayPurchaseResult.Failed
