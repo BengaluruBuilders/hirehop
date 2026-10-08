@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.hirehop.android.library)
-    alias(libs.plugins.hirehop.android.library.compose)
+    alias(libs.plugins.tailormyresume.android.library)
+    alias(libs.plugins.tailormyresume.android.library.compose)
     id("io.github.takahirom.roborazzi")
 }
 
 android {
-    namespace = "com.hirehop.core.designsystem"
+    namespace = "com.tailormyresume.core.designsystem"
     testOptions.unitTests.isIncludeAndroidResources = true
     testOptions.unitTests.isReturnDefaultValues = true
 }

@@ -1,6 +1,6 @@
-import com.hirehop.buildlogic.configureKotlinJvm
-import com.hirehop.buildlogic.configureSpotlessForJvm
-import com.hirehop.buildlogic.libs
+import com.tailormyresume.buildlogic.configureKotlinJvm
+import com.tailormyresume.buildlogic.configureSpotlessForJvm
+import com.tailormyresume.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

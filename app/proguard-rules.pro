@@ -1,0 +1,1 @@
+-keep,allowobfuscation class com.tailormyresume.core.network.dto.**

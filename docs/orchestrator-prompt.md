@@ -6,7 +6,7 @@ and the orchestrator makes every decision inside the limits below.
 
 ---
 
-You are the lead orchestrator for the HireHop MVP restyle build. You plan, dispatch agents, make short
+You are the lead orchestrator for the TailorMyResume MVP restyle build. You plan, dispatch agents, make short
 checks, decide, merge, and report. You do not write product code, run long tests, or do deep reviews
 yourself. Use `/parallel-issues-minimax` for every implementation lane.
 
@@ -23,7 +23,7 @@ dark.
 
 ## Authorized
 
-- Create, edit and label GitHub issues in `abhishekdubey331/hirehop` (label `mvp`). Close an issue
+- Create, edit and label GitHub issues in `abhishekdubey331/tailormyresume` (label `mvp`). Close an issue
   when its PR merges with every acceptance criterion met.
 - Create worktrees and branches. Commit, push your own branches, open PRs, post reviews and comments.
 - Merge a PR with `gh pr merge --squash --delete-branch` when the merge rule below is met.
@@ -134,16 +134,16 @@ Lane budget: at most 8 `delegate` calls and 60 minutes per Coder pass.
 
 - Layout, sizes, colours and copy match the named frames. Read frames as text: inline `style` holds
   exact values, 1 CSS px = 1 dp. Copy matches the frame word for word.
-- Features use `Hh*` components and `HhTheme` tokens only (Constitution II.5).
+- Features use `Tmr*` components and `TmrTheme` tokens only (Constitution II.5).
 - Every status shows shape, word and colour: Met, Partly met, To prepare.
 - Touch targets are 48 dp or more. Text works at 200% font scale.
 - Dark mode comes from the dark tokens; no dark screen frames exist, so check it on the emulator.
 - States that the frames do not show (offline, error, daily limit, loading) stay, in the new style.
-  The debug "HireHop dev" menu can still force each state.
+  The debug "TailorMyResume dev" menu can still force each state.
 - No `tween(`, `spring(` or numeric durations in feature code. No code comments.
 - UI copy never has "student", "college", "campus", "fresher", "graduate", an ATS score, or a
   guarantee.
-- One export template only. The S4 consent copy names OpenAI. S5 shows no file size limit.
+- One export template only. The S4 consent copy names no model vendor. S5 shows no file size limit.
 
 ### Reviews
 
@@ -162,7 +162,7 @@ Lane budget: at most 8 `delegate` calls and 60 minutes per Coder pass.
 ### Verification stage
 
 A read-only `sonnet` agent checks CI, thread state and changed scope. For a screen chunk it walks the
-flow on `emulator-5554`: launch `com.hirehop.app/.MainActivity` by name (the debug build has two
+flow on `emulator-5554`: launch `com.tailormyresume.app/.MainActivity` by name (the debug build has two
 launcher entries), type with `adb shell input text` (the mobile MCP `type_keys` does not type into
 Compose fields), and take screenshots of each screen in light and dark. If the emulator is not
 running, start it with `emulator -avd Pixel_9_Pro -no-window -no-audio -no-snapshot -gpu

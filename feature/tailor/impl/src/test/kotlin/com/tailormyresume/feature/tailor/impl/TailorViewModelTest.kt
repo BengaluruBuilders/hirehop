@@ -1,0 +1,531 @@
+package com.tailormyresume.feature.tailor.impl
+
+import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.domain.AiException
+import com.tailormyresume.core.domain.AiFailure
+import com.tailormyresume.core.domain.FabricationGuard
+import com.tailormyresume.core.domain.ResumeTailor
+import com.tailormyresume.core.domain.TailorResumeUseCase
+import com.tailormyresume.core.domain.UpdateBulletDecisionUseCase
+import com.tailormyresume.core.model.BulletDecision
+import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.DebugScenario
+import com.tailormyresume.core.model.EditType
+import com.tailormyresume.core.model.EntryCategory
+import com.tailormyresume.core.model.EvidenceBullet
+import com.tailormyresume.core.model.GapAnalysis
+import com.tailormyresume.core.model.GuardrailViolation
+import com.tailormyresume.core.model.JobDescription
+import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.KeywordCoverage
+import com.tailormyresume.core.model.MatchStatus
+import com.tailormyresume.core.model.ReportedItemKind
+import com.tailormyresume.core.model.RequirementMatch
+import com.tailormyresume.core.model.RequirementPriority
+import com.tailormyresume.core.model.RequirementType
+import com.tailormyresume.core.model.TailoredBullet
+import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
+import com.tailormyresume.core.testing.repository.TestApplicationRepository
+import com.tailormyresume.core.testing.repository.TestContentReportRepository
+import com.tailormyresume.core.testing.repository.TestProfileRepository
+import com.tailormyresume.core.testing.repository.TestTailoringReviewStateRepository
+import com.tailormyresume.core.testing.util.MainDispatcherRule
+import com.tailormyresume.core.testing.util.TestClock
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
+import org.junit.Rule
+import org.junit.Test
+import kotlin.time.Clock
+
+class TailorViewModelTest {
+    private val tailor = FixedTailor()
+
+    @get:Rule
+    val dispatcherRule = MainDispatcherRule()
+
+    private val applicationRepository = TestApplicationRepository()
+    private val profileRepository = TestProfileRepository()
+    private val connectivity = TestConnectivityMonitor()
+    private val reviewState = TestTailoringReviewStateRepository()
+    private val reports = TestContentReportRepository()
+    private val testClock = TestClock()
+
+    private val reviewable = testBullet("r1", original = "Built a tool", proposed = "Developed a tool")
+    private val alreadyRejected = testBullet(
+        id = "r2",
+        original = "Wrote tests",
+        proposed = "Authored tests",
+        decision = BulletDecision.REJECTED,
+    )
+    private val unchanged = testBullet("u1", original = "Wrote SQL", proposed = "Wrote SQL")
+    private val repairFailed = testBullet(
+        id = "v1",
+        original = "Helped a team",
+        proposed = "Helped a team",
+        violations = listOf(GuardrailViolation.UnsupportedNumber("30")),
+    )
+    private val flagged = testBullet(
+        id = "f1",
+        original = "Made weekly reports",
+        proposed = "Built weekly reports",
+        violations = listOf(GuardrailViolation.VerbEscalation("made", "built")),
+    )
+    private val moveOnly = testBullet(
+        id = "m1",
+        original = "Presented at the fest",
+        proposed = "Presented at the fest",
+        editTypes = listOf(EditType.REORDER),
+    )
+    private val staleSource = testBullet("s1", original = "Text before the edit", proposed = "Reworded text")
+    private val hidden = testBullet("h1", entryId = "exp-hidden", original = "Old job", proposed = "Older job")
+
+    private val profile = testProfile(
+        listOf(
+            entryFor("exp-1", reviewable, alreadyRejected, unchanged, repairFailed, flagged, moveOnly, staleSource),
+            testEntry("exp-hidden", isConfirmed = false, bullets = listOf(evidenceOf(hidden))),
+            testEntry("edu-1", EntryCategory.EDUCATION),
+        ),
+    )
+
+    private val gap = GapAnalysis(
+        matches = listOf(
+            RequirementMatch(
+                requirement = JobRequirement(
+                    id = "req-1",
+                    text = "Must have Cloud data warehouse.",
+                    type = RequirementType.TOOL,
+                    priority = RequirementPriority.MUST_HAVE,
+                    keywords = emptyList(),
+                ),
+                status = MatchStatus.GAP,
+                evidenceIds = emptyList(),
+            ),
+        ),
+        keywordCoverage = KeywordCoverage(covered = 0, total = 1),
+    )
+
+    private fun viewModel(scenario: DebugScenario = DebugScenario.DEFAULT): TailorViewModel {
+        val clock = Clock.System
+        return TailorViewModel(
+            applicationRepository = applicationRepository,
+            profileRepository = profileRepository,
+            connectivityMonitor = connectivity,
+            reviewStateRepository = reviewState,
+            contentReportRepository = reports,
+            clock = testClock,
+            updateBulletDecision = UpdateBulletDecisionUseCase(applicationRepository, clock),
+            handEditBullet = HandEditBulletUseCase(applicationRepository, reviewState, clock),
+            regenerateSection = RegenerateSectionUseCase(
+                applicationRepository,
+                profileRepository,
+                TailorResumeUseCase(tailor, NoViolationGuard()),
+                reviewState,
+                clock,
+            ),
+            applicationId = "app-1",
+            scenario = scenario,
+        )
+    }
+
+    private fun TestScope.collectUiState(viewModel: TailorViewModel) {
+        backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
+    }
+
+    private fun sendData(
+        bullets: List<TailoredBullet>,
+        gapAnalysis: GapAnalysis? = gap,
+        entryIds: List<String>? = null,
+    ) {
+        applicationRepository.sendApplications(listOf(testApplication(bullets, gapAnalysis, entryIds)))
+        profileRepository.sendProfile(profile)
+    }
+
+    private fun TailorViewModel.success(): TailorUiState.Success {
+        val state = uiState.value
+        assertThat(state).isInstanceOf(TailorUiState.Success::class.java)
+        return state as TailorUiState.Success
+    }
+
+    private fun TailorViewModel.bulletOf(bulletId: String): TailorBulletUi =
+        success().sections.filterIsInstance<ReviewSection.Entries>()
+            .flatMap { it.entries }
+            .flatMap { it.bullets }
+            .first { it.bullet.id == bulletId }
+
+    @Test
+    fun applicationId_isTheAssistedKey() {
+        assertThat(viewModel().applicationId).isEqualTo("app-1")
+    }
+
+    @Test
+    fun uiState_startsLoading() {
+        assertThat(viewModel().uiState.value).isEqualTo(TailorUiState.Loading())
+    }
+
+    @Test
+    fun uiState_isNotFoundWhenTheApplicationIsMissing() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        applicationRepository.sendApplications(emptyList())
+        profileRepository.sendProfile(profile)
+
+        assertThat(viewModel.uiState.value).isEqualTo(TailorUiState.NotFound)
+    }
+
+    @Test
+    fun uiState_groupsBulletsByConfirmedEntryOnly() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable, unchanged, hidden), entryIds = listOf("exp-1"))
+
+        val entries = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>().flatMap { it.entries }
+        assertThat(entries.map { it.entryId }).containsExactly("exp-1")
+        assertThat(entries.last().bullets.map { it.bullet.id }).containsExactly("r1", "u1").inOrder()
+    }
+
+    @Test
+    fun uiState_leavesOutAConfirmedEntryTheTailoringNeverCovered() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable), entryIds = listOf("exp-1"))
+
+        val sections = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>()
+        assertThat(sections.map { it.category }).containsExactly(EntryCategory.EXPERIENCE)
+    }
+
+    @Test
+    fun uiState_countsReviewableAndRepairFailedChangesAndTreatsRepairFailedAsReviewed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable, alreadyRejected, unchanged, repairFailed))
+
+        assertThat(viewModel.success().totalCount).isEqualTo(3)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(2)
+        assertThat(viewModel.success().openCount).isEqualTo(1)
+    }
+
+    @Test
+    fun uiState_classifiesBulletKinds() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable, unchanged, repairFailed, flagged, moveOnly))
+
+        val kinds = viewModel.success().sections.filterIsInstance<ReviewSection.Entries>()
+            .flatMap { it.entries }.flatMap { it.bullets }.associate { it.bullet.id to it.state }
+        assertThat(kinds).containsExactly(
+            "r1",
+            BulletReviewState.TO_REVIEW,
+            "u1",
+            BulletReviewState.UNCHANGED,
+            "v1",
+            BulletReviewState.REPAIR_FAILED,
+            "f1",
+            BulletReviewState.FLAGGED,
+            "m1",
+            BulletReviewState.TO_REVIEW,
+        )
+        assertThat(viewModel.success().flaggedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun uiState_listsGapRequirementsAsNotAddedWithoutMarkerOrClosingPunctuation() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        assertThat(viewModel.success().notAdded).containsExactly("Cloud data warehouse")
+    }
+
+    @Test
+    fun uiState_resolvesSourceFactsForEachBullet() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        val source = viewModel.bulletOf("r1").sources.single()
+        assertThat(source.id).isEqualTo("src-r1")
+        assertThat(source.text).isEqualTo("Built a tool")
+    }
+
+    @Test
+    fun uiState_showsTheDesignIdOfTheSourceFactNotTheBulletId() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable))
+
+        val source = viewModel.bulletOf("r1").sources.single()
+        assertThat(source.displayId).isEqualTo("W-01")
+        assertThat(source.entryId).isEqualTo("exp-1")
+    }
+
+    @Test
+    fun onReportBullet_savesTheReportAndMarksTheBulletAsReported() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onReportBullet("r1")
+
+        val saved = reports.observeReports("app-1").first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.RESUME_BULLET)
+        assertThat(saved.itemId).isEqualTo("r1")
+        assertThat(saved.reportedAt).isEqualTo(testClock.instant)
+        assertThat(viewModel.success().reportedIds).containsExactly("r1")
+    }
+
+    @Test
+    fun onReportSection_marksTheSectionAsReported() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onReportSection("EXPERIENCE")
+
+        val saved = reports.observeReports("app-1").first().single()
+        assertThat(saved.itemKind).isEqualTo(ReportedItemKind.SECTION)
+        assertThat(saved.itemId).isEqualTo("EXPERIENCE")
+        assertThat(viewModel.success().reportedIds).containsExactly(sectionReportId("EXPERIENCE"))
+    }
+
+    @Test
+    fun reportedBullet_staysReportedForANewViewModel() = runTest {
+        sendData(listOf(reviewable))
+        val first = viewModel()
+        collectUiState(first)
+        first.onReportBullet("r1")
+        val reopened = viewModel()
+        collectUiState(reopened)
+
+        assertThat(reopened.success().reportedIds).containsExactly("r1")
+    }
+
+    @Test
+    fun onRegenerate_recordsTheRegenerationAgainstTheSection() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(reviewState.observe("app-1").first().regenerationsUsedIn(EntryCategory.EXPERIENCE.name)).isEqualTo(1)
+    }
+
+    @Test
+    fun onAccept_marksTheBulletAcceptedAndCountsItAsReviewed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable, unchanged))
+
+        viewModel.onAccept("r1")
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(1)
+        assertThat(viewModel.success().isAllReviewed).isTrue()
+    }
+
+    @Test
+    fun onKeepOriginal_marksTheBulletRejectedAndCountsItAsReviewed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable, unchanged))
+
+        viewModel.onKeepOriginal("r1")
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ORIGINAL_KEPT)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun onUndo_putsTheBulletBackToReview() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        viewModel.onAccept("r1")
+
+        viewModel.onUndo("r1")
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.TO_REVIEW)
+        assertThat(viewModel.success().reviewedCount).isEqualTo(0)
+    }
+
+    @Test
+    fun nextOpenChange_skipsReviewedChangesAndWrapsAround() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable, alreadyRejected, flagged))
+
+        assertThat(viewModel.success().nextOpenChange()?.bullet?.id).isEqualTo("r1")
+        assertThat(viewModel.success().nextOpenChange("r1")?.bullet?.id).isEqualTo("f1")
+        assertThat(viewModel.success().nextOpenChange("f1")?.bullet?.id).isEqualTo("r1")
+    }
+
+    @Test
+    fun onEditByHand_storesTheTextAsAcceptedUserEditedAndIgnoresBlankText() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(repairFailed))
+
+        viewModel.onEditByHand("v1", "   ")
+        assertThat(viewModel.bulletOf("v1").state).isEqualTo(BulletReviewState.REPAIR_FAILED)
+
+        viewModel.onEditByHand("v1", " Coordinated a team ")
+
+        val edited = viewModel.bulletOf("v1")
+        assertThat(edited.state).isEqualTo(BulletReviewState.USER_EDITED)
+        assertThat(edited.bullet.proposedText).isEqualTo("Coordinated a team")
+        assertThat(edited.bullet.violations).isEmpty()
+        assertThat(viewModel.success().changes.map { it.bullet.id }).containsExactly("v1")
+    }
+
+    @Test
+    fun onRegenerate_resetsTheSectionAndUsesOneIncludedRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        viewModel.onAccept("r1")
+        viewModel.onEditByHand("r1", "My own words")
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.TO_REVIEW)
+        assertThat(viewModel.bulletOf("r1").bullet.proposedText).isEqualTo("Developed a tool")
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(1)
+    }
+
+    @Test
+    fun onRegenerate_whenTheServerFails_keepsTheSectionAndSpendsNoRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        viewModel.onAccept("r1")
+        tailor.failure = AiFailure.Network
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
+    fun onRegenerate_whenTheServerNeedsACredit_reportsNoCreditAndSpendsNoRegeneration() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        tailor.failure = AiFailure.NoCredit
+        val failures = mutableListOf<RegenerateResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.regenerateFailures.toList(failures) }
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(failures).containsExactly(RegenerateResult.NoCredit)
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
+    fun onRegenerate_whenTheServerFails_reportsTheFailure() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        tailor.failure = AiFailure.Unavailable
+        val failures = mutableListOf<RegenerateResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.regenerateFailures.toList(failures) }
+
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(failures).containsExactly(RegenerateResult.Failed)
+    }
+
+    @Test
+    fun onRegenerate_stopsAfterTheIncludedRegenerationsAreUsed() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+
+        repeat(3) { viewModel.onRegenerate(EntryCategory.EXPERIENCE) }
+        viewModel.onAccept("r1")
+        viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(0)
+        assertThat(viewModel.bulletOf("r1").state).isEqualTo(BulletReviewState.ACCEPTED)
+    }
+
+    @Test
+    fun uiState_marksOfflineWhenTheDeviceIsOfflineOrTheScenarioSaysSo() = runTest {
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        assertThat(viewModel.success().isOffline).isFalse()
+
+        connectivity.setOnline(false)
+
+        assertThat(viewModel.success().isOffline).isTrue()
+
+        val forced = viewModel(DebugScenario.OFFLINE)
+        collectUiState(forced)
+        assertThat(forced.success().isOffline).isTrue()
+    }
+
+    @Test
+    fun scenarioLoading_forcesTheLoadingStateWithCounts() = runTest {
+        val viewModel = viewModel(DebugScenario.LOADING)
+        collectUiState(viewModel)
+
+        sendData(listOf(reviewable, unchanged))
+
+        val state = viewModel.uiState.value as TailorUiState.Loading
+        assertThat(state.lineCount).isEqualTo(2)
+        assertThat(state.job?.company).isEqualTo("Acme")
+    }
+
+    @Test
+    fun scenarioError_forcesTheFailedStateUntilRetry() = runTest {
+        val viewModel = viewModel(DebugScenario.ERROR)
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        assertThat(viewModel.uiState.value).isInstanceOf(TailorUiState.Failed::class.java)
+
+        viewModel.onRetry()
+
+        assertThat(viewModel.uiState.value).isInstanceOf(TailorUiState.Success::class.java)
+    }
+}
+
+private class FixedTailor : ResumeTailor {
+    var failure: AiFailure? = null
+
+    override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis, applicationId: String, section: EntryCategory?): TailoredResume {
+        failure?.let { throw AiException(it) }
+        return TailoredResume(
+            listOf(
+                testBullet(
+                    id = "r1",
+                    original = "Built a tool",
+                    proposed = "Developed a tool",
+                    decision = BulletDecision.ACCEPTED,
+                ),
+            ),
+        )
+    }
+}
+
+private class NoViolationGuard : FabricationGuard {
+    override fun check(
+        proposedText: String,
+        sources: List<EvidenceBullet>,
+        profile: CandidateProfile,
+    ): List<GuardrailViolation> = emptyList()
+}

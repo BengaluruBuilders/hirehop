@@ -1,8 +1,8 @@
 import com.android.build.api.dsl.LibraryExtension
-import com.hirehop.buildlogic.configureAndroidLint
-import com.hirehop.buildlogic.configureKotlinAndroid
-import com.hirehop.buildlogic.configureSpotlessForAndroid
-import com.hirehop.buildlogic.libs
+import com.tailormyresume.buildlogic.configureAndroidLint
+import com.tailormyresume.buildlogic.configureKotlinAndroid
+import com.tailormyresume.buildlogic.configureSpotlessForAndroid
+import com.tailormyresume.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -14,7 +14,7 @@ abstract class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.library")
             if (path == ":core:domain" || path == ":core:data") {
-                apply(plugin = "hirehop.kover")
+                apply(plugin = "tailormyresume.kover")
             }
 
             extensions.configure<LibraryExtension> {

@@ -1,9 +1,9 @@
 plugins {
-    alias(libs.plugins.hirehop.android.library)
+    alias(libs.plugins.tailormyresume.android.library)
 }
 
 android {
-    namespace = "com.hirehop.core.testing"
+    namespace = "com.tailormyresume.core.testing"
 }
 
 dependencies {

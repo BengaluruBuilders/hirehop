@@ -4,21 +4,21 @@
     <string name="feature_settings_impl_delete_account_back">Back</string>
 
     <string name="feature_settings_impl_delete_account_offline_message">Deleting needs a connection. Nothing has been deleted.</string>
-    <string name="feature_settings_impl_delete_account_error_intact">We couldn\'t delete your account just now. Your account is unchanged. Try again, or contact help from Settings.</string>
+    <string name="feature_settings_impl_delete_account_error_intact">Your account is unchanged. Try again.</string>
     <string name="feature_settings_impl_delete_account_error_partial">We couldn\'t finish deleting your account. Some of your applications or facts may already be gone. Try again, or contact help from Settings.</string>
 
     <string name="feature_settings_impl_delete_account_list_title">What is deleted</string>
     <plurals name="feature_settings_impl_delete_account_row_facts">
-        <item quantity="one">profile fact</item>
-        <item quantity="other">profile facts</item>
+        <item quantity="one">%1$d profile fact</item>
+        <item quantity="other">%1$d profile facts</item>
     </plurals>
     <plurals name="feature_settings_impl_delete_account_row_applications">
-        <item quantity="one">application, with its JD text, analysis and resume</item>
-        <item quantity="other">applications, with their JD texts, analyses and resumes</item>
+        <item quantity="one">%1$d application with its JD text, analysis and resume</item>
+        <item quantity="other">%1$d applications with their JD texts, analyses and resumes</item>
     </plurals>
     <plurals name="feature_settings_impl_delete_account_row_credits">
-        <item quantity="one">unused credit</item>
-        <item quantity="other">unused credits</item>
+        <item quantity="one">%1$d unused credit</item>
+        <item quantity="other">%1$d unused credits</item>
     </plurals>
     <string name="feature_settings_impl_delete_account_download_first">Download my data first</string>
     <string name="feature_settings_impl_delete_account_web_lead">You can also delete your account on the web:</string>
@@ -26,7 +26,7 @@
     <string name="feature_settings_impl_delete_account_web_pending">Copy pending</string>
 
     <string name="feature_settings_impl_delete_account_keep">Keep my account</string>
-    <string name="feature_settings_impl_delete_account_confirm">Delete my account</string>
+    <string name="feature_settings_impl_delete_account_confirm">Delete account</string>
 
     <string name="feature_settings_impl_delete_account_deleting_title">Deleting your account</string>
     <plurals name="feature_settings_impl_delete_account_step_facts">
@@ -37,15 +37,11 @@
         <item quantity="one">Deleting %1$d application</item>
         <item quantity="other">Deleting %1$d applications</item>
     </plurals>
-    <plurals name="feature_settings_impl_delete_account_step_closing">
-        <item quantity="one">Removing %1$d credit and signing you out</item>
-        <item quantity="other">Removing %1$d credits and signing you out</item>
-    </plurals>
-    <string name="feature_settings_impl_delete_account_deleting_note">Keep the app open for a moment.</string>
+    <string name="feature_settings_impl_delete_account_step_closing">Closing your account</string>
+    <string name="feature_settings_impl_delete_account_deleting_note">Keep the app open until this finishes.</string>
 
-    <string name="feature_settings_impl_delete_account_done_header">HireHop</string>
     <string name="feature_settings_impl_delete_account_done_illustration">A goodbye wave</string>
-    <string name="feature_settings_impl_delete_account_done_title">Your account and data are deleted.</string>
-    <string name="feature_settings_impl_delete_account_done_body">Thank you for using HireHop.</string>
+    <string name="feature_settings_impl_delete_account_done_title">Account deleted</string>
+    <string name="feature_settings_impl_delete_account_done_body">Your account and data are deleted. Thank you for using TailorMyResume.</string>
     <string name="feature_settings_impl_delete_account_done_action">Back to Welcome</string>
 </resources>

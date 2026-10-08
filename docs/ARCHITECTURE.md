@@ -1,4 +1,4 @@
-# HireHop prototype — architecture spec
+# TailorMyResume prototype — architecture spec
 
 This spec binds every implementation agent. The reference is Now in Android (NiA) at
 `/Users/aibuilders/Documents/dev/products/_ref/nowinandroid` (commit a49ed25). Read it locally. Copy its
@@ -9,7 +9,7 @@ The prototype has no backend. All "AI" steps run as deterministic, offline Kotli
 backend implementation can replace them later (dependency inversion). Sign-in, payment, and the account state
 are mock implementations. `docs/MOCK_BACKEND.md` describes them.
 
-The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/DESIGN_SYSTEM.md` holds the components.
+The current look follows `docs/AVVIO_REDESIGN.md`. `docs/DESIGN_SYSTEM.md` holds the tokens and components.
 
 ## 1. Coding standards
 
@@ -23,26 +23,27 @@ The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/
 - No `!!`. No `GlobalScope`. Inject dispatchers with the `@Dispatcher(IO)` qualifier as NiA does.
 - Tests: JUnit4 + Truth + Turbine + kotlinx-coroutines-test, as in NiA. Use test fakes from `core:testing`,
   not mocking libraries.
-- Package root: `com.hirehop`. Namespaces: `com.hirehop.core.model`, `com.hirehop.feature.profile.impl`, etc.
-  Application ID: `com.hirehop.app`.
-- Convention plugin IDs: `hirehop.android.application`, `hirehop.android.application.compose`,
-  `hirehop.android.library`, `hirehop.android.library.compose`, `hirehop.android.feature.api`,
-  `hirehop.android.feature.impl`, `hirehop.android.room`, `hirehop.hilt`, `hirehop.jvm.library`.
+- Package root: `com.tailormyresume`. Namespaces: `com.tailormyresume.core.model`, `com.tailormyresume.feature.profile.impl`, etc.
+  Application ID: `com.tailormyresume.app`.
+- Convention plugin IDs: `tailormyresume.android.application`, `tailormyresume.android.application.compose`,
+  `tailormyresume.android.library`, `tailormyresume.android.library.compose`, `tailormyresume.android.feature.api`,
+  `tailormyresume.android.feature.impl`, `tailormyresume.android.room`, `tailormyresume.hilt`, `tailormyresume.jvm.library`.
 - minSdk 26, compileSdk/targetSdk 36. JDK 17 toolchain (host has JDK 17 only).
 
 ## 2. Modules
 
 | Module | Type | Content |
 |---|---|---|
-| `:app` | application | `HireHopApplication` (@HiltAndroidApp), `MainActivity`, `HhApp`, `AppViewModel`, `AppRootState`, the three top-level destinations, Nav3 wiring. The `debug` source set holds the developer menu |
+| `:app` | application | `TailorMyResumeApplication` (@HiltAndroidApp), `MainActivity`, `TmrApp`, `AppViewModel`, `AppRootState`, the three top-level destinations, Nav3 wiring. The `debug` source set holds the developer menu |
 | `:core:model` | jvm library | Pure Kotlin data models (section 3) |
-| `:core:common` | android library | `Dispatcher` qualifier, `HhDispatchers`, dispatchers + application-scope DI modules, `Result` wrapper |
-| `:core:designsystem` | library compose | `HhTheme` with the "Friendly hero, Jade" tokens (colour, type, shape, spacing, elevation, motion). `HhScreen` and the headers `HhHomeHeader` and `HhInnerHeader`. `HhDock`, `HhBottomActionBar`, sheets, dialogs, cards, chips, and text fields. Spot illustrations (`HhSpotIllustration`, `HhCharacterIllustration`) as vector drawables. `docs/DESIGN_SYSTEM.md` lists every component |
+| `:core:common` | android library | `Dispatcher` qualifier, `TmrDispatchers`, dispatchers + application-scope DI modules, `Result` wrapper |
+| `:core:designsystem` | library compose | `TmrTheme` with the Avvio-inspired tokens (colour, type, shape, spacing, elevation, motion). `TmrScreen` and the headers `TmrHomeHeader` and `TmrInnerHeader`. `TmrDock`, `TmrBottomActionBar`, sheets, dialogs, cards, chips, and text fields. `docs/DESIGN_SYSTEM.md` lists every component |
 | `:core:ui` | library compose | Shared UI pieces used by more than one feature |
 | `:core:navigation` | library | NiA `Navigator` and `NavigationState` pattern. `PendingNavigation` holds keys to push when the main root opens |
 | `:core:database` | library + room + hilt | Room DB, entities, DAOs, type converters. It holds the profile and the applications |
 | `:core:data` | library + hilt | Repository interfaces and offline-first implementations. `SessionRepository` and `ExportHistoryRepository` store their state in `MockStateStore` (DataStore). `ConnectivityMonitor` reports the network state |
 | `:core:domain` | library + hilt | JD analysis, gap match, tailoring, fabrication guard, resume text parser, cover letter, prep questions, fact validation, use cases. Gateways: `SignInGateway`, `PaymentGateway`, `AccountDataExporter`, `SampleDataController` |
+| `:core:network` | library + hilt | The one HTTP stack (I.5): OkHttp, Retrofit, kotlinx.serialization. `TailorMyResumeApi` (one function per route of `docs/BACKEND_CONTRACT.md`), the DTOs and their pure mappers to `core:model`, the `X-App-Id` and bearer interceptors with one 401 retry, the sealed `ApiError`, `apiResult`, and `IdTokenProvider`. Only `prod` bindings use it: `:app` adds it as `prodImplementation`, and no other module declares a network library |
 | `:core:testing` | library | Test repositories and gateways, contract tests, `MainDispatcherRule`, test data |
 | `:core:screenshot` | library | Roborazzi screenshot helpers and test devices |
 | `:feature:onboarding:{api,impl}` | feature | Welcome, Paste JD, Sign in, Consent, Import resume, Confirm your facts (Flow 1, S1 to S6) |
@@ -55,9 +56,25 @@ The look is "Friendly hero, Jade". `docs/REDESIGN.md` holds the rules and `docs/
 `docs/DESIGN_SYSTEM.md` and `design/02-screens.md` list the screens of each module.
 
 Dependency rules: features depend on `core:*` and on other features' `api` only. `core:domain` depends on
-`core:data` and `core:model`. `core:model` depends on nothing Android.
+`core:data` and `core:model`. `core:model` depends on nothing Android. `core:network` depends on `core:model` only,
+and only `:app` (as `prodImplementation`) and remote bindings of the `prod` flavour depend on it.
 
-## 3. Shared models (`:core:model`, package `com.hirehop.core.model`)
+### Flavours
+
+`:app` has one flavour dimension, `backend`, with two flavours. `demo` binds the on-device implementations of
+`docs/MOCK_BACKEND.md`, keeps the developer menu and sample data, and has no `INTERNET` permission and no
+network classes. `prod` binds the remote implementations through the files in `app/src/prod/kotlin/.../di`
+and declares `INTERNET`. Room stays the local source of truth in both. In `prod` these are remote:
+sign-in and account deletion, resume parsing, job analysis, tailoring, prep questions, the cover letter,
+payment and the wallet, content reports (saved locally, then posted), and the data export (local files plus
+`server.json`). Profile, applications, and review state are local in both flavours.
+
+Prod sign-in (`app/src/prod/.../auth`) uses Firebase Auth and Credential Manager without the google-services
+plugin. It reads four Gradle properties (in `gradle.properties` or `~/.gradle/gradle.properties`, never in git):
+`tailormyresumeWebClientId`, `tailormyresumeFirebaseApiKey`, `tailormyresumeFirebaseAppId`, and `tailormyresumeFirebaseProjectId`. Each
+defaults to empty. If one is empty, sign-in shows the sign-in-failed state and the app still starts.
+
+## 3. Shared models (`:core:model`, package `com.tailormyresume.core.model`)
 
 Use these names and shapes exactly. Timestamps use `kotlin.time.Instant` (Kotlin 2.3, stable).
 
@@ -160,7 +177,7 @@ data class JobApplication(
 )
 ```
 
-## 4. Repository interfaces (`:core:data`, package `com.hirehop.core.data.repository`)
+## 4. Repository interfaces (`:core:data`, package `com.tailormyresume.core.data.repository`)
 
 ```kotlin
 interface ProfileRepository {
@@ -184,9 +201,9 @@ signatures.
 
 Test fakes in `:core:testing`: `TestProfileRepository`, `TestApplicationRepository` (backed by
 `MutableSharedFlow`/`MutableStateFlow`, like NiA's test repositories), plus `MainDispatcherRule` and
-`com.hirehop.core.testing.data` sample objects (`sampleProfile`, `sampleApplication`).
+`com.tailormyresume.core.testing.data` sample objects (`sampleProfile`, `sampleApplication`).
 
-## 5. Domain interfaces (`:core:domain`, package `com.hirehop.core.domain`)
+## 5. Domain interfaces (`:core:domain`, package `com.tailormyresume.core.domain`)
 
 ```kotlin
 interface JobDescriptionAnalyzer { fun analyze(rawText: String): JobDescription }
@@ -215,19 +232,19 @@ extension in each `impl` module; `core:navigation` `Navigator`/`NavigationState`
 
 ### Roots
 
-`AppViewModel` maps the start destination to `AppRootState`. `HhApp` shows one of two roots.
+`AppViewModel` maps the start destination to `AppRootState`. `TmrApp` shows one of two roots.
 It switches when the "onboarding complete" flag or the account of `SessionRepository` changes (Main needs both).
 
 | Root | Content |
 |---|---|
-| First run (`HhFirstRunRoot`) | One back stack that starts at `WelcomeNavKey`. No dock |
-| Main (`HhMainRoot`) | Three tabs: Applications (start), Profile, Settings. `HhDock` shows on the three tab screens only |
+| First run (`TmrFirstRunRoot`) | One back stack that starts at `WelcomeNavKey`. No dock |
+| Main (`TmrMainRoot`) | Three tabs: Applications (start), Profile, Settings. `TmrDock` shows on the three tab screens only |
 
 A feature never resets a back stack. To leave the first-run root, call
 `SessionRepository.markOnboardingComplete()`. To return to it, sign out or delete the account.
 Each root has its own `ViewModelStore` (`RootViewModelStores`). The app clears the store of a root when it leaves the root.
 To open the main root with screens on top of Applications, call `PendingNavigation.set(...)` just
-before `markOnboardingComplete()`. `HhMainRoot` consumes the keys when it starts.
+before `markOnboardingComplete()`. `TmrMainRoot` consumes the keys when it starts.
 `docs/REDESIGN.md` section 6 has the full navigation contract.
 
 ### NavKeys
@@ -262,7 +279,7 @@ navigate straight to a forced state without touching feature business logic.
 ### Debug developer menu
 
 The `debug` source set of `:app` holds the developer menu. Release builds cannot reach it.
-It adds a second launcher entry, "HireHop dev" (`DebugScenarioActivity`). The menu can:
+It adds a second launcher entry, "TailorMyResume dev" (`DebugScenarioActivity`). The menu can:
 
 - load the sample data and reset the app data (`SampleDataController`);
 - switch the mock connectivity between online and offline;
@@ -293,9 +310,8 @@ free credit.
 
 ### Fonts
 
-The UI will use Plus Jakarta Sans for text and IBM Plex Mono 500 for fact IDs. Today `HhFontFamilies` in
-`core:designsystem` points to Anek Latin (text) and JetBrains Mono (fact IDs). Plus Jakarta Sans and IBM Plex Mono
-replace them when the font files are added. The families are defined in one place, so no other file changes.
+The UI uses bundled Manrope (variable) for text and fact IDs, and Archivo Black for uppercase
+headlines (`TmrHeadline`). `TmrFontFamilies` in `core:designsystem` defines both families. Font licenses are in `core/designsystem/fonts-licenses/`.
 
 ## 7. Build and host rules
 

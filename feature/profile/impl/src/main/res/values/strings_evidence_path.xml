@@ -5,7 +5,7 @@
     <string name="feature_profile_impl_evidence_path_back">Go back</string>
     <string name="feature_profile_impl_evidence_path_loading">Getting your facts ready</string>
     <string name="feature_profile_impl_evidence_path_load_failed">We could not open this. Your answers are still on this phone.</string>
-    <string name="feature_profile_impl_evidence_path_save_failed">HireHop could not save this fact. Your words are still here.</string>
+    <string name="feature_profile_impl_evidence_path_save_failed">TailorMyResume could not save this fact. Your words are still here.</string>
     <string name="feature_profile_impl_evidence_path_offline_message">You’re offline. Your facts are saved on this phone and sync when you’re back.</string>
 
     <string name="feature_profile_impl_evidence_path_picker_title">Where have you done real work?</string>
@@ -33,30 +33,27 @@
     <string name="feature_profile_impl_evidence_path_question_competitions_1">Which contest or hackathon did you join? What did your team do?</string>
     <string name="feature_profile_impl_evidence_path_question_positions_1">Which club, event, or team did you help run? What was your role?</string>
 
-    <string name="feature_profile_impl_evidence_path_question_counter">%1$s · question %2$d of %3$d</string>
+    <string name="feature_profile_impl_evidence_path_question_counter">Question %1$d of %2$d</string>
+    <string name="feature_profile_impl_evidence_path_one_question">One question</string>
     <string name="feature_profile_impl_evidence_path_answer_label">Your answer</string>
-    <string name="feature_profile_impl_evidence_path_answer_placeholder">In your own words</string>
-    <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. HireHop uses your words as facts.</string>
-    <string name="feature_profile_impl_evidence_path_saved_caption">Your answer, saved as a fact</string>
+    <string name="feature_profile_impl_evidence_path_answer_placeholder">Say it plainly, in one or two sentences.</string>
+    <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. TailorMyResume uses your words as facts.</string>
+    <string name="feature_profile_impl_evidence_path_saved_caption">Your answer is now a fact</string>
     <string name="feature_profile_impl_evidence_path_skipped_note">Skipped %1$s question %2$d. You can come back to it any time.</string>
 
-    <string name="feature_profile_impl_evidence_path_skip">Skip</string>
-    <string name="feature_profile_impl_evidence_path_save">Save as a fact</string>
+    <string name="feature_profile_impl_evidence_path_skip">Skip this one</string>
+    <string name="feature_profile_impl_evidence_path_save">Save answer</string>
     <string name="feature_profile_impl_evidence_path_add_more">Add more</string>
-    <string name="feature_profile_impl_evidence_path_back_to_profile">Back to Profile</string>
+    <string name="feature_profile_impl_evidence_path_back_to_profile">Go to Profile</string>
 
     <plurals name="feature_profile_impl_evidence_path_done_title">
         <item quantity="one">%1$d new fact added</item>
         <item quantity="other">%1$d new facts added</item>
-    </plurals>
-    <plurals name="feature_profile_impl_evidence_path_done_caption">
-        <item quantity="one">new fact added</item>
-        <item quantity="other">new facts added</item>
     </plurals>
     <string name="feature_profile_impl_evidence_path_done_body">Each one is in your words and marked user-stated. You can correct any of them from Profile.</string>
     <string name="feature_profile_impl_evidence_path_done_nothing_title">Nothing added, and that is fine</string>
     <string name="feature_profile_impl_evidence_path_done_nothing_body">You can come back and add any of this later. Nothing was saved.</string>
 
     <string name="feature_profile_impl_evidence_path_error_required">Add this to save.</string>
-    <string name="feature_profile_impl_evidence_path_error_too_long">This is longer than HireHop stores. Keep the main line.</string>
+    <string name="feature_profile_impl_evidence_path_error_too_long">This is longer than TailorMyResume stores. Keep the main line.</string>
 </resources>

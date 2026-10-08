@@ -3,7 +3,7 @@
 
     <application>
         <provider
-            android:name="com.hirehop.feature.settings.impl.navigation.SettingsFileProvider"
+            android:name="com.tailormyresume.feature.settings.impl.navigation.SettingsFileProvider"
             android:authorities="${applicationId}.settings.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

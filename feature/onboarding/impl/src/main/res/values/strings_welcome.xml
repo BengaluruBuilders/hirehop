@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_onboarding_impl_welcome_brand">HireHop</string>
-    <string name="feature_onboarding_impl_welcome_headline">Your next move, better prepared</string>
-    <string name="feature_onboarding_impl_welcome_subline">Tailored applications built only from facts you confirm.</string>
+    <string name="feature_onboarding_impl_welcome_brand">TailorMyResume</string>
+    <string name="feature_onboarding_impl_welcome_headline">Your resume, rewritten from your facts</string>
+    <string name="feature_onboarding_impl_welcome_subline">TailorMyResume never invents.</string>
     <string name="feature_onboarding_impl_welcome_illustration_description">A young job seeker proudly holding up her resume</string>
     <string name="feature_onboarding_impl_welcome_offline_message">You are offline</string>
     <string name="feature_onboarding_impl_welcome_offline_support">Everything on this screen works without a connection.</string>
@@ -15,18 +15,12 @@
     <string name="feature_onboarding_impl_welcome_career_hint">We use this to pick which questions to ask about your projects and internships.</string>
     <string name="feature_onboarding_impl_welcome_career_starting">Just starting out</string>
     <string name="feature_onboarding_impl_welcome_career_one_two">1 to 2 years in</string>
-    <string name="feature_onboarding_impl_welcome_action_continue">Continue</string>
-    <string name="feature_onboarding_impl_welcome_card1_monogram">NB</string>
-    <string name="feature_onboarding_impl_welcome_card1_title">Operations Associate</string>
-    <string name="feature_onboarding_impl_welcome_card1_item1">Vendor follow-ups</string>
-    <string name="feature_onboarding_impl_welcome_card1_item2">Excel trackers</string>
-    <string name="feature_onboarding_impl_welcome_card2_monogram">KP</string>
-    <string name="feature_onboarding_impl_welcome_card2_title">Product Analyst</string>
-    <string name="feature_onboarding_impl_welcome_card2_item1">SQL reporting</string>
-    <string name="feature_onboarding_impl_welcome_card2_item2">Dashboards</string>
-    <string name="feature_onboarding_impl_welcome_card2_item3">A/B tests</string>
-    <string name="feature_onboarding_impl_welcome_card3_monogram">LH</string>
-    <string name="feature_onboarding_impl_welcome_card3_title">Data Analyst</string>
-    <string name="feature_onboarding_impl_welcome_card3_item1">Python basics</string>
-    <string name="feature_onboarding_impl_welcome_card3_item2">Health data</string>
+    <string name="feature_onboarding_impl_welcome_action_continue">Get started</string>
+    <string name="feature_onboarding_impl_welcome_sample_original">Original</string>
+    <string name="feature_onboarding_impl_welcome_sample_original_text">Made sales reports every week</string>
+    <string name="feature_onboarding_impl_welcome_sample_rewritten">Rewritten</string>
+    <string name="feature_onboarding_impl_welcome_sample_rewritten_text">Built weekly sales reports in Excel for 40 stores</string>
+    <string name="feature_onboarding_impl_welcome_sample_fact_id">W-01</string>
+    <string name="feature_onboarding_impl_welcome_sample_confirmed">Confirmed</string>
+    <string name="feature_onboarding_impl_welcome_sample_source">Data Operations Associate, Saffron Retail</string>
 </resources>

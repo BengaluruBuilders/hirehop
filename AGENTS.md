@@ -1,6 +1,6 @@
-# HireHop
+# TailorMyResume
 
-HireHop is an Android app. It turns a candidate's confirmed background and a job description into a
+TailorMyResume is an Android app. It turns a candidate's confirmed background and a job description into a
 tailored application. It never invents facts about the candidate.
 
 ## Read these first
@@ -9,7 +9,7 @@ tailored application. It never invents facts about the candidate.
 2. `docs/ARCHITECTURE.md` — modules, models, interfaces, and navigation.
 3. `docs/PRD.md` — product scope and release gates.
 4. `docs/REDESIGN.md` — the rules and the procedure for the "Friendly hero, Jade" design.
-5. `docs/DESIGN_SYSTEM.md` — the tokens and the `Hh*` components in `core:designsystem`.
+5. `docs/DESIGN_SYSTEM.md` — the tokens and the `Tmr*` components in `core:designsystem`.
 6. `docs/MOCK_BACKEND.md` — the interfaces and the on-device state behind every screen.
 7. `docs/MVP_PLAN.md` — the MVP build plan, chunk state, and the orchestrator runbook. Start here
    if you are asked to continue the MVP build.
@@ -19,11 +19,18 @@ The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle
 
 ## Design source
 
+The current visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
+(dark first, lime, Manrope and Archivo Black), requested on 2026-10-07. It covers all 24 screens in
+dark and light. It, `docs/AVVIO_REDESIGN.md` and `docs/DESIGN_SYSTEM.md` supersede the Jade appearance
+rules and frame styling below. The older exported frames still document states and copy that the
+canvas leaves out. Keep them read-only.
+
 If a task changes UI, read the frames for that flow before you write code.
 
 | Need | File |
 |---|---|
-| **Current look (restyle, wins first)** | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
+| **Current look (wins first)** | `design/avvio-canvas/README.md`, then `flow<N>-*.md` outlines |
+| Older restyle | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
 | Tokens: type, colour, surface, shape, spacing (older Jade board) | `design/claude-design/foundations/Main.dc.html`, `Colour.dc.html`, `Surface.dc.html` |
 | Motion registers `proof` and `hop` | `design/claude-design/foundations/Motion.dc.html` |
 | Characters and spot poses | `design/claude-design/foundations/Illustration.dc.html` |
@@ -49,10 +56,10 @@ If the design changes, export the frames again and replace the folder in one PR.
 ## Motion
 
 - Two registers only: `proof` (default) and `hop` (gap closed, exported, pack purchased, first fact confirmed).
-- Read specs from `HhTheme.motion`. Do not add a duration scale or an easing scale.
+- Read specs from `TmrTheme.motion`. Do not add a duration scale or an easing scale.
 - Motion code lives in `core:designsystem`. Navigation wiring lives in `:app`.
-- A feature calls an `Hh*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
-- If `HhTheme.motion.reduced` is true, nothing moves. The state change stays visible.
+- A feature calls an `Tmr*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
+- If `TmrTheme.motion.reduced` is true, nothing moves. The state change stays visible.
 - In a lazy list, animate `graphicsLayer` alpha, translation, and scale only.
 - Do not build the multi-frame sequences of the board.
 - A settled frame must not change. Do not record a screenshot baseline again for a motion change.
@@ -65,18 +72,26 @@ If the design changes, export the frames again and replace the folder in one PR.
 | Run every CI gate on your machine | `tools/ci/verify-local.sh` |
 | Run the constitution policy check only | `tools/ci/check-constitution.sh` |
 | Fix formatting | `./gradlew spotlessApply` |
-| Run unit tests | `./gradlew testDebugUnitTest` |
+| Run unit tests | `./gradlew testDebugUnitTest :app:testDemoDebugUnitTest :app:testProdDebugUnitTest` |
 | Record screenshot baselines for one module | `./gradlew :feature:<name>:impl:recordRoborazziDebug` |
 | Verify screenshot baselines | `./gradlew verifyRoborazziDebug` |
-| Run one test class | `./gradlew :core:domain:testDebugUnitTest --tests "com.hirehop.core.domain.TailorResumeUseCaseTest"` |
-| Run lint | `./gradlew lintRelease` |
-| Build the debug APK | `./gradlew assembleDebug` |
+| Run one test class | `./gradlew :core:domain:testDebugUnitTest --tests "com.tailormyresume.core.domain.TailorResumeUseCaseTest"` |
+| Run lint | `./gradlew lintRelease :app:lintDemoRelease :app:lintProdRelease` |
+| Check the release classpath | `./gradlew dependencyGuard` |
+| Update the release classpath baseline | `./gradlew dependencyGuardBaseline` |
+| Build the offline debug APK | `./gradlew assembleDemoDebug` |
+| Build the backend debug APK | `./gradlew assembleProdDebug` |
 | Install the pre-push hook | `tools/setup.sh` |
 | Stop Gradle daemons when you finish | `./gradlew --stop` |
 
+## Flavours
+
+`:app` has the flavour dimension `backend`. `demo` is offline and has no `INTERNET` permission. `prod` talks to
+the TailorMyResume backend (Constitution I.5). The debug build below belongs to `demo`.
+
 ## Debug build
 
-The debug build installs a second launcher entry, "HireHop dev". It loads sample data, resets the app,
+The debug build installs a second launcher entry, "TailorMyResume dev". It loads sample data, resets the app,
 and switches the app offline. It also opens any screen in a forced state.
 
 ## Continuous integration

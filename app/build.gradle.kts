@@ -1,23 +1,59 @@
 plugins {
-    alias(libs.plugins.hirehop.android.application)
-    alias(libs.plugins.hirehop.android.application.compose)
-    alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.tailormyresume.android.application)
+    alias(libs.plugins.tailormyresume.android.application.compose)
+    alias(libs.plugins.tailormyresume.hilt)
+    alias(libs.plugins.dependency.guard)
 }
 
 android {
-    namespace = "com.hirehop.app"
+    namespace = "com.tailormyresume.app"
 
     defaultConfig {
-        applicationId = "com.hirehop.app"
+        applicationId = "com.tailormyresume.app"
         versionCode = 1
         versionName = "0.1.0"
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    flavorDimensions += "backend"
+    productFlavors {
+        create("demo") {
+            dimension = "backend"
+        }
+        create("prod") {
+            dimension = "backend"
+            buildConfigField("String", "TAILORMYRESUME_API_BASE_URL", "\"https://apps-backend.fly.dev\"")
+            buildConfigField(
+                "String",
+                "TAILORMYRESUME_WEB_CLIENT_ID",
+                "\"${providers.gradleProperty("tailormyresumeWebClientId").getOrElse("")}\"",
+            )
+            buildConfigField(
+                "String",
+                "TAILORMYRESUME_FIREBASE_API_KEY",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseApiKey").getOrElse("")}\"",
+            )
+            buildConfigField(
+                "String",
+                "TAILORMYRESUME_FIREBASE_APP_ID",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseAppId").getOrElse("")}\"",
+            )
+            buildConfigField(
+                "String",
+                "TAILORMYRESUME_FIREBASE_PROJECT_ID",
+                "\"${providers.gradleProperty("tailormyresumeFirebaseProjectId").getOrElse("")}\"",
+            )
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.named("debug").get()
         }
     }
@@ -52,6 +88,16 @@ dependencies {
     implementation(projects.core.navigation)
     implementation(projects.core.ui)
 
+    "prodImplementation"(projects.core.network)
+    "prodImplementation"(platform(libs.firebase.bom))
+    "prodImplementation"(libs.firebase.auth)
+    "prodImplementation"(libs.androidx.credentials)
+    "prodImplementation"(libs.androidx.credentials.playServicesAuth)
+    "prodImplementation"(libs.google.googleid)
+    "prodImplementation"(libs.play.billing) {
+        exclude(group = "com.google.android.gms", module = "play-services-location")
+    }
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)
@@ -59,4 +105,12 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
+    "testProdImplementation"(libs.okhttp.mockwebserver)
+    "testProdImplementation"(libs.robolectric)
+}
+
+dependencyGuard {
+    configuration("demoReleaseRuntimeClasspath")
+    configuration("prodReleaseRuntimeClasspath")
 }

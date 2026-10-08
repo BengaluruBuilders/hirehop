@@ -1,8 +1,15 @@
 # Mock backend
 
-The app has no network code (Constitution I.5). The mock backend is a set of interfaces with
-on-device implementations. A real backend replaces an implementation through one Hilt binding.
-No UI code changes.
+The mock backend is a set of interfaces with on-device implementations. The `demo` flavour binds them and
+has no network code. The `prod` flavour binds remote implementations through one Hilt binding each
+(`app/src/prod/kotlin/.../di`, Constitution I.5 as amended, `docs/BACKEND_CONTRACT.md`). No UI code changes.
+
+Remote in `prod`: `SignInGateway`, `ResumeTextParser`, `AnalyzeJobUseCase`, `ResumeTailor`,
+`PrepQuestionSource`, `CoverLetterSource`, `PaymentGateway`, `UsageAllowance`, `ContentReportRepository`,
+`AccountDataExporter`, and account deletion. `RemoteContentReportRepository` saves the report locally, then
+posts it; a post that fails with a retryable error stays in `PendingReportQueue` and is sent on the next
+app start. `RemoteAccountDataExporter` adds `server.json`, or a placeholder when the fetch fails. Everything
+else, including the sample data controller, stays on-device.
 
 Read this file before you use a gateway, a repository, or a use case from the core modules.
 
@@ -83,14 +90,14 @@ A feature must change these things. Each item names the API.
 
 | Layer | Module | File |
 |---|---|---|
-| Data | `DataModule` | `core/data/src/main/kotlin/com/hirehop/core/data/di/DataModule.kt` |
-| Domain | `DomainModule` | `core/domain/src/main/kotlin/com/hirehop/core/domain/di/DomainModule.kt` |
+| Data | `DataModule` | `core/data/src/main/kotlin/com/tailormyresume/core/data/di/DataModule.kt` |
+| Domain | `DomainModule` | `core/domain/src/main/kotlin/com/tailormyresume/core/domain/di/DomainModule.kt` |
 
 ## Interfaces in `core:data`
 
 ### `MockStateStore`
 
-Package `com.hirehop.core.data.mock`.
+Package `com.tailormyresume.core.data.mock`.
 
 ```kotlin
 interface MockStateStore {
@@ -126,7 +133,7 @@ interface MockLatency {
 
 ### `SessionRepository`
 
-Package `com.hirehop.core.data.repository`.
+Package `com.tailormyresume.core.data.repository`.
 
 ```kotlin
 interface SessionRepository {
@@ -144,18 +151,18 @@ interface SessionRepository {
 }
 ```
 
-Models are in `com.hirehop.core.model`:
+Models are in `com.tailormyresume.core.model`:
 
 ```kotlin
 data class SignInAccount(val id: String, val displayName: String, val email: String)
-enum class ConsentPurpose { READ_AND_BUILD, ANALYSE_ON_DEVICE, KEEP_CONFIRMED_FACTS }
+enum class ConsentPurpose { READ_AND_BUILD, KEEP_CONFIRMED_FACTS, AI_PROCESSING, AGE_18_PLUS }
 data class ConsentRecord(val purposes: Set<ConsentPurpose>, val acceptedAt: Instant, val noticeVersion: String)
 data class KeptJobDescription(val text: String, val company: String, val role: String) {
     val draftKey: String
 }
 ```
 
-`ConsentRecord.CURRENT_NOTICE_VERSION` is the version string to store. `SignInAccount` also has a typealias in `com.hirehop.core.domain`, so the old import still works.
+`ConsentRecord.CURRENT_NOTICE_VERSION` is the version string to store. `SignInAccount` also has a typealias in `com.tailormyresume.core.domain`, so the old import still works.
 
 `signOut()` removes the account and the kept job description. The consent and the onboarding flag stay, so a person who signs in again goes straight to Applications. `clear()` removes the account, the consent, the onboarding flag, and the kept job description. Delete account and "Reset app data" use `clear()`. Neither method touches the profile, the applications, the credits, or the export history.
 
@@ -258,7 +265,7 @@ The same item (kind and id) is stored once. The mock keeps the reports on the de
 
 ### `DiscardJobDraftsUseCase`
 
-Package `com.hirehop.core.domain`. `suspend operator fun invoke(job: KeptJobDescription)` clears the prep plan and
+Package `com.tailormyresume.core.domain`. `suspend operator fun invoke(job: KeptJobDescription)` clears the prep plan and
 the reports that Gap analysis stored under `job.draftKey`. Paste JD calls it for the old kept job description when it
 keeps a job description with a different text.
 
@@ -308,14 +315,14 @@ deletion clears the letters. "Reset app data" clears the whole `MockStateStore`.
 
 ### `RequirementPhrase`
 
-Package `com.hirehop.core.domain.prep`. `RequirementPhrase.of(text)` turns a requirement text into a phrase for use
+Package `com.tailormyresume.core.domain.prep`. `RequirementPhrase.of(text)` turns a requirement text into a phrase for use
 inside a sentence. It trims the text, removes closing sentence punctuation, and removes a leading "Must have",
 "Nice to have" or "Good to have" marker. Use it in every template that puts a requirement in a sentence. Text that quotes
 the JD ("the JD asks for “...”") stays verbatim.
 
 ### `ConnectivityMonitor` and `MockConnectivityControl`
 
-Package `com.hirehop.core.data.connectivity`.
+Package `com.tailormyresume.core.data.connectivity`.
 
 ```kotlin
 interface ConnectivityMonitor {
@@ -338,7 +345,7 @@ Only the debug developer menu may inject `MockConnectivityControl`.
 
 ### `SignInGateway`
 
-Package `com.hirehop.core.domain`.
+Package `com.tailormyresume.core.domain`.
 
 ```kotlin
 interface SignInGateway {
@@ -372,7 +379,7 @@ interface PaymentGateway {
     suspend fun purchaseHistory(): List<PurchaseRecord>
     fun observePurchaseHistory(): Flow<List<PurchaseRecord>>
     suspend fun restorePurchases(): PurchaseEntitlement
-    suspend fun consumeCredit(): CreditSpend
+    suspend fun unlock(applicationId: String): CreditSpend
     suspend fun clearCredits(): PurchaseEntitlement
 }
 ```
@@ -392,14 +399,14 @@ Rules:
 
 - `observeEntitlement()` is the one source for the credits pill. Use it on every screen that shows credits.
 - `purchaseHistory()` lists the newest purchase first. Only completed and pending purchases are listed.
-- `consumeCredit()` spends a free credit first. `Spent.kind` tells which kind paid. Pass it to `ExportRecord.creditKind`.
+- `unlock(applicationId)` spends a free credit first, once per application. `Spent.kind` tells which kind paid, and is `null` for a repeat. Pass it to `ExportRecord.creditKind`.
 - `clearCredits()` closes the credit account: zero credits, no pending pack, no history. A fresh install has one free credit. `clearCredits()` marks the account as closed. The next `SignInGateway.signIn()` after a closed account starts again with the free credit. `signOut()` alone keeps the credits.
-- The pack ids are `ApplicationPack.APPLICATION_PACK_FIVE` and `ApplicationPack.SINGLE_APPLICATION`. Never read prices or names from constants. Call `packs()`.
+- The pack ids are `ApplicationPack.APPLICATION_PACK_FIVE`. Never read prices or names from constants. Call `packs()`.
 - The new members have default bodies so old test doubles still compile. A real implementation must override all of them.
 
 Mock details:
 
-- Class `OfflinePaymentGateway` (`@Singleton`). The catalogue is in `MockPackCatalogue` (same package `com.hirehop.core.domain.offline`). Only tests and the mock read `MockPackCatalogue`.
+- Class `OfflinePaymentGateway` (`@Singleton`). The catalogue is in `MockPackCatalogue` (same package `com.tailormyresume.core.domain.offline`). Only tests and the mock read `MockPackCatalogue`.
 - Every purchase succeeds unless a hook says otherwise. Hooks: `withOutcome(packId, PurchaseOutcome)`, `withFailureReason(reason)`, `withFreeCredits(n)`. `withFreeCredits` only applies before the first saved state.
 - A pending purchase gets one `PENDING` record. A later completed purchase of the same pack turns that record into `COMPLETED`.
 - Order ids look like `mock-order-<id>`.
@@ -409,7 +416,7 @@ Mock details:
 
 ### `NextOnboardingStepUseCase` and `OnboardingStep`
 
-Package `com.hirehop.core.domain.onboarding`.
+Package `com.tailormyresume.core.domain.onboarding`.
 
 ```kotlin
 class NextOnboardingStepUseCase {
@@ -471,7 +478,7 @@ It deletes the applications (and their prep plan, reports, and review state), th
 
 ### `AccountDataExporter` (export my data)
 
-Package `com.hirehop.core.domain.account`.
+Package `com.tailormyresume.core.domain.account`.
 
 ```kotlin
 interface AccountDataExporter {
@@ -494,7 +501,7 @@ data class AccountDataArchive(val fileName: String, val file: java.io.File)
 
 Use cases: `CollectAccountDataUseCase()` returns the `AccountData`. `ExportAccountDataUseCase()` collects the data and calls the exporter. It returns the `AccountDataArchive`.
 
-- Mock: `OfflineAccountDataExporter`. It writes `hirehop-my-data.zip` to `cacheDir/data-exports` with `account.txt`, `profile.txt`, `applications.txt`, and `purchases.txt`.
+- Mock: `OfflineAccountDataExporter`. It writes `tailormyresume-my-data.zip` to `cacheDir/data-exports` with `account.txt`, `profile.txt`, `applications.txt`, and `purchases.txt`.
 - Binding: `DomainModule.bindAccountDataExporter`.
 - Test fake: `TestAccountDataExporter` (records each `AccountData` in `exported`). Contract: `AccountDataExporterContractTest`.
 - Real implementation: ask the server for the archive and save it to a file.
@@ -504,12 +511,12 @@ How the settings feature must adopt it:
 1. Delete `SettingsDataExportWriter`. Keep `SettingsExportFileStore`, `SettingsFileProvider`, and `createSettingsShareIntent`.
 2. Inject `ExportAccountDataUseCase` in `YourDataViewModel`. Call it when the data is ready to share.
 3. Share `AccountDataArchive.file` with the FileProvider. The file sits in `cacheDir/data-exports`, so the existing `file_paths` entry may need that folder name. Check the provider paths.
-4. Show the purchase list from `PaymentGateway.observePurchaseHistory()`. Remove the text "This build of HireHop takes no payment".
+4. Show the purchase list from `PaymentGateway.observePurchaseHistory()`. Remove the text "This build of TailorMyResume takes no payment".
 5. Remove the fake step delays in `YourDataViewModel`. Show the real wait. The mock already waits 700 ms.
 
 ### `SampleDataController`
 
-Package `com.hirehop.core.domain.sample`.
+Package `com.tailormyresume.core.domain.sample`.
 
 ```kotlin
 interface SampleDataController {
@@ -538,7 +545,7 @@ interface SampleDataController {
 
 `reset()` returns the app to a fresh install: no session, no profile, no application, no export, one free credit.
 
-The dataset is one file: `core/domain/src/main/kotlin/com/hirehop/core/domain/sample/SampleDataSet.kt`.
+The dataset is one file: `core/domain/src/main/kotlin/com/tailormyresume/core/domain/sample/SampleDataSet.kt`.
 The controller is in `core:domain`, not `core:data`, because it uses `AnalyzeJobUseCase`, `TailorResumeUseCase`, and `PaymentGateway`. `core:data` cannot see them.
 
 - Mock: `OfflineSampleDataController` (`@Singleton`).
@@ -573,7 +580,7 @@ Inject the type. Hilt provides it. All calls below are `suspend` unless noted.
 | Add the words for one requirement ("I have this") | `AddUserStatedFactUseCase` | `addUserStatedFact(requirement, statement)`. The fact gets a `U-` id |
 | Propose company and role from a pasted job description | `ProposeJobLabelUseCase` | `proposeJobLabel(rawText)` gives `JobLabelProposal(role, company)` |
 | Show a fact id | `FactDisplayIds` (object) | `FactDisplayIds.forBulletId(bulletId, entries)`, `FactDisplayIds.of(entry, entries)` |
-| Spend a credit | `PaymentGateway` | `paymentGateway.consumeCredit()` gives `CreditSpend.Spent(entitlement, kind)` or `CreditSpend.NoCreditLeft` |
+| Spend a credit | `PaymentGateway` | `paymentGateway.unlock(applicationId)` gives `CreditSpend.Spent(entitlement, kind)` or `CreditSpend.NoCreditLeft` |
 | Record an export | `ExportHistoryRepository` | After a `Spent` result: `exportHistoryRepository.record(ExportRecord(applicationId, format, fileName, clock.now(), spend.kind))` |
 | Show the exported state | `ExportHistoryRepository` | `exportHistoryRepository.observeExports(applicationId)`. The state is "exported" when the list is not empty |
 | Know if the device is online | `ConnectivityMonitor` | `connectivityMonitor.isOnline` (a `Flow<Boolean>`) |

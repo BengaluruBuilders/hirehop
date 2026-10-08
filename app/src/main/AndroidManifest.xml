@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".HireHopApplication"
+        android:name=".TailorMyResumeApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
@@ -11,7 +11,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.HireHop">
+        android:theme="@style/Theme.TailorMyResume">
 
         <activity
             android:name=".MainActivity"

@@ -3,7 +3,7 @@
 
     <application>
         <provider
-            android:name="com.hirehop.feature.tailor.impl.export.TailorFileProvider"
+            android:name="com.tailormyresume.feature.tailor.impl.export.TailorFileProvider"
             android:authorities="${applicationId}.tailor.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

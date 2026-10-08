@@ -1,0 +1,6 @@
+{
+  "generationId": "a81d...",
+  "job": { "title": "Associate Analyst", "company": "Northwind GCC", "requirements": [] },
+  "matches": [{ "requirementId": "req-1", "status": "MET", "evidenceIds": ["EXP-01-1"] }],
+  "allowance": { "analysesLeftToday": 2, "day": "2026-10-07", "resetsAt": "2026-10-07T18:30:00Z" }
+}

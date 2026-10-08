@@ -1,5 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
-import com.hirehop.buildlogic.libs
+import com.tailormyresume.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -9,8 +9,8 @@ import org.gradle.kotlin.dsl.dependencies
 class AndroidFeatureImplConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "hirehop.android.library")
-            apply(plugin = "hirehop.hilt")
+            apply(plugin = "tailormyresume.android.library")
+            apply(plugin = "tailormyresume.hilt")
             apply(plugin = "io.github.takahirom.roborazzi")
 
             extensions.configure<LibraryExtension> {

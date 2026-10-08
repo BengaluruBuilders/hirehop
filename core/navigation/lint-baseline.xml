@@ -7,7 +7,7 @@
         errorLine1="        when (state.currentKey) {"
         errorLine2="                    ~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/core/navigation/Navigator.kt"
+            file="src/main/kotlin/com/tailormyresume/core/navigation/Navigator.kt"
             line="16"
             column="21"/>
     </issue>
@@ -18,7 +18,7 @@
         errorLine1="            else -> state.currentSubStack.removeLastOrNull()"
         errorLine2="                          ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/core/navigation/Navigator.kt"
+            file="src/main/kotlin/com/tailormyresume/core/navigation/Navigator.kt"
             line="21"
             column="27"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="        state.currentSubStack.apply {"
         errorLine2="              ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/core/navigation/Navigator.kt"
+            file="src/main/kotlin/com/tailormyresume/core/navigation/Navigator.kt"
             line="26"
             column="15"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="        state.currentSubStack.run {"
         errorLine2="              ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/com/hirehop/core/navigation/Navigator.kt"
+            file="src/main/kotlin/com/tailormyresume/core/navigation/Navigator.kt"
             line="44"
             column="15"/>
     </issue>

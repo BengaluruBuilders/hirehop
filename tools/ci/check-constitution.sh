@@ -64,7 +64,7 @@ forbid II.3 "GlobalScope is forbidden. Inject an application CoroutineScope." \
   'GlobalScope' '*.kt'
 forbid II.3 "The !! operator is forbidden. Model the null case." \
   '!!' '*.kt'
-production_kotlin=('*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!*/src/testFixtures/*' ':!core/testing/*')
+production_kotlin=('*/src/*/*.kt' ':!*/src/test/*' ':!*/src/test[A-Z]*/*' ':!*/src/androidTest/*' ':!*/src/testFixtures/*' ':!core/testing/*')
 forbid II.3 "runBlocking is forbidden in production code." \
   'runBlocking' "${production_kotlin[@]}"
 forbid II.4 "Hard-coded dispatcher. Inject it with @Dispatcher." \
@@ -74,7 +74,7 @@ forbid II.1 "A feature module depends on another feature's impl module." \
 forbid II.1 "A core module depends on a feature module." \
   'projects\.feature|":feature:' 'core/*/build.gradle.kts'
 forbid II.1 "core:model must stay a pure JVM module." \
-  'plugins\.(hirehop\.)?android|com\.android' 'core/model/build.gradle.kts'
+  'plugins\.(tailormyresume\.)?android|com\.android' 'core/model/build.gradle.kts'
 forbid IV.2 "Mocking libraries are forbidden. Use fakes from core:testing." \
   'io\.mockk|org\.mockito' '*.kt' '*.kts' 'gradle/libs.versions.toml'
 forbid V.1 "Dependency version outside the version catalog." \
@@ -85,22 +85,28 @@ forbid I.4 "Possible API key or secret in source." \
 forbid I.3 "UI copy claims an ATS result or a guarantee." \
   '[Yy]our ATS score|ATS score:|[Bb]eats? (the )?ATS|ATS[- ](proof|approved)|[Gg]uaranteed (job|interview|selection|placement|shortlist)' \
   '*/res/values*/*.xml'
-forbid I.5 "Network access needs a constitution amendment first." \
-  'android\.permission\.INTERNET' '*AndroidManifest.xml'
+forbid I.5 "The INTERNET permission is allowed only in app/src/prod/AndroidManifest.xml." \
+  'android\.permission\.INTERNET' '*AndroidManifest.xml' ':!app/src/prod/AndroidManifest.xml'
 forbid I.5 "Backups would copy candidate data off the device." \
   'allowBackup="true"' '*AndroidManifest.xml'
-forbid I.5 "Network, analytics, or crash SDKs need a constitution amendment first." \
-  'okhttp|retrofit|ktor|firebase|crashlytics|analytics|sentry|amplitude|mixpanel' \
-  'gradle/libs.versions.toml'
+forbid I.5 "Analytics, crash, and ad SDKs are forbidden." \
+  'crashlytics|analytics|sentry|amplitude|mixpanel|admob|play-services-ads|(^|[^[:alpha:]])ads([^[:alpha:]]|$)' \
+  'gradle/libs.versions.toml' '*.gradle.kts'
+forbid I.5 "Network libraries belong in core:network or in prod-only dependencies of :app." \
+  'libs\.(okhttp|retrofit|firebase|play\.billing|androidx\.credentials|google\.googleid)' \
+  'feature/*/build.gradle.kts' 'core/*/build.gradle.kts' ':!core/network/build.gradle.kts'
+forbid I.5 "Network libraries in :app must use prodImplementation." \
+  '^[[:space:]]*(implementation|api)\(.*libs\.(okhttp|retrofit|firebase|play\.billing|androidx\.credentials|google\.googleid)' \
+  'app/build.gradle.kts'
 forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual time." \
   'Thread\.sleep' '*.kt'
 forbid III.3 "Production code must not reference a test double or a fake." \
-  '^import .*\.Fake[A-Za-z0-9_]+' '*/src/*/*.kt' ':!*/src/test/*' ':!*/src/androidTest/*' ':!core/testing/*'
+  '^import .*\.Fake[A-Za-z0-9_]+' "${production_kotlin[@]}"
 design_system_consumers=('feature/' 'app/' 'core/ui/')
-forbid_new_violations II.5 "A feature must build its UI from the shared Hh* components, not from raw Material components. core:designsystem is the one place raw Material is allowed, because wrapping it is its job." \
+forbid_new_violations II.5 "A feature must build its UI from the shared Tmr* components, not from raw Material components. core:designsystem is the one place raw Material is allowed, because wrapping it is its job." \
   '^import androidx\.compose\.material3\.(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|TextField|OutlinedTextField|Card|ElevatedCard|OutlinedCard|Surface|Scaffold|Snackbar|SnackbarHost|AlertDialog|BasicAlertDialog|TopAppBar|CenterAlignedTopAppBar|LargeTopAppBar|MediumTopAppBar|TopAppBarDefaults|ListItem|Checkbox|TriStateCheckbox|RadioButton|Switch|ModalBottomSheet|BottomSheetScaffold|Chip|AssistChip|FilterChip|InputChip|SuggestionChip|Badge|Divider|HorizontalDivider|VerticalDivider|LinearProgressIndicator|CircularProgressIndicator|MaterialTheme)' \
   "${design_system_consumers[@]}"
-forbid_new_violations II.5 "Read design-system tokens through HhTheme, not through MaterialTheme." \
+forbid_new_violations II.5 "Read design-system tokens through TmrTheme, not through MaterialTheme." \
   'MaterialTheme\.(colorScheme|typography|shapes|dimens)' "${design_system_consumers[@]}"
 forbid_ungrounded_comments
 

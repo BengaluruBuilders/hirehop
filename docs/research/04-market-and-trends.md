@@ -1,4 +1,4 @@
-# HireHop research 04: Market size, hiring trends, and the recruiter side
+# TailorMyResume research 04: Market size, hiring trends, and the recruiter side
 
 Date: 2026-09-30
 Scope: market size, hiring trends 2025-2026, recruiter and ATS behavior, regulation, tailwind versus headwind.
@@ -20,7 +20,7 @@ Style note: this file uses plain short sentences. Numbers marked "assumption" ar
 3. Entry-level hiring is split. Non-IT sectors and GCCs grow. IT services cut fresher intake sharply since FY22. Naukri shows fresher hiring up 15% year on year in August 2026.
 4. ATS do not auto-reject on resume text. They parse, rank, and match. Humans decide. No major ATS detects AI authorship. The real problems for candidates are generic text, parse errors, and knockout questions.
 5. Recruiters distrust AI-written mass applications. The distrust targets generic and fake content, not AI use as such. This favors an honest, specific, human-edited tool.
-6. Rules on AI in hiring target employers and vendors, not candidate-side tools. The DPDP Act still applies to HireHop because a resume is personal data. Main DPDP duties start 13 May 2027.
+6. Rules on AI in hiring target employers and vendors, not candidate-side tools. The DPDP Act still applies to TailorMyResume because a resume is personal data. Main DPDP duties start 13 May 2027.
 7. The biggest market risk is low willingness to pay. Free ChatGPT, Naukri's own AI resume maker, and cheap Indian resume sites already serve the same need.
 
 ---
@@ -106,7 +106,7 @@ Currency assumption: Rs 88 per US dollar (assumption; verify before use).
 Notes on the table:
 - I excluded B.A. graduates (24 lakh or more) from SAM. Many of them target government or non-corporate jobs. Add them only if the product serves them well.
 - The paid-conversion benchmark: Naukri reports "paid penetration" of 2.6% for its job-seeker products (grade B, Storyboard18 summary of Info Edge Q1 FY27; the exact base is not stated). I use 3% to 8% for a focused pack product, which is more optimistic than Naukri.
-- To reach Rs 1 crore of yearly revenue in the base case, HireHop needs about 13,000 paying users. That needs about 270,000 active users at 5% conversion.
+- To reach Rs 1 crore of yearly revenue in the base case, TailorMyResume needs about 13,000 paying users. That needs about 270,000 active users at 5% conversion.
 - Result: a consumer-only India model is a small business at these prices. Bigger outcomes need one or more of: higher price points, US and Gulf users, institution licences (placement cells in 5,875 AICTE institutions and 46,000 colleges), or a large free user base with a strong upsell.
 
 ### 3.3 Sensitivity
@@ -160,7 +160,7 @@ Unemployment among graduates:
 Campus versus off-campus:
 - Evidence is thin. Large IT firms run off-campus and "pool campus" drives open to any eligible graduate (grade C).
 - Press says only 30-50% of students in tier-3 engineering colleges get a campus offer (grade C, unsourced).
-- Implication: many graduates must apply off-campus. That is the HireHop use case. I could not find a government number for the campus versus off-campus split.
+- Implication: many graduates must apply off-campus. That is the TailorMyResume use case. I could not find a government number for the campus versus off-campus split.
 
 ### 5.2 United States
 
@@ -209,22 +209,22 @@ The "ATS rejects your resume" myth, in short: the ATS ranks and sorts. The rejec
 
 - Greenhouse: 22% of active seekers admit using auto-apply bots (31% among Gen Z). Grade B/C.
 - LinkedIn's terms prohibit third-party bots that automate activity. AI that drafts content the user reviews and sends is treated as compliant (grade C legal blogs).
-- HireHop's rule "the user reviews everything and applies on their own" fits the safe side. Do not add auto-apply.
+- TailorMyResume's rule "the user reviews everything and applies on their own" fits the safe side. Do not add auto-apply.
 
 ---
 
 ## 7. Regulatory and trend risks
 
-These rules mostly target employers and vendors. HireHop is candidate-side. My reading is not legal advice. Ask counsel before launch in each market.
+These rules mostly target employers and vendors. TailorMyResume is candidate-side. My reading is not legal advice. Ask counsel before launch in each market.
 
-| Rule | What it says | Touches HireHop? |
+| Rule | What it says | Touches TailorMyResume? |
 |---|---|---|
 | NYC Local Law 144 (in force since July 2023) | Employers using automated employment decision tools in NYC need a yearly bias audit and candidate notice. | No, for a candidate-side tool. State Comptroller audit of December 2025 called enforcement "ineffective". City agreed to improve. More enforcement is likely. Grade A/B. |
 | EU AI Act | Recruitment and selection AI is high-risk (Annex III). Digital Omnibus, Regulation (EU) 2026/1744, in force 27 July 2026, moved the date from 2 August 2026 to 2 December 2027. Most Article 50 transparency duties keep the earlier date. | Low for a candidate-side writing tool. Watch two items: transparency duties for AI-generated content, and the workplace ban on emotion recognition if the voice mock interview is later marked as workplace or education use. Grade B (law-firm notes). |
 | Colorado AI Act | Delayed to 30 June 2026, then reported "repealed and replaced" in a June 2026 Skadden note. | Employer-side. Low. Grade B. |
 | California CRD regulations (in force 1 October 2025) | Employers stay liable for discrimination by automated decision systems. Records kept 4 years. | Employer-side. Low. Grade B. |
-| India DPDP Act 2023 and DPDP Rules 2025 | Rules notified 14 November 2025. Phase 1 (Board set-up) in force. Phase 2: consent-manager framework on 13 November 2026. Phase 3: main duties on 13 May 2027 (notice, consent, security, breach notice, erasure, data-principal rights, children's data). | Yes. A resume holds personal data (name, contact, education, employment). HireHop is a data fiduciary. See below. Grade A/B. |
-| US job-seeker suits (Eightfold, January 2026) | Alleges AI scores are FCRA consumer reports. | Employer and vendor side. HireHop does not score candidates for employers. Keep it that way. Grade B. |
+| India DPDP Act 2023 and DPDP Rules 2025 | Rules notified 14 November 2025. Phase 1 (Board set-up) in force. Phase 2: consent-manager framework on 13 November 2026. Phase 3: main duties on 13 May 2027 (notice, consent, security, breach notice, erasure, data-principal rights, children's data). | Yes. A resume holds personal data (name, contact, education, employment). TailorMyResume is a data fiduciary. See below. Grade A/B. |
+| US job-seeker suits (Eightfold, January 2026) | Alleges AI scores are FCRA consumer reports. | Employer and vendor side. TailorMyResume does not score candidates for employers. Keep it that way. Grade B. |
 
 DPDP actions for the PRD (my reading):
 - Give a clear notice and ask for consent for each purpose: parse resume, tailor, store documents, send to OpenAI.
@@ -236,7 +236,7 @@ DPDP actions for the PRD (my reading):
 
 Other trend risks:
 - Platform terms (LinkedIn, Naukri) may restrict scraping or automation. Do not scrape or auto-apply.
-- Fraud rules: a tool that invents qualifications creates user risk. HireHop's "never invent qualifications" rule is both an ethical and a legal safeguard.
+- Fraud rules: a tool that invents qualifications creates user risk. TailorMyResume's "never invent qualifications" rule is both an ethical and a legal safeguard.
 
 ---
 
@@ -266,7 +266,7 @@ Other trend risks:
 
 ### 8.3 Net view
 
-The trend is a tailwind for the need and a headwind for the price. Demand for help is high. Willingness to pay is low, and free alternatives are good. HireHop wins only if the product is clearly better on honesty and specificity, and if the distribution cost stays near zero.
+The trend is a tailwind for the need and a headwind for the price. Demand for help is high. Willingness to pay is low, and free alternatives are good. TailorMyResume wins only if the product is clearly better on honesty and specificity, and if the distribution cost stays near zero.
 
 ---
 

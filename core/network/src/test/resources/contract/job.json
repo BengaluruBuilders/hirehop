@@ -1,0 +1,7 @@
+{
+  "title": "Associate Analyst",
+  "company": "Northwind GCC",
+  "requirements": [
+    { "id": "req-1", "text": "Must have strong SQL", "type": "SKILL", "priority": "MUST_HAVE", "keywords": ["sql"] }
+  ]
+}

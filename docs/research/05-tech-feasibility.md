@@ -1,4 +1,4 @@
-# HireHop research 05: technical feasibility, cost, and compliance
+# TailorMyResume research 05: technical feasibility, cost, and compliance
 
 Date of research: 2026-09-30.
 Scope: native Android app (Kotlin, Jetpack Compose), backend, OpenAI pipeline, export, compliance.
@@ -17,7 +17,7 @@ Author: research agent 5 of 6. This file feeds the PRD.
 1. The MVP is technically feasible for one experienced Android engineer. The effort estimate is 20 to 30 engineer-weeks, most likely about 24 (section 12).
 2. The LLM cost per full application is small. A hybrid model mix costs about USD 0.07 to 0.10 (about INR 6 to 9). An all-small-model mix costs under USD 0.01 (section 5).
 3. LLM cost dominates the bill at scale. At 100k MAU, the LLM is more than 95% of the monthly cost (section 8).
-4. The hardest technical problem is fabrication control, not cost. A 2026 preprint measured 96.7% of baseline LLM resume rewrites with unsupported claims. Prompt guardrails alone cut that to 50%. HireHop needs a layered design (section 6).
+4. The hardest technical problem is fabrication control, not cost. A 2026 preprint measured 96.7% of baseline LLM resume rewrites with unsupported claims. Prompt guardrails alone cut that to 50%. TailorMyResume needs a layered design (section 6).
 5. Recommended stack: Kotlin + Compose + Room on the phone. Supabase (Auth, Postgres, Edge Functions) as backend. OpenAI Responses API with Structured Outputs. PDF export on device. DOCX export on the server.
 6. India DPDP substantive duties become enforceable about May 2027. Build them in from day 1: notice, consent, deletion, breach process, 18+ age gate.
 7. Launch in India only at first. This avoids GDPR scope, and it keeps the compliance work small.
@@ -147,10 +147,10 @@ Model naming changed twice in 2026. Older third-party pages still list "GPT-5.6"
 
 Other price facts:
 
-- Batch API: 50% off input and output for jobs done within 24 hours. (B4) HireHop jobs are interactive, so batch does not apply. Use it for offline evals.
+- Batch API: 50% off input and output for jobs done within 24 hours. (B4) TailorMyResume jobs are interactive, so batch does not apply. Use it for offline evals.
 - Prompt caching: automatic. Minimum 1,024 tokens. Cached input costs 0.1x on most GPT-5.6+ models. GPT-6.1 Sol shows 0.05x. Put the stable prefix (instructions, schema, profile) first. (A10)
 - Cache writes on GPT-5.6 and later bill at 1.25x the input rate. (B4) UNVERIFIED for GPT-6.
-- Long-context requests above about 272K tokens cost more. (B4) HireHop stays far below this.
+- Long-context requests above about 272K tokens cost more. (B4) TailorMyResume stays far below this.
 - Data residency adds a 10% uplift for models released on or after 2026-03-05. (A11)
 - Sol and Luna prices are described as permanent, not promotional. (B5) The price fell by half or more in one release. Expect more change. Keep the model ID and price in config.
 - Reasoning models bill hidden reasoning tokens as output tokens. My estimate includes a reasoning allowance. UNVERIFIED: the real reasoning token count per step. Measure it.
@@ -391,11 +391,11 @@ Status and timeline:
 - Consent manager registration opens about 13 or 14 November 2026. (B11, B12)
 - In January 2026, MeitY discussed cutting the window to 12 months, mainly for Significant Data Fiduciaries. I found no confirmed final change. UNVERIFIED. (B13)
 - Penalties: up to INR 250 crore for failing to keep reasonable security safeguards. Up to INR 200 crore for failing to notify a breach or for breaching children's-data duties. Up to INR 50 crore for other violations. (A27)
-- HireHop is a Data Fiduciary. OpenAI and Supabase are Data Processors. Sign a data processing agreement with each.
+- TailorMyResume is a Data Fiduciary. OpenAI and Supabase are Data Processors. Sign a data processing agreement with each.
 
 Obligation checklist:
 
-| Duty | What HireHop must do |
+| Duty | What TailorMyResume must do |
 |---|---|
 | Notice | Show a standalone, plain-language notice before you collect data. List the data items and the purposes. A generic privacy policy is not enough. (A27, B12) |
 | Consent | Ask for specific, free, informed consent. Do not bundle it with other terms. The user must be able to withdraw as easily as they gave it. (A27) |
@@ -406,7 +406,7 @@ Obligation checklist:
 | Retention | Delete raw resume uploads right after extraction. Delete data of inactive accounts on a schedule (for example 24 months, with notice). |
 | Security safeguards | Encrypt in transit and at rest. Use access controls and RLS. Keep logs of processing for at least one year. (B12) |
 | Breach handling | Tell the Data Protection Board without delay, and send a detailed report within 72 hours. Tell each affected user without delay in plain language. (B14) Write the incident runbook before launch. |
-| Children | Under 18 needs verifiable parental consent. (A27) HireHop targets adults. Add an 18+ gate. Set the Play target audience to 18+. Do not build a parental-consent flow in the MVP. |
+| Children | Under 18 needs verifiable parental consent. (A27) TailorMyResume targets adults. Add an 18+ gate. Set the Play target audience to 18+. Do not build a parental-consent flow in the MVP. |
 | Grievance and contact | Publish the contact of a grievance officer or Data Protection Officer inside the app. (A27) |
 | Cross-border transfer | Transfer is allowed unless the Government restricts a country by notification. (B12) Monitor the notification list. |
 | Significant Data Fiduciary duties | Not likely to apply at MVP scale. Check if you grow. |
@@ -417,7 +417,7 @@ Design consequence: the account-deletion flow and the data-export flow are core 
 
 - Recommendation: do not target the EU at launch. Use Play Console country targeting to limit to India first. Add other markets later.
 - If you add the EU: identify a lawful basis (contract or consent), give an Article 13 notice, sign a DPA with OpenAI and Supabase, cover transfers with standard contractual clauses, support access and erasure, report breaches to the authority within 72 hours, and appoint an EU representative if required.
-- Article 22 (solely automated decisions with significant effects) is unlikely to apply. HireHop does not decide about the candidate. It helps the candidate write documents. (B15) UNVERIFIED for your final design: recheck if you add job matching or ranking.
+- Article 22 (solely automated decisions with significant effects) is unlikely to apply. TailorMyResume does not decide about the candidate. It helps the candidate write documents. (B15) UNVERIFIED for your final design: recheck if you add job matching or ranking.
 - EU AI Act: UNVERIFIED. I did not research it. Candidate-side writing help is unlikely to be "high-risk", but transparency duties may apply. Check before any EU launch.
 
 ### 10.3 Google Play
@@ -425,8 +425,8 @@ Design consequence: the account-deletion flow and the data-export flow are core 
 - **Data safety form**: mandatory for every published app, including testing tracks (except internal). Declare all data collected or sent off device, including data sent by SDKs. Declare encryption in transit and whether users can request deletion. A privacy policy link is required. A wrong form can lead to blocked updates or removal. (A28)
   - Data sent to a "service provider" (a processor working on your behalf) has a separate rule. Read the definition. You still must declare the collection. (A28)
 - **Account deletion**: an app with account creation must offer an in-app deletion path and a web link for deletion requests. Delete the associated personal data. Say what you keep and why. (A29)
-- **AI-generated content policy**: HireHop generates text with AI. The developer must make sure the app does not generate offensive content, and must test the model. The app must include in-app reporting or flagging so users can report offensive content without leaving the app. Use the reports to improve filters. (A30, B16)
-  - The official page I fetched did not show the reporting text in the summary. Two other sources confirm it. (B16) The policy scope note says it excludes "productivity tools with minimal AI features". HireHop uses AI heavily, so treat it as in scope.
+- **AI-generated content policy**: TailorMyResume generates text with AI. The developer must make sure the app does not generate offensive content, and must test the model. The app must include in-app reporting or flagging so users can report offensive content without leaving the app. Use the reports to improve filters. (A30, B16)
+  - The official page I fetched did not show the reporting text in the summary. Two other sources confirm it. (B16) The policy scope note says it excludes "productivity tools with minimal AI features". TailorMyResume uses AI heavily, so treat it as in scope.
 - **Target API level**: since 2026-08-31, new apps and updates must target Android 16 (API 36) or higher. Extension to 2026-11-01 was possible for some apps. (B17)
 - **New personal developer accounts**: closed test with at least 12 testers for 14 days before production access. Organisation accounts with D-U-N-S verification are exempt. (A31, B18) Plan at least 3 weeks for this in the schedule.
 - I did not research the 2026 Android developer verification program for sideloaded apps. UNVERIFIED. It does not block Play distribution.

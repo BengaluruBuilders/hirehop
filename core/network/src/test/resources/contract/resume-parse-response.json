@@ -1,0 +1,22 @@
+{
+  "generationId": "6f1c...",
+  "profile": {
+    "fullName": "Priya Deshmukh",
+    "email": "priya@example.com",
+    "phone": "+91 98xxxxxx10",
+    "headline": "Data analyst, B.Tech CS 2024",
+    "skills": ["SQL", "Excel"],
+    "entries": [
+      {
+        "ref": "e1",
+        "category": "EXPERIENCE",
+        "title": "Data Operations Associate",
+        "organization": "Saffron Retail",
+        "startDate": "Jul 2024",
+        "endDate": "Present",
+        "bullets": [{ "ref": "e1b1", "text": "Cleaned weekly sales data for 40 stores in Excel." }]
+      }
+    ]
+  },
+  "droppedSensitive": ["DATE_OF_BIRTH", "MARITAL_STATUS"]
+}

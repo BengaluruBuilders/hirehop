@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.hirehop.android.library)
-    alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.tailormyresume.android.library)
+    alias(libs.plugins.tailormyresume.hilt)
 }
 
 android {
-    namespace = "com.hirehop.core.common"
+    namespace = "com.tailormyresume.core.common"
 }
 
 dependencies {

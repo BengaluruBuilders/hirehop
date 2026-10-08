@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.hirehop.android.library)
-    alias(libs.plugins.hirehop.hilt)
+    alias(libs.plugins.tailormyresume.android.library)
+    alias(libs.plugins.tailormyresume.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.hirehop.core.domain"
+    namespace = "com.tailormyresume.core.domain"
 }
 
 dependencies {

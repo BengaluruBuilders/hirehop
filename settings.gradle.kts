@@ -26,7 +26,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "hirehop"
+rootProject.name = "tailormyresume"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
@@ -36,6 +36,7 @@ include(":core:database")
 include(":core:designsystem")
 include(":core:domain")
 include(":core:model")
+include(":core:network")
 include(":core:navigation")
 include(":core:screenshot")
 include(":core:testing")
@@ -56,7 +57,7 @@ include(":feature:tailor:impl")
 
 check(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
     """
-    HireHop requires JDK 17+ but it is currently using JDK ${JavaVersion.current()}.
+    TailorMyResume requires JDK 17+ but it is currently using JDK ${JavaVersion.current()}.
     Java Home: [${System.getProperty("java.home")}]
     """.trimIndent()
 }

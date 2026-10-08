@@ -12,3 +12,7 @@ local.properties
 *.iml
 /captures
 .claude/worktrees/
+
+app/google-services.json
+
+*firebase-adminsdk*.json

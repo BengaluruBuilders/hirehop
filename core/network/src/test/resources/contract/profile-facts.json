@@ -1,0 +1,15 @@
+{
+  "skills": ["SQL", "Excel", "Power BI"],
+  "entries": [
+    {
+      "id": "EXP-01",
+      "category": "EXPERIENCE",
+      "title": "Data Operations Associate",
+      "organization": "Saffron Retail",
+      "startDate": "Jul 2024",
+      "endDate": "Present",
+      "source": "IMPORTED",
+      "bullets": [{ "id": "EXP-01-1", "text": "Cleaned weekly sales data for 40 stores in Excel." }]
+    }
+  ]
+}

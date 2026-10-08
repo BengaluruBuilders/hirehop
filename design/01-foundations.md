@@ -12,7 +12,7 @@ Flat fills, solid shadows, and Compose springs make the motion. The design never
 
 ## Tokens
 
-All values are named tokens. `docs/DESIGN_SYSTEM.md` maps them to `HhTheme`.
+All values are named tokens. `docs/DESIGN_SYSTEM.md` maps them to `TmrTheme`.
 
 ### Fonts
 

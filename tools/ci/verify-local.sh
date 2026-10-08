@@ -7,10 +7,15 @@ tools/ci/check-constitution.sh
   :build-logic:convention:check \
   spotlessCheck \
   testDebugUnitTest \
+  :app:testDemoDebugUnitTest \
+  :app:testProdDebugUnitTest \
   :core:domain:koverVerify \
   :core:data:koverVerify \
   verifyRoborazziDebug \
   lintRelease \
+  :app:lintDemoRelease \
+  :app:lintProdRelease \
+  dependencyGuard \
   assembleDebug \
   assembleRelease \
   -PwarningsAsErrors=true \

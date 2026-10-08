@@ -1,4 +1,4 @@
-# HireHop research 03: Willingness to pay and monetization
+# TailorMyResume research 03: Willingness to pay and monetization
 
 Report date: 2026-09-30.
 Scope: India first, US and global second.
@@ -57,7 +57,7 @@ All prices include or exclude GST as the source states. Most sources do not say.
 Reading of the table:
 - The market has three price tiers. Micro tier: INR 99 to INR 500 (AI tools, mentors). Mid tier: INR 1,000 to INR 3,000 (Naukri services, LinkedIn month). High tier: INR 25,000 and up (placement courses).
 - The direct AI resume tools in India cluster at INR 249 to INR 299 for a week or month.
-- A HireHop price above INR 500 for the first purchase has no close comparable in the micro tier.
+- A TailorMyResume price above INR 500 for the first purchase has no close comparable in the micro tier.
 
 ---
 
@@ -126,7 +126,7 @@ Reading of the table:
 ### UPI and recurring payments
 
 - Play supports UPI. Google added UPI Autopay for Play subscriptions in India in November 2022 (S34, grade B). The same article notes that similar options got "little interest" earlier.
-- RBI rules limit auto-debit. Recurring charges above INR 15,000 per cycle need extra authentication (S35, grade C). A 2022 article states INR 5,000 as the earlier limit (S34). The limit is high enough for HireHop prices either way.
+- RBI rules limit auto-debit. Recurring charges above INR 15,000 per cycle need extra authentication (S35, grade C). A 2022 article states INR 5,000 as the earlier limit (S34). The limit is high enough for TailorMyResume prices either way.
 - UPI Autopay failure rates run 8% to 15%. Card mandates run 2% to 3% (S36, grade C). A retry button recovers 30% to 40% of failed payers. A 2 to 3 day grace period recovers 15% to 20% (S36).
 - More than 120 million UPI Autopay mandates are created each month in India (S35, grade C).
 - **Conflict to resolve.** A RevenueCat doc says Google "paused the ability of new customers in India to subscribe to auto-renewing plans" because of RBI rules (S37, grade B). This text may be stale. It conflicts with the 2022 UPI Autopay launch. Check the live behavior in Play Console before you plan an auto-renewing plan.
@@ -145,7 +145,7 @@ Reading of the table:
 
 | Topic | Rule | Source, grade |
 |---|---|---|
-| Play Billing requirement | Digital goods and digital services in the app must use Play Billing. HireHop application packs and a search pass are digital services. | S1, S2 (A) |
+| Play Billing requirement | Digital goods and digital services in the app must use Play Billing. TailorMyResume application packs and a search pass are digital services. | S1, S2 (A) |
 | Service fee, subscriptions | 15% for auto-renewing subscriptions, at any revenue level | S1 (A) |
 | Service fee, other in-app products (packs) | 15% on the first USD 1M a year for enrolled developers; 30% above that | S1 (A) |
 | New US, UK, EEA fee model | From 2026-06-30: 10% service fee plus 5% billing fee for subscriptions and new installs. This does NOT apply to India. | S1, S3 (A) |
@@ -200,7 +200,7 @@ Against:
 
 - Two peak hiring windows exist: January to March and September to November. December is slow. July and August are moderate (S42, S43, grade C).
 - Campus season starts in August for tier-1 colleges. Mass recruiters (TCS NQT, Infosys, Wipro, Cognizant) run drives from January to April. About 60% of IT freshers are hired off campus (S43, grade C).
-- Fresher demand for HireHop peaks when a student starts applying in bulk to off-campus drives. That is a short intense burst of 10 to 30 applications.
+- Fresher demand for TailorMyResume peaks when a student starts applying in bulk to off-campus drives. That is a short intense burst of 10 to 30 applications.
 - The market is weak for graduates. One secondary summary of the Azim Premji University State of Working India 2026 report cites graduate unemployment above 40% for people under 25 (S44, grade C, primary report not read). This pushes need up and the ability to pay down.
 
 ### 7.4 Recommendation
@@ -244,7 +244,7 @@ Price anchors used: ResumeGyani INR 299 for 7 days, CV Prime INR 249 per month, 
 - Arm C: first full tailored application free, then packs.
 - Rationale: INR 49 is the entry price in India guidance (S32). Free-first tests the trust barrier from "scam" experience (S9, S10, S11). Arm C costs about INR 7 per user at base cost, so cap it.
 - Measure: share of users who buy any product within 14 days, blended revenue per install, cost of free applications per paying user.
-- Break-even: at the RevenueCat rate of 0.7% to 1.4% (S13), a free tailored application at INR 7 costs INR 500 to INR 1,000 per payer. A pack nets INR 107. Arm C fails unless intent-driven conversion is 6% or higher. Test whether HireHop reaches this. This threshold is my calculation.
+- Break-even: at the RevenueCat rate of 0.7% to 1.4% (S13), a free tailored application at INR 7 costs INR 500 to INR 1,000 per payer. A pack nets INR 107. Arm C fails unless intent-driven conversion is 6% or higher. Test whether TailorMyResume reaches this. This threshold is my calculation.
 
 ---
 
@@ -322,7 +322,7 @@ Reading of the table:
 
 ### 9.4 Free-tier cost limit
 
-At a 0.7% to 1.4% download-to-paid rate (S13) and INR 107 net per pack sale, revenue per install is INR 0.75 to INR 1.50. Free-tier LLM cost per install must stay below about INR 0.5 to INR 1.0 unless HireHop shows a much higher conversion.
+At a 0.7% to 1.4% download-to-paid rate (S13) and INR 107 net per pack sale, revenue per install is INR 0.75 to INR 1.50. Free-tier LLM cost per install must stay below about INR 0.5 to INR 1.0 unless TailorMyResume shows a much higher conversion.
 
 Conversion for an intent-driven job app may exceed the RevenueCat median. That is a hypothesis. No source confirms it.
 
@@ -338,8 +338,8 @@ Implication: keep free-tier work cheap. Resume import parsing and JD analysis on
 4. **Keep a free tier that costs almost nothing.** Include resume import, profile edit, and JD analysis. Set a small hard limit on free generation.
 5. **Target INR 7 or less in LLM cost per tailored application.** Use mini-class models by default. Log token cost per application from day one. Add a cost and margin dashboard to the MVP scope.
 6. **Build trust as a feature.** Show what each pack includes, refund rules in plain language, no auto-renew, no dark patterns. The "scam" narrative around Naukri FastForward, Internshala courses, and US resume tools is your main conversion barrier.
-7. **Do not sell on ATS claims or job guarantees.** This already matches the product rule. It also separates HireHop from placement-guarantee products.
-8. **Position against free AI, not against resume writers.** Freshers can use ChatGPT for free. HireHop must sell the workflow: truthful profile-based tailoring, JD gap analysis, application tracking, saved documents. Do not sell raw text generation.
+7. **Do not sell on ATS claims or job guarantees.** This already matches the product rule. It also separates TailorMyResume from placement-guarantee products.
+8. **Position against free AI, not against resume writers.** Freshers can use ChatGPT for free. TailorMyResume must sell the workflow: truthful profile-based tailoring, JD gap analysis, application tracking, saved documents. Do not sell raw text generation.
 9. **Plan for seasonality.** Run the main tests in September to November and January to March. Expect low December demand. Price and message "campus season" and "off-campus drive" bursts.
 10. **Plan UPI.** Support Google Play billing with UPI. Build retry and grace flows if you later add auto-renewal (8% to 15% failure rate).
 11. **Do not build alternative billing at MVP.** Review it in 2027 when the India fee model changes.
