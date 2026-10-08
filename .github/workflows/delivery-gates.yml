@@ -1,0 +1,15 @@
+name: delivery-gates
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+jobs:
+  pregate:
+    name: delivery-gates-pregate
+    runs-on: [self-hosted, Linux, bengaluru-vm]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: BengaluruBuilders/delivery-gates@4a7cc063529c9da9933a17780dc33df5f823cbee
