@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -461,22 +459,11 @@ private fun EditingBlock(
             minLines = 4,
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = TmrIcons.Verified,
-                contentDescription = null,
-                tint = TmrTheme.colors.primary,
-                modifier = Modifier.heightIn(min = TmrTheme.spacing.d16),
-            )
-            Text(
-                text = stringResource(R.string.feature_tailor_impl_cover_letter_still_backed),
-                style = TmrTheme.typography.labelM,
-                color = TmrTheme.colors.primary,
-            )
-        }
+        StatusPill(
+            label = stringResource(R.string.feature_tailor_impl_cover_letter_edited_by_you),
+            icon = TmrIcons.Edit,
+            color = TmrTheme.colors.onSurface,
+        )
         ParagraphFactChipsFlow(paragraph.facts.map { fact -> fact.displayId }.distinct(), onSource)
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
             TmrSecondaryButton(
