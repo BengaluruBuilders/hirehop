@@ -407,11 +407,18 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
         val previous = ready.serverAnalysis
-        val local = withContext(computeDispatcher) { gapMatcher.match(profile, previous.job) }
+        val (local, baseline) = withContext(computeDispatcher) {
+            gapMatcher.match(profile, previous.job) to gapMatcher.match(ready.baselineProfile, previous.job)
+        }
         val localById = local.matches.associateBy { it.requirement.id }
+        val baselineById = baseline.matches.associateBy { it.requirement.id }
         val coverage = maxOf(previous.gap.keywordCoverage, local.keywordCoverage, compareBy { it.covered })
         val matches = previous.gap.matches.map { old ->
-            val upgraded = localById[old.requirement.id]?.takeIf { it.status.ordinal < old.status.ordinal }
+            val upgraded = localById[old.requirement.id]
+                ?.takeIf { candidate ->
+                    candidate.status.ordinal < old.status.ordinal &&
+                        candidate.status.ordinal < (baselineById[old.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE)
+                }
                 ?: return@map old
             RequirementMatch(old.requirement, upgraded.status, (old.evidenceIds + upgraded.evidenceIds).distinct())
         }
@@ -458,6 +465,7 @@ class AnalysisViewModel @Inject constructor(
             val profile: CandidateProfile,
             val analysis: JobAnalysisResult,
             val serverAnalysis: JobAnalysisResult = analysis,
+            val baselineProfile: CandidateProfile = profile,
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(
