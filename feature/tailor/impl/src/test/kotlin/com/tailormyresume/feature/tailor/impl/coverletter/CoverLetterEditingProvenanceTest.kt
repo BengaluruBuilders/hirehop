@@ -45,6 +45,9 @@ class CoverLetterEditingProvenanceTest {
             composeRule.onAllNodes(hasText("User-edited")).fetchSemanticsNodes(),
         ).isNotEmpty()
         assertThat(
+            composeRule.onAllNodes(hasText("TailorMyResume does not check hand edits.", substring = true)).fetchSemanticsNodes(),
+        ).isNotEmpty()
+        assertThat(
             composeRule.onAllNodes(hasText("Still backed by your facts", substring = true)).fetchSemanticsNodes(),
         ).isEmpty()
     }
