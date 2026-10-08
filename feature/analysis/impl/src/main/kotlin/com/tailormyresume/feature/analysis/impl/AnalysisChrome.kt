@@ -231,7 +231,17 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
                 }
             }
         }
-        is AnalysisUiState.Failed -> {
+        is AnalysisUiState.Failed -> if (uiState.cause == FailureCause.QuotaReached) {
+            {
+                TmrBottomActionBar {
+                    TmrSecondaryButton(
+                        label = stringResource(R.string.feature_analysis_impl_back_to_job),
+                        onClick = actions.onBackToJobDescription,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        } else {
             {
                 val signIn = uiState.cause == FailureCause.SignInRequired
                 TmrBottomActionBar(stacked = true, primaryLast = false) {

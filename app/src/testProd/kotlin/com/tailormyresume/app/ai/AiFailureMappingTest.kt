@@ -69,6 +69,40 @@ class AiFailureMappingTest {
     }
 
     @Test
+    fun everyContractErrorCodeMapsEndToEnd() {
+        val contract = listOf(
+            Triple(400, "INVALID_INPUT", AiFailure.InvalidInput),
+            Triple(401, "UNAUTHENTICATED", AiFailure.SignInRequired),
+            Triple(401, "INVALID_TOKEN", AiFailure.SignInRequired),
+            Triple(403, "CROSS_APP_TOKEN", AiFailure.Unavailable),
+            Triple(403, "FORBIDDEN", AiFailure.Unavailable),
+            Triple(404, "NOT_FOUND", AiFailure.Unavailable),
+            Triple(409, "ACCOUNT_DELETED", AiFailure.AccountDeleted),
+            Triple(409, "ANALYSIS_IN_PROGRESS", AiFailure.AnalysisInProgress),
+            Triple(413, "PAYLOAD_TOO_LARGE", AiFailure.InvalidInput),
+            Triple(429, "RATE_LIMITED", AiFailure.RateLimited),
+            Triple(429, "QUOTA_EXCEEDED", AiFailure.QuotaExceeded),
+            Triple(429, "BUDGET_EXCEEDED", AiFailure.QuotaExceeded),
+            Triple(502, "AI_PROVIDER_ERROR", AiFailure.Unavailable),
+            Triple(405, "METHOD_NOT_ALLOWED", AiFailure.Unavailable),
+            Triple(500, "HTTP_ERROR", AiFailure.Unavailable),
+            Triple(500, "INTERNAL_ERROR", AiFailure.Unavailable),
+            Triple(402, "NO_CREDIT", AiFailure.NoCredit),
+            Triple(403, "CONSENT_REQUIRED", AiFailure.ConsentRequired),
+            Triple(409, "PURCHASE_PENDING", AiFailure.Unavailable),
+            Triple(400, "PURCHASE_INVALID", AiFailure.Unavailable),
+            Triple(429, "ALLOWANCE_EXHAUSTED", AiFailure.AllowanceExhausted),
+            Triple(502, "PLAY_UNAVAILABLE", AiFailure.Unavailable),
+        )
+        contract.forEach { (status, code, failure) ->
+            routes().filterKeys { code != "RATE_LIMITED" || it != "tailor" }.forEach { (name, route) ->
+                backend.fail(status, code)
+                assertWithMessage("$name $status $code").that(failureOf(route)).isEqualTo(failure)
+            }
+        }
+    }
+
+    @Test
     fun rateLimitedKeepsRetryAfterAndIsNotUnavailable() {
         assertThat(ApiError.RateLimited(12).toAiFailure()).isEqualTo(AiFailure.RateLimited)
         val thrown = runCatching { Result.failure<Unit>(ApiException(ApiError.RateLimited(12))).orAiFailure() }

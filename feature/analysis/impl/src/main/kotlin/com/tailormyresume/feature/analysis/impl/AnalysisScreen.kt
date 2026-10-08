@@ -164,6 +164,9 @@ private fun AnalysisToastEffect(
     }
 }
 
+internal const val MIN_WAIT_SECONDS = 1
+internal const val MAX_WAIT_SECONDS = 3600
+
 private fun AnalysisUiState.contentKey(): Any =
     if (this is AnalysisUiState.Loading) AnalysisUiState.Analyzing::class else this::class
 
@@ -196,17 +199,15 @@ private fun FailedContent(cause: FailureCause, contentPadding: PaddingValues) {
             R.string.feature_analysis_impl_error_title to stringResource(R.string.feature_analysis_impl_error_body)
         FailureCause.InProgress ->
             R.string.feature_analysis_impl_busy_title to stringResource(R.string.feature_analysis_impl_busy_body)
-        is FailureCause.RateLimited ->
+        is FailureCause.RateLimited -> {
+            val waitSeconds = cause.retryAfterSeconds?.takeIf { it in MIN_WAIT_SECONDS..MAX_WAIT_SECONDS }
             R.string.feature_analysis_impl_rate_limited_title to
-                if (cause.retryAfterSeconds != null) {
-                    pluralStringResource(
-                        R.plurals.feature_analysis_impl_rate_limited_wait,
-                        cause.retryAfterSeconds,
-                        cause.retryAfterSeconds,
-                    )
+                if (waitSeconds != null) {
+                    pluralStringResource(R.plurals.feature_analysis_impl_rate_limited_wait, waitSeconds, waitSeconds)
                 } else {
                     stringResource(R.string.feature_analysis_impl_rate_limited_body)
                 }
+        }
         FailureCause.QuotaReached ->
             R.string.feature_analysis_impl_quota_title to stringResource(R.string.feature_analysis_impl_quota_body)
         FailureCause.SignInRequired ->
