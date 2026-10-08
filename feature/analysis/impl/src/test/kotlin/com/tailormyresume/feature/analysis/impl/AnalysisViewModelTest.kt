@@ -858,6 +858,29 @@ class AnalysisViewModelTest {
     }
 
     @Test
+    fun iHaveThis_laterSaveKeepsEarlierEvidenceClosedRequirementMet_andUndoRestoresOnlyTheLastOne() = runTest {
+        serverGapIds = setOf("req-docker", "req-sql")
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        viewModel.onTogglePrepPlan("req-docker")
+        viewModel.onTogglePrepPlan("req-sql")
+
+        viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        val closed = result()
+        assertThat(closed.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(closed.item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(draftPlan().map { it.id }).containsNoneOf("req-docker", "req-sql")
+
+        viewModel.onUndo()
+
+        val undone = result()
+        assertThat(undone.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(undone.item("req-sql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(draftPlan().map { it.id }).doesNotContain("req-docker")
+    }
+
+    @Test
     fun tailor_afterEvidenceForOneRequirement_sendsOnlyThatUpgradeToCreateApplication() = runTest {
         serverGapIds = setOf("req-graphql")
         start(onboardingComplete = true)
