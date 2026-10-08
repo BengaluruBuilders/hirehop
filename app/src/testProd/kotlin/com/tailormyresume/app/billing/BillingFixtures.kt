@@ -9,7 +9,9 @@ import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.network.IdTokenProvider
 import com.tailormyresume.core.testing.mock.TestMockStateStore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 
@@ -29,6 +31,8 @@ internal class FakePlayBilling : PlayBilling {
 
     override suspend fun ownedPurchases() = owned
 }
+
+internal fun idleScope() = CoroutineScope(StandardTestDispatcher())
 
 internal class FakeUid(private val value: String?) : FirebaseUidProvider {
     override fun uid() = value
@@ -58,7 +62,7 @@ internal fun MockWebServer.signOutCleaner(session: SessionRepository): SignOutCl
     val store = TestMockStateStore()
     val api = api()
     return SignOutCleaner(
-        RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1")),
+        RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1"), idleScope()),
         RemoteJobAnalysisSource(api, NoMatcher, Json),
         PendingReportQueue(store),
         store,

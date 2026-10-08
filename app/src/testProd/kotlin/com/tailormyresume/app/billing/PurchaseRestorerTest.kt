@@ -35,7 +35,7 @@ class PurchaseRestorerTest {
     }
 
     private fun restorer(): PurchaseRestorer {
-        val gateway: PaymentGateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"))
+        val gateway: PaymentGateway = RemotePaymentGateway(api, WalletSource(api), billing, FakeUid("uid-1"), idleScope())
         return PurchaseRestorer({ gateway }, { billing }, session, scope)
     }
 
