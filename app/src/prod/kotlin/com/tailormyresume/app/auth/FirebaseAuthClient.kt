@@ -7,16 +7,20 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.network.IdTokenProvider
+import com.tailormyresume.core.network.SessionExpiredException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,10 +55,12 @@ class FirebaseAuthClient @Inject constructor(
     }
 
     override fun idToken(forceRefresh: Boolean): String? {
-        val user = auth?.currentUser ?: return null
+        val firebaseAuth = auth ?: return null
+        val user = firebaseAuth.currentUser ?: throw SessionExpiredException()
         return try {
             Tasks.await(user.getIdToken(forceRefresh), TOKEN_TIMEOUT_SECONDS, TimeUnit.SECONDS).token
         } catch (failure: Exception) {
+            if (failure.isSessionExpiry()) throw SessionExpiredException()
             null
         }
     }
@@ -86,4 +92,7 @@ private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { conti
 
 private const val TOKEN_TIMEOUT_SECONDS = 10L
 
-internal fun Throwable.isSessionExpiry(): Boolean = false
+internal fun Throwable.isSessionExpiry(): Boolean = when (if (this is ExecutionException) cause else this) {
+    is FirebaseAuthInvalidUserException, is FirebaseAuthInvalidCredentialsException -> true
+    else -> false
+}

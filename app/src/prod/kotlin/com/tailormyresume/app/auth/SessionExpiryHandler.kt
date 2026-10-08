@@ -8,6 +8,9 @@ import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.network.SessionExpiredListener
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +22,25 @@ class SessionExpiryHandler @Inject constructor(
     private val config: FirebaseConfig,
     @ApplicationScope private val scope: CoroutineScope,
 ) : SessionExpiredListener, AppStartTask {
-    override fun onSessionExpired() = Unit
+    private val signingOut = AtomicBoolean(false)
 
-    override fun start() = Unit
+    override fun onSessionExpired() {
+        if (!signingOut.compareAndSet(false, true)) return
+        scope.launch {
+            try {
+                if (sessionRepository.observeAccount().first() != null) gateway.get().signOut()
+            } finally {
+                signingOut.set(false)
+            }
+        }
+    }
+
+    override fun start() {
+        if (!config.isComplete) return
+        scope.launch {
+            if (sessionRepository.observeAccount().first() != null && uidProvider.uid() == null) {
+                onSessionExpired()
+            }
+        }
+    }
 }

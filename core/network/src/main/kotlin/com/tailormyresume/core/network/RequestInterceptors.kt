@@ -9,18 +9,26 @@ internal class AppIdInterceptor : Interceptor {
         chain.proceed(chain.request().newBuilder().header("X-App-Id", "tailormyresume").build())
 }
 
-internal class AuthInterceptor(private val tokens: IdTokenProvider) : Interceptor {
+internal class AuthInterceptor(
+    private val tokens: IdTokenProvider,
+    private val sessionListener: SessionExpiredListener,
+) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val first = chain.proceed(chain.request().withToken(forceRefresh = false))
+        val token = tokenOrNull(forceRefresh = false) ?: return chain.proceed(chain.request())
+        val first = chain.proceed(chain.request().withBearer(token))
         if (first.code != 401) return first
-        val fresh = tokens.idToken(forceRefresh = true) ?: return first
+        val fresh = tokenOrNull(forceRefresh = true) ?: return first
         first.close()
-        return chain.proceed(chain.request().withBearer(fresh))
+        val second = chain.proceed(chain.request().withBearer(fresh))
+        if (second.code == 401) sessionListener.onSessionExpired()
+        return second
     }
 
-    private fun Request.withToken(forceRefresh: Boolean): Request {
-        val token = tokens.idToken(forceRefresh) ?: return this
-        return withBearer(token)
+    private fun tokenOrNull(forceRefresh: Boolean): String? = try {
+        tokens.idToken(forceRefresh)
+    } catch (expired: SessionExpiredException) {
+        sessionListener.onSessionExpired()
+        null
     }
 
     private fun Request.withBearer(token: String): Request =

@@ -21,7 +21,7 @@ fun tailormyresumeOkHttpClient(
     .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .addInterceptor(AppIdInterceptor())
-    .addInterceptor(AuthInterceptor(tokens))
+    .addInterceptor(AuthInterceptor(tokens, sessionListener))
     .addInterceptor(ConsentRequiredInterceptor(consentListener))
     .build()
 
