@@ -10,7 +10,6 @@ import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.network.IdTokenProvider
 import com.tailormyresume.core.testing.mock.TestMockStateStore
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 
 internal class FakePlayBilling : PlayBilling {
@@ -59,7 +58,7 @@ internal fun MockWebServer.signOutCleaner(session: SessionRepository): SignOutCl
     val api = api()
     return SignOutCleaner(
         RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1")),
-        RemoteJobAnalysisSource(api, NoMatcher, Json),
+        RemoteJobAnalysisSource(api, NoMatcher),
         PendingReportQueue(store),
         store,
         session,

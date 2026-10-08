@@ -8,7 +8,6 @@ import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Test
 
@@ -38,8 +37,8 @@ class RemoteAnalysisCacheTest {
             GapAnalysis(listOf(matchOf(MatchStatus.GAP)), gapCoverage)
     }
 
-    private val source = RemoteJobAnalysisSource(backend.api, profileDrivenMatcher, Json)
-    private val flatSource = RemoteJobAnalysisSource(backend.api, constantGapMatcher, Json)
+    private val source = RemoteJobAnalysisSource(backend.api, profileDrivenMatcher)
+    private val flatSource = RemoteJobAnalysisSource(backend.api, constantGapMatcher)
 
     @After
     fun tearDown() = backend.shutdown()

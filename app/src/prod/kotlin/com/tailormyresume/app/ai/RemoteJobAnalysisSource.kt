@@ -15,7 +15,6 @@ import com.tailormyresume.core.network.dto.AnalysisRequest
 import com.tailormyresume.core.network.dto.MatchDto
 import com.tailormyresume.core.network.mapper.toFactsDto
 import com.tailormyresume.core.network.mapper.toJobDescription
-import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +23,6 @@ import javax.inject.Singleton
 class RemoteJobAnalysisSource @Inject constructor(
     private val api: TailorMyResumeApi,
     private val matcher: GapMatcher,
-    json: Json,
 ) : JobAnalysisSource {
     private data class Entry(val result: JobAnalysisResult, val baselineProfile: CandidateProfile)
 
@@ -54,21 +52,30 @@ class RemoteJobAnalysisSource @Inject constructor(
     private fun rematch(entry: Entry, profile: CandidateProfile): JobAnalysisResult {
         val job = entry.result.job
         val factIds = profile.confirmedWithinLimits().evidenceIds()
+        val baselineFactIds = entry.baselineProfile.confirmedWithinLimits().evidenceIds()
         val baseline = matcher.match(entry.baselineProfile, job).matches.associateBy { it.requirement.id }
         val current = matcher.match(profile, job)
         val currentByRequirement = current.matches.associateBy { it.requirement.id }
         val matches = entry.result.gap.matches.map { server ->
             val evidence = server.evidenceIds.filter { it in factIds }
-            val serverStatus = server.status.takeUnless { it != MatchStatus.GAP && evidence.isEmpty() } ?: MatchStatus.GAP
+            val effectiveServerStatus =
+                server.status.takeUnless { it != MatchStatus.GAP && evidence.isEmpty() } ?: MatchStatus.GAP
             val currentMatch = currentByRequirement[server.requirement.id]
             val baselineStatus = baseline[server.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE
             if (currentMatch != null &&
-                currentMatch.status.ordinal < serverStatus.ordinal &&
-                currentMatch.status.ordinal < baselineStatus
+                currentMatch.status.ordinal < effectiveServerStatus.ordinal &&
+                (
+                    currentMatch.status.ordinal < baselineStatus ||
+                        currentMatch.evidenceIds.any { it !in baselineFactIds }
+                    )
             ) {
-                RequirementMatch(server.requirement, currentMatch.status, (evidence + currentMatch.evidenceIds).distinct())
+                RequirementMatch(
+                    server.requirement,
+                    currentMatch.status,
+                    (evidence + currentMatch.evidenceIds).distinct(),
+                )
             } else {
-                RequirementMatch(server.requirement, serverStatus, evidence)
+                RequirementMatch(server.requirement, effectiveServerStatus, evidence)
             }
         }
         return JobAnalysisResult(job, GapAnalysis(matches, current.keywordCoverage, entry.result.gap.generationId))
