@@ -4,6 +4,7 @@ import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -25,6 +26,11 @@ internal fun Project.configureKotlinAndroid(
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
+    }
+
+    // Conscrypt ships no linux-aarch_64 native library: UnsatisfiedLinkError on ARM64 CI runners, issue #77.
+    tasks.withType(Test::class.java).configureEach {
+        systemProperty("robolectric.conscryptMode", "OFF")
     }
 
     configureKotlin<KotlinAndroidProjectExtension>(optInToExperimentalCoroutines = true)
