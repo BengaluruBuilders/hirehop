@@ -42,6 +42,9 @@ class RemoteSignInGateway @Inject constructor(
             return failure.toAuthFailure().toSignInResult()
         }
         val account = SignInAccount(id = user.uid, displayName = user.displayName.ifBlank { user.email }, email = user.email)
+        val previousAccountId = sessionRepository.lastAccountId()
+        if (previousAccountId != null && previousAccountId != user.uid) wiper.wipeAll()
+        sessionRepository.saveLastAccountId(user.uid)
         sessionRepository.saveAccount(account)
         return SignInResult.SignedIn(account)
     }

@@ -58,6 +58,7 @@ class DeleteAccountUseCase @Inject constructor(
             withContext(NonCancellable) {
                 signInGateway.signOut()
                 sessionRepository.clear()
+                exportedFiles.deleteAll()
             }
             AccountDeletionResult.Deleted(counts)
         } catch (cancellation: CancellationException) {

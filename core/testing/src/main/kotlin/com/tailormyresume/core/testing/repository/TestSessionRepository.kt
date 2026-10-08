@@ -15,6 +15,7 @@ class TestSessionRepository : SessionRepository {
     private val onboardingComplete = MutableStateFlow(false)
     private val keptJob = MutableStateFlow<KeptJobDescription?>(null)
     private val careerStage = MutableStateFlow<CareerStage?>(null)
+    private var lastAccountId: String? = null
 
     override fun observeAccount(): Flow<SignInAccount?> = account
 
@@ -38,9 +39,10 @@ class TestSessionRepository : SessionRepository {
         this.account.value = account
     }
 
-    override suspend fun lastAccountId(): String? = null
+    override suspend fun lastAccountId(): String? = lastAccountId
 
     override suspend fun saveLastAccountId(id: String) {
+        lastAccountId = id
     }
 
     override suspend fun recordConsent(record: ConsentRecord) {
@@ -70,6 +72,7 @@ class TestSessionRepository : SessionRepository {
 
     override suspend fun clear() {
         account.value = null
+        lastAccountId = null
         consent.value = null
         onboardingComplete.value = false
         keptJob.value = null

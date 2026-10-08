@@ -24,6 +24,7 @@ class SignOutCleaner @Inject constructor(
         reports.clear()
         store.removeWithPrefix(TAILORING_REQUEST_PREFIX)
         sessionRepository.clearConsent()
+        exportedFiles.deleteAll()
     }
 
     private companion object {

@@ -27,5 +27,10 @@ class RoomLocalDataWiper @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : LocalDataWiper {
     override suspend fun wipeAll() {
+        withContext(NonCancellable) {
+            withContext(ioDispatcher) { database.clearAllTables() }
+            store.clear()
+            exportedFiles.deleteAll()
+        }
     }
 }

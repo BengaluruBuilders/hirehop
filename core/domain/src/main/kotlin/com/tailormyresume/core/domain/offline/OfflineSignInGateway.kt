@@ -49,5 +49,6 @@ class OfflineSignInGateway @Inject constructor(
 
     override suspend fun signOut() {
         sessionRepository.signOut()
+        exportedFiles.deleteAll()
     }
 }
