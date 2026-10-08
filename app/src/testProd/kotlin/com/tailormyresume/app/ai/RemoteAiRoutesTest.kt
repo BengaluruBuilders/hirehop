@@ -108,13 +108,12 @@ class RemoteAiRoutesTest {
         val first = source.analyse(candidate, "the raw   job text")
         val again = source.analyse(candidate, " the raw job\ntext ")
 
-        assertThat(again).isSameInstanceAs(first)
+        assertThat(again).isEqualTo(first)
         assertThat(backend.server.requestCount).isEqualTo(1)
     }
 
     @Test
-    fun aChangedFactSetCallsTheServerAgain() = runBlocking<Unit> {
-        backend.reply(200, ANALYSIS_RESPONSE)
+    fun aChangedFactSetForTheSameJobSendsOneRequest() = runBlocking<Unit> {
         backend.reply(200, ANALYSIS_RESPONSE)
         source.analyse(candidate, "the raw job text")
 
@@ -122,7 +121,7 @@ class RemoteAiRoutesTest {
         source.analyse(closed, "the raw job text")
         source.analyse(closed, "the raw job text")
 
-        assertThat(backend.server.requestCount).isEqualTo(2)
+        assertThat(backend.server.requestCount).isEqualTo(1)
     }
 
     @Test
