@@ -23,6 +23,7 @@ import com.tailormyresume.core.domain.PaymentGateway
 import com.tailormyresume.core.domain.isAiFailure
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
+import com.tailormyresume.core.domain.upgradedMatch
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
 import com.tailormyresume.core.model.DebugScenario
@@ -31,7 +32,6 @@ import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
-import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.tailor.api.navigation.TailorNavKey
@@ -434,14 +434,12 @@ class AnalysisViewModel @Inject constructor(
             total = previous.gap.keywordCoverage.total,
         )
         val matches = previous.gap.matches.map { old ->
-            val targeted = old.requirement.id in targetedRequirementIds
-            val upgraded = localById[old.requirement.id]
-                ?.takeIf { candidate ->
-                    candidate.status.ordinal < old.status.ordinal &&
-                        (targeted || candidate.status.ordinal < (baselineById[old.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE))
-                }
-                ?: return@map old
-            RequirementMatch(old.requirement, upgraded.status, (old.evidenceIds + upgraded.evidenceIds).distinct())
+            upgradedMatch(
+                server = old,
+                current = localById[old.requirement.id],
+                baseline = baselineById[old.requirement.id],
+                targeted = old.requirement.id in targetedRequirementIds,
+            ) ?: old
         }
         return ready.copy(
             profile = profile,

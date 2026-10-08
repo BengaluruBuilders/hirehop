@@ -3,6 +3,7 @@ package com.tailormyresume.app.ai
 import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.JobAnalysisSource
+import com.tailormyresume.core.domain.upgradedMatch
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobDescription
@@ -52,7 +53,6 @@ class RemoteJobAnalysisSource @Inject constructor(
     private fun rematch(entry: Entry, profile: CandidateProfile): JobAnalysisResult {
         val job = entry.result.job
         val factIds = profile.confirmedWithinLimits().evidenceIds()
-        val baselineFactIds = entry.baselineProfile.confirmedWithinLimits().evidenceIds()
         val baseline = matcher.match(entry.baselineProfile, job).matches.associateBy { it.requirement.id }
         val current = matcher.match(profile, job)
         val currentByRequirement = current.matches.associateBy { it.requirement.id }
@@ -60,23 +60,9 @@ class RemoteJobAnalysisSource @Inject constructor(
             val evidence = server.evidenceIds.filter { it in factIds }
             val effectiveServerStatus =
                 server.status.takeUnless { it != MatchStatus.GAP && evidence.isEmpty() } ?: MatchStatus.GAP
-            val currentMatch = currentByRequirement[server.requirement.id]
-            val baselineStatus = baseline[server.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE
-            if (currentMatch != null &&
-                currentMatch.status.ordinal < effectiveServerStatus.ordinal &&
-                (
-                    currentMatch.status.ordinal < baselineStatus ||
-                        currentMatch.evidenceIds.any { it !in baselineFactIds }
-                    )
-            ) {
-                RequirementMatch(
-                    server.requirement,
-                    currentMatch.status,
-                    (evidence + currentMatch.evidenceIds).distinct(),
-                )
-            } else {
-                RequirementMatch(server.requirement, effectiveServerStatus, evidence)
-            }
+            val effective = RequirementMatch(server.requirement, effectiveServerStatus, evidence)
+            upgradedMatch(effective, currentByRequirement[server.requirement.id], baseline[server.requirement.id], targeted = false)
+                ?: effective
         }
         return JobAnalysisResult(job, GapAnalysis(matches, current.keywordCoverage, entry.result.gap.generationId))
     }

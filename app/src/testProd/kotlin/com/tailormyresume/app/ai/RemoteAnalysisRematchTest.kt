@@ -116,4 +116,50 @@ class RemoteAnalysisRematchTest {
         assertThat(backend.server.requestCount).isEqualTo(1)
         assertThat(second.gap.generationId).isEqualTo("g-analysis")
     }
+
+    @Test
+    fun aSharedKeywordDeviceMatchCitingOnlyUnchangedEvidenceDoesNotFlipARequirementOnReentry() = runBlocking<Unit> {
+        backend.reply(200, TWO_REQUIREMENT_RESPONSE)
+        val shared = object : GapMatcher {
+            override fun match(profile: CandidateProfile, job: JobDescription) =
+                GapAnalysis(
+                    job.requirements.map { requirement ->
+                        val sql = requirement.id == "req-1"
+                        RequirementMatch(requirement, if (sql) MatchStatus.PARTIAL else MatchStatus.GAP, if (sql) listOf("W-01-b1") else emptyList())
+                    },
+                    coverage,
+                )
+        }
+        val sharedSource = RemoteJobAnalysisSource(backend.api, shared)
+
+        sharedSource.analyse(candidate, jobText)
+        val rematched = sharedSource.analyse(grewProfile, jobText).gap.matches.first { it.requirement.id == "req-1" }
+
+        assertThat(rematched.status).isEqualTo(MatchStatus.GAP)
+        assertThat(rematched.evidenceIds).isEmpty()
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun aConfirmedFactBeyondTheSendLimitsThatAlreadyMatchedTheBaselineDoesNotFlipOnReentry() = runBlocking<Unit> {
+        backend.reply(200, TWO_REQUIREMENT_RESPONSE)
+        val citing = object : GapMatcher {
+            override fun match(profile: CandidateProfile, job: JobDescription) =
+                GapAnalysis(
+                    job.requirements.map { requirement ->
+                        val sql = requirement.id == "req-1"
+                        RequirementMatch(requirement, if (sql) MatchStatus.PARTIAL else MatchStatus.GAP, if (sql) listOf("W-01-b1") else emptyList())
+                    },
+                    coverage,
+                )
+        }
+        val citingSource = RemoteJobAnalysisSource(backend.api, citing)
+        val unrelated = candidate.copy(entries = candidate.entries + confirmedEntry("W-09", "W-09-b1", "Ran the monthly close."))
+
+        citingSource.analyse(candidate, jobText)
+        val rematched = citingSource.analyse(unrelated, jobText).gap.matches.first { it.requirement.id == "req-1" }
+
+        assertThat(rematched.status).isEqualTo(MatchStatus.GAP)
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
 }
