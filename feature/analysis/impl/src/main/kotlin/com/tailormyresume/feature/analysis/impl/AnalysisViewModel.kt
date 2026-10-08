@@ -27,6 +27,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.KeptJobDescription
+import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
@@ -232,13 +233,13 @@ class AnalysisViewModel @Inject constructor(
             try {
                 attempt {
                     val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
-                    val previewed = refreshed(ready, preview)
+                    val previewed = refreshed(ready, preview, requirementId)
                     val closed = previewed.analysis.gap.matches
                         .firstOrNull { it.requirement.id == requirementId }
                         ?.status != MatchStatus.GAP
                     if (closed) {
                         addUserStatedFact(requirement, statement)
-                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
+                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" }, requirementId)
                     } else {
                         null
                     }
@@ -393,7 +394,7 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             attempt {
                 profileRepository.saveProfile(snapshot)
-                refreshed(ready, snapshot)
+                refreshed(ready, snapshot, null)
             }.fold(
                 onSuccess = { fresh ->
                     dropClosedGapsFromPrepPlan(fresh)
@@ -405,19 +406,30 @@ class AnalysisViewModel @Inject constructor(
         }
     }
 
-    private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
+    private suspend fun refreshed(
+        ready: Phase.Ready,
+        profile: CandidateProfile,
+        targetedRequirementId: String?,
+    ): Phase.Ready {
         val previous = ready.serverAnalysis
         val (local, baseline) = withContext(computeDispatcher) {
             gapMatcher.match(profile, previous.job) to gapMatcher.match(ready.baselineProfile, previous.job)
         }
         val localById = local.matches.associateBy { it.requirement.id }
         val baselineById = baseline.matches.associateBy { it.requirement.id }
-        val coverage = maxOf(previous.gap.keywordCoverage, local.keywordCoverage, compareBy { it.covered })
+        val coverage = KeywordCoverage(
+            covered = (
+                previous.gap.keywordCoverage.covered +
+                    maxOf(0, local.keywordCoverage.covered - baseline.keywordCoverage.covered)
+                ).coerceAtMost(previous.gap.keywordCoverage.total),
+            total = previous.gap.keywordCoverage.total,
+        )
         val matches = previous.gap.matches.map { old ->
+            val targeted = old.requirement.id == targetedRequirementId
             val upgraded = localById[old.requirement.id]
                 ?.takeIf { candidate ->
                     candidate.status.ordinal < old.status.ordinal &&
-                        candidate.status.ordinal < (baselineById[old.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE)
+                        (targeted || candidate.status.ordinal < (baselineById[old.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE))
                 }
                 ?: return@map old
             RequirementMatch(old.requirement, upgraded.status, (old.evidenceIds + upgraded.evidenceIds).distinct())

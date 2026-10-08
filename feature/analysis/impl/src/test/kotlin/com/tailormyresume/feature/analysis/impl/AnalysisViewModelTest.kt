@@ -20,6 +20,7 @@ import com.tailormyresume.core.model.ConsentRecord
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.KeptJobDescription
+import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
@@ -73,6 +74,7 @@ class AnalysisViewModelTest {
     private var analysisCalls = 0
     private var serverOnlyMetIds = emptySet<String>()
     private var serverGapIds = emptySet<String>()
+    private var serverKeywordCovered: Int? = null
     private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
             analysisCalls++
@@ -84,7 +86,10 @@ class AnalysisViewModelTest {
                     else -> it
                 }
             }
-            return result.copy(gap = result.gap.copy(matches = matches))
+            val coverage = serverKeywordCovered
+                ?.let { KeywordCoverage(covered = it, total = result.gap.keywordCoverage.total) }
+                ?: result.gap.keywordCoverage
+            return result.copy(gap = result.gap.copy(matches = matches, keywordCoverage = coverage))
         }
     }
 
@@ -804,6 +809,36 @@ class AnalysisViewModelTest {
         assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.MET)
         assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
         assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
+    }
+
+    @Test
+    fun iHaveThis_whenTheTargetedRequirementAlreadyMatchesOnTheDevice_closesItAndOthersStay() = runTest {
+        serverGapIds = setOf("req-docker", "req-kotlin")
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+
+        viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
+
+        val result = result()
+        assertThat(result.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(result.item("req-kotlin").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result.toast).isEqualTo(AnalysisToast.GapClosed)
+        assertThat(result.closedRequirementId).isEqualTo("req-docker")
+        val entry = requireNotNull(profileRepository.observeProfile().first()).entries.first { it.id == "U-01" }
+        assertThat(entry.source).isEqualTo(FactSource.USER_STATED)
+        assertThat(entry.bullets.map { it.text }).containsExactly("I shipped Docker images during my internship.")
+    }
+
+    @Test
+    fun iHaveThis_keywordCoverageGrowsOnlyByTheKeywordsTheNewFactAdds() = runTest {
+        serverKeywordCovered = 0
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        assertThat(result().keywordCoverage.covered).isEqualTo(0)
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        val result = result()
+        assertThat(result.keywordCoverage.covered).isEqualTo(1)
+        assertThat(result.keywordCoverage.total).isEqualTo(4)
     }
 
     @Test
