@@ -42,6 +42,11 @@ fun applicationStatusOptions(labelOf: (ApplicationStatus) -> String): List<Appli
         ApplicationStatusOption(status = status, label = labelOf(status))
     }
 
+fun applicationStatusOptionsFor(
+    current: ApplicationStatus,
+    labelOf: (ApplicationStatus) -> String,
+): List<ApplicationStatusOption> = applicationStatusOptions(labelOf)
+
 @Stable
 class ApplicationStatusSelection(initial: ApplicationStatus) {
 
