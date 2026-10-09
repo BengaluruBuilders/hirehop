@@ -53,6 +53,7 @@ class DeleteAccountViewModel @Inject constructor(
                 accountEmail = snapshot.accountEmail,
                 isOffline = !isOnline || phase.forcedOffline,
                 failure = phase.failure,
+                isConfirmVisible = false,
             )
         }
     }.stateIn(
@@ -91,6 +92,10 @@ class DeleteAccountViewModel @Inject constructor(
             }
         }
     }
+
+    fun onDeleteConfirmed() = Unit
+
+    fun onDeleteDismissed() = Unit
 
     private fun AccountDeletionResult.Failed.toFailure(): DeleteAccountFailure =
         if (dataIntact) DeleteAccountFailure.DATA_INTACT else DeleteAccountFailure.PARTLY_DELETED
