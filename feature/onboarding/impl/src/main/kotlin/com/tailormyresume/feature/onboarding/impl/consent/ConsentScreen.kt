@@ -40,6 +40,7 @@ import com.tailormyresume.core.designsystem.component.TmrDivider
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
+import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrSectionLabel
 import com.tailormyresume.core.designsystem.component.TmrTextButton
 import com.tailormyresume.core.designsystem.icon.TmrIcons
@@ -397,11 +398,21 @@ private fun ConsentBottomBar(
 ) {
     TmrBottomActionBar {
         if (uiState.isDeclined) {
-            TmrPrimaryButton(
-                label = stringResource(R.string.feature_onboarding_impl_consent_declined_action_read_again),
-                onClick = actions.onReadAgain,
+            Column(
                 modifier = Modifier.weight(1f),
-            )
+                verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            ) {
+                TmrPrimaryButton(
+                    label = stringResource(R.string.feature_onboarding_impl_consent_declined_action_read_again),
+                    onClick = actions.onReadAgain,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                TmrSecondaryButton(
+                    label = stringResource(R.string.feature_onboarding_impl_consent_declined_action_back_to_start),
+                    onClick = actions.onBackToStart,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         } else {
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                 TmrPrimaryButton(

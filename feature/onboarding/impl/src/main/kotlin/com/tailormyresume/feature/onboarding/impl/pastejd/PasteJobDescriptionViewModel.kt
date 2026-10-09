@@ -188,7 +188,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
             sessionRepository.keepJobDescription(kept)
             val step = nextOnboardingStep()
             isSubmitting = false
-            mutableState.update { it.copy(nextStep = step) }
+            mutableState.update { it.copy(nextStep = step, keptText = kept.text) }
         }
     }
 
