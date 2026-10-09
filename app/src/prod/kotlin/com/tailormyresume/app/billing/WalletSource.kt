@@ -24,6 +24,10 @@ class WalletSource @Inject constructor(private val api: TailorMyResumeApi) {
         state.value = wallet
     }
 
+    fun generation(): Int = 0
+
+    fun update(wallet: WalletDto, started: Int) = update(wallet)
+
     fun clear() {
         state.value = null
     }
