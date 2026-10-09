@@ -35,6 +35,7 @@ class ConsentViewModelTest {
     fun setup() {
         viewModel = ConsentViewModel(
             sessionRepository = session,
+            profileRepository = TestProfileRepository(),
             consentUploader = { uploadResult },
             nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
             clock = clock,
