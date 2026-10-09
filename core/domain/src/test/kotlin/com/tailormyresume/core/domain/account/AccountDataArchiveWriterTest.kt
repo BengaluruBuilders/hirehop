@@ -74,6 +74,17 @@ class AccountDataArchiveWriterTest {
                     violations = listOf(GuardrailViolation.UnsupportedTerm("terraform")),
                     decision = BulletDecision.ACCEPTED,
                 ),
+                TailoredBullet(
+                    id = "tailored-2",
+                    entryId = "entry-2",
+                    originalText = "Moved services",
+                    proposedText = "Led the migration\nCut cost 30%",
+                    sourceIds = listOf("bullet-project-1"),
+                    editTypes = listOf(EditType.REWORD),
+                    keywordsUsed = emptyList(),
+                    violations = emptyList(),
+                    decision = BulletDecision.ACCEPTED,
+                ),
             ),
         ),
     )
@@ -104,8 +115,6 @@ class AccountDataArchiveWriterTest {
 
     private companion object {
         const val SECRET_UID = "uid-Zq81Xk-secret-4471"
-        const val OBFUSCATED_ID = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-        const val SECRET_TOKEN = "ya29.a0AfH6-token-5528"
         val SUSPICIOUS_FRAGMENTS = listOf("token", "uid", "secret", "key")
         val ALLOWED_NAMES = setOf("keywords", "keywordsUsed", "keywordCoverage")
     }
@@ -148,7 +157,7 @@ class AccountDataArchiveWriterTest {
         assertThat(match.array("evidenceIds").map { it.jsonPrimitive.content }).containsExactly("bullet-project-1")
         assertThat(analysis.getValue("keywordCoverage").jsonObject.getValue("covered").jsonPrimitive.int).isEqualTo(1)
 
-        val bullet = entry.getValue("tailoredResume").jsonObject.array("bullets").single().jsonObject
+        val bullet = entry.getValue("tailoredResume").jsonObject.array("bullets").first().jsonObject
         assertThat(bullet.getValue("original").jsonPrimitive.content).isEqualTo("Built a Kotlin app")
         assertThat(bullet.getValue("proposed").jsonPrimitive.content).isEqualTo("Built a Kotlin Android app")
         assertThat(bullet.getValue("decision").jsonPrimitive.content).isEqualTo("ACCEPTED")
@@ -208,8 +217,9 @@ class AccountDataArchiveWriterTest {
         val files = archive()
         val everything = files.values.joinToString("\n").lowercase()
 
-        listOf(SECRET_UID, OBFUSCATED_ID, SECRET_TOKEN).forEach { secret ->
-            assertThat(everything).doesNotContain(secret.lowercase())
+        assertThat(everything).doesNotContain(SECRET_UID.lowercase())
+        listOf("token", "obfuscatedaccountid", "apikey").forEach { forbidden ->
+            assertThat(everything).doesNotContain(forbidden)
         }
         val names = jsonKeys(Json.parseToJsonElement(files.getValue("my-data.json"))) +
             AccountData::class.java.declaredFields.map { it.name } +
@@ -250,6 +260,7 @@ class AccountDataArchiveWriterTest {
         assertThat(lines).contains("    Responsibilities:")
         assertThat(lines).contains("    Ask about the 2nd round")
         assertThat(lines).contains("    Line two")
+        assertThat(lines).contains("    Cut cost 30% (was: Moved services)")
     }
 
     @Test

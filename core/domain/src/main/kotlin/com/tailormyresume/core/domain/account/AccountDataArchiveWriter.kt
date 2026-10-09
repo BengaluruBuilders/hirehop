@@ -67,7 +67,7 @@ class AccountDataArchiveWriter {
         appendLine("skills=${profile.skills.joinToString(",")}")
         profile.entries.forEach { entry ->
             appendLine("${entry.id} | ${entry.category} | ${entry.title} | ${entry.organization} | confirmed=${entry.isConfirmed}")
-            entry.bullets.forEach { bullet -> appendLine("  ${bullet.id}: ${bullet.text}") }
+            entry.bullets.forEach { bullet -> appendIndented(bullet.id, bullet.text) }
         }
     }
 
@@ -81,7 +81,7 @@ class AccountDataArchiveWriter {
                 appendLine("  keywordCoverage=${analysis.keywordCoverage.covered}/${analysis.keywordCoverage.total}")
             }
             application.tailoredResume?.bullets?.forEach { bullet ->
-                appendLine("  resume ${bullet.decision}: ${bullet.proposedText} (was: ${bullet.originalText})")
+                appendIndented("resume ${bullet.decision}", "${bullet.proposedText} (was: ${bullet.originalText})")
             }
             if (application.notes.isNotBlank()) appendIndented("notes", application.notes)
             data.coverLetters[application.id]?.paragraphs?.forEach { appendIndented("coverLetter", it.text) }
