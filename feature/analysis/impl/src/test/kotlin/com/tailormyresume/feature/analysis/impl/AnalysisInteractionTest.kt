@@ -1,5 +1,9 @@
 package com.tailormyresume.feature.analysis.impl
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -44,6 +48,7 @@ class AnalysisInteractionTest {
         onBackToJobDescription = { calls += "backToJob" },
         onBackClick = { calls += "back" },
         onUndo = { calls += "undo" },
+        onDismissOverlay = { calls += "dismiss" },
     )
 
     private fun show(state: AnalysisUiState) {
@@ -257,6 +262,18 @@ class AnalysisInteractionTest {
         assertThat(shared).containsExactly(
             "My fit for Associate Analyst: 1 met, 1 to prepare. Made with TailorMyResume.",
         )
+    }
+
+    @Test
+    fun menuScrim_isANamedButtonThatDismisses() {
+        show(resultWith(gap, met).copy(overlay = AnalysisOverlay.Menu("req-b")))
+
+        composeRule
+            .onNodeWithContentDescription("Close menu")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .performClick()
+
+        assertThat(calls).containsExactly("dismiss")
     }
 }
 

@@ -25,8 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,8 +63,9 @@ fun TmrTextField(
     val borderColor = when {
         isError -> colors.error
         focused -> colors.primary
-        else -> Color.Transparent
+        else -> colors.boundary
     }
+    val borderWidth = if (isError || focused) TmrWidthStrokeFocus else TmrWidthHairline
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         BasicTextField(
             value = value,
@@ -70,8 +74,9 @@ fun TmrTextField(
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = TmrHeightField)
                 .onFocusChanged { focused = it.isFocused }
+                .semantics { if (errorText != null) error(errorText) }
                 .background(colors.card, shape)
-                .border(TmrWidthStrokeFocus, borderColor, shape),
+                .border(borderWidth, borderColor, shape),
             enabled = enabled,
             textStyle = TmrTheme.typography.bodyL.copy(
                 fontWeight = FontWeight.Bold,
@@ -126,6 +131,7 @@ private fun TmrTextFieldFooter(errorText: String?, supportingText: (@Composable 
     val colors = TmrTheme.colors
     if (errorText != null) {
         Row(
+            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

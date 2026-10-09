@@ -13,6 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrColors
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -25,6 +28,8 @@ internal enum class NoticeTone(val icon: ImageVector) {
     Error(TmrIcons.Error),
     Offline(TmrIcons.Offline),
 }
+
+private val NoticeTone.announces: Boolean get() = this == NoticeTone.Error || this == NoticeTone.Offline
 
 private fun NoticeTone.fill(colors: TmrColors): Color = when (this) {
     NoticeTone.Quiet -> colors.card
@@ -51,6 +56,7 @@ internal fun NoticeBanner(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) { if (tone.announces) liveRegion = LiveRegionMode.Polite }
             .background(tone.fill(colors), TmrTheme.shapes.banner)
             .padding(horizontal = TmrTheme.spacing.lg, vertical = TmrTheme.spacing.d12 + TmrTheme.spacing.xxs),
         horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),

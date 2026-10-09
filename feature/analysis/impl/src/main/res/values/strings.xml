@@ -74,6 +74,7 @@
     <string name="feature_analysis_impl_menu_report">Report inaccurate content</string>
     <string name="feature_analysis_impl_menu_source">See where this comes from</string>
     <string name="feature_analysis_impl_source_title">Source for “%1$s”</string>
+    <string name="feature_analysis_impl_row_user_stated">User-stated skills: %1$s.</string>
     <string name="feature_analysis_impl_source_skills">From your skills: %1$s</string>
     <string name="feature_analysis_impl_edit_fact">Edit fact</string>
     <string name="feature_analysis_impl_fact_dates">%1$s · %2$s to %3$s</string>
@@ -85,6 +86,7 @@
 
 
     <string name="feature_analysis_impl_toast_prep_added">%1$s added to your prep plan</string>
+    <string name="feature_analysis_impl_menu_dismiss">Close menu</string>
     <string name="feature_analysis_impl_toast_gap_closed">Saved as your own words. Gap closed.</string>
     <string name="feature_analysis_impl_question_not_closed">Your words do not mention %1$s, so this gap stays open and nothing was saved. Say where you used it, in your own words.</string>
     <string name="feature_analysis_impl_question_not_closed_generic">Your words do not close this gap, so it stays open and nothing was saved. Say where you used it, in your own words.</string>
@@ -114,6 +116,7 @@
     <string name="feature_analysis_impl_question_priority">%1$s · %2$s</string>
     <string name="feature_analysis_impl_question_note">Your answer is saved as a User-stated fact.</string>
     <string name="feature_analysis_impl_question_label">Where and how</string>
+    <string name="feature_analysis_impl_question_error_too_long">This is longer than TailorMyResume stores. Keep the main line.</string>
     <string name="feature_analysis_impl_question_write">Save as new fact</string>
     <string name="feature_analysis_impl_question_write_as">Save as %1$s</string>
     <string name="feature_analysis_impl_question_new_fact_id">New fact</string>

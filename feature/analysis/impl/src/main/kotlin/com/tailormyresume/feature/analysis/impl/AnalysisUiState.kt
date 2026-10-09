@@ -121,6 +121,7 @@ data class RequirementItem(
     val isInPrepPlan: Boolean,
     val isReported: Boolean = false,
     val factRefs: List<RequirementFactRef> = emptyList(),
+    val userStatedSkills: List<String> = emptyList(),
 ) {
     val id: String get() = requirement.id
     val isGap: Boolean get() = status == MatchStatus.GAP

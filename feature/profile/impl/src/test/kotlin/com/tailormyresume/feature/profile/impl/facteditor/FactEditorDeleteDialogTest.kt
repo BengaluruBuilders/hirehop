@@ -2,6 +2,7 @@ package com.tailormyresume.feature.profile.impl.facteditor
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -47,5 +48,12 @@ class FactEditorDeleteDialogTest {
         composeRule.setContent { TmrTheme { FactEditorScreen(uiState = state, actions = FactEditorActions.None) } }
 
         composeRule.onNodeWithText("Delete P-02?").assertIsDisplayed()
+    }
+
+    @Test
+    fun deleteDialogShowsTheErrorIconTile() {
+        composeRule.setContent { TmrTheme { FactEditorScreen(uiState = state, actions = FactEditorActions.None) } }
+
+        composeRule.onNodeWithTag("confirmIconTile").assertIsDisplayed()
     }
 }

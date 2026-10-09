@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -190,7 +191,7 @@ private fun ApplicationsHeaderBar(
 }
 
 @Composable
-private fun CreditsAction(
+internal fun CreditsAction(
     credits: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -204,7 +205,7 @@ private fun CreditsAction(
         modifier = modifier
             .heightIn(min = TmrTheme.spacing.touch)
             .clip(TmrTheme.shapes.pill)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {

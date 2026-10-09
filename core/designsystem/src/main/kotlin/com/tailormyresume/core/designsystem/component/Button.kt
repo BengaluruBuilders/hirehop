@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -69,13 +68,20 @@ private fun TmrColors.outlinePalette(surface: TmrButtonSurface): TmrButtonPalett
     TmrButtonSurface.Default -> TmrButtonPalette(
         Color.Transparent,
         onSurface,
-        BorderStroke(TmrWidthStroke, outlineVariant),
+        BorderStroke(TmrWidthStroke, boundary),
     )
 }
 
-private fun TmrColors.disabledPalette(): TmrButtonPalette = TmrButtonPalette(primaryContainer, onSurfaceVariant, null)
-
-private fun TmrButtonKind.isFilled(): Boolean = this != TmrButtonKind.Outline && this != TmrButtonKind.Text && this != TmrButtonKind.DestructiveText
+private fun TmrColors.disabledPalette(kind: TmrButtonKind, surface: TmrButtonSurface): TmrButtonPalette {
+    val onHeaderSurface = surface == TmrButtonSurface.Header
+    if (kind == TmrButtonKind.Text || kind == TmrButtonKind.DestructiveText) {
+        return TmrButtonPalette(Color.Transparent, if (onHeaderSurface) onHeaderVariant else disabledContent, null)
+    }
+    if (kind == TmrButtonKind.Outline && onHeaderSurface) {
+        return TmrButtonPalette(Color.Transparent, onHeaderVariant, BorderStroke(TmrWidthStroke, onHeaderVariant))
+    }
+    return TmrButtonPalette(primaryContainer, onSurfaceVariant, null)
+}
 
 private fun TmrColors.textPalette(surface: TmrButtonSurface): TmrButtonPalette = when (surface) {
     TmrButtonSurface.Header -> TmrButtonPalette(Color.Transparent, onHeader, null)
@@ -95,9 +101,8 @@ internal fun TmrButtonBase(
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
     val minHeight = if (size == TmrButtonSize.Compact) TmrHeightButtonCompact else TmrHeightButtonLarge
-    val filledDisabled = !enabled && kind.isFilled()
-    val palette = if (filledDisabled) {
-        TmrTheme.colors.disabledPalette()
+    val palette = if (!enabled) {
+        TmrTheme.colors.disabledPalette(kind, LocalTmrButtonSurface.current)
     } else {
         TmrTheme.colors.buttonPalette(kind, LocalTmrButtonSurface.current, pressed)
     }
@@ -108,7 +113,6 @@ internal fun TmrButtonBase(
         modifier = modifier
             .tmrPressScale(source)
             .tmrFocusRing(focused, TmrTheme.colors.primary, 24.dp)
-            .alpha(if (enabled || filledDisabled) 1f else DISABLED_ALPHA)
             .defaultMinSize(minHeight = minHeight),
         shape = TmrTheme.shapes.pill,
         color = palette.container,
@@ -317,5 +321,3 @@ fun TmrDestructiveButton(
     val kind = if (filled) TmrButtonKind.Destructive else TmrButtonKind.DestructiveText
     TmrButtonLabeled(kind, label, onClick, modifier, enabled, leadingIcon, null, size)
 }
-
-private const val DISABLED_ALPHA = 0.38f

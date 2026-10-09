@@ -4,8 +4,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object TmrDockDefaults {
-    val height: Dp = 64.dp
-    val inset: Dp = height + 24.dp
+    val height: Dp = 68.dp
+    val verticalPadding: Dp = 8.dp
+    val inset: Dp = height + verticalPadding * 2 + 8.dp
 }
 
 object TmrOverlap {

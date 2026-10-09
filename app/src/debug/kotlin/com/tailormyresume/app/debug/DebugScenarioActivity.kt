@@ -67,7 +67,14 @@ class DebugScenarioActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         applyEdgeToEdge()
         super.onCreate(savedInstanceState)
-        previewLifecycle.onCreate()
+        lifecycle.addObserver(
+            DebugPreviewLifecycleObserver(
+                activity = this,
+                lifecycle = previewLifecycle,
+                opened = { opened },
+                closePreview = ::closePreview,
+            ),
+        )
         setContent {
             TmrTheme {
                 BackHandler(enabled = opened) { closePreview() }
@@ -100,16 +107,6 @@ class DebugScenarioActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        previewLifecycle.onStart(opened)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (previewLifecycle.onStop(opened, isFinishing, isChangingConfigurations)) closePreview()
     }
 
     override fun onDestroy() {

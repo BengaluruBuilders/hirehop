@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -54,6 +55,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.designsystem.theme.tmrShadow
 import com.tailormyresume.core.domain.displayKeywords
+import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.isNamedSkillKeyword
 import com.tailormyresume.core.domain.prep.RequirementPhrase
 import com.tailormyresume.core.model.JobRequirement
@@ -67,14 +69,18 @@ internal fun RowMenuOverlay(state: AnalysisUiState.Result, anchor: Rect, actions
     val colors = TmrTheme.colors
     val density = LocalDensity.current
     val menuWidth = TmrTheme.spacing.d64 * MENU_WIDTH_UNITS
+    val dismissLabel = stringResource(R.string.feature_analysis_impl_menu_dismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
+                role = Role.Button,
+                onClickLabel = dismissLabel,
                 onClick = actions.onDismissOverlay,
-            ),
+            )
+            .semantics { contentDescription = dismissLabel },
     ) {
         Column(
             modifier = Modifier
@@ -154,12 +160,29 @@ internal fun SourceSheetContent(item: RequirementItem, actions: AnalysisActions)
                 onEdit = { actions.onEditFact(ref.factId) }.takeIf { item.factRefs.size > 1 },
             )
         }
-        if (item.skills.isNotEmpty()) {
+        val confirmedSkills = item.skills - item.userStatedSkills.toSet()
+        if (confirmedSkills.isNotEmpty()) {
             Text(
-                text = stringResource(R.string.feature_analysis_impl_source_skills, item.skills.joinToString()),
+                text = stringResource(R.string.feature_analysis_impl_source_skills, confirmedSkills.joinToString()),
                 style = TmrTheme.typography.bodyM,
                 color = TmrTheme.colors.body,
             )
+        }
+        if (item.userStatedSkills.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_analysis_impl_source_skills, item.userStatedSkills.joinToString()),
+                    style = TmrTheme.typography.bodyM,
+                    color = TmrTheme.colors.body,
+                )
+                TmrProvenanceChip(
+                    kind = TmrProvenanceKind.UserStated,
+                    label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
+                )
+            }
         }
         val single = item.factRefs.singleOrNull()
         Row(
@@ -255,6 +278,7 @@ internal fun QuestionSheetContent(
 ) {
     var statement by rememberSaveable { mutableStateOf("") }
     val name = item.requirement.gapName()
+    val tooLong = statement.trim().length > FactDraftValidator.DETAIL_LIMIT
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
@@ -296,6 +320,7 @@ internal fun QuestionSheetContent(
             label = stringResource(R.string.feature_analysis_impl_question_label),
             singleLine = false,
             minLines = QUESTION_MIN_LINES,
+            errorText = if (tooLong) stringResource(R.string.feature_analysis_impl_question_error_too_long) else null,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm), verticalAlignment = Alignment.CenterVertically) {
             TmrFactId(id = nextFactId ?: stringResource(R.string.feature_analysis_impl_question_new_fact_id))
@@ -310,7 +335,7 @@ internal fun QuestionSheetContent(
                 ?: stringResource(R.string.feature_analysis_impl_question_write),
             onClick = { actions.onSubmitEvidence(item.id, statement) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = statement.isNotBlank(),
+            enabled = statement.isNotBlank() && !tooLong,
         )
         TmrSecondaryButton(
             label = stringResource(R.string.feature_analysis_impl_question_cancel),

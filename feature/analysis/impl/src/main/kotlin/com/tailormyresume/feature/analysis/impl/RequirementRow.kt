@@ -35,6 +35,8 @@ import com.tailormyresume.core.designsystem.component.TmrButtonSize
 import com.tailormyresume.core.designsystem.component.TmrFactId
 import com.tailormyresume.core.designsystem.component.TmrIconButton
 import com.tailormyresume.core.designsystem.component.TmrOutlineButton
+import com.tailormyresume.core.designsystem.component.TmrProvenanceChip
+import com.tailormyresume.core.designsystem.component.TmrProvenanceKind
 import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrStatusChip
 import com.tailormyresume.core.designsystem.component.TmrStatusKind
@@ -145,6 +147,17 @@ private fun FoundBody(
                 item.sourceLabel()?.let {
                     Text(text = it, style = TmrTheme.typography.bodyS, color = TmrTheme.colors.onSurfaceVariant)
                 }
+                if (item.userStatedSkills.isNotEmpty()) {
+                    Text(
+                        text = item.userStatedSkills.joinToString(),
+                        style = TmrTheme.typography.bodyS,
+                        color = TmrTheme.colors.onSurfaceVariant,
+                    )
+                    TmrProvenanceChip(
+                        kind = TmrProvenanceKind.UserStated,
+                        label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
+                    )
+                }
             }
         }
         TmrStatusChip(kind = item.status.statusKind(), label = statusLabel)
@@ -169,7 +182,7 @@ private fun RowMenuButton(item: RequirementItem, actions: AnalysisActions, onMen
 private fun RequirementItem.sourceLabel(): String? =
     factRefs.firstOrNull()?.let { listOf(it.title, it.organization).filter(String::isNotBlank).joinToString(", ") }
         ?.takeIf(String::isNotBlank)
-        ?: skills.joinToString().takeIf(String::isNotBlank)
+        ?: (skills - userStatedSkills.toSet()).joinToString().takeIf(String::isNotBlank)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -221,7 +234,7 @@ private fun GapActions(item: RequirementItem, actions: AnalysisActions) {
 @Composable
 private fun rowDescription(item: RequirementItem, status: String, priority: String): String {
     val base = stringResource(R.string.feature_analysis_impl_row_description, item.requirement.text, priority, status)
-    return when {
+    val withSources = when {
         item.isGap && !item.hasSource ->
             base + " " + stringResource(R.string.feature_analysis_impl_row_actions)
         item.factRefs.isNotEmpty() ->
@@ -230,6 +243,14 @@ private fun rowDescription(item: RequirementItem, status: String, priority: Stri
                 item.factRefs.joinToString { it.displayId },
             )
         else -> base
+    }
+    return if (item.userStatedSkills.isEmpty()) {
+        withSources
+    } else {
+        withSources + " " + stringResource(
+            R.string.feature_analysis_impl_row_user_stated,
+            item.userStatedSkills.joinToString(),
+        )
     }
 }
 
