@@ -29,6 +29,7 @@ data class ConfirmFactUi(
     val isConfirmed: Boolean,
     val displayId: String = id,
     val hasTooLongBullet: Boolean = false,
+    val hasTooManyBullets: Boolean = false,
 ) {
     val isConfirmedWithinLimits: Boolean get() = isConfirmed && !hasTooLongBullet
 }
