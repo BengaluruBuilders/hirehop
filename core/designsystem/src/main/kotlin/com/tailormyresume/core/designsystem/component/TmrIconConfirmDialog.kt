@@ -17,6 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -61,7 +64,8 @@ private fun TmrIconConfirmPanel(
         modifier = modifier
             .fillMaxWidth()
             .padding(TmrTheme.spacing.d24)
-            .tmrShadow(TmrTheme.elevation.modal, shape),
+            .tmrShadow(TmrTheme.elevation.modal, shape)
+            .semantics { paneTitle = title },
         shape = shape,
         color = colors.surface,
         border = if (TmrTheme.isDark) BorderStroke(TmrWidthHairline, colors.outlineSoft) else null,
@@ -83,7 +87,12 @@ private fun TmrIconConfirmPanel(
                     modifier = Modifier.size(TmrTheme.spacing.xl),
                 )
             }
-            Text(text = title, style = TmrTheme.typography.titleL, color = colors.onSurface)
+            Text(
+                text = title,
+                style = TmrTheme.typography.titleL,
+                color = colors.onSurface,
+                modifier = Modifier.semantics { heading() },
+            )
             if (message != null) {
                 Text(text = message, style = TmrTheme.typography.bodyM, color = colors.body)
             }
@@ -92,6 +101,7 @@ private fun TmrIconConfirmPanel(
                     .fillMaxWidth()
                     .padding(top = TmrTheme.spacing.sm),
                 horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+                verticalAlignment = Alignment.Bottom,
             ) {
                 TmrOutlineButton(
                     label = cancelLabel,
@@ -99,7 +109,13 @@ private fun TmrIconConfirmPanel(
                     modifier = Modifier.weight(1f),
                     size = TmrButtonSize.Compact,
                 )
-                TmrDestructiveButton(label = confirmLabel, onClick = onConfirm, modifier = Modifier.weight(1f))
+                TmrDestructiveButton(
+                    label = confirmLabel,
+                    onClick = onConfirm,
+                    modifier = Modifier.weight(1f),
+                    size = TmrButtonSize.Compact,
+                    filled = false,
+                )
             }
         }
     }

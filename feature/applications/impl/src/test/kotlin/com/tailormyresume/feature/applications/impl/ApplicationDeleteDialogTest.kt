@@ -1,6 +1,11 @@
 package com.tailormyresume.feature.applications.impl
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,5 +55,44 @@ class ApplicationDeleteDialogTest {
         composeRule.onNodeWithText("Delete").performClick()
         assertThat(cancelled).isEqualTo(1)
         assertThat(confirmed).isEqualTo(1)
+    }
+
+    @Test
+    fun cancelAndDeleteButtonsHaveEqualHeights() {
+        showDialog()
+
+        val cancel = composeRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+        composeRule.onNodeWithText("Delete").assertHeightIsEqualTo(cancel.bottom - cancel.top)
+    }
+
+    @Test
+    fun titleIsAHeadingAndThePanelHasAPaneTitle() {
+        showDialog()
+
+        composeRule.onNodeWithText("Delete this application?")
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.PaneTitle)).assertIsDisplayed()
+    }
+
+    private fun showDialog() {
+        composeRule.setContent {
+            TmrTheme(darkTheme = true) {
+                ApplicationDeleteDialog(
+                    jobTitle = NORTHWIND_ROLE,
+                    company = NORTHWIND_COMPANY,
+                    scope = WorkspaceDeleteScope(
+                        hasJobDescription = true,
+                        hasGapAnalysis = true,
+                        hasTailoredResume = true,
+                        hasNotes = true,
+                        prepTaskCount = 3,
+                        profileFactCount = 18,
+                        creditCount = 4,
+                    ),
+                    onConfirm = {},
+                    onCancel = {},
+                )
+            }
+        }
     }
 }

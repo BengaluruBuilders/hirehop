@@ -34,7 +34,7 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 
 enum class TmrButtonSize { Large, Compact }
 
-enum class TmrButtonKind { Primary, Secondary, Outline, Text, Destructive, Ink }
+enum class TmrButtonKind { Primary, Secondary, Outline, Text, Destructive, DestructiveText, Ink }
 
 object TmrButtonDefaults {
     val ContentPadding = PaddingValues(horizontal = 22.dp)
@@ -55,6 +55,7 @@ private fun TmrColors.buttonPalette(
     TmrButtonKind.Ink -> TmrButtonPalette(inverseSurface, inverseOnSurface, null)
     TmrButtonKind.Secondary -> TmrButtonPalette(primaryContainer, onPrimaryContainer, null)
     TmrButtonKind.Destructive -> TmrButtonPalette(error, onError, null)
+    TmrButtonKind.DestructiveText -> TmrButtonPalette(Color.Transparent, error, null)
     TmrButtonKind.Outline -> outlinePalette(surface)
     TmrButtonKind.Text -> textPalette(surface)
 }
@@ -74,7 +75,7 @@ private fun TmrColors.outlinePalette(surface: TmrButtonSurface): TmrButtonPalett
 
 private fun TmrColors.disabledPalette(): TmrButtonPalette = TmrButtonPalette(primaryContainer, onSurfaceVariant, null)
 
-private fun TmrButtonKind.isFilled(): Boolean = this != TmrButtonKind.Outline && this != TmrButtonKind.Text
+private fun TmrButtonKind.isFilled(): Boolean = this != TmrButtonKind.Outline && this != TmrButtonKind.Text && this != TmrButtonKind.DestructiveText
 
 private fun TmrColors.textPalette(surface: TmrButtonSurface): TmrButtonPalette = when (surface) {
     TmrButtonSurface.Header -> TmrButtonPalette(Color.Transparent, onHeader, null)
@@ -310,8 +311,11 @@ fun TmrDestructiveButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
+    size: TmrButtonSize = TmrButtonSize.Large,
+    filled: Boolean = true,
 ) {
-    TmrButtonLabeled(TmrButtonKind.Destructive, label, onClick, modifier, enabled, leadingIcon, null)
+    val kind = if (filled) TmrButtonKind.Destructive else TmrButtonKind.DestructiveText
+    TmrButtonLabeled(kind, label, onClick, modifier, enabled, leadingIcon, null, size)
 }
 
 private const val DISABLED_ALPHA = 0.38f
