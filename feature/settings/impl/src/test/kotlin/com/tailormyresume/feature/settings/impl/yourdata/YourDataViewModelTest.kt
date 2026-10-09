@@ -22,6 +22,7 @@ import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.repository.TestContentReportRepository
+import com.tailormyresume.core.testing.repository.TestCoverLetterRepository
 import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
 import com.tailormyresume.core.testing.repository.TestPrepPlanRepository
 import com.tailormyresume.core.testing.repository.TestProfileRepository
@@ -273,6 +274,8 @@ class YourDataViewModelTest {
                     profileRepository = profileRepository,
                     applicationRepository = applicationRepository,
                     exportHistoryRepository = exportHistory,
+                    coverLetterRepository = TestCoverLetterRepository(),
+                    prepPlanRepository = TestPrepPlanRepository(),
                     paymentGateway = paymentGateway,
                     clock = TestClock(),
                 ),

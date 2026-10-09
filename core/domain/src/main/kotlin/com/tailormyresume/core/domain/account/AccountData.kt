@@ -6,7 +6,9 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ConsentRecord
 import com.tailormyresume.core.model.ExportRecord
 import com.tailormyresume.core.model.JobApplication
+import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.SignInAccount
+import com.tailormyresume.core.model.WrittenCoverLetter
 import java.io.File
 import kotlin.time.Instant
 
@@ -19,6 +21,8 @@ data class AccountData(
     val entitlement: PurchaseEntitlement,
     val purchases: List<PurchaseRecord>,
     val exports: List<ExportRecord>,
+    val coverLetters: Map<String, WrittenCoverLetter> = emptyMap(),
+    val prepPlans: Map<String, List<PrepPlanItem>> = emptyMap(),
 )
 
 data class AccountDataArchive(val fileName: String, val file: File)
