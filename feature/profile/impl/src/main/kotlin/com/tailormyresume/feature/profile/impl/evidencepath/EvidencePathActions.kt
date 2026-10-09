@@ -9,6 +9,8 @@ sealed interface EvidencePathAction {
 
     data object Skip : EvidencePathAction
 
+    data class SkipFrom(val questionIndex: Int) : EvidencePathAction
+
     data object NextQuestion : EvidencePathAction
 
     data object AddMore : EvidencePathAction

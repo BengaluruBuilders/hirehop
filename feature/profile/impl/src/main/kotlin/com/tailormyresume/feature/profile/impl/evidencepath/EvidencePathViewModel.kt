@@ -61,6 +61,7 @@ class EvidencePathViewModel @Inject internal constructor(
             is EvidencePathAction.AnswerChanged -> onAnswerChanged(action.value)
             EvidencePathAction.Save -> onSave()
             EvidencePathAction.Skip -> onSkip()
+            is EvidencePathAction.SkipFrom -> Unit
             EvidencePathAction.NextQuestion -> onNextQuestion()
             EvidencePathAction.AddMore -> onAddMore()
             EvidencePathAction.Finish -> onFinish()
