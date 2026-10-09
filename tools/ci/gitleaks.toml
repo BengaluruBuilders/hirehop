@@ -1,7 +1,7 @@
 # Copy of gitleaks v8.30.1 config/gitleaks.toml. Changes: (1) the four global path allowlist entries for
 # gitleaks.toml, image, font and document/binary extensions are removed, because a PR picks file names
 # (Leak.png, Leak.bin) and those entries made gitleaks skip the file, issue 216;
-# (2) two local rule-level allowlists, marked "Local addition"; (3) the gcp-api-key rule's allowlist of 16 published example keys,
+# (2) two local rule-level path allowlists, marked "Local addition"; (3) the gcp-api-key rule's allowlist of 16 published example keys,
 # because the constitution secret check flags key-shaped literals in a public repo. Regenerate from the upstream tag when the pinned gitleaks version
 # changes.
 # This file has been auto-generated. Do not edit manually.
@@ -621,12 +621,10 @@ description = "Uncovered a GCP API key, which could lead to unauthorized access 
 regex = '''\b(AIza[\w-]{35})(?:[\x60'"\s;]|\\[nr]|$)'''
 entropy = 4
 keywords = ["aiza"]
-# Local addition: commit 9cfae090 on PR 218 carried the upstream example keys in this file, and history cannot be
-# rewritten by merge. Bound to that commit and this path, so it allows nothing else.
+# Local addition: an earlier commit of PR 218 carried the upstream example keys in this file and history cannot be
+# rewritten by merge. A commit-bound allowlist was rejected: the 40-hex commit id trips sourcegraph-access-token.
 [[rules.allowlists]]
-description = "upstream example keys, first commit of PR 218"
-condition = "AND"
-commits = ['9cfae090335039fe5207dbebae0aeb51029fe5ae']
+description = "upstream example keys in an earlier commit of this file"
 paths = ['''^tools/ci/gitleaks\.toml$''']
 
 [[rules]]
