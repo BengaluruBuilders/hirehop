@@ -112,7 +112,7 @@ internal fun ConsentScreen(
                     body = stringResource(R.string.feature_onboarding_impl_consent_declined_body),
                 )
             } else {
-                if (!uiState.isReadOnly) ConsentHeading()
+                if (!uiState.isReadOnly) ConsentHeading(isReconsent = uiState.isReconsent)
                 ConsentBody(uiState = uiState, actions = actions)
             }
         }
@@ -136,10 +136,16 @@ private fun ConsentCounter(uiState: ConsentUiState) {
 }
 
 @Composable
-private fun ConsentHeading() {
+private fun ConsentHeading(isReconsent: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         TmrHeadline(
-            text = stringResource(R.string.feature_onboarding_impl_consent_heading),
+            text = stringResource(
+                if (isReconsent) {
+                    R.string.feature_onboarding_impl_consent_heading
+                } else {
+                    R.string.feature_onboarding_impl_consent_heading_first_run
+                },
+            ),
             style = TmrTheme.typography.headlineL,
             color = TmrTheme.colors.onSurface,
         )
@@ -173,6 +179,7 @@ private fun ConsentBody(
                 onToggle = { actions.onPurposeToggle(purpose) },
             )
         }
+        DeleteUploadedFileCard()
         CommitmentNotes()
         if (uiState.isReadOnly) {
             ReadOnlyFacts(uiState = uiState)
@@ -194,6 +201,21 @@ private fun PurposeCard(
         PurposeLine(label = R.string.feature_onboarding_impl_consent_we_keep, text = copy.keep)
         TmrDivider()
         PurposeControl(checked = checked, readOnly = readOnly, onToggle = onToggle)
+    }
+}
+
+@Composable
+private fun DeleteUploadedFileCard() {
+    val copy = PurposeCopy(
+        icon = TmrIcons.Delete,
+        title = R.string.feature_onboarding_impl_consent_delete_title,
+        body = R.string.feature_onboarding_impl_consent_delete_body,
+        keep = R.string.feature_onboarding_impl_consent_delete_keep,
+    )
+    TmrCard {
+        PurposeTitleRow(copy = copy)
+        PurposeLine(label = R.string.feature_onboarding_impl_consent_we_do, text = copy.body)
+        PurposeLine(label = R.string.feature_onboarding_impl_consent_we_keep, text = copy.keep)
     }
 }
 
