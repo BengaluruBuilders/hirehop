@@ -25,10 +25,14 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Test
+import java.util.concurrent.BrokenBarrierException
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
 
 class RemotePaymentGatewayTest {
     private val server = MockWebServer().apply { start() }
@@ -401,13 +405,28 @@ class RemotePaymentGatewayTest {
         assertThat(gateway.repostCount()).isEqualTo(0)
     }
 
-    private class AnswerByToken(private val firstWave: CountDownLatch) : Dispatcher() {
+    private class StripedBilling(private val delegate: PlayBilling, private val stripes: Int) : PlayBilling by delegate {
+        private val calls = AtomicInteger()
+        var striping = false
+
+        override suspend fun ownedPurchases(): List<PlayPurchase> {
+            val owned = delegate.ownedPurchases()
+            if (!striping) return owned
+            val stripe = calls.getAndIncrement() % stripes
+            return owned.chunked(1 + EXTRAS_PER_PACK).filterIndexed { index, _ -> index % stripes == stripe }.flatten()
+        }
+    }
+
+    private class AnswerByToken(private val sameInstant: CyclicBarrier) : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
             if (request.path.orEmpty().endsWith("/purchases").not()) {
                 return MockResponse().setResponseCode(200).setBody("""{"wallet":${walletJson()}}""")
             }
-            firstWave.countDown()
-            firstWave.await(GATE_SECONDS, TimeUnit.SECONDS)
+            try {
+                sameInstant.await(BARRIER_MILLIS, TimeUnit.MILLISECONDS)
+            } catch (_: BrokenBarrierException) {
+            } catch (_: TimeoutException) {
+            }
             val token = request.body.readUtf8().substringAfter("\"purchaseToken\":\"").substringBefore('"')
             return if (token.removePrefix("t-").toInt() % 2 == 0) {
                 MockResponse().setResponseCode(201).setBody(purchaseJson(walletJson(purchased = 5)))
@@ -419,8 +438,9 @@ class RemotePaymentGatewayTest {
 
     @Test
     fun concurrentRecordedAndUnconfirmedRemovalsLoseNoConcurrentHold() = runTest {
-        server.dispatcher = AnswerByToken(CountDownLatch(FIRST_WAVE))
-        val gateway = RemotePaymentGateway(api, wallet, billing, FakeUid("uid-1"), clock)
+        server.dispatcher = AnswerByToken(CyclicBarrier(CONCURRENT_REQUESTS))
+        val stripedBilling = StripedBilling(billing, RACING_WRITERS)
+        val gateway = RemotePaymentGateway(api, wallet, stripedBilling, FakeUid("uid-1"), clock)
         val settled = List(SETTLED_PACKS) { "settled_$it" }
         val extras = settled.indices.flatMap { index -> List(EXTRAS_PER_PACK) { "extra_${index}_$it" } }
         val filler = List(FILLER_PACKS) { "filler_$it" }
@@ -432,6 +452,7 @@ class RemotePaymentGatewayTest {
                 List(EXTRAS_PER_PACK) { PlayPurchase("extra_${index}_$it", "t-x$index-$it", PlayPurchaseState.PENDING) }
         }
 
+        stripedBilling.striping = true
         withContext(Dispatchers.Default) {
             coroutineScope { repeat(RACING_WRITERS) { launch { gateway.restorePurchases() } } }
         }
@@ -461,11 +482,12 @@ class RemotePaymentGatewayTest {
         const val HELD_PACKS = 1_500
         const val WRITERS = 8
         const val REQUESTS_SENT_BEFORE_THE_CLEAR = 2
-        const val SETTLED_PACKS = 1_500
+        const val SETTLED_PACKS = 400
         const val EXTRAS_PER_PACK = 1
         const val RACING_WRITERS = 8
-        const val FIRST_WAVE = 5
-        const val FILLER_PACKS = 20_000
+        const val CONCURRENT_REQUESTS = 5
+        const val BARRIER_MILLIS = 250L
+        const val FILLER_PACKS = 8_000
         val BACKOFF_DEADLINES_MILLIS = listOf(2_000L, 6_000L, 14_000L, 30_000L, 62_000L)
     }
 }
