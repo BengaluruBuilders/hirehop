@@ -29,7 +29,9 @@ data class ConfirmFactUi(
     val isConfirmed: Boolean,
     val displayId: String = id,
     val hasTooLongBullet: Boolean = false,
-)
+) {
+    val isConfirmedWithinLimits: Boolean get() = isConfirmed && !hasTooLongBullet
+}
 
 data class ConfirmFactsSectionUi(
     val section: ConfirmFactsSection,

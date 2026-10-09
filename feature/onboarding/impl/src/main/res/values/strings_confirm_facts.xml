@@ -60,7 +60,7 @@
     <string name="feature_onboarding_impl_confirm_facts_loading">Reading your facts</string>
     <string name="feature_onboarding_impl_confirm_facts_pending">Pending</string>
     <string name="feature_onboarding_impl_confirm_facts_too_long_status">Too long</string>
-    <string name="feature_onboarding_impl_confirm_facts_too_long_note">A line here is over 400 characters. Edit it before you confirm.</string>
+    <string name="feature_onboarding_impl_confirm_facts_too_long_note">A line here is over 400 characters, so it is left out of your applications. Edit it to use it.</string>
     <string name="feature_onboarding_impl_confirm_facts_to_review">To review</string>
     <plurals name="feature_onboarding_impl_confirm_facts_confirmed_group_title">
         <item quantity="one">%1$d fact confirmed</item>

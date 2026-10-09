@@ -4,7 +4,13 @@ val EvidenceBullet.isTooLong: Boolean get() = text.length > ProfileLimits.MAX_BU
 
 val ProfileEntry.hasTooLongBullet: Boolean get() = bullets.any { it.isTooLong }
 
-private val sentenceBoundary = Regex("(?<=[.!?।])\\s+(?!\\p{Ll})")
+private val whitespaceRun = Regex("\\s+")
+private const val SENTENCE_ENDINGS = ".!?।"
+
+private val abbreviations = setOf(
+    "rs", "mr", "mrs", "ms", "dr", "prof", "no", "vs", "pvt", "ltd", "inc", "co", "corp", "st", "approx", "etc",
+    "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec",
+)
 
 fun fitBulletsToLimit(texts: List<String>): List<String> {
     var roomForExtra = ProfileLimits.MAX_BULLETS_PER_ENTRY - texts.size
@@ -20,9 +26,34 @@ fun fitBulletsToLimit(texts: List<String>): List<String> {
     }
 }
 
+private fun endsWithAbbreviation(text: String, dotIndex: Int): Boolean {
+    val tokenStart = text.substring(0, dotIndex).lastIndexOfAny(charArrayOf(' ', '\t', '\n', '\r', '\u00A0')) + 1
+    val token = text.substring(tokenStart, dotIndex).trimStart { !it.isLetterOrDigit() }
+    return token.contains('.') || token.lowercase() in abbreviations || (token.length == 1 && token[0].isUpperCase())
+}
+
+private fun sentencesOf(text: String): List<String> {
+    val sentences = mutableListOf<String>()
+    var start = 0
+    whitespaceRun.findAll(text).forEach { gap ->
+        val end = gap.range.last + 1
+        if (gap.range.first == 0 || end >= text.length) return@forEach
+        val previous = text[gap.range.first - 1]
+        val atNewline = gap.value.contains('\n')
+        val atSentenceEnd = previous in SENTENCE_ENDINGS && !text[end].isLowerCase() &&
+            !(previous == '.' && endsWithAbbreviation(text, gap.range.first - 1))
+        if (atNewline || atSentenceEnd) {
+            sentences += text.substring(start, gap.range.first)
+            start = end
+        }
+    }
+    sentences += text.substring(start)
+    return sentences.map { it.trim() }.filter { it.isNotEmpty() }
+}
+
 private fun packSentences(text: String): List<String> {
     val packed = mutableListOf<String>()
-    text.split(sentenceBoundary).forEach { sentence ->
+    sentencesOf(text).forEach { sentence ->
         val last = packed.lastOrNull()
         if (last != null && last.length + 1 + sentence.length <= ProfileLimits.MAX_BULLET_LENGTH) {
             packed[packed.lastIndex] = "$last $sentence"

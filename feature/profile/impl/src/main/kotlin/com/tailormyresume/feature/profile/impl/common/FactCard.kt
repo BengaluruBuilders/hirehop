@@ -33,6 +33,7 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactLineRenderer
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.hasTooLongBullet
 import com.tailormyresume.feature.profile.impl.R
 
 private val HighlightWidth = 2.dp
@@ -49,14 +50,15 @@ internal fun FactCard(
 ) {
     FactCard(
         id = displayId,
-        status = entry.status(),
+        status = entry.displayStatus(),
         kind = stringResource(entry.category.kindRes()),
         summary = FactLineRenderer.render(entry),
         modifier = modifier,
         highlighted = highlighted,
         embedded = embedded,
+        note = if (entry.hasTooLongBullet) stringResource(R.string.feature_profile_impl_fact_too_long_note) else null,
     ) {
-        if (onConfirm != null) {
+        if (onConfirm != null && !entry.hasTooLongBullet) {
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_profile_impl_fact_confirm),
                 onClick = onConfirm,
@@ -78,6 +80,7 @@ internal fun FactCard(
     modifier: Modifier = Modifier,
     highlighted: Boolean = false,
     embedded: Boolean = false,
+    note: String? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val statusLabel = stringResource(status.labelRes())
@@ -92,11 +95,11 @@ internal fun FactCard(
                 .padding(TmrTheme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         ) {
-            FactCardContent(id, status, statusLabel, summary, actions)
+            FactCardContent(id, status, statusLabel, summary, note, actions)
         }
     } else {
         TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.cardPadding), modifier = semanticModifier) {
-            FactCardContent(id, status, statusLabel, summary, actions)
+            FactCardContent(id, status, statusLabel, summary, note, actions)
         }
     }
 }
@@ -108,6 +111,7 @@ private fun FactCardContent(
     status: FactStatus,
     statusLabel: String,
     summary: String,
+    note: String?,
     actions: (@Composable RowScope.() -> Unit)?,
 ) {
     FlowRow(
@@ -127,6 +131,9 @@ private fun FactCardContent(
         style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
         color = TmrTheme.colors.onSurface,
     )
+    if (note != null) {
+        Note(text = note, tone = NoteTone.Warning)
+    }
     if (actions != null) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),

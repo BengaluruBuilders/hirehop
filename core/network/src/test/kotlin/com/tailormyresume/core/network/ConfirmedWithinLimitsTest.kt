@@ -37,14 +37,20 @@ class ConfirmedWithinLimitsTest {
 
     @Test
     fun noPayloadBulletIsAStrictPrefixOfAStoredBullet() {
-        val stored = List(ProfileLimits.MAX_BULLETS_PER_ENTRY + 3) { EvidenceBullet("B$it", "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + it)) }
+        val stored = List(ProfileLimits.MAX_BULLETS_PER_ENTRY + 3) { index ->
+            val length = if (index % 2 == 0) 20 + index else ProfileLimits.MAX_BULLET_LENGTH + index
+            EvidenceBullet("B$index", "x".repeat(length))
+        }
 
         val payload = profile(stored).toFactsDto().entries.single().bullets
 
+        assertThat(payload).isNotEmpty()
         payload.forEach { sentBullet ->
-            val source = stored.first { it.id == sentBullet.id }
-            assertThat(sentBullet.text).isEqualTo(source.text)
+            assertThat(sentBullet.text).isEqualTo(stored.first { it.id == sentBullet.id }.text)
         }
+        assertThat(payload.map { it.id }).containsExactlyElementsIn(
+            stored.filter { it.text.length <= ProfileLimits.MAX_BULLET_LENGTH }.map { it.id },
+        )
     }
 
     @Test
