@@ -39,14 +39,16 @@ class DebugPreviewKeepOnlyTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application.packageManager)
             .addActivityIfNotPresent(ComponentName(application, ComponentActivity::class.java))
-        ActivityScenario.launch(ComponentActivity::class.java).onActivity { it.setContent { Preview() } }
-        val mainStore = stores.storeOf(NavigationRoot.Main)
-        composeRule.waitForIdle()
-        assertThat(stores.storeOf(NavigationRoot.Main)).isSameInstanceAs(mainStore)
+        ActivityScenario.launch(ComponentActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Preview() } }
+            val mainStore = stores.storeOf(NavigationRoot.Main)
+            composeRule.waitForIdle()
+            assertThat(stores.storeOf(NavigationRoot.Main)).isSameInstanceAs(mainStore)
 
-        hasAccount.value = false
-        composeRule.waitForIdle()
+            hasAccount.value = false
+            composeRule.waitForIdle()
 
-        assertThat(stores.storeOf(NavigationRoot.Main)).isNotSameInstanceAs(mainStore)
+            assertThat(stores.storeOf(NavigationRoot.Main)).isNotSameInstanceAs(mainStore)
+        }
     }
 }
