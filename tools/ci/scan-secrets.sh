@@ -4,19 +4,23 @@ set -euo pipefail
 config="$RUNNER_TEMP/gitleaks.toml"
 ignore_dir="$RUNNER_TEMP/gitleaks-ignore"
 mkdir -p "$ignore_dir"
-printf '[extend]\nuseDefault = true\n' >"$config"
+config_path=tools/ci/gitleaks.toml
 
 if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+  git show "origin/${BASE_REF}:${config_path}" >"$config" 2>/dev/null || cp "$config_path" "$config"
   git show "origin/${BASE_REF}:.gitleaksignore" >"$ignore_dir/.gitleaksignore" 2>/dev/null || : >"$ignore_dir/.gitleaksignore"
   if git cat-file -e "origin/${BASE_REF}:.gitleaksignore" 2>/dev/null; then
     cp "$ignore_dir/.gitleaksignore" .gitleaksignore
   else
     rm -f .gitleaksignore
   fi
-elif [[ -f .gitleaksignore ]]; then
-  cp .gitleaksignore "$ignore_dir/.gitleaksignore"
 else
-  : >"$ignore_dir/.gitleaksignore"
+  cp "$config_path" "$config"
+  if [[ -f .gitleaksignore ]]; then
+    cp .gitleaksignore "$ignore_dir/.gitleaksignore"
+  else
+    : >"$ignore_dir/.gitleaksignore"
+  fi
 fi
 
 range=""
