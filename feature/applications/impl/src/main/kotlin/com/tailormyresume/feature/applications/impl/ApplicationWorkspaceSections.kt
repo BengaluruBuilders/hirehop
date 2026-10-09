@@ -196,13 +196,10 @@ internal fun WorkspaceResumeSection(
                 )
             }
             if (canReview) {
-                val reviewDescription = stringResource(R.string.feature_applications_impl_workspace_resume_review_description)
                 TmrSecondaryButton(
                     label = stringResource(R.string.feature_applications_impl_workspace_resume_review),
                     onClick = onReview,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = reviewDescription },
+                    modifier = Modifier.weight(1f),
                     trailingIcon = TmrIcons.OpenInNew,
                     size = TmrButtonSize.Compact,
                 )

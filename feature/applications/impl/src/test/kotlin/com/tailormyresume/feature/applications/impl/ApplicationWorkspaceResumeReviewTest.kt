@@ -3,7 +3,6 @@ package com.tailormyresume.feature.applications.impl
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -26,7 +25,7 @@ class ApplicationWorkspaceResumeReviewTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun exportedResume_showsReviewTailoredResumeAndNoBareOpen() {
+    fun exportedResume_showsReviewResumeAndNoBareOpen() {
         var reviewed = 0
         composeRule.setContent {
             TmrTheme(darkTheme = false) {
@@ -48,7 +47,7 @@ class ApplicationWorkspaceResumeReviewTest {
     }
 
     @Test
-    fun notExportedResume_showsReviewTailoredResume() {
+    fun notExportedResume_showsReviewResume() {
         var reviewed = 0
         composeRule.setContent {
             TmrTheme(darkTheme = false) {
@@ -87,7 +86,6 @@ class ApplicationWorkspaceResumeReviewTest {
 
         composeRule.onNodeWithText(SHARE_LABEL).assertExists()
         composeRule.onNodeWithText(REVIEW_LABEL).assertExists()
-        composeRule.onNodeWithContentDescription(REVIEW_DESCRIPTION).assertExists()
         composeRule.onNodeWithText(SHARE_LABEL).performClick()
 
         assertThat(shared).isEqualTo(1)
@@ -113,7 +111,7 @@ class ApplicationWorkspaceResumeReviewTest {
     }
 
     @Test
-    fun reviewDescription_click_firesOnReviewOnce() {
+    fun reviewLabel_click_firesOnReviewOnce() {
         var reviewed = 0
         composeRule.setContent {
             TmrTheme(darkTheme = false) {
@@ -127,9 +125,32 @@ class ApplicationWorkspaceResumeReviewTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(REVIEW_DESCRIPTION).performClick()
+        composeRule.onNodeWithText(REVIEW_LABEL).performClick()
 
         assertThat(reviewed).isEqualTo(1)
+    }
+
+    @Test
+    fun reviewLabel_fitsOnOneLine_exported() {
+        composeRule.setContent {
+            TmrTheme(darkTheme = false) {
+                ApplicationDetailScreen(
+                    uiState = previewWorkspaceReadyState(),
+                    onAction = {},
+                    now = PREVIEW_INSTANT,
+                )
+            }
+        }
+
+        val results = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithText(REVIEW_LABEL)
+            .performScrollTo()
+            .fetchSemanticsNode()
+            .config[SemanticsActions.GetTextLayoutResult]
+            .action
+            ?.invoke(results)
+
+        assertThat(results.single().lineCount).isEqualTo(1)
     }
 
     @Test
@@ -192,8 +213,7 @@ class ApplicationWorkspaceResumeReviewTest {
     }
 
     private companion object {
-        const val REVIEW_LABEL = "Review tailored resume"
+        const val REVIEW_LABEL = "Review resume"
         const val SHARE_LABEL = "Share"
-        const val REVIEW_DESCRIPTION = "Review the tailored resume for this application"
     }
 }
