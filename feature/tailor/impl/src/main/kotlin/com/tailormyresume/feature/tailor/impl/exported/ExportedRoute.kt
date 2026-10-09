@@ -46,6 +46,7 @@ internal fun ExportedRoute(
             onWriteCoverLetter = onWriteCoverLetter,
             onDone = onDone,
             onNavigateBack = onNavigateBack,
+            onDismissOpenUnavailable = { viewModel.onAction(ExportedAction.DismissOpenUnavailable) },
         )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
@@ -63,7 +64,9 @@ internal fun ExportedRoute(
         try {
             context.startActivity(intent)
         } catch (missing: ActivityNotFoundException) {
-            viewModel.onAction(ExportedAction.FileRequestHandled)
+            viewModel.onAction(
+                if (request.action == ExportedFileAction.OPEN) ExportedAction.OpenUnavailable else ExportedAction.FileRequestHandled,
+            )
             return@LaunchedEffect
         }
         viewModel.onAction(ExportedAction.FileRequestHandled)

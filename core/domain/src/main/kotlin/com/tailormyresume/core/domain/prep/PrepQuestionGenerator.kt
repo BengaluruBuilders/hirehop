@@ -3,9 +3,11 @@ package com.tailormyresume.core.domain.prep
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.keywordsStatedIn
 import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.MatchStatus
+import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.RequirementMatch
 
 object PrepQuestionGenerator {
@@ -48,7 +50,12 @@ object PrepQuestionGenerator {
         val question = PrepQuestion(
             id = idFor(kind, text, usedIds, index),
             kind = kind,
-            prompt = supportedPrompt(kind, text, entryTitles[fact].orEmpty()),
+            prompt = supportedPrompt(
+                kind,
+                text,
+                entryTitles[fact].orEmpty(),
+                statedKeywords(match.requirement, facts.getValue(fact)),
+            ),
             requirementText = text,
             backingFactId = fact,
         )
@@ -58,7 +65,7 @@ object PrepQuestionGenerator {
     private fun gapQuestion(text: String, usedIds: MutableSet<String>, index: Int): PrepQuestion = PrepQuestion(
         id = idFor(PrepQuestionKind.GAP, text, usedIds, index),
         kind = PrepQuestionKind.GAP,
-        prompt = supportedPrompt(PrepQuestionKind.GAP, text, ""),
+        prompt = supportedPrompt(PrepQuestionKind.GAP, text, "", emptyList()),
         requirementText = text,
         backingFactId = null,
     )
@@ -72,23 +79,34 @@ object PrepQuestionGenerator {
     private fun statesRequirement(bullet: EvidenceBullet?, requirement: JobRequirement): Boolean =
         bullet != null && requirement.keywords.isNotEmpty() && keywordsStatedIn(requirement, bullet.text).isNotEmpty()
 
-    private fun supportedPrompt(kind: PrepQuestionKind, text: String, entryTitle: String): String {
+    private fun supportedPrompt(
+        kind: PrepQuestionKind,
+        text: String,
+        entryTitle: String,
+        keywords: List<String>,
+    ): String {
         val subject = inSentence(text)
         return when (kind) {
-            PrepQuestionKind.STRENGTH -> "Your record already covers $subject." + exampleFrom(entryTitle)
+            PrepQuestionKind.STRENGTH -> "Walk me through your work with ${joinNaturally(keywords)}." + exampleFrom(entryTitle)
             PrepQuestionKind.CLARIFY ->
-                "Your record covers part of $subject. Be ready to say what you did and what you did not."
+                "Which part of $subject have you done, and which part is new for you?"
             PrepQuestionKind.GAP ->
                 "This posting asks for $subject. You have no record of it yet. " +
                     "Prepare the work you did do that comes closest, and say plainly that this part is new for you."
         }
     }
 
+    private fun statedKeywords(requirement: JobRequirement, fact: EvidenceBullet): List<String> =
+        keywordsStatedIn(requirement, fact.text).distinct()
+
+    private fun joinNaturally(items: List<String>): String =
+        if (items.size == 1) items.single() else items.dropLast(1).joinToString(", ") + " and " + items.last()
+
     private fun exampleFrom(entryTitle: String): String =
         if (entryTitle.isEmpty()) {
-            " Be ready to give one example from your record."
+            " Which example from your record would you use?"
         } else {
-            " Be ready to give one example from $entryTitle."
+            " Which example from $entryTitle would you use?"
         }
 
     private fun inSentence(text: String): String {
@@ -112,6 +130,11 @@ object PrepQuestionGenerator {
     private fun entryTitlesByFactId(candidate: CandidateProfile): Map<String, String> =
         candidate.entries
             .filter { it.isConfirmed }
-            .flatMap { entry -> entry.bullets.map { bullet -> bullet.id to entry.title.trim() } }
+            .flatMap { entry -> entry.bullets.map { bullet -> bullet.id to exampleSourceTitle(entry) } }
             .toMap()
+
+    private fun exampleSourceTitle(entry: ProfileEntry): String =
+        if (entry.category in EXAMPLE_CATEGORIES) entry.title.trim() else ""
+
+    private val EXAMPLE_CATEGORIES = setOf(EntryCategory.EXPERIENCE, EntryCategory.PROJECT, EntryCategory.EDUCATION)
 }
