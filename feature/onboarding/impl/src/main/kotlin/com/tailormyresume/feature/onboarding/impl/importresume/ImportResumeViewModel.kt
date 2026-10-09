@@ -13,6 +13,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.continues
 import com.tailormyresume.feature.onboarding.api.navigation.ImportResumeNavKey
 import com.tailormyresume.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -154,10 +155,11 @@ class ImportResumeViewModel @Inject constructor(
     }
 
     private suspend fun onParsed(profile: CandidateProfile) {
-        val prepared = profile.copy(entries = profile.entries.withFreshFactIds())
-        val stored = runCatching {
-            val existing = profileRepository.observeProfile().first()
-            profileRepository.saveProfile(prepared.keepingUserFactsFrom(existing))
+        val existing = runCatching { profileRepository.observeProfile().first() }
+        val kept = existing.getOrNull().userFacts()
+        val prepared = profile.copy(entries = profile.entries.withFreshFactIds(kept))
+        val stored = existing.isSuccess && runCatching {
+            profileRepository.saveProfile(prepared.copy(entries = kept + prepared.entries))
         }.isSuccess
         if (!stored) {
             onReadOutcome(ResumeRead.Unreadable(mutableUiState.value.fileName))
@@ -167,15 +169,17 @@ class ImportResumeViewModel @Inject constructor(
             it.copy(
                 stage = if (prepared.hasFact()) ImportStage.Success else ImportStage.NoFactsFound,
                 readStepIndex = READ_STEP_COUNT,
-                facts = prepared.entries.map(ProfileEntry::toImportedFact),
+                facts = prepared.entries.mapIndexed { index, entry ->
+                    entry.toImportedFact(continued = index > 0 && entry.continues(prepared.entries[index - 1]))
+                },
                 skillCount = prepared.skills.size,
                 isQueued = false,
             )
         }
     }
 
-    private fun List<ProfileEntry>.withFreshFactIds(): List<ProfileEntry> {
-        val allocated = mutableListOf<ProfileEntry>()
+    private fun List<ProfileEntry>.withFreshFactIds(kept: List<ProfileEntry>): List<ProfileEntry> {
+        val allocated = kept.toMutableList()
         return map { entry ->
             val reidentified = entry.copy(
                 id = factIdAllocator.nextId(entry.category, allocated, entry.title),
@@ -190,18 +194,15 @@ class ImportResumeViewModel @Inject constructor(
     private fun CandidateProfile.hasFact(): Boolean =
         entries.isNotEmpty() || skills.isNotEmpty() || fullName.isNotBlank()
 
-    private fun CandidateProfile.keepingUserFactsFrom(existing: CandidateProfile?): CandidateProfile {
-        return copy(entries = existing.userFacts() + entries)
-    }
-
     private fun CandidateProfile?.userFacts(): List<ProfileEntry> =
         this?.entries.orEmpty().filter { entry -> entry.source != FactSource.IMPORTED }
 }
 
-private fun ProfileEntry.toImportedFact(): ImportedFactUi = ImportedFactUi(
+private fun ProfileEntry.toImportedFact(continued: Boolean): ImportedFactUi = ImportedFactUi(
     id = id,
     category = category,
     line = FactLineRenderer.render(this),
+    continued = continued,
 )
 
 private fun Throwable?.toFailureCause(): ImportFailureCause = when ((this as? AiException)?.failure) {

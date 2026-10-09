@@ -20,6 +20,7 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.continues
 import com.tailormyresume.feature.profile.api.navigation.FactEditorNavKey
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -270,8 +271,36 @@ class FactEditorViewModel @AssistedInject constructor(
             isConfirmed = true,
         )
         val entry = if (existing == null || unedited == existing.copy(isConfirmed = true)) unedited else unedited.copy(source = FactSource.USER_EDITED)
-        val updated = if (existing == null) entries + entry else entries.map { if (it.id == id) entry else it }
-        return copy(entries = updated)
+        if (existing == null) return copy(entries = entries + entry)
+        val sameRole = roleIdsAround(id)
+        return copy(
+            entries = entries.map { current ->
+                when {
+                    current.id == id -> entry
+                    current.id in sameRole -> current.withHeaderOf(entry)
+                    else -> current
+                }
+            },
+        )
+    }
+
+    private fun CandidateProfile.roleIdsAround(id: String): Set<String> {
+        val index = entries.indexOfFirst { it.id == id }
+        var first = index
+        while (first > 0 && entries[first].continues(entries[first - 1])) first--
+        var last = index
+        while (last < entries.lastIndex && entries[last + 1].continues(entries[last])) last++
+        return entries.subList(first, last + 1).map { it.id }.toSet()
+    }
+
+    private fun ProfileEntry.withHeaderOf(edited: ProfileEntry): ProfileEntry {
+        val moved = copy(
+            title = edited.title,
+            organization = edited.organization,
+            startDate = edited.startDate,
+            endDate = edited.endDate,
+        )
+        return if (moved == this) this else moved.copy(source = FactSource.USER_EDITED)
     }
 
     private companion object {
