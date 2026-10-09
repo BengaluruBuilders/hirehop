@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -101,6 +102,10 @@ class RemotePaymentGateway @Inject constructor(
     }
 
     override suspend fun clearCredits(): PurchaseEntitlement {
+        synchronized(reposts) {
+            reposts.values.forEach(Job::cancel)
+            reposts.clear()
+        }
         wallet.clear()
         pending.value = emptyList()
         return NO_CREDITS
@@ -139,7 +144,7 @@ class RemotePaymentGateway @Inject constructor(
     }
 
     private fun repostInBackground(purchase: PlayPurchase) = synchronized(reposts) {
-        if (reposts[purchase.productId]?.isActive != true) reposts[purchase.productId] = scope.launch { repost(purchase) }
+        if (reposts[purchase.token]?.isActive != true) reposts[purchase.token] = scope.launch { repost(purchase) }
     }
 
     private suspend fun repost(purchase: PlayPurchase) {
@@ -160,19 +165,19 @@ class RemotePaymentGateway @Inject constructor(
 
     private fun recorded(productId: String, response: PurchaseResponse): PurchaseResult {
         wallet.update(response.wallet)
-        pending.value -= productId
+        pending.update { it - productId }
         return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
     }
 
     private fun unconfirmed(productId: String): PurchaseResult {
-        pending.value -= productId
+        pending.update { it - productId }
         return failed(PurchaseFailureReason.PaymentUnconfirmed)
     }
 
     private fun Throwable.isRejection() = (this as? ApiException)?.error in REJECTIONS
 
     private fun hold(productId: String): PurchaseResult {
-        if (productId !in pending.value) pending.value += productId
+        pending.update { if (productId in it) it else it + productId }
         return PurchaseResult.Pending(current())
     }
 
