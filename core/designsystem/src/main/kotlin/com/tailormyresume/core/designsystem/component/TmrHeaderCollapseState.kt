@@ -35,15 +35,15 @@ class TmrHeaderCollapseState(initialFraction: Float = 0f) {
 
     val connection: NestedScrollConnection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            inputCount++
-            return if (available.y < 0f) Offset(0f, consume(available.y)) else Offset.Zero
+            if (source == NestedScrollSource.UserInput) inputCount++
+            return if (available.y < 0f) Offset(0f, shift(available.y)) else Offset.Zero
         }
 
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
             if (consumed.y != 0f) listAtTop = false
             if (available.y <= 0f) return Offset.Zero
             listAtTop = true
-            return Offset(0f, consume(available.y))
+            return Offset(0f, shift(available.y))
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
@@ -53,11 +53,7 @@ class TmrHeaderCollapseState(initialFraction: Float = 0f) {
     }
 
     suspend fun settle() {
-        val target = when {
-            fraction >= SETTLE_THRESHOLD -> 1f
-            listAtTop -> 0f
-            else -> return
-        }
+        val target = if (fraction >= SETTLE_THRESHOLD || !listAtTop) 1f else 0f
         if (motion.reduced) {
             fraction = target
         } else {
@@ -71,6 +67,10 @@ class TmrHeaderCollapseState(initialFraction: Float = 0f) {
 
     internal fun consume(delta: Float): Float {
         inputCount++
+        return shift(delta)
+    }
+
+    private fun shift(delta: Float): Float {
         if (range <= 0f) return 0f
         val next = (fraction - delta / range).coerceIn(0f, 1f)
         val consumed = (fraction - next) * range

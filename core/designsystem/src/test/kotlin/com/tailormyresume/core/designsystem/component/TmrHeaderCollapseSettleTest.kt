@@ -46,13 +46,13 @@ class TmrHeaderCollapseSettleTest {
     }
 
     @Test
-    fun beforeHalfwayWithTheListScrolledAwayStaysWhereItIs() {
+    fun beforeHalfwayWithTheListScrolledAwaySettlesCollapsed() {
         val state = stateAt(0.3f)
         state.listAtTop = false
 
         settle(state)
 
-        assertEquals(0.3f, state.fraction)
+        assertEquals(1f, state.fraction)
     }
 
     @Test
