@@ -110,6 +110,10 @@
     <string name="feature_applications_impl_match_partial">Partly met</string>
     <string name="feature_applications_impl_match_gap">To prepare</string>
     <string name="feature_applications_impl_match_description">%1$s. %2$s</string>
+    <string name="feature_applications_impl_requirement_sheet_asked_for">Asked for: %1$s</string>
+    <string name="feature_applications_impl_requirement_sheet_facts_heading">Facts that match</string>
+    <string name="feature_applications_impl_requirement_sheet_add">Add to my prep plan</string>
+    <string name="feature_applications_impl_requirement_sheet_in_plan">In your prep plan</string>
 
     <string name="feature_applications_impl_workspace_tasks_heading">Prep plan</string>
     <plurals name="feature_applications_impl_workspace_tasks_progress">
