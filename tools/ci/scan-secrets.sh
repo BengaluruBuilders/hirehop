@@ -36,9 +36,18 @@ attributes_file="$(git rev-parse --git-path info/attributes)"
 mkdir -p "$(dirname "$attributes_file")"
 printf '* !diff\n' >>"$attributes_file"
 
-args=(git --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" --gitleaks-ignore-path "$ignore_dir/.gitleaksignore")
+base_args=(git --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" --gitleaks-ignore-path "$ignore_dir/.gitleaksignore")
 if [[ -n "$range" ]]; then
   git rev-list "$range" >/dev/null
+  merge_scope="$range"
+else
+  merge_scope="--all"
+fi
+# gitleaks 8.30.1 runs git log -p, which prints no diff for merge commits, so an evil merge needs its own pass
+"$GITLEAKS" "${base_args[@]}" "--log-opts=--merges --diff-merges=first-parent $merge_scope" .
+
+args=("${base_args[@]}")
+if [[ -n "$range" ]]; then
   args+=(--log-opts="$range")
 fi
 "$GITLEAKS" "${args[@]}" .
