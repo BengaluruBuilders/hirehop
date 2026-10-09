@@ -29,6 +29,9 @@
     <string name="feature_onboarding_impl_import_resume_empty_body">This file is empty. Nothing was kept.</string>
     <string name="feature_onboarding_impl_import_resume_too_large_body">This file is too large to read. Nothing from it was kept.</string>
     <string name="feature_onboarding_impl_import_resume_failed_body">We couldn\'t read this file. Nothing from it was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_rate_limited_body">Too many requests right now. Wait a little, then try again. Nothing from this file was kept.</string>
+    <string name="feature_onboarding_impl_import_resume_quota_body">The AI has reached its limit for today. Try again tomorrow, or add your details step by step.</string>
+    <string name="feature_onboarding_impl_import_resume_sign_in_body">Your session has ended. Sign in again, then choose the file again.</string>
     <string name="feature_onboarding_impl_import_resume_scanned_text">This PDF is a scan, so we can\'t read its text.</string>
 
     <string name="feature_onboarding_impl_import_resume_heading">Add your resume</string>
