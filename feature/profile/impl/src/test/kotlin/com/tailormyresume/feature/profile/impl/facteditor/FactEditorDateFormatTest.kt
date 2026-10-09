@@ -8,6 +8,7 @@ import com.tailormyresume.core.domain.fact.FactField
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
+import com.tailormyresume.core.testing.data.sampleEducationEntry
 import com.tailormyresume.core.testing.data.sampleProfile
 import com.tailormyresume.core.testing.data.sampleProjectEntry
 import com.tailormyresume.core.testing.repository.TestProfileRepository
@@ -96,5 +97,30 @@ class FactEditorDateFormatTest {
         viewModel.onEndDateChange("Aug 2024")
 
         assertThat(viewModel.uiState.value.fieldErrors).isEmpty()
+    }
+
+    @Test
+    fun twoDigitStartDateShowsFormatError() {
+        val viewModel = createViewModel()
+
+        viewModel.onTitleChange("Dashboard")
+        viewModel.onStartDateChange("45")
+
+        assertThat(viewModel.uiState.value.fieldErrors[FactField.START_DATE])
+            .isEqualTo(FactDraftErrorReason.INVALID_DATE)
+    }
+
+    @Test
+    fun editingAnotherFieldRevealsAnUnreadableStoredEndDate() {
+        repository.sendProfile(
+            sampleProfile.copy(entries = listOf(sampleEducationEntry.copy(endDate = "Pursuing"))),
+        )
+        val viewModel = createViewModel(entryId = sampleEducationEntry.id, entryType = "education")
+
+        viewModel.onDetailChange("x")
+
+        val state = viewModel.uiState.value
+        assertThat(state.isSaveEnabled).isFalse()
+        assertThat(state.visibleReasonFor(FactField.END_DATE)).isEqualTo(FactDraftErrorReason.INVALID_DATE)
     }
 }

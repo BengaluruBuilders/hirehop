@@ -133,4 +133,19 @@ class FactDateFormatTest {
     fun appProduced_monthSlashYear_isReadable() {
         assertThat(FactDateFormat.isReadable("06/2021")).isTrue()
     }
+
+    @Test
+    fun twoDigitStartDate_isNotReadable() {
+        assertThat(FactDateFormat.isReadable("12", isEnd = false)).isFalse()
+    }
+
+    @Test
+    fun monthYearStartDate_isReadable() {
+        assertThat(FactDateFormat.isReadable("Aug 2024", isEnd = false)).isTrue()
+    }
+
+    @Test
+    fun twoDigitEndDate_isReadable() {
+        assertThat(FactDateFormat.isReadable("23", isEnd = true)).isTrue()
+    }
 }

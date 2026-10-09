@@ -7,11 +7,12 @@ object FactDateFormat {
 
     private val monthSlashYear = Regex("^(?:0?[1-9]|1[0-2])[/.-](?:19|20)\\d{2}$")
 
-    fun isReadable(text: String): Boolean {
+    fun isReadable(text: String, isEnd: Boolean = true): Boolean {
         val value = text.trim()
         if (value.isEmpty()) return true
         if (value.lowercase() in openEnded) return true
-        if (DateRangeExtractor.isPoint(value) || monthSlashYear.matches(value)) return true
+        val isPoint = if (isEnd) DateRangeExtractor.isPoint(value) else DateRangeExtractor.isStartPoint(value)
+        if (isPoint || monthSlashYear.matches(value)) return true
         return FreeFormDate.parse(value) != null
     }
 }

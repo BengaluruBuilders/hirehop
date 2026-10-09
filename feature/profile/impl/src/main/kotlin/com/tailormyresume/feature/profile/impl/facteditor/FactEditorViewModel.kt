@@ -151,17 +151,18 @@ class FactEditorViewModel @AssistedInject constructor(
     ) {
         mutableUiState.update { current ->
             val draft = transform(current.draft)
+            val dateErrors = dateFormatErrors(draft)
             current.copy(
                 draft = draft,
-                fieldErrors = dateFormatErrors(draft) + FactDraftValidator.validate(draft).toFieldErrorMap(),
-                touchedFields = current.touchedFields + field,
+                fieldErrors = dateErrors + FactDraftValidator.validate(draft).toFieldErrorMap(),
+                touchedFields = current.touchedFields + field + dateErrors.keys,
                 isSaveFailed = false,
             )
         }
     }
 
     private fun dateFormatErrors(draft: FactDraft): Map<FactField, FactDraftErrorReason> = buildMap {
-        if (!FactDateFormat.isReadable(draft.startDate)) {
+        if (!FactDateFormat.isReadable(draft.startDate, isEnd = false)) {
             put(FactField.START_DATE, FactDraftErrorReason.INVALID_DATE)
         }
         if (!FactDateFormat.isReadable(draft.endDate)) {
