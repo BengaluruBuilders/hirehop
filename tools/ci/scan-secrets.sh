@@ -32,6 +32,10 @@ case "$GITHUB_EVENT_NAME" in
     ;;
 esac
 
+attributes_file="$(git rev-parse --git-path info/attributes)"
+mkdir -p "$(dirname "$attributes_file")"
+printf '* !diff\n' >>"$attributes_file"
+
 args=(git --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" --gitleaks-ignore-path "$ignore_dir/.gitleaksignore")
 if [[ -n "$range" ]]; then
   git rev-list "$range" >/dev/null

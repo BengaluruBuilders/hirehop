@@ -64,6 +64,8 @@ jobs:
           GITLEAKS="$RUNNER_TEMP/gitleaks/gitleaks" tools/ci/scan-secrets.sh
 
       - name: Test the secret scan script
+        env:
+          REAL_GITLEAKS: ${{ runner.temp }}/gitleaks/gitleaks
         run: tools/ci/test-scan-secrets.sh
 
   changes:
