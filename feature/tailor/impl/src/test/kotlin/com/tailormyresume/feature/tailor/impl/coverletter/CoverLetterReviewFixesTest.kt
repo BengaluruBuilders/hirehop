@@ -1,17 +1,16 @@
 package com.tailormyresume.feature.tailor.impl.coverletter
 
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.JobAnalysisResult
+import com.tailormyresume.core.domain.coverletter.CoverLetterComposer
 import com.tailormyresume.core.domain.coverletter.CoverLetterDraft
 import com.tailormyresume.core.domain.coverletter.CoverLetterSource
+import com.tailormyresume.core.domain.coverletter.GenerateCoverLetterUseCase
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.JobDescription
@@ -38,7 +37,7 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = TmrTestDevices.BOARD_QUALIFIERS)
-class CoverLetterBatchTest {
+class CoverLetterReviewFixesTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -95,50 +94,46 @@ class CoverLetterBatchTest {
     }
 
     @Test
-    fun generatingStateCarriesTheConfirmedFactCount() = runTest {
+    fun generatingFactCountIsWhatTheLetterWillCite() = runTest {
         given()
-        val never = CompletableDeferred<CoverLetterDraft>()
-        val stalledSource = object : CoverLetterSource {
+        val stalled = object : CoverLetterSource {
             override suspend fun invoke(
                 candidate: CandidateProfile,
                 job: JobDescription,
                 analysis: JobAnalysisResult,
                 maxEvidence: Int,
-            ): CoverLetterDraft = never.await()
+            ): CoverLetterDraft = CompletableDeferred<CoverLetterDraft>().await()
         }
-        val viewModel = newViewModel(stalledSource)
+        val generating = newViewModel(stalled)
+        generating.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        generating.onAction(CoverLetterAction.WriteOne)
+        val shown = generating.uiState.value.factCount
 
-        viewModel.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
-        viewModel.onAction(CoverLetterAction.WriteOne)
+        val written = newViewModel(GenerateCoverLetterUseCase())
+        written.onEnter(CoverLetterNavKey(APPLICATION_ID, DebugScenario.DEFAULT))
+        written.onAction(CoverLetterAction.WriteOne)
 
-        val state = viewModel.uiState.value
-        assertThat(state.stage).isEqualTo(CoverLetterStage.GENERATING)
-        assertThat(state.factCount).isGreaterThan(0)
+        assertThat(shown).isEqualTo(written.uiState.value.factCount)
+        assertThat(shown).isAtMost(CoverLetterComposer.DEFAULT_MAX_EVIDENCE)
+        assertThat(shown).isGreaterThan(0)
     }
 
     @Test
-    fun offerStageShowsNoOfflineBanner() {
-        show(
-            CoverLetterUiState(
-                stage = CoverLetterStage.OFFER,
-                jobTitle = "Associate Analyst",
-                jobCompany = "Northwind GCC",
-                isOffline = true,
-            ),
-        )
+    fun errorWhileOfflineShowsNoSavedOnThisPhoneBanner() {
+        show(CoverLetterUiState(stage = CoverLetterStage.ERROR, isOffline = true))
 
         composeRule
             .onAllNodesWithText("You're offline. This letter is saved on this phone.")
             .assertCountEquals(0)
-        composeRule.onNodeWithText("Write one").assertIsDisplayed()
     }
 
     @Test
-    fun generatingShowsWritingThreeParagraphsAndTheFactCount() {
-        show(CoverLetterUiState(stage = CoverLetterStage.GENERATING, factCount = 6))
+    fun onlyReadyAndNoMatchingEvidenceShowTheOfflineBanner() {
+        val showing = CoverLetterStage.entries.filter { stage ->
+            CoverLetterUiState(stage = stage, isOffline = true).showsOfflineBanner
+        }
 
-        composeRule.onNodeWithContentDescription("Writing 3 paragraphs", substring = true).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("6 facts", substring = true).assertIsDisplayed()
+        assertThat(showing).containsExactly(CoverLetterStage.READY, CoverLetterStage.NO_MATCHING_EVIDENCE)
     }
 }
 

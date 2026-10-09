@@ -69,7 +69,6 @@ object TmrIcons {
     val Description = Icons.Rounded.Description
     val Download = Icons.Rounded.Download
     val Edit = Icons.Rounded.Edit
-    val Refresh = Icons.Rounded.Refresh
     val Error = Icons.Rounded.ErrorOutline
     val ExpandLess = Icons.Rounded.ExpandLess
     val ExpandMore = Icons.Rounded.ExpandMore
@@ -86,6 +85,7 @@ object TmrIcons {
     val Phone = Icons.Rounded.PhoneAndroid
     val Profile = Icons.Rounded.Person
     val ProfileBorder = Icons.Outlined.Person
+    val Refresh = Icons.Rounded.Refresh
     val Scan = Icons.Rounded.DocumentScanner
     val Search = Icons.Rounded.Search
     val Send = Icons.AutoMirrored.Rounded.Send

@@ -21,6 +21,7 @@ import com.tailormyresume.feature.tailor.impl.export.docx.ResumeDocxRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -219,6 +220,7 @@ internal class ExportPreviewViewModel @Inject constructor(
             } catch (failure: Exception) {
                 null
             }
+            ensureActive()
             if (rendered != null) {
                 finishExport(
                     format = format,
@@ -244,6 +246,7 @@ internal class ExportPreviewViewModel @Inject constructor(
         pageCount: Int?,
     ) {
         canCancelExport = false
+        mutableState.update { state -> state.copy(isSpending = true) }
         when (val spend = runCatching { paymentGateway.unlock(applicationId) }.getOrNull()) {
             is CreditSpend.Spent -> {
                 exportHistoryRepository.record(
@@ -260,6 +263,7 @@ internal class ExportPreviewViewModel @Inject constructor(
                 mutableState.update { state ->
                     state.copy(
                         stage = ExportPreviewStage.PREVIEW_READY,
+                        isSpending = false,
                         navigation = ExportPreviewNavigation.Exported(
                             format = format,
                             spentFreeCredit = spend.kind == CreditKind.FREE,
@@ -269,7 +273,11 @@ internal class ExportPreviewViewModel @Inject constructor(
             }
 
             CreditSpend.NoCreditLeft -> mutableState.update { state ->
-                state.copy(stage = ExportPreviewStage.PREVIEW_READY, navigation = ExportPreviewNavigation.BuyCredits)
+                state.copy(
+                    stage = ExportPreviewStage.PREVIEW_READY,
+                    isSpending = false,
+                    navigation = ExportPreviewNavigation.BuyCredits,
+                )
             }
 
             null -> markExportFailed()
@@ -277,7 +285,7 @@ internal class ExportPreviewViewModel @Inject constructor(
     }
 
     private fun markExportFailed() {
-        mutableState.update { state -> state.copy(stage = ExportPreviewStage.EXPORT_FAILED) }
+        mutableState.update { state -> state.copy(stage = ExportPreviewStage.EXPORT_FAILED, isSpending = false) }
     }
 
     private fun onRetry() {

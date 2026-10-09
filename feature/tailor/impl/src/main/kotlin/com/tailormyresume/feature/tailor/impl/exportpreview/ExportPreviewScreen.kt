@@ -357,11 +357,13 @@ private fun ExportingSheet(uiState: ExportPreviewUiState, onCancel: () -> Unit) 
             ),
             footnote = stringResource(R.string.feature_tailor_impl_export_preview_exporting_footnote),
         )
-        TmrSecondaryButton(
-            label = stringResource(R.string.feature_tailor_impl_export_preview_cancel),
-            onClick = onCancel,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (!uiState.isSpending) {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_tailor_impl_export_preview_cancel),
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

@@ -9,6 +9,7 @@ import com.tailormyresume.core.data.repository.CoverLetterRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.JobAnalysisResult
+import com.tailormyresume.core.domain.coverletter.CoverLetterComposer
 import com.tailormyresume.core.domain.coverletter.CoverLetterSource
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
@@ -17,7 +18,6 @@ import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.ReportedItemKind
-import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.feature.tailor.api.navigation.CoverLetterNavKey
 import com.tailormyresume.feature.tailor.impl.TailorInputs
 import com.tailormyresume.feature.tailor.impl.TailorUiState
@@ -112,7 +112,7 @@ class CoverLetterViewModel @Inject constructor(
                 jobCompany = application.job.company,
                 reviewedCount = reviewed,
                 totalCount = total,
-                factCount = profile?.factCounts()?.confirmed ?: 0,
+                factCount = profile?.let { CoverLetterComposer.evidenceCount(it, application.analysisOrEmpty()) } ?: 0,
             )
         }
         restoreWrittenLetter(application, profile)
