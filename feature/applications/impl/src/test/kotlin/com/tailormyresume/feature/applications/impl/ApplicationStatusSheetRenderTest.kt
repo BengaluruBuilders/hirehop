@@ -56,7 +56,8 @@ class ApplicationStatusSheetRenderTest {
     private fun assertSharedStatusSheetIsOpen() {
         composeRule.onNodeWithText("Application status").assertIsDisplayed()
         composeRule.onNodeWithText("Save status").assertIsDisplayed()
-        composeRule.onNodeWithText("Cancel").assertIsDisplayed()
+        composeRule.onNodeWithText("Cancel").assertDoesNotExist()
+        composeRule.onNodeWithText("No response").assertDoesNotExist()
         EXPECTED_STATUS_LABELS.forEach { label ->
             assertWithMessage("the sheet offers $label")
                 .that(composeRule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
@@ -71,7 +72,6 @@ class ApplicationStatusSheetRenderTest {
             "Interview",
             "Offer",
             "Rejected",
-            "No response",
         )
     }
 
