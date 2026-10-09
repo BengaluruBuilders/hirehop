@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
-import com.tailormyresume.core.screenshot.TmrTestDevice
 import com.tailormyresume.core.screenshot.TmrTestDevices
 import com.tailormyresume.core.screenshot.captureMultiTheme
 import kotlinx.coroutines.runBlocking
@@ -13,12 +12,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import kotlin.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = TmrTestDevices.BOARD_QUALIFIERS)
-class YourDataScreenshotTest {
+class YourDataDeleteMyDataScreenshotTest {
 
     @get:Rule
     val composeRule = createComposeRule()
@@ -26,89 +24,40 @@ class YourDataScreenshotTest {
     private val darkTheme = mutableStateOf(false)
 
     @Test
-    fun default_readsInLightAndDark() {
-        captureBothThemes(screenName = "YourDataDefault", uiState = content())
+    fun confirmDialog_readsInLightAndDark() {
+        captureBothThemes(screenName = "YourDataDeleteMyDataDialog", deletion = YourDataDeletion.CONFIRMING)
     }
 
     @Test
-    fun preparing_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "YourDataPreparing",
-            uiState = content(export = YourDataExport.PREPARING),
-        )
+    fun failed_readsInLightAndDark() {
+        captureBothThemes(screenName = "YourDataDeleteMyDataFailed", deletion = YourDataDeletion.FAILED)
     }
 
-    @Test
-    fun deleteDialog_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "YourDataDeleteDialog",
-            uiState = content(deleteTarget = APPLICATIONS.last()),
-        )
-    }
-
-    @Test
-    fun offline_readsInLightAndDark() {
-        captureBothThemes(screenName = "YourDataOffline", uiState = content(isOffline = true))
-    }
-
-    @Test
-    fun exportFailed_readsInLightAndDark() {
-        captureBothThemes(
-            screenName = "YourDataExportFailed",
-            uiState = content(export = YourDataExport.FAILED),
-        )
-    }
-
-    @Test
-    @Config(fontScale = TmrTestDevices.LARGE_FONT_SCALE)
-    fun default_atLargeText() {
-        captureBothThemes(
-            screenName = "YourDataDefaultFont200",
-            uiState = content(),
-            device = TmrTestDevices.boardLargeFont,
-        )
-    }
-
-    private fun captureBothThemes(
-        screenName: String,
-        uiState: YourDataUiState,
-        device: TmrTestDevice = TmrTestDevices.board,
-    ) = runBlocking {
+    private fun captureBothThemes(screenName: String, deletion: YourDataDeletion) = runBlocking {
         composeRule.setContent {
             TmrTheme(darkTheme = darkTheme.value) {
-                YourDataScreen(uiState = uiState, actions = noActions)
+                YourDataScreen(uiState = content(deletion), actions = noActions)
             }
         }
         composeRule.waitForIdle()
         composeRule.captureMultiTheme(
             outputDirectory = OUTPUT,
             screenName = screenName,
-            device = device,
+            device = TmrTestDevices.board,
             setTheme = { dark -> composeRule.runOnUiThread { darkTheme.value = dark } },
         )
     }
 
-    private fun content(
-        export: YourDataExport = YourDataExport.IDLE,
-        isOffline: Boolean = false,
-        deleteTarget: YourDataApplication? = null,
-    ) = YourDataUiState.Content(
+    private fun content(deletion: YourDataDeletion) = YourDataUiState.Content(
         profileFactCount = 18,
         confirmedFactCount = 15,
         userStatedFactCount = 3,
         applications = APPLICATIONS,
-        purchases = listOf(
-            YourDataPurchase(
-                credits = 5,
-                priceInPaise = 14_900L,
-                currencyCode = "INR",
-                purchasedAt = PURCHASE_TIME,
-                isPending = false,
-            ),
-        ),
-        isOffline = isOffline,
-        export = export,
-        deleteTarget = deleteTarget,
+        purchases = emptyList(),
+        isOffline = false,
+        export = YourDataExport.IDLE,
+        deleteTarget = null,
+        deletion = deletion,
     )
 
     private val noActions = YourDataActions(
@@ -128,7 +77,6 @@ class YourDataScreenshotTest {
 
     private companion object {
         const val OUTPUT = "src/test/screenshots"
-        val PURCHASE_TIME = Instant.fromEpochSeconds(1_807_704_000)
         val APPLICATIONS = listOf(
             YourDataApplication("application-1", "Associate Analyst", "Northwind GCC"),
             YourDataApplication("application-2", "Data Analyst", "Paisa Ledger (start-up)"),
