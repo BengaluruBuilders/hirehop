@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.IdGenerator
+import com.tailormyresume.core.domain.fact.FactDateFormat
 import com.tailormyresume.core.domain.fact.FactDisplayIds
 import com.tailormyresume.core.domain.fact.FactDraft
 import com.tailormyresume.core.domain.fact.FactDraftError
@@ -91,7 +92,7 @@ class FactEditorViewModel @AssistedInject constructor(
 
     fun save() {
         val current = mutableUiState.value
-        val errors = FactDraftValidator.validate(current.draft).toFieldErrorMap()
+        val errors = dateFormatErrors(current.draft) + FactDraftValidator.validate(current.draft).toFieldErrorMap()
         if (current.draft.title.isBlank() || errors.isNotEmpty()) {
             mutableUiState.update { it.copy(fieldErrors = errors, touchedFields = FactField.entries.toSet()) }
             return
@@ -155,12 +156,22 @@ class FactEditorViewModel @AssistedInject constructor(
         mutableUiState.update { current ->
             val draft = transform(current.draft)
             saveDraft(draft)
+            val dateErrors = dateFormatErrors(draft)
             current.copy(
                 draft = draft,
-                fieldErrors = FactDraftValidator.validate(draft).toFieldErrorMap(),
-                touchedFields = current.touchedFields + field,
+                fieldErrors = dateErrors + FactDraftValidator.validate(draft).toFieldErrorMap(),
+                touchedFields = current.touchedFields + field + dateErrors.keys,
                 isSaveFailed = false,
             )
+        }
+    }
+
+    private fun dateFormatErrors(draft: FactDraft): Map<FactField, FactDraftErrorReason> = buildMap {
+        if (!FactDateFormat.isReadable(draft.startDate, isEnd = false)) {
+            put(FactField.START_DATE, FactDraftErrorReason.INVALID_DATE)
+        }
+        if (!FactDateFormat.isReadable(draft.endDate)) {
+            put(FactField.END_DATE, FactDraftErrorReason.INVALID_DATE)
         }
     }
 
@@ -196,7 +207,13 @@ class FactEditorViewModel @AssistedInject constructor(
 
     private fun FactEditorUiState.withSavedDraft(): FactEditorUiState {
         val (title, detail, organization, startDate, endDate) = savedState.get<ArrayList<String>>(DRAFT_KEY) ?: return this
-        val restored = copy(draft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate))
+        val restoredDraft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate)
+        val dateErrors = dateFormatErrors(restoredDraft)
+        val restored = copy(
+            draft = restoredDraft,
+            fieldErrors = dateErrors + FactDraftValidator.validate(restoredDraft).toFieldErrorMap(),
+            touchedFields = touchedFields + dateErrors.keys,
+        )
         return if (mode == FactEditorMode.New) restored.withNewId(title) else restored
     }
 

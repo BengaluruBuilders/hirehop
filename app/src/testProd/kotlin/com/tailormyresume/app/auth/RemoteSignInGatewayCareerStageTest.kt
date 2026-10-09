@@ -21,7 +21,7 @@ class RemoteSignInGatewayCareerStageTest {
         server.api(),
         session,
         server.signOutCleaner(session),
-        LocalDataWiper { },
+        LocalDataWiper { session.clear() },
     )
 
     @After

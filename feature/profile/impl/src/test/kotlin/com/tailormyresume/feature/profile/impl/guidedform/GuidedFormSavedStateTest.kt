@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.AddUserStatedFactsUseCase
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
+import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
@@ -12,6 +13,8 @@ import com.tailormyresume.core.testing.util.TestIdGenerator
 import com.tailormyresume.feature.profile.api.navigation.GuidedProfileFormNavKey
 import com.tailormyresume.feature.profile.impl.ProfileExitResolver
 import com.tailormyresume.feature.profile.impl.UserFactWriter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -62,5 +65,24 @@ class GuidedFormSavedStateTest {
         after.onEnter(GuidedProfileFormNavKey())
 
         assertThat(after.uiState.value.skills).containsExactly("SQL")
+    }
+
+    @Test
+    fun backThenNextAfterRestoreRewritesTheFinishedStepInsteadOfDuplicatingIt() = runBlocking {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(GuidedProfileFormNavKey(startStep = "education"))
+        before.onAction(GuidedFormAction.ValueChanged(GuidedField.COURSE, "B.Tech Computer Science"))
+        before.onAction(GuidedFormAction.Next)
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(GuidedProfileFormNavKey())
+        after.onAction(GuidedFormAction.Back)
+        after.onAction(GuidedFormAction.Next)
+
+        val education = repository.observeProfile().first().let(::checkNotNull).entries
+            .filter { it.category == EntryCategory.EDUCATION }
+        assertThat(education).hasSize(1)
+        assertThat(after.uiState.value.completedSteps).contains(GuidedStep.EDUCATION)
     }
 }

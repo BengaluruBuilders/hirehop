@@ -21,6 +21,7 @@ internal data class CreditsUiState(
     val freeCredits: Int = 0,
     val purchasedCredits: Int = 0,
     val purchases: List<CreditsPurchaseEntry> = emptyList(),
+    val hasPurchaseHistory: Boolean = false,
     val isOffline: Boolean = false,
     val creditsNeverExpire: Boolean = true,
 ) {

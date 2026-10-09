@@ -8,6 +8,7 @@ import com.tailormyresume.core.domain.ProposeJobLabelUseCase
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.JobDescription
+import com.tailormyresume.core.model.KeptJobDescription
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.repository.TestContentReportRepository
 import com.tailormyresume.core.testing.repository.TestPrepPlanRepository
@@ -18,6 +19,7 @@ import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestClock
 import com.tailormyresume.feature.onboarding.api.navigation.PasteJobDescriptionNavKey
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +36,7 @@ class PasteJobDescriptionSavedStateTest {
         nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
         connectivityMonitor = TestConnectivityMonitor(),
         usageAllowance = TestUsageAllowance(TestClock()),
-        proposeJobLabel = ProposeJobLabelUseCase(NoLabelAnalyzer),
+        proposeJobLabel = ProposeJobLabelUseCase(LabelByEmployerAnalyzer),
         discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
         computeDispatcher = UnconfinedTestDispatcher(),
         savedState = savedState,
@@ -75,8 +77,63 @@ class PasteJobDescriptionSavedStateTest {
         assertThat(after.uiState.value.text).isEmpty()
     }
 
-    private object NoLabelAnalyzer : JobDescriptionAnalyzer {
-        override suspend fun analyze(rawText: String): JobDescription =
-            JobDescription(title = "", company = "", rawText = rawText, requirements = emptyList())
+    @Test
+    fun aRestoredAiProposalIsStillReplacedWhenTheTextChanges() = runTest {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        before.onAction(PasteJobDescriptionAction.TextChanged("Analyst role at Northwind"))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+        assertThat(before.uiState.value.company).isEqualTo("Northwind")
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+        after.onAction(PasteJobDescriptionAction.TextChanged("Analyst role at Contoso"))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+
+        assertThat(after.uiState.value.company).isEqualTo("Contoso")
+    }
+
+    @Test
+    fun anAlreadyAnalysedJdIsNotUnanalysedAfterRestore() = runTest {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        before.onAction(PasteJobDescriptionAction.TextChanged("Analyst role at Northwind"))
+        session.keepJobDescription(KeptJobDescription(text = "Analyst role at Northwind", company = "", role = ""))
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        assertThat(after.uiState.value.hasUnanalysedText).isFalse()
+    }
+
+    @Test
+    fun aLongPasteSurvivesProcessDeathUntrimmed() = runTest {
+        val longJd = "Analyst role at Northwind. ".repeat(800)
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        before.onAction(PasteJobDescriptionAction.TextChanged(longJd))
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+
+        assertThat(longJd.length).isGreaterThan(PASTE_JD_MAX_CHARACTERS + 1)
+        assertThat(after.uiState.value.text).isEqualTo(longJd)
+    }
+
+    private object LabelByEmployerAnalyzer : JobDescriptionAnalyzer {
+        override suspend fun analyze(rawText: String): JobDescription = JobDescription(
+            title = "Analyst",
+            company = if ("Contoso" in rawText) "Contoso" else "Northwind",
+            rawText = rawText,
+            requirements = emptyList(),
+        )
+    }
+
+    private companion object {
+        const val PREFILL_DEBOUNCE_MS = 300L
     }
 }

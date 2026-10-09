@@ -77,12 +77,14 @@ class PasteJobDescriptionViewModel @Inject constructor(
         restoreTypedInput()
         schedulePrefill()
         mutableState
-            .map { Triple(it.text.take(PASTE_JD_MAX_CHARACTERS + 1), it.company, it.role) }
+            .map { listOf(it.text.take(MAX_SAVED_TEXT_CHARACTERS), it.company, it.role, proposedCompany, proposedRole) }
             .distinctUntilChanged()
-            .onEach { (text, company, role) ->
+            .onEach { (text, company, role, proposedCompany, proposedRole) ->
                 savedState[TEXT_KEY] = text
                 savedState[COMPANY_KEY] = company
                 savedState[ROLE_KEY] = role
+                savedState[PROPOSED_COMPANY_KEY] = proposedCompany
+                savedState[PROPOSED_ROLE_KEY] = proposedRole
             }
             .launchIn(viewModelScope)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
@@ -102,6 +104,12 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private fun restoreTypedInput() {
         val text = savedState.get<String>(TEXT_KEY) ?: return
+        proposedCompany = savedState.get<String>(PROPOSED_COMPANY_KEY).orEmpty()
+        proposedRole = savedState.get<String>(PROPOSED_ROLE_KEY).orEmpty()
+        viewModelScope.launch {
+            val kept = sessionRepository.observeKeptJobDescription().first()
+            if (kept != null) mutableState.update { it.copy(keptText = kept.text) }
+        }
         mutableState.update {
             it.copy(
                 text = text,
@@ -217,7 +225,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
             sessionRepository.keepJobDescription(kept)
             val step = nextOnboardingStep()
             isSubmitting = false
-            mutableState.update { it.copy(nextStep = step) }
+            mutableState.update { it.copy(nextStep = step, keptText = kept.text) }
         }
     }
 
@@ -226,5 +234,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
         const val TEXT_KEY = "pasteJd.text"
         const val COMPANY_KEY = "pasteJd.company"
         const val ROLE_KEY = "pasteJd.role"
+        const val PROPOSED_COMPANY_KEY = "pasteJd.proposedCompany"
+        const val PROPOSED_ROLE_KEY = "pasteJd.proposedRole"
+        const val MAX_SAVED_TEXT_CHARACTERS = 100_000
     }
 }

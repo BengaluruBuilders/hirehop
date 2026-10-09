@@ -56,7 +56,7 @@ class GuidedFormViewModel @Inject internal constructor(
         )
         restoreTypedInput()
         mutableState
-            .map { Typed(it.stepIndex, it.showIntro, it.skills, HashMap(it.values.mapKeys { (field, _) -> field.name })) }
+            .map { it.toTyped() }
             .distinctUntilChanged()
             .onEach { typed -> savedState[TYPED_KEY] = typed }
             .launchIn(viewModelScope)
@@ -73,6 +73,8 @@ class GuidedFormViewModel @Inject internal constructor(
                 showIntro = typed.showIntro,
                 skills = typed.skills,
                 values = typed.values.mapNotNull { (name, value) -> GuidedField.entries.find { it.name == name }?.let { it to value } }.toMap(),
+                completedSteps = typed.completedSteps.mapNotNull(::stepNamed).toSet(),
+                stepEntryIds = typed.stepEntryIds.mapNotNull { (name, ids) -> stepNamed(name)?.let { it to ids.toList() } }.toMap(),
             )
         }
     }
@@ -82,7 +84,20 @@ class GuidedFormViewModel @Inject internal constructor(
         val showIntro: Boolean,
         val skills: List<String>,
         val values: HashMap<String, String>,
+        val completedSteps: ArrayList<String>,
+        val stepEntryIds: HashMap<String, ArrayList<String>>,
     ) : java.io.Serializable
+
+    private fun GuidedFormUiState.toTyped() = Typed(
+        stepIndex = stepIndex,
+        showIntro = showIntro,
+        skills = skills,
+        values = HashMap(values.mapKeys { (field, _) -> field.name }),
+        completedSteps = ArrayList(completedSteps.map { it.name }),
+        stepEntryIds = HashMap(stepEntryIds.entries.associate { (step, ids) -> step.name to ArrayList(ids) }),
+    )
+
+    private fun stepNamed(name: String): GuidedStep? = GuidedStep.entries.find { it.name == name }
 
     fun onAction(action: GuidedFormAction) {
         when (action) {
@@ -292,6 +307,7 @@ class GuidedFormViewModel @Inject internal constructor(
         FactDraftErrorReason.REQUIRED -> GuidedFieldProblem.REQUIRED
         FactDraftErrorReason.END_BEFORE_START -> GuidedFieldProblem.END_BEFORE_START
         FactDraftErrorReason.TOO_LONG -> GuidedFieldProblem.TOO_LONG
+        FactDraftErrorReason.INVALID_DATE -> GuidedFieldProblem.INVALID_DATE
     }
 
     private companion object {
