@@ -202,17 +202,23 @@ class FactEditorViewModel @AssistedInject constructor(
     }
 
     private fun saveDraft(draft: FactDraft) {
-        savedState[DRAFT_KEY] = arrayListOf(draft.title, draft.detail, draft.organization, draft.startDate, draft.endDate)
+        savedState[DRAFT_KEY] = arrayListOf(
+            draft.title.take(SAVED_SHORT_LIMIT),
+            draft.detail.take(SAVED_DETAIL_LIMIT),
+            draft.organization.take(SAVED_SHORT_LIMIT),
+            draft.startDate.take(SAVED_SHORT_LIMIT),
+            draft.endDate.take(SAVED_SHORT_LIMIT),
+        )
     }
 
     private fun FactEditorUiState.withSavedDraft(): FactEditorUiState {
         val (title, detail, organization, startDate, endDate) = savedState.get<ArrayList<String>>(DRAFT_KEY) ?: return this
         val restoredDraft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate)
-        val dateErrors = dateFormatErrors(restoredDraft)
+        val restoredErrors = dateFormatErrors(restoredDraft) + FactDraftValidator.validate(restoredDraft).toFieldErrorMap()
         val restored = copy(
             draft = restoredDraft,
-            fieldErrors = dateErrors + FactDraftValidator.validate(restoredDraft).toFieldErrorMap(),
-            touchedFields = touchedFields + dateErrors.keys,
+            fieldErrors = restoredErrors,
+            touchedFields = touchedFields + restoredErrors.keys,
         )
         return if (mode == FactEditorMode.New) restored.withNewId(title) else restored
     }
@@ -249,6 +255,8 @@ class FactEditorViewModel @AssistedInject constructor(
 
     private companion object {
         const val DRAFT_KEY = "factEditor.draft"
+        const val SAVED_DETAIL_LIMIT = 2 * FactDraftValidator.DETAIL_LIMIT
+        const val SAVED_SHORT_LIMIT = 300
     }
 
     @AssistedFactory

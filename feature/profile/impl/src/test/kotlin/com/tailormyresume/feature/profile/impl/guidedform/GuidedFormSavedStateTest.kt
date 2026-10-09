@@ -77,6 +77,8 @@ class GuidedFormSavedStateTest {
 
         val after = viewModel(restarted(handle))
         after.onEnter(GuidedProfileFormNavKey())
+        assertThat(after.uiState.value.completedSteps).contains(GuidedStep.EDUCATION)
+        assertThat(after.uiState.value.stepEntryFields[GuidedStep.EDUCATION]).contains(GuidedField.COURSE)
         after.onAction(GuidedFormAction.Back)
         after.onAction(GuidedFormAction.Next)
 
@@ -84,5 +86,45 @@ class GuidedFormSavedStateTest {
             .filter { it.category == EntryCategory.EDUCATION }
         assertThat(education).hasSize(1)
         assertThat(after.uiState.value.completedSteps).contains(GuidedStep.EDUCATION)
+    }
+
+    @Test
+    fun theExperienceChoiceSurvivesProcessDeathAsASelectionOnly() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(GuidedProfileFormNavKey(startStep = "experience"))
+        before.onAction(GuidedFormAction.ChooseExperience(ExperienceChoice.YES))
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(GuidedProfileFormNavKey())
+
+        assertThat(after.uiState.value.experienceChoice).isEqualTo(ExperienceChoice.YES)
+        assertThat(after.uiState.value.navigation).isNull()
+    }
+
+    @Test
+    fun theNoExperienceChoiceSurvivesProcessDeath() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(GuidedProfileFormNavKey(startStep = "experience"))
+        before.onAction(GuidedFormAction.ChooseExperience(ExperienceChoice.NO))
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(GuidedProfileFormNavKey())
+
+        assertThat(after.uiState.value.experienceChoice).isEqualTo(ExperienceChoice.NO)
+    }
+
+    @Test
+    fun anOversizedTypedValueIsSavedTruncatedAndRestoresWithoutCrashing() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onEnter(GuidedProfileFormNavKey(startStep = "education"))
+        before.onAction(GuidedFormAction.ValueChanged(GuidedField.COURSEWORK, "x".repeat(300_000)))
+
+        val after = viewModel(restarted(handle))
+        after.onEnter(GuidedProfileFormNavKey())
+
+        assertThat(after.uiState.value.values.getValue(GuidedField.COURSEWORK).length).isAtMost(8_000)
     }
 }

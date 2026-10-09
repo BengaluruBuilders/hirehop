@@ -3,6 +3,9 @@ package com.tailormyresume.feature.profile.impl.facteditor
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.IdGenerator
+import com.tailormyresume.core.domain.fact.FactDraftErrorReason
+import com.tailormyresume.core.domain.fact.FactDraftValidator
+import com.tailormyresume.core.domain.fact.FactField
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
@@ -76,5 +79,44 @@ class FactEditorSavedStateTest {
         val state = viewModel(SavedStateHandle(), entry.id).uiState.value
 
         assertThat(state.draft.title).isEqualTo(entry.title)
+    }
+
+    @Test
+    fun aRestoredEndBeforeStartIsVisibleAndBlocksSave() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onTitleChange("Placement dashboard")
+        before.onStartDateChange("Jan 2024")
+        before.onEndDateChange("Dec 2023")
+
+        val state = viewModel(restarted(handle)).uiState.value
+
+        assertThat(state.visibleReasonFor(FactField.END_DATE)).isEqualTo(FactDraftErrorReason.END_BEFORE_START)
+        assertThat(state.isSaveEnabled).isFalse()
+    }
+
+    @Test
+    fun aRestoredInvalidEndDateIsVisible() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onTitleChange("Placement dashboard")
+        before.onEndDateChange("13/2024")
+
+        val state = viewModel(restarted(handle)).uiState.value
+
+        assertThat(state.visibleReasonFor(FactField.END_DATE)).isEqualTo(FactDraftErrorReason.INVALID_DATE)
+    }
+
+    @Test
+    fun anOversizedDetailIsSavedTruncatedAndRestoresWithoutCrashing() {
+        val handle = SavedStateHandle()
+        val before = viewModel(handle)
+        before.onTitleChange("Placement dashboard")
+        before.onDetailChange("y".repeat(300_000))
+
+        val state = viewModel(restarted(handle)).uiState.value
+
+        assertThat(state.draft.detail.length).isEqualTo(2 * FactDraftValidator.DETAIL_LIMIT)
+        assertThat(state.visibleReasonFor(FactField.DETAIL)).isEqualTo(FactDraftErrorReason.TOO_LONG)
     }
 }
