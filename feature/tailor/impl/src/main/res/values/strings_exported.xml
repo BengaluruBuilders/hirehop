@@ -24,6 +24,8 @@
     <string name="feature_tailor_impl_exported_format_docx">DOCX</string>
     <string name="feature_tailor_impl_exported_share_action">Share</string>
     <string name="feature_tailor_impl_exported_open_action">Open</string>
+    <string name="feature_tailor_impl_exported_open_unavailable">No app on this phone can open this file. You can share it instead.</string>
+    <string name="feature_tailor_impl_exported_share_instead">Share instead</string>
     <string name="feature_tailor_impl_exported_share_missing">The exported file is no longer on this device. Go back and download it again.</string>
     <string name="feature_tailor_impl_exported_chooser_title">Share your exported resume</string>
     <string name="feature_tailor_impl_exported_share_subject_bare">My resume</string>

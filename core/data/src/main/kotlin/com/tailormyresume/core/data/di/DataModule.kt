@@ -7,9 +7,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers.IO
-import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
-import com.tailormyresume.core.data.connectivity.MockConnectivityControl
-import com.tailormyresume.core.data.connectivity.OfflineConnectivityMonitor
 import com.tailormyresume.core.data.mock.DataStoreMockStateStore
 import com.tailormyresume.core.data.mock.DelayMockLatency
 import com.tailormyresume.core.data.mock.MockLatency
@@ -88,12 +85,6 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindsMockLatency(latency: DelayMockLatency): MockLatency
-
-    @Binds
-    internal abstract fun bindsConnectivityMonitor(monitor: OfflineConnectivityMonitor): ConnectivityMonitor
-
-    @Binds
-    internal abstract fun bindsMockConnectivityControl(monitor: OfflineConnectivityMonitor): MockConnectivityControl
 
     companion object {
         @Provides
