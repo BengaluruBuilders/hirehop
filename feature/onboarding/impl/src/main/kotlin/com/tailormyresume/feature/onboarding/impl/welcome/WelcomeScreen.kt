@@ -46,6 +46,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.CareerStage
 import com.tailormyresume.feature.onboarding.impl.R
+import com.tailormyresume.feature.onboarding.impl.common.stackedHyphens
 
 private val TOP_ROW_HEIGHT = 48.dp
 private val LOGO_MARK = 36.dp
@@ -139,7 +140,7 @@ private fun WelcomeTopRow(
             WelcomeLogoMark()
             Text(
                 text = stringResource(R.string.feature_onboarding_impl_welcome_brand),
-                style = TmrTheme.typography.titleL,
+                style = TmrTheme.typography.titleL.copy(hyphens = stackedHyphens()),
                 color = TmrTheme.colors.onSurface,
             )
         }
@@ -185,12 +186,12 @@ private fun WelcomeHeadline(modifier: Modifier = Modifier) {
     ) {
         TmrHeadline(
             text = stringResource(R.string.feature_onboarding_impl_welcome_headline),
-            style = TmrTheme.typography.displayM,
+            style = TmrTheme.typography.displayM.copy(hyphens = stackedHyphens()),
             color = TmrTheme.colors.onSurface,
         )
         Text(
             text = stringResource(R.string.feature_onboarding_impl_welcome_subline),
-            style = TmrTheme.typography.titleM,
+            style = TmrTheme.typography.titleM.copy(hyphens = stackedHyphens()),
             color = TmrTheme.colors.onSurface,
         )
     }
