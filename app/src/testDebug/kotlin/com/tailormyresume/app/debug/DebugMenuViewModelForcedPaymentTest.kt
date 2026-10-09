@@ -66,4 +66,23 @@ class DebugMenuViewModelForcedPaymentTest {
 
         assertThat(seen).containsExactly(DebugScenario.PENDING, DebugScenario.DEFAULT).inOrder()
     }
+
+    @Test
+    fun releasingAndReforcingTheScenarioSurvivesAnExternalActivityCoveringThePreview() = runTest {
+        val subject = viewModel()
+        subject.openPreview(DebugScenarioTarget.Credits, DebugScenario.PENDING) {}
+
+        subject.releasePaymentScenario()
+        assertThat(forced.scenario).isEqualTo(DebugScenario.DEFAULT)
+
+        subject.forcePaymentScenario(DebugScenarioTarget.Credits, DebugScenario.PENDING)
+        assertThat(forced.scenario).isEqualTo(DebugScenario.PENDING)
+    }
+
+    @Test
+    fun reforcingForAScreenThatForcesNothingKeepsTheDefault() = runTest {
+        viewModel().forcePaymentScenario(DebugScenarioTarget.Profile, DebugScenario.PENDING)
+
+        assertThat(forced.scenario).isEqualTo(DebugScenario.DEFAULT)
+    }
 }

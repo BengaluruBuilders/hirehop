@@ -28,7 +28,7 @@ internal data class CreditsUiState(
 ) {
     val totalCredits: Int get() = freeCredits + purchasedCredits
 
-    val showsFreeNote: Boolean get() = freeCredits > 0 && purchases.isEmpty()
+    val showsFreeNote: Boolean get() = freeCredits > 0 && !offersRefund
 
     val refundOrderId: String? get() = purchases.firstOrNull { entry -> !entry.isPending }?.orderId
         ?: purchases.firstOrNull()?.orderId

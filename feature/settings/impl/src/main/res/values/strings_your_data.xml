@@ -53,6 +53,7 @@
         <item quantity="one">Adding %1$d purchase record</item>
         <item quantity="other">Adding %1$d purchase records</item>
     </plurals>
+    <string name="feature_settings_impl_your_data_preparing_purchases_unknown">Adding your purchase records</string>
     <string name="feature_settings_impl_your_data_preparing_note">Usually under a minute. Nothing is sent anywhere until you choose where.</string>
 
     <string name="feature_settings_impl_your_data_delete_title">Delete %1$s?</string>

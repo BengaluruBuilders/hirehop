@@ -148,11 +148,15 @@ private fun PreparingContent(content: YourDataUiState.Content, padding: PaddingV
             content.applications.size,
             content.applications.size,
         ),
-        pluralStringResource(
-            R.plurals.feature_settings_impl_your_data_preparing_purchases,
-            content.purchases.size,
-            content.purchases.size,
-        ),
+        if (content.purchasesKnown) {
+            pluralStringResource(
+                R.plurals.feature_settings_impl_your_data_preparing_purchases,
+                content.purchases.size,
+                content.purchases.size,
+            )
+        } else {
+            stringResource(R.string.feature_settings_impl_your_data_preparing_purchases_unknown)
+        },
     )
     Column(
         modifier = Modifier

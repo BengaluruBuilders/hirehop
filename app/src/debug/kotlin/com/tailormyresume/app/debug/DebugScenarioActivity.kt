@@ -89,9 +89,15 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (opened) menuViewModel.forcePaymentScenario(target, scenario)
+    }
+
     override fun onStop() {
         super.onStop()
-        if (opened && !isChangingConfigurations) closePreview()
+        if (!opened || isChangingConfigurations) return
+        if (isFinishing) closePreview() else menuViewModel.releasePaymentScenario()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

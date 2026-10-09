@@ -53,6 +53,19 @@ class CreditsPurchaseFailureTest {
     }
 
     @Test
+    fun aPayingUserWhoseHistoryFailsToLoadIsNotToldTheyHaveNoPurchases() = runTest {
+        val gateway = TestPaymentGateway()
+        gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        val subject = CreditsViewModel(PurchasesFailGateway(gateway), TestConnectivityMonitor())
+
+        subject.onEnter(CreditsNavKey(scenario = DebugScenario.DEFAULT))
+
+        val state = subject.uiState.value
+        assertThat(state.freeCredits).isGreaterThan(0)
+        assertThat(state.showsFreeNote).isFalse()
+    }
+
+    @Test
     fun aKnownEmptyHistoryStillHidesTheRefundRoute() = runTest {
         val subject = CreditsViewModel(TestPaymentGateway(), TestConnectivityMonitor())
 
