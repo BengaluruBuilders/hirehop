@@ -25,6 +25,12 @@ object CoverLetterComposer {
         closingParagraph = closingParagraph(candidate),
     )
 
+    fun evidenceCount(
+        candidate: CandidateProfile,
+        analysis: JobAnalysisResult,
+        maxEvidence: Int = DEFAULT_MAX_EVIDENCE,
+    ): Int = EvidencePicker.pick(candidate, analysis, maxEvidence).size
+
     private fun opening(job: JobDescription, analysis: JobAnalysisResult): String =
         LetterText.sentences(roleSentence(job), coverageSentence(analysis))
 

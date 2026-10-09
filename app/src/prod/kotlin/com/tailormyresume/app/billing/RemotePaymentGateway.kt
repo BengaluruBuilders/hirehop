@@ -25,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,6 +45,13 @@ class RemotePaymentGateway @Inject constructor(
     private val pending = MutableStateFlow<List<String>>(emptyList())
     private val reposts = mutableMapOf<String, Job>()
     private var generation = 0
+
+    private class OwnedHistory(val uid: String?, val records: List<PurchaseRecord>)
+
+    @Volatile
+    private var history: OwnedHistory? = null
+
+    private fun cachedHistory(): List<PurchaseRecord>? = history?.takeIf { it.uid == uids.uid() }?.records
 
     internal fun repostCount() = synchronized(reposts) { reposts.size }
 
@@ -71,10 +79,32 @@ class RemotePaymentGateway @Inject constructor(
                 wallet.refreshOrCached()
             }
 
-    override suspend fun purchaseHistory(): List<PurchaseRecord> =
+    override suspend fun purchaseHistory(): List<PurchaseRecord> {
+        val epoch = currentGeneration()
+        val uid = uids.uid()
+        return fetchHistory().also { fresh -> keepHistory(fresh, epoch, uid) }
+    }
+
+    override fun observePurchaseHistory(): Flow<List<PurchaseRecord>> = flow {
+        val cached = cachedHistory()
+        cached?.let { emit(it) }
+        val epoch = currentGeneration()
+        val uid = uids.uid()
+        val fresh = runCatching { fetchHistory() }.getOrElse { failure ->
+            if (failure is CancellationException || cached == null) throw failure
+            return@flow
+        }
+        if (keepHistory(fresh, epoch, uid)) emit(fresh)
+    }
+
+    private suspend fun fetchHistory(): List<PurchaseRecord> =
         apiResult { api.purchases().purchases }.getOrThrow().map { purchase ->
             PurchaseRecord(purchase.productId, purchase.orderId, Instant.parse(purchase.purchasedAt), PurchaseState.COMPLETED)
         }
+
+    private fun keepHistory(fresh: List<PurchaseRecord>, epoch: Int, uid: String?): Boolean = synchronized(reposts) {
+        (epoch == generation && uid == uids.uid()).also { current -> if (current) history = OwnedHistory(uid, fresh) }
+    }
 
     override suspend fun purchase(packId: String): PurchaseResult {
         val epoch = currentGeneration()
@@ -114,6 +144,7 @@ class RemotePaymentGateway @Inject constructor(
             reposts.values.forEach(Job::cancel)
             reposts.clear()
             wallet.clear()
+            history = null
             pending.value = emptyList()
         }
         return NO_CREDITS

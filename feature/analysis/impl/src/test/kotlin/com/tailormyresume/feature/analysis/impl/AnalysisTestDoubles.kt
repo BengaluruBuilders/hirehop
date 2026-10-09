@@ -158,3 +158,16 @@ class FlakyApplicationRepository(
         delegate.upsertApplication(application)
     }
 }
+
+class CitingEveryBulletMatcher : GapMatcher {
+    override fun match(profile: CandidateProfile, job: JobDescription): GapAnalysis {
+        val bullets = profile.entries.filter { it.isConfirmed }.flatMap { it.bullets }
+        val matches = job.requirements.map { requirement ->
+            val cited = bullets
+                .filter { bullet -> requirement.keywords.any { bullet.text.contains(it, ignoreCase = true) } }
+                .map { it.id }
+            RequirementMatch(requirement, if (cited.isEmpty()) MatchStatus.GAP else MatchStatus.PARTIAL, cited)
+        }
+        return GapAnalysis(matches, KeywordCoverage(matches.count { it.status != MatchStatus.GAP }, matches.size))
+    }
+}

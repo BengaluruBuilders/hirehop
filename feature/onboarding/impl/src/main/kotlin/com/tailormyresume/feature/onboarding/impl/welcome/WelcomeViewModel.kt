@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
+import com.tailormyresume.core.domain.onboarding.OnboardingStep
 import com.tailormyresume.core.model.CareerStage
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.feature.onboarding.api.navigation.WelcomeNavKey
@@ -39,6 +40,9 @@ class WelcomeViewModel @Inject constructor(
             sessionRepository.observeCareerStage().collect { stage ->
                 mutableState.update { it.copy(careerStage = stage) }
             }
+        }
+        viewModelScope.launch {
+            if (nextOnboardingStep() == OnboardingStep.Consent) goTo(WelcomeDestination.CONSENT)
         }
         viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
