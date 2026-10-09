@@ -26,7 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -165,7 +168,11 @@ private fun LazyListScope.coverLetterItems(
 ) {
     if (uiState.showsOfflineBanner) {
         item(key = "offline") {
-            NoticeStrip(text = stringResource(R.string.feature_tailor_impl_cover_letter_offline), icon = TmrIcons.Offline)
+            NoticeStrip(
+                text = stringResource(R.string.feature_tailor_impl_cover_letter_offline),
+                icon = TmrIcons.Offline,
+                modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+            )
         }
     }
     when (uiState.stage) {

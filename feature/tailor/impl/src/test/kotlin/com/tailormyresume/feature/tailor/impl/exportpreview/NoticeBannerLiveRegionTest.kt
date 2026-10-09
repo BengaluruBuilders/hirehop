@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +31,7 @@ class NoticeBannerLiveRegionTest {
         show(NoticeTone.Error)
         val node = rule.onNode(liveRegionNodes).fetchSemanticsNode()
         assertEquals(LiveRegionMode.Polite, node.config[SemanticsProperties.LiveRegion])
+        assertTrue(node.config[SemanticsProperties.Text].joinToString { it.text }.contains("Payment failed"))
     }
 
     @Test
