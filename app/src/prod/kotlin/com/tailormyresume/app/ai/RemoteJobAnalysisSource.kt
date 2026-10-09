@@ -3,6 +3,7 @@ package com.tailormyresume.app.ai
 import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.JobAnalysisSource
+import com.tailormyresume.core.domain.upgradedMatch
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobDescription
@@ -13,10 +14,8 @@ import com.tailormyresume.core.model.evidenceIds
 import com.tailormyresume.core.network.TailorMyResumeApi
 import com.tailormyresume.core.network.dto.AnalysisRequest
 import com.tailormyresume.core.network.dto.MatchDto
-import com.tailormyresume.core.network.dto.ProfileFactsDto
 import com.tailormyresume.core.network.mapper.toFactsDto
 import com.tailormyresume.core.network.mapper.toJobDescription
-import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,16 +24,17 @@ import javax.inject.Singleton
 class RemoteJobAnalysisSource @Inject constructor(
     private val api: TailorMyResumeApi,
     private val matcher: GapMatcher,
-    private val json: Json,
 ) : JobAnalysisSource {
-    private val cache = object : LinkedHashMap<String, JobAnalysisResult>() {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JobAnalysisResult>) = size > CACHE_SIZE
+    private data class Entry(val result: JobAnalysisResult, val baselineProfile: CandidateProfile)
+
+    private val cache = object : LinkedHashMap<String, Entry>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Entry>) = size > CACHE_SIZE
     }
 
     override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
         val facts = profile.toFactsDto()
-        val key = cacheKey(rawJobText, facts)
-        synchronized(cache) { cache[key] }?.let { return it }
+        val key = cacheKey(rawJobText)
+        synchronized(cache) { cache[key] }?.let { return rematch(it, profile) }
         val response = remoteAi { api.analyse(AnalysisRequest(rawJobText, facts)) }
         val job = response.job.toJobDescription(rawJobText)
         val factIds = profile.confirmedWithinLimits().evidenceIds()
@@ -43,10 +43,29 @@ class RemoteJobAnalysisSource @Inject constructor(
             keywordCoverage = matcher.match(profile, job).keywordCoverage,
             generationId = response.generationId,
         )
-        return JobAnalysisResult(job, gap).also { synchronized(cache) { cache[key] = it } }
+        val entry = Entry(JobAnalysisResult(job, gap), profile)
+        synchronized(cache) { cache[key] = entry }
+        return entry.result
     }
 
     fun clear() = synchronized(cache) { cache.clear() }
+
+    private fun rematch(entry: Entry, profile: CandidateProfile): JobAnalysisResult {
+        val job = entry.result.job
+        val factIds = profile.confirmedWithinLimits().evidenceIds()
+        val baseline = matcher.match(entry.baselineProfile, job).matches.associateBy { it.requirement.id }
+        val current = matcher.match(profile, job)
+        val currentByRequirement = current.matches.associateBy { it.requirement.id }
+        val matches = entry.result.gap.matches.map { server ->
+            val evidence = server.evidenceIds.filter { it in factIds }
+            val effectiveServerStatus =
+                server.status.takeUnless { it != MatchStatus.GAP && evidence.isEmpty() } ?: MatchStatus.GAP
+            val effective = RequirementMatch(server.requirement, effectiveServerStatus, evidence)
+            upgradedMatch(effective, currentByRequirement[server.requirement.id], baseline[server.requirement.id], targeted = false)
+                ?: effective
+        }
+        return JobAnalysisResult(job, GapAnalysis(matches, current.keywordCoverage, entry.result.gap.generationId))
+    }
 
     private fun matchesOf(job: JobDescription, matches: List<MatchDto>, factIds: Set<String>): List<RequirementMatch> {
         val byRequirement = matches.associateBy { it.requirementId }
@@ -58,10 +77,8 @@ class RemoteJobAnalysisSource @Inject constructor(
         }
     }
 
-    private fun cacheKey(rawJobText: String, facts: ProfileFactsDto): String {
-        val job = rawJobText.trim().replace(WHITESPACE, " ")
-        return sha256(job) + sha256(json.encodeToString(ProfileFactsDto.serializer(), facts))
-    }
+    private fun cacheKey(rawJobText: String): String =
+        sha256(rawJobText.trim().replace(WHITESPACE, " "))
 
     private fun sha256(text: String): String =
         MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }

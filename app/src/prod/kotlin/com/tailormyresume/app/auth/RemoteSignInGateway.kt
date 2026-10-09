@@ -43,7 +43,7 @@ class RemoteSignInGateway @Inject constructor(
         }
         val account = SignInAccount(id = user.uid, displayName = user.displayName.ifBlank { user.email }, email = user.email)
         val previousAccountId = sessionRepository.lastAccountId()
-        if (previousAccountId != null && previousAccountId != user.uid) wiper.wipeAll()
+        if (previousAccountId != null && previousAccountId != user.uid) wipeKeepingOnboardingInput()
         sessionRepository.saveLastAccountId(user.uid)
         sessionRepository.saveAccount(account)
         return SignInResult.SignedIn(account)
@@ -53,9 +53,18 @@ class RemoteSignInGateway @Inject constructor(
         withContext(NonCancellable) {
             firebase.signOut()
             credentials.clearState()
+            sessionRepository.observeAccount().first()?.let { sessionRepository.saveLastAccountId(it.id) }
             sessionRepository.signOut()
             cleaner.clear()
         }
+    }
+
+    private suspend fun wipeKeepingOnboardingInput() {
+        val keptJob = sessionRepository.observeKeptJobDescription().first()
+        val careerStage = sessionRepository.observeCareerStage().first()
+        wiper.wipeAll()
+        keptJob?.let { sessionRepository.keepJobDescription(it) }
+        careerStage?.let { sessionRepository.saveCareerStage(it) }
     }
 
     private fun Throwable.toAuthFailure(): AuthFailure = when ((this as? ApiException)?.error) {

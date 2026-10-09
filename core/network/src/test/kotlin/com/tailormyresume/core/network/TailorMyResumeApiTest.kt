@@ -7,6 +7,8 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Test
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 class TailorMyResumeApiTest {
@@ -91,10 +93,42 @@ class TailorMyResumeApiTest {
     @Test
     fun aSessionExpiredTokenSignalsTheListener() {
         tokens.expired = true
-        server.enqueue(error(401, "UNAUTHENTICATED"))
         assertThat(failureOf { api().me() }).isEqualTo(ApiError.Unauthenticated)
         assertThat(expirySignals).isEqualTo(1)
-        assertThat(server.takeRequest().getHeader("Authorization")).isNull()
+        assertThat(server.requestCount).isEqualTo(0)
+    }
+
+    @Test
+    fun anExpiredSessionSendsNoRequestAndStillSignalsOnce() {
+        tokens.expired = true
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Unauthenticated)
+        assertThat(expirySignals).isEqualTo(1)
+        assertThat(server.requestCount).isEqualTo(0)
+    }
+
+    @Test
+    fun aTokenTimeoutIsATimeoutAndSendsNoRequest() {
+        tokens.failure = SocketTimeoutException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Timeout)
+        assertThat(server.requestCount).isEqualTo(0)
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aTransientTokenFailureIsOffline() {
+        tokens.failure = IOException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Offline)
+        assertThat(server.requestCount).isEqualTo(0)
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aTimeoutDuringTheForcedRefreshIsATimeoutWithoutASecondRequest() {
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        tokens.failureOnRefresh = SocketTimeoutException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Timeout)
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(expirySignals).isEqualTo(0)
     }
 
     @Test
@@ -243,11 +277,15 @@ class TailorMyResumeApiTest {
         val forceRefreshCalls = mutableListOf<Boolean>()
         var available = true
         var expired = false
+        var failure: IOException? = null
+        var failureOnRefresh: IOException? = null
         private var issued = 0
 
         override fun idToken(forceRefresh: Boolean): String? {
             forceRefreshCalls += forceRefresh
             if (expired) throw SessionExpiredException()
+            failure?.let { throw it }
+            if (forceRefresh) failureOnRefresh?.let { throw it }
             return if (available) "token-${issued++}" else null
         }
     }

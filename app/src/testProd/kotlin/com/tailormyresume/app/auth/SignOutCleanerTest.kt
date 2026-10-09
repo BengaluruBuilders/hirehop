@@ -11,6 +11,7 @@ import com.tailormyresume.app.billing.FakePlayBilling
 import com.tailormyresume.app.billing.FakeUid
 import com.tailormyresume.app.billing.RemotePaymentGateway
 import com.tailormyresume.app.billing.WalletSource
+import com.tailormyresume.app.billing.idleScope
 import com.tailormyresume.app.billing.walletJson
 import com.tailormyresume.core.data.repository.PendingReportQueue
 import com.tailormyresume.core.model.ConsentPurpose
@@ -21,7 +22,6 @@ import com.tailormyresume.core.testing.mock.TestMockStateStore
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Test
 import kotlin.time.Instant
@@ -31,8 +31,8 @@ class SignOutCleanerTest {
     private val store = TestMockStateStore()
     private val session = TestSessionRepository()
     private val wallet = WalletSource(backend.api)
-    private val payments = RemotePaymentGateway(backend.api, wallet, FakePlayBilling(), FakeUid("uid-1"))
-    private val analysis = RemoteJobAnalysisSource(backend.api, NoMatcher, Json)
+    private val payments = RemotePaymentGateway(backend.api, wallet, FakePlayBilling(), FakeUid("uid-1"), idleScope())
+    private val analysis = RemoteJobAnalysisSource(backend.api, NoMatcher)
     private val reports = PendingReportQueue(store)
     private val cleaner = SignOutCleaner(payments, analysis, reports, store, session)
 

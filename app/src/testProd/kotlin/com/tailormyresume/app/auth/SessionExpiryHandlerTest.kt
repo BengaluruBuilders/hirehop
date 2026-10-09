@@ -98,12 +98,27 @@ class SessionExpiryHandlerTest {
         val handler = handler()
 
         repeat(5) { handler.onSessionExpired() }
+        testScheduler.advanceUntilIdle()
         gateway.hold?.complete(Unit)
         testScheduler.advanceUntilIdle()
         handler.onSessionExpired()
         testScheduler.advanceUntilIdle()
 
         assertThat(gateway.signOuts).isEqualTo(1)
+    }
+
+    @Test
+    fun theGuardResetsSoASecondExpiryAfterANewSignInSignsOutAgain() = runTest(UnconfinedTestDispatcher()) {
+        storeAccount()
+        val handler = handler()
+
+        handler.onSessionExpired()
+        testScheduler.advanceUntilIdle()
+        storeAccount()
+        handler.onSessionExpired()
+        testScheduler.advanceUntilIdle()
+
+        assertThat(gateway.signOuts).isEqualTo(2)
     }
 
     private class CountingGateway(private val session: TestSessionRepository) : SignInGateway {

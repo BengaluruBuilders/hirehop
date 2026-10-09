@@ -7,12 +7,12 @@ import com.tailormyresume.app.billing.FakePlayBilling
 import com.tailormyresume.app.billing.FakeUid
 import com.tailormyresume.app.billing.RemotePaymentGateway
 import com.tailormyresume.app.billing.WalletSource
+import com.tailormyresume.app.billing.idleScope
 import com.tailormyresume.core.data.repository.PendingReportQueue
 import com.tailormyresume.core.domain.account.ExportedFiles
 import com.tailormyresume.core.testing.mock.TestMockStateStore
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Test
 
@@ -22,8 +22,8 @@ class SignOutCleanerExportFilesTest {
     private var deleteAllCalls = 0
 
     private val cleaner = SignOutCleaner(
-        RemotePaymentGateway(backend.api, WalletSource(backend.api), FakePlayBilling(), FakeUid("uid-1")),
-        RemoteJobAnalysisSource(backend.api, NoMatcher, Json),
+        RemotePaymentGateway(backend.api, WalletSource(backend.api), FakePlayBilling(), FakeUid("uid-1"), idleScope()),
+        RemoteJobAnalysisSource(backend.api, NoMatcher),
         PendingReportQueue(store),
         store,
         TestSessionRepository(),

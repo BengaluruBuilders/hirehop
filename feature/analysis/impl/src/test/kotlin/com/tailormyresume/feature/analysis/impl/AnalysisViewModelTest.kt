@@ -20,6 +20,7 @@ import com.tailormyresume.core.model.ConsentRecord
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.KeptJobDescription
+import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
@@ -74,14 +75,23 @@ class AnalysisViewModelTest {
     private var nextId = 0
     private var analysisCalls = 0
     private var serverOnlyMetIds = emptySet<String>()
+    private var serverGapIds = emptySet<String>()
+    private var serverKeywordCovered: Int? = null
     private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
             analysisCalls++
             val result = OfflineJobAnalysisSource(analyzer, matcher).analyse(profile, rawJobText)
             val matches = result.gap.matches.map {
-                if (it.requirement.id in serverOnlyMetIds) it.copy(status = MatchStatus.MET) else it
+                when (it.requirement.id) {
+                    in serverOnlyMetIds -> it.copy(status = MatchStatus.MET)
+                    in serverGapIds -> it.copy(status = MatchStatus.GAP, evidenceIds = emptyList())
+                    else -> it
+                }
             }
-            return result.copy(gap = result.gap.copy(matches = matches))
+            val coverage = serverKeywordCovered
+                ?.let { KeywordCoverage(covered = it, total = result.gap.keywordCoverage.total) }
+                ?: result.gap.keywordCoverage
+            return result.copy(gap = result.gap.copy(matches = matches, keywordCoverage = coverage))
         }
     }
 
@@ -811,11 +821,147 @@ class AnalysisViewModelTest {
         assertThat(matcher.receivedProfiles.size).isEqualTo(calls)
     }
 
+    @Test
+    fun iHaveThis_whenServerSaysGapButDeviceAlreadyMatches_keepsTheOtherRequirementAndItsPrepItem() = runTest {
+        serverGapIds = setOf("req-graphql")
+        start()
+        viewModel.onTogglePrepPlan("req-graphql")
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(draftPlan().map { it.id }).contains("req-graphql")
+    }
+
+    @Test
+    fun iHaveThis_whenEvidenceClosesReqSql_upgradesOnlyReqSqlAndDropsOnlyItsPrepItem() = runTest {
+        serverGapIds = setOf("req-graphql")
+        start()
+        viewModel.onTogglePrepPlan("req-graphql")
+        viewModel.onTogglePrepPlan("req-sql")
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(result().toast).isEqualTo(AnalysisToast.GapClosed)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(draftPlan().map { it.id }).containsExactly("req-graphql")
+    }
+
+    @Test
+    fun iHaveThis_neverDowngradesBelowTheServerStatus_andUpgradesOnlyChangedRequirements() = runTest {
+        serverOnlyMetIds = setOf("req-docker")
+        serverGapIds = setOf("req-graphql")
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
+    }
+
+    @Test
+    fun iHaveThis_whenTheTargetedRequirementAlreadyMatchesOnTheDevice_closesItAndOthersStay() = runTest {
+        serverGapIds = setOf("req-docker", "req-kotlin")
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+
+        viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
+
+        val result = result()
+        assertThat(result.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(result.item("req-kotlin").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result.toast).isEqualTo(AnalysisToast.GapClosed)
+        assertThat(result.closedRequirementId).isEqualTo("req-docker")
+        val entry = requireNotNull(profileRepository.observeProfile().first()).entries.first { it.id == "U-01" }
+        assertThat(entry.source).isEqualTo(FactSource.USER_STATED)
+        assertThat(entry.bullets.map { it.text }).containsExactly("I shipped Docker images during my internship.")
+    }
+
+    @Test
+    fun iHaveThis_keywordCoverageGrowsOnlyByTheKeywordsTheNewFactAdds() = runTest {
+        serverKeywordCovered = 0
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        assertThat(result().keywordCoverage.covered).isEqualTo(0)
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        val result = result()
+        assertThat(result.keywordCoverage.covered).isEqualTo(1)
+        assertThat(result.keywordCoverage.total).isEqualTo(4)
+    }
+
+    @Test
+    fun undo_afterIHaveThis_restoresServerMatchesAndKeepsOtherPrepItems() = runTest {
+        serverGapIds = setOf("req-graphql")
+        start()
+        viewModel.onTogglePrepPlan("req-graphql")
+        viewModel.onTogglePrepPlan("req-sql")
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+        viewModel.onUndo()
+
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(draftPlan().map { it.id }).containsExactly("req-graphql")
+        assertThat(result().toast).isNull()
+    }
+
+    @Test
+    fun iHaveThis_laterSaveKeepsEarlierEvidenceClosedRequirementMet_andUndoRestoresOnlyTheLastOne() = runTest {
+        serverGapIds = setOf("req-docker", "req-sql")
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        viewModel.onTogglePrepPlan("req-docker")
+        viewModel.onTogglePrepPlan("req-sql")
+
+        viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+
+        val closed = result()
+        assertThat(closed.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(closed.item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(draftPlan().map { it.id }).containsNoneOf("req-docker", "req-sql")
+
+        viewModel.onUndo()
+
+        val undone = result()
+        assertThat(undone.item("req-docker").status).isEqualTo(MatchStatus.MET)
+        assertThat(undone.item("req-sql").status).isEqualTo(MatchStatus.GAP)
+        assertThat(draftPlan().map { it.id }).doesNotContain("req-docker")
+    }
+
+    @Test
+    fun tailor_afterEvidenceForOneRequirement_sendsOnlyThatUpgradeToCreateApplication() = runTest {
+        serverGapIds = setOf("req-graphql")
+        start(onboardingComplete = true)
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries during my internship.")
+        viewModel.onTailor()
+
+        val application = applicationRepository.observeApplications().first().single()
+        val statuses = requireNotNull(application.gapAnalysis).matches
+            .associate { it.requirement.id to it.status }
+        assertThat(statuses["req-sql"]).isEqualTo(MatchStatus.MET)
+        assertThat(statuses["req-graphql"]).isEqualTo(MatchStatus.GAP)
+    }
+
     private object FixedClock : Clock {
         override fun now(): Instant = Instant.fromEpochMilliseconds(0)
     }
 
     private companion object {
         val KEPT_JOB = KeptJobDescription(text = TEST_JOB_TEXT, company = "Northwind GCC", role = "Associate Analyst")
+    }
+
+    @Test
+    fun iHaveThis_anUnrelatedRequirementUpgradesOnlyWhenItsEvidenceCitesTheNewFact() = runTest {
+        serverGapIds = setOf("req-sql", "req-docker", "req-graphql")
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries and shipped Docker images during my internship.")
+
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.PARTIAL)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
     }
 }

@@ -63,7 +63,12 @@ class GooglePlayBilling @Inject constructor(
                 .setObfuscatedAccountId(obfuscatedAccountId)
                 .build()
             val launched = client.launchBillingFlow(activity, params)
-            if (launched.responseCode == BillingClient.BillingResponseCode.OK) outcome.await() else PlayPurchaseResult.Failed
+            if (launched.isOk()) {
+                outcome.await()
+            } else {
+                inFlight = null
+                purchaseResultOf(launched, null)
+            }
         }
 
     override suspend fun ownedPurchases(): List<PlayPurchase> {
