@@ -8,11 +8,12 @@ import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.PaymentGateway
+import com.tailormyresume.core.domain.PurchaseHistoryState
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseState
 import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
-import com.tailormyresume.core.domain.observePurchaseHistoryOrEmpty
+import com.tailormyresume.core.domain.observePurchaseHistoryState
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.JobApplication
@@ -54,7 +55,7 @@ class YourDataViewModel @Inject constructor(
     private val ledger: Flow<Ledger> = combine(
         profileRepository.observeProfile(),
         applicationRepository.observeApplications(),
-        paymentGateway.observePurchaseHistoryOrEmpty(),
+        paymentGateway.observePurchaseHistoryState(),
         flow {
             emit(emptyList())
             emit(runCatching { paymentGateway.packs() }.getOrDefault(emptyList()))
@@ -74,7 +75,8 @@ class YourDataViewModel @Inject constructor(
             confirmedFactCount = counts.confirmed,
             userStatedFactCount = counts.userStated,
             applications = applications,
-            purchases = ledger.purchases.map { record -> record.toPurchase(ledger.packs) },
+            purchases = ledger.records.map { record -> record.toPurchase(ledger.packs) },
+            purchasesKnown = ledger.purchases is PurchaseHistoryState.Known,
             isOffline = !isOnline || localState.forcedOffline,
             export = localState.export,
             deleteTarget = applications.firstOrNull { item -> item.id == localState.deleteTargetId },
@@ -164,9 +166,11 @@ class YourDataViewModel @Inject constructor(
     private class Ledger(
         val profile: CandidateProfile?,
         val applications: List<JobApplication>,
-        val purchases: List<PurchaseRecord>,
+        val purchases: PurchaseHistoryState,
         val packs: List<ApplicationPack>,
-    )
+    ) {
+        val records: List<PurchaseRecord> get() = (purchases as? PurchaseHistoryState.Known)?.records.orEmpty()
+    }
 
     private data class LocalState(
         val forcedOffline: Boolean = false,

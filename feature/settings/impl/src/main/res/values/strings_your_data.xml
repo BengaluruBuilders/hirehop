@@ -15,6 +15,7 @@
     <string name="feature_settings_impl_your_data_applications_summary">JD text, analyses, resumes</string>
     <string name="feature_settings_impl_your_data_purchases_title">Purchases</string>
     <string name="feature_settings_impl_your_data_purchases_none">No purchases yet</string>
+    <string name="feature_settings_impl_your_data_purchases_unavailable">We could not load your purchases</string>
     <plurals name="feature_settings_impl_your_data_purchase_credits">
         <item quantity="one">%1$d application</item>
         <item quantity="other">%1$d applications</item>

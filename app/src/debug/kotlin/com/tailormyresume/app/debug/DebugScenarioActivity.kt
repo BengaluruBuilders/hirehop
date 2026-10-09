@@ -89,6 +89,11 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (opened && !isChangingConfigurations) closePreview()
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         applyEdgeToEdge()

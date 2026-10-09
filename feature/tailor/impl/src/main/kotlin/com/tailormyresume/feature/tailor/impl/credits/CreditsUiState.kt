@@ -22,6 +22,7 @@ internal data class CreditsUiState(
     val purchasedCredits: Int = 0,
     val purchases: List<CreditsPurchaseEntry> = emptyList(),
     val hasPurchaseHistory: Boolean = false,
+    val purchasesKnown: Boolean = true,
     val isOffline: Boolean = false,
     val creditsNeverExpire: Boolean = true,
 ) {
@@ -31,6 +32,8 @@ internal data class CreditsUiState(
 
     val refundOrderId: String? get() = purchases.firstOrNull { entry -> !entry.isPending }?.orderId
         ?: purchases.firstOrNull()?.orderId
+
+    val offersRefund: Boolean get() = !purchasesKnown || hasPurchaseHistory || purchases.isNotEmpty()
 
     val canBuy: Boolean get() = stage == CreditsStage.READY && !isOffline
 }

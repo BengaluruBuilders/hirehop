@@ -6,6 +6,8 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.sample.TestSampleDataController
 import com.tailormyresume.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -50,5 +52,18 @@ class DebugMenuViewModelForcedPaymentTest {
         subject.closePreview(DebugScenarioTarget.PackPurchase)
 
         assertThat(forced.scenario).isEqualTo(DebugScenario.DEFAULT)
+    }
+
+    @Test
+    fun closingThePreviewIsSeenByCollectorsThatAreAlreadyRunning() = runTest {
+        val subject = viewModel()
+        subject.openPreview(DebugScenarioTarget.Credits, DebugScenario.PENDING) {}
+        val seen = mutableListOf<DebugScenario>()
+        val collecting = launch(UnconfinedTestDispatcher(testScheduler)) { forced.scenarios.collect { seen += it } }
+
+        subject.closePreview(DebugScenarioTarget.Credits)
+        collecting.cancel()
+
+        assertThat(seen).containsExactly(DebugScenario.PENDING, DebugScenario.DEFAULT).inOrder()
     }
 }

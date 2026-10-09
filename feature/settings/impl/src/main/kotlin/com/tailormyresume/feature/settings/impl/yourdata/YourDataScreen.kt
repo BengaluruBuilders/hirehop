@@ -325,12 +325,14 @@ private fun PurchasesRow(content: YourDataUiState.Content, actions: YourDataActi
     LedgerRow(
         icon = TmrIcons.Award,
         title = stringResource(R.string.feature_settings_impl_your_data_purchases_title),
-        summary = if (content.purchases.isEmpty()) {
+        summary = if (!content.purchasesKnown) {
+            stringResource(R.string.feature_settings_impl_your_data_purchases_unavailable)
+        } else if (content.purchases.isEmpty()) {
             stringResource(R.string.feature_settings_impl_your_data_purchases_none)
         } else {
             content.purchases.map { purchase -> purchaseLine(purchase) }.joinToString(separator = "\n")
         },
-        trailing = { LedgerCount(content.purchases.size) },
+        trailing = { if (content.purchasesKnown) LedgerCount(content.purchases.size) },
         actions = {
             TmrOutlineButton(
                 label = stringResource(R.string.feature_settings_impl_your_data_action_view),

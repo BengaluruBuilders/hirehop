@@ -10,6 +10,8 @@ import com.tailormyresume.core.testing.mock.TestMockStateStore
 import com.tailormyresume.core.testing.util.TestClock
 import com.tailormyresume.core.testing.util.TestIdGenerator
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -76,5 +78,31 @@ class OfflinePaymentGatewayForcedScenarioTest {
 
         assertThat(gateway.observeEntitlement().first().totalCredits).isEqualTo(1)
         assertThat(gateway.observePurchaseHistory().first()).isEmpty()
+    }
+
+    @Test
+    fun aForcedPendingPurchaseSavesNoHoldToTheStore() = runTest {
+        forced.scenario = DebugScenario.PENDING
+
+        val result = gateway.purchase(ApplicationPack.APPLICATION_PACK_FIVE)
+        forced.scenario = DebugScenario.DEFAULT
+
+        assertThat(result).isInstanceOf(PurchaseResult.Pending::class.java)
+        assertThat(gateway.purchaseHistory()).isEmpty()
+        assertThat(gateway.entitlement().pendingPackIds).isEmpty()
+    }
+
+    @Test
+    fun clearingTheScenarioRefreshesCollectorsThatAreAlreadyRunning() = runTest {
+        forced.scenario = DebugScenario.PENDING
+        val seen = mutableListOf<Int>()
+        val collecting = launch(UnconfinedTestDispatcher(testScheduler)) {
+            gateway.observeEntitlement().collect { seen += it.totalCredits }
+        }
+
+        forced.scenario = DebugScenario.DEFAULT
+        collecting.cancel()
+
+        assertThat(seen).containsExactly(0, 1).inOrder()
     }
 }

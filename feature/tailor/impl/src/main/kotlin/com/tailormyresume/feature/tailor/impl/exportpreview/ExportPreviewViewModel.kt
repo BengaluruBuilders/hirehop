@@ -21,7 +21,6 @@ import com.tailormyresume.feature.tailor.impl.export.docx.ResumeDocxRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +28,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import kotlin.time.Clock
 
@@ -57,6 +58,8 @@ internal class ExportPreviewViewModel @Inject constructor(
     private var document: ResumeDocument? = null
 
     private var exportJob: Job? = null
+
+    private val renderLock = Mutex()
 
     private var canCancelExport = false
 
@@ -206,17 +209,17 @@ internal class ExportPreviewViewModel @Inject constructor(
         val format = state.format
         val fileName = state.fileName
         mutableState.update { current -> current.copy(stage = ExportPreviewStage.EXPORTING) }
-        val previousJob = exportJob
         exportJob = viewModelScope.launch {
             canCancelExport = true
-            previousJob?.cancelAndJoin()
             val rendered = try {
-                when (format) {
-                    ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
-                    ExportFormat.DOCX -> RenderedResume(
-                        file = docxRenderer.render(document = source, fileName = fileName),
-                        pageCount = null,
-                    )
+                renderLock.withLock {
+                    when (format) {
+                        ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
+                        ExportFormat.DOCX -> RenderedResume(
+                            file = docxRenderer.render(document = source, fileName = fileName),
+                            pageCount = null,
+                        )
+                    }
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation

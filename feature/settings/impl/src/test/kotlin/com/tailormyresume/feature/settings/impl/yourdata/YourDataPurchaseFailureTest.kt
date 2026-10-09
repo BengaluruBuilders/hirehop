@@ -82,12 +82,13 @@ class YourDataPurchaseFailureTest {
     }
 
     @Test
-    fun aFailedPurchaseHistoryStillShowsTheScreenWithNoPurchases() = runTest {
+    fun aFailedPurchaseHistoryStillShowsTheScreenAndSaysPurchasesAreUnknown() = runTest {
         val subject = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { subject.uiState.collect {} }
 
         val content = subject.uiState.value as YourDataUiState.Content
         assertThat(content.purchases).isEmpty()
+        assertThat(content.purchasesKnown).isFalse()
         assertThat(content.applications).hasSize(1)
     }
 }
