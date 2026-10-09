@@ -24,7 +24,6 @@ class CoverLetterOfferActionsTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private var prepClicks = 0
     private var writeClicks = 0
     private var skipClicks = 0
 
@@ -45,7 +44,7 @@ class CoverLetterOfferActionsTest {
                         onNavigateBack = {},
                         onSkipLetter = { skipClicks++ },
                         onPreviewExport = {},
-                        onPrepQuestions = { prepClicks++ },
+                        onPrepQuestions = {},
                     ),
                 )
             }
@@ -53,12 +52,10 @@ class CoverLetterOfferActionsTest {
     }
 
     @Test
-    fun prepForTheInterview_callsOnPrepQuestions() {
+    fun offer_hasNoPrepRow() {
         show(CoverLetterUiState(stage = CoverLetterStage.OFFER, jobCompany = "Northwind GCC"))
 
-        composeRule.onNodeWithText("Prep for the interview").performClick()
-
-        assertThat(prepClicks).isEqualTo(1)
+        composeRule.onNodeWithText("Prep for the interview").assertDoesNotExist()
     }
 
     @Test
@@ -73,7 +70,7 @@ class CoverLetterOfferActionsTest {
     }
 
     @Test
-    fun fileRow_showsTheExportedFileName() {
+    fun fileRow_isAbsentEvenAfterAnExport() {
         show(
             CoverLetterUiState(
                 stage = CoverLetterStage.OFFER,
@@ -82,7 +79,7 @@ class CoverLetterOfferActionsTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription("Priya_Northwind.pdf").assertExists()
+        composeRule.onNodeWithContentDescription("Priya_Northwind.pdf").assertDoesNotExist()
     }
 
     @Test

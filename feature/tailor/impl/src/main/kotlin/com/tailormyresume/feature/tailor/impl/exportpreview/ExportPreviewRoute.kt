@@ -47,4 +47,5 @@ private fun ExportPreviewViewModel.toActions(
     onRetry = { onAction(ExportPreviewAction.RetryPreview) },
     onNavigateBack = onNavigateBack,
     onBuyCredits = onBuyCredits,
+    onCancel = { onAction(ExportPreviewAction.CancelExport) },
 )
