@@ -88,6 +88,24 @@ class RemoteResumeTailorTest {
     }
 
     @Test
+    fun aRateLimitedStartKeepsItsRequestIdForTheNextTry() = runTest {
+        repeat(3) {
+            backend.server.enqueue(
+                MockResponse().setResponseCode(429).setHeader("Retry-After", "0")
+                    .setBody("""{"error":{"code":"RATE_LIMITED","message":"x"}}"""),
+            )
+        }
+        val first = runCatching { tailor.tailor(candidate, job, gap, "app-1", null) }.exceptionOrNull()
+        backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
+
+        tailor.tailor(candidate, job, gap, "app-1", null)
+
+        assertThat((first as AiException).failure).isEqualTo(AiFailure.RateLimited)
+        val ids = List(4) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
+        assertThat(ids.distinct()).hasSize(1)
+    }
+
+    @Test
     fun aFinishedJobForgetsItsRequestId() = runTest {
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))

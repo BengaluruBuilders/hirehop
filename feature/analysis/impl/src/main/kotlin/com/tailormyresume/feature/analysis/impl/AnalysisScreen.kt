@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -34,6 +35,7 @@ import com.tailormyresume.core.model.MatchStatus
 data class AnalysisActions(
     val onBackClick: () -> Unit = {},
     val onRetry: () -> Unit = {},
+    val onSignInAgain: () -> Unit = {},
     val onBackToJobDescription: () -> Unit = {},
     val onOpenMenu: (String) -> Unit = {},
     val onSeeSource: (String) -> Unit = {},
@@ -78,6 +80,7 @@ internal fun AnalysisRoute(
         actions = AnalysisActions(
             onBackClick = onBackClick,
             onRetry = viewModel::onRetry,
+            onSignInAgain = viewModel::onSignInAgain,
             onBackToJobDescription = viewModel::onBackToJobDescription,
             onOpenMenu = viewModel::onOpenMenu,
             onSeeSource = viewModel::onSeeSource,
@@ -161,6 +164,9 @@ private fun AnalysisToastEffect(
     }
 }
 
+internal const val MIN_WAIT_SECONDS = 1
+internal const val MAX_WAIT_SECONDS = 3600
+
 private fun AnalysisUiState.contentKey(): Any =
     if (this is AnalysisUiState.Loading) AnalysisUiState.Analyzing::class else this::class
 
@@ -174,11 +180,7 @@ private fun AnalysisBody(
     when (uiState) {
         AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding)
         is AnalysisUiState.Analyzing -> WaitingContent(uiState, contentPadding)
-        is AnalysisUiState.Failed -> MessageContent(
-            title = stringResource(R.string.feature_analysis_impl_error_title),
-            body = stringResource(R.string.feature_analysis_impl_error_body),
-            contentPadding = contentPadding,
-        )
+        is AnalysisUiState.Failed -> FailedContent(uiState.cause, contentPadding)
         is AnalysisUiState.DailyLimit -> MessageContent(
             title = stringResource(R.string.feature_analysis_impl_daily_limit_title),
             body = stringResource(R.string.feature_analysis_impl_daily_limit_body),
@@ -188,6 +190,30 @@ private fun AnalysisBody(
         )
         is AnalysisUiState.Result -> ResultContent(uiState, actions, contentPadding, onMenuAnchor)
     }
+}
+
+@Composable
+private fun FailedContent(cause: FailureCause, contentPadding: PaddingValues) {
+    val (title, body) = when (cause) {
+        FailureCause.Generic ->
+            R.string.feature_analysis_impl_error_title to stringResource(R.string.feature_analysis_impl_error_body)
+        FailureCause.InProgress ->
+            R.string.feature_analysis_impl_busy_title to stringResource(R.string.feature_analysis_impl_busy_body)
+        is FailureCause.RateLimited -> {
+            val waitSeconds = cause.retryAfterSeconds?.takeIf { it in MIN_WAIT_SECONDS..MAX_WAIT_SECONDS }
+            R.string.feature_analysis_impl_rate_limited_title to
+                if (waitSeconds != null) {
+                    pluralStringResource(R.plurals.feature_analysis_impl_rate_limited_wait, waitSeconds, waitSeconds)
+                } else {
+                    stringResource(R.string.feature_analysis_impl_rate_limited_body)
+                }
+        }
+        FailureCause.QuotaReached ->
+            R.string.feature_analysis_impl_quota_title to stringResource(R.string.feature_analysis_impl_quota_body)
+        FailureCause.SignInRequired ->
+            R.string.feature_analysis_impl_sign_in_title to stringResource(R.string.feature_analysis_impl_sign_in_body)
+    }
+    MessageContent(title = stringResource(title), body = body, contentPadding = contentPadding)
 }
 
 internal fun shareTextIntent(chooserTitle: String, text: String): Intent {

@@ -80,6 +80,18 @@ class AnalysisScreenshotTest {
     fun error_f1s7_13() = capture("AnalysisError", AnalysisUiState.Failed(JOB))
 
     @Test
+    fun stillAnalysing() = capture("AnalysisInProgress", AnalysisUiState.Failed(JOB, FailureCause.InProgress))
+
+    @Test
+    fun rateLimited() = capture("AnalysisRateLimited", AnalysisUiState.Failed(JOB, FailureCause.RateLimited(30)))
+
+    @Test
+    fun aiQuotaReached() = capture("AnalysisQuotaReached", AnalysisUiState.Failed(JOB, FailureCause.QuotaReached))
+
+    @Test
+    fun signInRequired() = capture("AnalysisSignInRequired", AnalysisUiState.Failed(JOB, FailureCause.SignInRequired))
+
+    @Test
     fun offline_f1s7_14() = capture("AnalysisOffline", resultState().copy(isOffline = true))
 
     @Test
