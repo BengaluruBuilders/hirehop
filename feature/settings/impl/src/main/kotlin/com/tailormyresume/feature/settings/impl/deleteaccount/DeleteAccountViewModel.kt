@@ -14,6 +14,7 @@ import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,8 @@ class DeleteAccountViewModel @Inject constructor(
     private val phase = MutableStateFlow(Phase())
 
     private var hasEntered = false
+    private var refreshJob: Job? = null
+    private var tapRefreshing = false
 
     val uiState: StateFlow<DeleteAccountUiState> = combine(
         snapshot,
@@ -72,24 +75,39 @@ class DeleteAccountViewModel @Inject constructor(
             DebugScenario.ERROR -> Phase(failure = DeleteAccountFailure.DATA_INTACT)
             else -> Phase()
         }
-        viewModelScope.launch {
-            snapshot.value = Snapshot(
-                counts = deleteAccount.preview(),
-                accountEmail = sessionRepository.observeAccount().first()?.email,
-            )
+        refreshJob = viewModelScope.launch {
             if (deleteAccount.hasServerClosedPendingWipe()) {
+                snapshot.value = currentSnapshot()
                 phase.value = Phase(failure = DeleteAccountFailure.LOCAL_WIPE_PENDING)
                 onFinishRemovalTapped()
+                return@launch
             }
+            snapshot.value = currentSnapshot()
+            val refreshed = deleteAccount.refreshedPreview()
+            snapshot.update { current -> current?.copy(counts = refreshed) }
         }
     }
 
+    private suspend fun currentSnapshot() = Snapshot(
+        counts = deleteAccount.preview(),
+        accountEmail = sessionRepository.observeAccount().first()?.email,
+    )
+
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
-        if (ready.isOffline) return
+        if (ready.isOffline || tapRefreshing) return
+        refreshJob?.cancel()
+        tapRefreshing = true
         viewModelScope.launch {
-            snapshot.update { current -> current?.copy(counts = deleteAccount.preview()) }
-            phase.update { current -> current.copy(isConfirmVisible = true) }
+            try {
+                val refreshed = deleteAccount.refreshedPreview()
+                val current = uiState.value as? DeleteAccountUiState.Ready
+                if (current == null || current.isConfirmVisible || current.isOffline) return@launch
+                snapshot.update { it?.copy(counts = refreshed) }
+                phase.update { it.copy(isConfirmVisible = true) }
+            } finally {
+                tapRefreshing = false
+            }
         }
     }
 

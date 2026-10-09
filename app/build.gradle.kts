@@ -18,6 +18,8 @@ android {
         buildConfig = true
     }
 
+    testOptions.unitTests.isIncludeAndroidResources = true
+
     flavorDimensions += "backend"
     productFlavors {
         create("demo") {
@@ -109,6 +111,11 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     "testProdImplementation"(libs.okhttp.mockwebserver)
     "testProdImplementation"(libs.robolectric)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test)
+    testImplementation(libs.androidx.compose.ui.testManifest)
+    testImplementation(libs.androidx.test.ext.junit)
 }
 
 dependencyGuard {

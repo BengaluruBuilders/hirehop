@@ -1,6 +1,7 @@
 package com.tailormyresume.core.network
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -8,6 +9,7 @@ import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Test
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
@@ -260,6 +262,43 @@ class TailorMyResumeApiTest {
     }
 
     @Test
+    fun sessionExpiryDuringTheForcedRefreshSignalsOnceAndKeepsTheFirstAnswer() {
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        tokens.expiredOnRefresh = true
+
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.InvalidToken)
+        assertThat(expirySignals).isEqualTo(1)
+        assertThat(server.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun aCallTimeoutIsATimeout() {
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE))
+        val client = tailormyresumeOkHttpClient(tokens).newBuilder().callTimeout(200, TimeUnit.MILLISECONDS).build()
+        val api = tailormyresumeApi(TailorMyResumeApiConfig(server.url("/").toString().trimEnd('/')), client, json)
+
+        assertThat(failureOf { api.wallet() }).isEqualTo(ApiError.Timeout)
+    }
+
+    @Test
+    fun anInterruptedIoExceptionIsATimeout() {
+        assertThat(failureOf { throw InterruptedIOException("timeout") }).isEqualTo(ApiError.Timeout)
+    }
+
+    @Test
+    fun anUnexpectedExceptionBecomesAnApiErrorInsteadOfEscaping() {
+        assertThat(failureOf { throw IllegalStateException("boom") }).isEqualTo(ApiError.Unknown(0))
+        assertThat(failureOf { throw IllegalArgumentException("bad") }).isEqualTo(ApiError.Unknown(0))
+    }
+
+    @Test
+    fun aCancellationStillPropagates() {
+        val outcome = runCatching { runBlocking { apiResult { throw CancellationException("stop") } } }
+
+        assertThat(outcome.exceptionOrNull()).isInstanceOf(CancellationException::class.java)
+    }
+
+    @Test
     fun unreachableServerIsOffline() {
         val api = api()
         server.shutdown()
@@ -277,13 +316,14 @@ class TailorMyResumeApiTest {
         val forceRefreshCalls = mutableListOf<Boolean>()
         var available = true
         var expired = false
+        var expiredOnRefresh = false
         var failure: IOException? = null
         var failureOnRefresh: IOException? = null
         private var issued = 0
 
         override fun idToken(forceRefresh: Boolean): String? {
             forceRefreshCalls += forceRefresh
-            if (expired) throw SessionExpiredException()
+            if (expired || (forceRefresh && expiredOnRefresh)) throw SessionExpiredException()
             failure?.let { throw it }
             if (forceRefresh) failureOnRefresh?.let { throw it }
             return if (available) "token-${issued++}" else null
