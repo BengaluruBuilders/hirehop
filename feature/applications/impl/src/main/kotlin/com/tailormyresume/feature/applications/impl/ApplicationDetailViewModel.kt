@@ -157,6 +157,9 @@ class ApplicationDetailViewModel @AssistedInject constructor(
             ApplicationWorkspaceAction.ResumeReviewChosen -> Unit
             ApplicationWorkspaceAction.PrepQuestionsChosen -> Unit
             ApplicationWorkspaceAction.CoverLetterChosen -> Unit
+            is ApplicationWorkspaceAction.RequirementChosen -> Unit
+            ApplicationWorkspaceAction.RequirementDismissed -> Unit
+            is ApplicationWorkspaceAction.RequirementPrepAddChosen -> Unit
             ApplicationWorkspaceAction.DeleteChosen -> {
                 presentation.update { it.copy(isMoreOpen = false, isDeleteDialogVisible = true) }
             }
