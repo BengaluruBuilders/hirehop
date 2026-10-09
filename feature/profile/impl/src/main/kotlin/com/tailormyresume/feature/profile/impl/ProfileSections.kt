@@ -37,6 +37,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactDisplayIds
+import com.tailormyresume.core.model.continues
 import com.tailormyresume.core.model.exceedsLimits
 import com.tailormyresume.feature.profile.impl.common.FactCard
 import com.tailormyresume.feature.profile.impl.common.ToConfirmChip
@@ -148,11 +149,13 @@ internal fun SectionFacts(
 ) {
     val category = section.kind.entryCategory()
     if (category != null) {
-        state.profile.entries.filter { it.category == category }.forEach { entry ->
+        state.profile.entries.forEachIndexed { index, entry ->
+            if (entry.category != category) return@forEachIndexed
             key("fact-${section.kind.name}-${entry.id}") {
                 FactCard(
                     entry = entry,
                     displayId = FactDisplayIds.of(entry, state.profile.entries),
+                    continued = index > 0 && entry.continues(state.profile.entries[index - 1]),
                     onEdit = { navigation.onOpenFact(entry.id) },
                     onConfirm = if (entry.isConfirmed || entry.exceedsLimits) null else ({ actions.onConfirmEntry(entry.id) }),
                     embedded = true,

@@ -20,7 +20,9 @@ class RemoteResumeTextParser @Inject constructor(
     private val ids: FactIdAllocator,
     private val removalNotice: ImportRemovalNotice,
 ) : ResumeTextParser {
-    override suspend fun parse(rawText: String): CandidateProfile {
+    override suspend fun parse(rawText: String): CandidateProfile = parse(rawText, keptEntries = 0)
+
+    override suspend fun parse(rawText: String, keptEntries: Int): CandidateProfile {
         val response = remoteAi { api.parseResume(ResumeParseRequest(rawText)) }
         removalNotice.record(response.droppedSensitive.any { it == SensitiveField.DATE_OF_BIRTH || it == SensitiveField.PHOTO })
         val parsed = response.profile
@@ -30,15 +32,15 @@ class RemoteResumeTextParser @Inject constructor(
             phone = parsed.phone.orEmpty(),
             headline = parsed.headline.orEmpty(),
             skills = parsed.skills,
-            entries = entriesOf(parsed.entries),
+            entries = entriesOf(parsed.entries, keptEntries),
         )
     }
 
-    private fun entriesOf(parsed: List<ParsedEntryDto>): List<ProfileEntry> {
+    private fun entriesOf(parsed: List<ParsedEntryDto>, keptEntries: Int): List<ProfileEntry> {
         val entries = mutableListOf<ProfileEntry>()
         parsed.forEachIndexed { index, entry ->
             val texts = entry.bullets.map { it.text }.filter { it.isNotBlank() }
-            splitBulletsForEntries(texts, entries.size, parsed.size - index - 1).forEach { chunk ->
+            splitBulletsForEntries(texts, keptEntries + entries.size, parsed.size - index - 1).forEach { chunk ->
                 val id = ids.nextId(entry.category, entries, entry.title)
                 entries += ProfileEntry(
                     id = id,

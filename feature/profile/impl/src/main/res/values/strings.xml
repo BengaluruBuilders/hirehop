@@ -13,6 +13,8 @@
     <string name="feature_profile_impl_status_to_confirm">To confirm</string>
     <string name="feature_profile_impl_status_too_long">Too long</string>
     <string name="feature_profile_impl_fact_too_long_note">A line here is over 400 characters, so it is left out of your applications. Edit it to use it.</string>
+    <string name="feature_profile_impl_fact_too_long_and_many_lines_note">One line is too long and lines past 15 are left out of your applications. Edit them to use them.</string>
+    <string name="feature_profile_impl_fact_continued">Continued</string>
     <string name="feature_profile_impl_status_too_many_lines">Too many lines</string>
     <string name="feature_profile_impl_fact_too_many_lines_note">This fact has more than 15 lines. Lines after the first 15 are left out of your applications. Edit it to use them.</string>
     <string name="feature_profile_impl_fact_chip_description">Fact %1$s. %2$s.</string>

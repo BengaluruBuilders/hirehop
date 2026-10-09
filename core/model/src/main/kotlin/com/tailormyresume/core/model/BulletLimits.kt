@@ -8,6 +8,13 @@ val ProfileEntry.hasTooManyBullets: Boolean get() = bullets.size > ProfileLimits
 
 val ProfileEntry.exceedsLimits: Boolean get() = hasTooLongBullet || hasTooManyBullets
 
+fun ProfileEntry.continues(previous: ProfileEntry): Boolean =
+    category == previous.category &&
+        title.trim() == previous.title.trim() &&
+        organization.trim() == previous.organization.trim() &&
+        startDate.trim() == previous.startDate.trim() &&
+        endDate.trim() == previous.endDate.trim()
+
 fun splitBulletsForEntries(bullets: List<String>, entriesBefore: Int, entriesAfter: Int): List<List<String>> {
     val chunks = bullets.chunked(ProfileLimits.MAX_BULLETS_PER_ENTRY)
     val fits = entriesBefore + chunks.size + entriesAfter <= ProfileLimits.MAX_ENTRIES

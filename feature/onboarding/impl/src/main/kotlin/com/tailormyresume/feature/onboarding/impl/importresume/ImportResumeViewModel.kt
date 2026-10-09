@@ -138,7 +138,8 @@ class ImportResumeViewModel @Inject constructor(
         }
         mutableUiState.update { it.copy(readStepIndex = 1) }
         retainedText = read.text
-        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty()) }.getOrNull()
+        val keptEntries = runCatching { profileRepository.observeProfile().first().userFacts().size }.getOrDefault(0)
+        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty(), keptEntries) }.getOrNull()
         retainedText = null
         if (parsed == null) {
             onReadOutcome(ResumeRead.Unreadable(file.displayName))
@@ -185,9 +186,11 @@ class ImportResumeViewModel @Inject constructor(
         entries.isNotEmpty() || skills.isNotEmpty() || fullName.isNotBlank()
 
     private fun CandidateProfile.keepingUserFactsFrom(existing: CandidateProfile?): CandidateProfile {
-        val kept = existing?.entries.orEmpty().filter { entry -> entry.source != FactSource.IMPORTED }
-        return copy(entries = kept + entries)
+        return copy(entries = existing.userFacts() + entries)
     }
+
+    private fun CandidateProfile?.userFacts(): List<ProfileEntry> =
+        this?.entries.orEmpty().filter { entry -> entry.source != FactSource.IMPORTED }
 }
 
 private fun ProfileEntry.toImportedFact(): ImportedFactUi = ImportedFactUi(

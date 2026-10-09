@@ -370,13 +370,18 @@ private fun FactCard(
             else -> R.string.feature_onboarding_impl_confirm_facts_state_open
         },
     )
-    val description = stringResource(
+    val baseDescription = stringResource(
         R.string.feature_onboarding_impl_confirm_facts_card_description,
         fact.title,
         fact.detail,
         fact.displayId,
         state,
     )
+    val description = if (fact.continuesPrevious) {
+        stringResource(R.string.feature_onboarding_impl_confirm_facts_continued) + ". " + baseDescription
+    } else {
+        baseDescription
+    }
     TmrCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(TmrTheme.spacing.cardPadding),
@@ -406,6 +411,13 @@ private fun FactHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TmrFactId(id = fact.displayId)
+        if (fact.continuesPrevious) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_continued),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        }
         Text(
             text = stringResource(
                 R.string.feature_onboarding_impl_confirm_facts_source_page,
@@ -440,10 +452,11 @@ private fun FactActions(
         if (fact.isOverLimits) {
             Text(
                 text = stringResource(
-                    if (fact.hasTooLongBullet) {
-                        R.string.feature_onboarding_impl_confirm_facts_too_long_note
-                    } else {
-                        R.string.feature_onboarding_impl_confirm_facts_too_many_lines_note
+                    when {
+                        fact.hasTooLongBullet && fact.hasTooManyBullets ->
+                            R.string.feature_onboarding_impl_confirm_facts_too_long_and_many_lines_note
+                        fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_note
+                        else -> R.string.feature_onboarding_impl_confirm_facts_too_many_lines_note
                     },
                 ),
                 modifier = Modifier.weight(1f),
