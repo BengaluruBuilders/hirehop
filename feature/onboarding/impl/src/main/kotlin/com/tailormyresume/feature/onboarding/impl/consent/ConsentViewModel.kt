@@ -2,6 +2,7 @@ package com.tailormyresume.feature.onboarding.impl.consent
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.ConsentUploader
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
@@ -20,6 +21,7 @@ import kotlin.time.Clock
 @HiltViewModel
 class ConsentViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
+    private val profileRepository: ProfileRepository,
     private val consentUploader: ConsentUploader,
     private val nextOnboardingStep: NextOnboardingStepUseCase,
     private val clock: Clock,
