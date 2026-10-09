@@ -27,7 +27,7 @@ fun rememberNavigationState(
             startKey = startKey,
             topLevelStack = topLevelStack,
             subStacks = subStacks,
-        )
+        ).also(NavigationState::dropRestoredStrangers)
     }
 }
 
@@ -48,6 +48,17 @@ class NavigationState(
     val currentKey: NavKey by derivedStateOf { currentSubStack.last() }
 
     val canGoBack: Boolean by derivedStateOf { currentKey != startKey }
+
+    internal fun dropRestoredStrangers() {
+        topLevelStack.removeAll { it !in subStacks }
+        if (topLevelStack.isEmpty()) topLevelStack.add(startKey)
+        subStacks.forEach { (key, stack) ->
+            if (stack.firstOrNull() != key) {
+                stack.clear()
+                stack.add(key)
+            }
+        }
+    }
 }
 
 @Composable
