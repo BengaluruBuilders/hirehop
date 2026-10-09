@@ -1,7 +1,9 @@
 package com.tailormyresume.core.domain.fact
 
+import com.tailormyresume.core.model.ProfileLimits
+
 object FactDraftValidator {
-    const val DETAIL_LIMIT = 600
+    const val DETAIL_LIMIT = ProfileLimits.MAX_BULLET_LENGTH
 
     fun validate(draft: FactDraft): List<FactDraftError> = buildList {
         if (draft.title.isBlank()) {
@@ -10,7 +12,7 @@ object FactDraftValidator {
         if (endsBeforeStart(draft.startDate, draft.endDate)) {
             add(FactDraftError(FactField.END_DATE, FactDraftErrorReason.END_BEFORE_START))
         }
-        if (draft.detail.length > DETAIL_LIMIT) {
+        if (draft.detail.length > DETAIL_LIMIT || draft.moreBullets.any { it.text.length > DETAIL_LIMIT }) {
             add(FactDraftError(FactField.DETAIL, FactDraftErrorReason.TOO_LONG))
         }
     }

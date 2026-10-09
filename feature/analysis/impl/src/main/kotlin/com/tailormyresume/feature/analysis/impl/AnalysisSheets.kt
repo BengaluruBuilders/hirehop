@@ -55,6 +55,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.designsystem.theme.tmrShadow
 import com.tailormyresume.core.domain.displayKeywords
+import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.isNamedSkillKeyword
 import com.tailormyresume.core.domain.prep.RequirementPhrase
 import com.tailormyresume.core.model.JobRequirement
@@ -277,6 +278,7 @@ internal fun QuestionSheetContent(
 ) {
     var statement by rememberSaveable { mutableStateOf("") }
     val name = item.requirement.gapName()
+    val tooLong = statement.trim().length > FactDraftValidator.DETAIL_LIMIT
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
@@ -318,6 +320,7 @@ internal fun QuestionSheetContent(
             label = stringResource(R.string.feature_analysis_impl_question_label),
             singleLine = false,
             minLines = QUESTION_MIN_LINES,
+            errorText = if (tooLong) stringResource(R.string.feature_analysis_impl_question_error_too_long) else null,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm), verticalAlignment = Alignment.CenterVertically) {
             TmrFactId(id = nextFactId ?: stringResource(R.string.feature_analysis_impl_question_new_fact_id))
@@ -332,7 +335,7 @@ internal fun QuestionSheetContent(
                 ?: stringResource(R.string.feature_analysis_impl_question_write),
             onClick = { actions.onSubmitEvidence(item.id, statement) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = statement.isNotBlank(),
+            enabled = statement.isNotBlank() && !tooLong,
         )
         TmrSecondaryButton(
             label = stringResource(R.string.feature_analysis_impl_question_cancel),

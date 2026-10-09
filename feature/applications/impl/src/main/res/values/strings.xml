@@ -59,10 +59,7 @@
     <string name="feature_applications_impl_status_chip_description">Status: %1$s. Change status</string>
 
     <string name="feature_applications_impl_sheet_save">Save status</string>
-    <string name="feature_applications_impl_sheet_cancel">Cancel</string>
-    <string name="feature_applications_impl_sheet_eyebrow">Application status</string>
-    <string name="feature_applications_impl_sheet_title">Status</string>
-    <string name="feature_applications_impl_sheet_note">Changing the status moves this application to the top of your list.</string>
+    <string name="feature_applications_impl_sheet_title">Application status</string>
     <string name="feature_applications_impl_status_saved_message">Status set to %1$s.</string>
     <string name="feature_applications_impl_status_undo">Undo</string>
 
@@ -158,9 +155,10 @@
     <string name="feature_applications_impl_workspace_jd_show">Show full JD</string>
     <string name="feature_applications_impl_workspace_jd_hide">Hide full JD</string>
 
-    <string name="feature_applications_impl_delete_title">Delete %1$s · %2$s?</string>
-    <string name="feature_applications_impl_delete_keep">Keep application</string>
-    <string name="feature_applications_impl_delete_confirm">Delete application</string>
+    <string name="feature_applications_impl_delete_title">Delete this application?</string>
+    <string name="feature_applications_impl_delete_message_with_job">%1$s · %2$s. %3$s</string>
+    <string name="feature_applications_impl_delete_keep">Cancel</string>
+    <string name="feature_applications_impl_delete_confirm">Delete</string>
     <string name="feature_applications_impl_delete_scope_jd">its JD text</string>
     <string name="feature_applications_impl_delete_scope_gap">1 analysis</string>
     <string name="feature_applications_impl_delete_scope_resume">1 tailored resume</string>
