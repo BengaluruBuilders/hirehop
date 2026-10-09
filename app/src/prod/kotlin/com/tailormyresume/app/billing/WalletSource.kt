@@ -44,13 +44,6 @@ class WalletSource @Inject constructor(
         generation
     }
 
-    fun update(wallet: WalletDto) {
-        synchronized(lock) {
-            dropIfAccountChanged()
-            state.value = Held(uids.uid(), wallet)
-        }
-    }
-
     fun update(wallet: WalletDto, started: Int): Boolean = synchronized(lock) {
         dropIfAccountChanged()
         (started == generation).also { current -> if (current) state.value = Held(uids.uid(), wallet) }
