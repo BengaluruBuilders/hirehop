@@ -1,6 +1,5 @@
 package com.tailormyresume.feature.profile.impl
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,27 +50,14 @@ internal fun ProfileScreen(
     initiallyExpanded: ProfileSectionKind? = null,
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    val success = uiState as? ProfileUiState.Success
-    val openSection = success?.overview?.sections?.firstOrNull { it.kind == expanded }
-    if (success != null && openSection != null) {
-        BackHandler { expanded = null }
-        ExpandedSectionScreen(
-            state = success,
-            section = openSection,
-            actions = actions,
-            navigation = navigation,
-            onClose = { expanded = null },
-            modifier = modifier,
-        )
-    } else {
-        ProfileHomeScreen(
-            uiState = uiState,
-            actions = actions,
-            navigation = navigation,
-            onOpenSection = { expanded = it },
-            modifier = modifier,
-        )
-    }
+    ProfileHomeScreen(
+        uiState = uiState,
+        actions = actions,
+        navigation = navigation,
+        expanded = expanded,
+        onToggleSection = { expanded = if (expanded == it) null else it },
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -79,7 +65,8 @@ private fun ProfileHomeScreen(
     uiState: ProfileUiState,
     actions: ProfileActions,
     navigation: ProfileNavigation,
-    onOpenSection: (ProfileSectionKind) -> Unit,
+    expanded: ProfileSectionKind?,
+    onToggleSection: (ProfileSectionKind) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
@@ -98,7 +85,8 @@ private fun ProfileHomeScreen(
             state = uiState,
             actions = actions,
             navigation = navigation,
-            onOpenSection = onOpenSection,
+            expanded = expanded,
+            onToggleSection = onToggleSection,
             modifier = modifier,
         )
     }

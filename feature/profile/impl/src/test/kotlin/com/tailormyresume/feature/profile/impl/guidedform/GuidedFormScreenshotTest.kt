@@ -84,7 +84,12 @@ class GuidedFormScreenshotTest {
     fun savedForLater() = capture(
         "GuidedFormSavedForLater",
         GuidedFormUiState(
-            saved = GuidedSaved(completedSteps = 2, totalSteps = 4, entryIds = listOf("U-01", "U-02")),
+            saved = GuidedSaved(
+                completedSteps = 2,
+                totalSteps = 4,
+                entryIds = listOf("U-01", "U-02"),
+                doneSteps = setOf(GuidedStep.CONTACT, GuidedStep.EDUCATION),
+            ),
         ),
     )
 

@@ -7,7 +7,9 @@ import com.tailormyresume.core.domain.fact.FactDraft
 import com.tailormyresume.core.domain.fact.FactDraftError
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ProfileEntry
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 internal data class ContactInput(
@@ -30,6 +32,8 @@ internal class UserFactWriter @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val addUserStatedFacts: AddUserStatedFactsUseCase,
 ) {
+
+    fun observeEntries(): Flow<List<ProfileEntry>> = profileRepository.observeProfile().map { it?.entries.orEmpty() }
 
     suspend fun write(
         drafts: List<FactDraft>,

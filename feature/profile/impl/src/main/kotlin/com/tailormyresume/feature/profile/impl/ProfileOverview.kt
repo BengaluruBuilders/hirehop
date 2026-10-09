@@ -1,7 +1,6 @@
 package com.tailormyresume.feature.profile.impl
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +20,8 @@ internal fun ProfileOverviewScreen(
     state: ProfileUiState.Success,
     actions: ProfileActions,
     navigation: ProfileNavigation,
-    onOpenSection: (ProfileSectionKind) -> Unit,
+    expanded: ProfileSectionKind?,
+    onToggleSection: (ProfileSectionKind) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var sheet by rememberSaveable { mutableStateOf<ProfileSheet?>(null) }
@@ -60,8 +60,28 @@ internal fun ProfileOverviewScreen(
                 onEditContact = { sheet = ProfileSheet.Contact },
             )
         }
-        items(items = overview.sections, key = { "section-${it.kind.name}" }) { section ->
-            SectionCard(section = section, onOpen = { onOpenSection(section.kind) })
+        overview.sections.forEach { section ->
+            item(key = "section-${section.kind.name}") {
+                val isExpanded = section.kind == expanded
+                SectionCard(
+                    section = section,
+                    expanded = isExpanded,
+                    onToggle = { onToggleSection(section.kind) },
+                    content = if (isExpanded) {
+                        {
+                            SectionFacts(
+                                state = state,
+                                section = section,
+                                actions = actions,
+                                navigation = navigation,
+                                onAddSkill = { sheet = ProfileSheet.AddSkill },
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
         item(key = "add-fact") {
             TmrOutlineButton(
