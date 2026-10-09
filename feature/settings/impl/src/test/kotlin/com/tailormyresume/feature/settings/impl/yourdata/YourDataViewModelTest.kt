@@ -6,7 +6,10 @@ import com.tailormyresume.core.domain.account.AccountData
 import com.tailormyresume.core.domain.account.AccountDataArchive
 import com.tailormyresume.core.domain.account.AccountDataExporter
 import com.tailormyresume.core.domain.account.CollectAccountDataUseCase
+import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
+import com.tailormyresume.core.domain.account.ExportedFiles
+import com.tailormyresume.core.domain.account.TransientDataCleaner
 import com.tailormyresume.core.model.CreditKind
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.ExportFormat
@@ -271,6 +274,14 @@ class YourDataViewModelTest {
                     clock = TestClock(),
                 ),
                 exporter = accountDataExporter,
+            ),
+            deleteMyData = DeleteMyDataUseCase(
+                applicationRepository = applicationRepository,
+                profileRepository = profileRepository,
+                exportHistoryRepository = exportHistory,
+                sessionRepository = sessionRepository,
+                exportedFiles = ExportedFiles.None,
+                transientData = TransientDataCleaner { },
             ),
         )
     }

@@ -7,6 +7,8 @@ enum class YourDataDestination { PROFILE, APPLICATIONS, PURCHASES }
 
 enum class YourDataExport { IDLE, PREPARING, FAILED }
 
+enum class YourDataDeletion { IDLE, CONFIRMING, DELETING, FAILED }
+
 data class YourDataApplication(
     val id: String,
     val title: String,
@@ -33,6 +35,7 @@ sealed interface YourDataUiState {
         val isOffline: Boolean,
         val export: YourDataExport,
         val deleteTarget: YourDataApplication?,
+        val deletion: YourDataDeletion = YourDataDeletion.IDLE,
     ) : YourDataUiState
 }
 

@@ -121,6 +121,9 @@ class YourDataScreenshotTest {
         onDeleteRequest = {},
         onDeleteConfirm = {},
         onDeleteDismiss = {},
+        onDeleteMyData = {},
+        onDeleteMyDataConfirm = {},
+        onDeleteMyDataDismiss = {},
     )
 
     private companion object {

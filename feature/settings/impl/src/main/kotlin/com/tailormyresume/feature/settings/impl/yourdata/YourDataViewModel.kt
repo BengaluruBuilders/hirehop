@@ -10,6 +10,7 @@ import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.PaymentGateway
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseState
+import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
@@ -40,6 +41,7 @@ class YourDataViewModel @Inject constructor(
     private val applicationRepository: ApplicationRepository,
     private val exportHistoryRepository: ExportHistoryRepository,
     private val exportAccountData: ExportAccountDataUseCase,
+    private val deleteMyData: DeleteMyDataUseCase,
 ) : ViewModel() {
 
     private val local = MutableStateFlow(LocalState())
@@ -123,6 +125,12 @@ class YourDataViewModel @Inject constructor(
             exportHistoryRepository.clearFor(target.id)
         }
     }
+
+    fun onDeleteMyDataRequested() = Unit
+
+    fun onDeleteMyDataDismissed() = Unit
+
+    fun onDeleteMyDataConfirmed() = Unit
 
     private class Ledger(
         val profile: CandidateProfile?,
