@@ -82,6 +82,7 @@ class AnalysisViewModelTest {
     private var serverOnlyMetIds = emptySet<String>()
     private var serverGapIds = emptySet<String>()
     private var serverKeywordCovered: Int? = null
+    private var serverAnalysedAt: Instant? = null
     private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
             analysisCalls++
@@ -96,7 +97,10 @@ class AnalysisViewModelTest {
             val coverage = serverKeywordCovered
                 ?.let { KeywordCoverage(covered = it, total = result.gap.keywordCoverage.total) }
                 ?: result.gap.keywordCoverage
-            return result.copy(gap = result.gap.copy(matches = matches, keywordCoverage = coverage))
+            return result.copy(
+                gap = result.gap.copy(matches = matches, keywordCoverage = coverage),
+                analysedAt = serverAnalysedAt,
+            )
         }
     }
 
@@ -1020,5 +1024,14 @@ class AnalysisViewModelTest {
         start()
 
         assertThat(result().analysedAt).isEqualTo(FixedClock.now())
+    }
+
+    @Test
+    fun result_carriesTheTimeTheServerAnsweredNotTheTimeOfEntry() = runTest {
+        val answeredAt = Instant.fromEpochMilliseconds(-3_600_000)
+        serverAnalysedAt = answeredAt
+        start()
+
+        assertThat(result().analysedAt).isEqualTo(answeredAt)
     }
 }

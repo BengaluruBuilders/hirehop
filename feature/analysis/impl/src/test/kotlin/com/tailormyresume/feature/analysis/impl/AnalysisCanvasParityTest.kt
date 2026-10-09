@@ -1,9 +1,14 @@
 package com.tailormyresume.feature.analysis.impl
 
+import android.content.Context
+import android.provider.Settings
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.JobRequirement
@@ -40,7 +45,7 @@ class AnalysisCanvasParityTest {
 
     private val job = JobLabel("Associate Analyst", "Northwind Logistics")
     private val cloud = item("req-cloud", "Cloud data warehouse", MatchStatus.GAP)
-    private val warehouse = item("req-dax", "DAX", MatchStatus.GAP, keywords = listOf("logistics", "sql"))
+    private val warehouse = item("req-dax", "DAX", MatchStatus.GAP, keywords = listOf("northwind", "sql"))
     private val sql = item("req-sql", "SQL", MatchStatus.MET, factId = "W-01")
     private val excel = item("req-excel", "Excel", MatchStatus.PARTIAL, factId = "W-02")
 
@@ -119,7 +124,66 @@ class AnalysisCanvasParityTest {
     }
 
     @Test
+    fun shareTextUsesTheKeyTermCountsOfTheCard() {
+        val shared = mutableListOf<String>()
+        composeRule.setContent {
+            TmrTheme {
+                ShareFitScreen(
+                    state = result(RequirementGroup.Met to listOf(sql)),
+                    actions = AnalysisActions(onShareText = { shared += it }),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Share image").performClick()
+
+        assertThat(shared).containsExactly("My fit for Associate Analyst: 9 met, 5 to prepare. Made with TailorMyResume.")
+    }
+
+    @Test
+    fun notInYourFactsKeepsAKnownSkillThatIsAlsoACompanyWord() {
+        val aws = item("req-aws", "Hands-on AWS", MatchStatus.GAP, keywords = listOf("aws", "india"))
+        val state = result(RequirementGroup.MustHaveGaps to listOf(aws))
+            .copy(job = JobLabel("Associate Analyst", "AWS India"))
+        show(state)
+
+        composeRule.onNodeWithText("Not in your facts yet: AWS").assertExists()
+    }
+
+    @Test
+    fun questionSheetOpenedThroughTheScreenNamesTheNextFactId() {
+        val state = result(RequirementGroup.MustHaveGaps to listOf(warehouse))
+            .copy(overlay = AnalysisOverlay.Question(warehouse.id), nextFactId = "U-04")
+        show(state)
+
+        composeRule.onNodeWithText("U-04").assertExists()
+        composeRule.onNodeWithText("Save as U-04").assertExists()
+    }
+
+    @Test
+    fun offlineBannerFollowsTheDevice12HourSetting() {
+        setClockFormat("12")
+        val tenTwelveToday = LocalDate.now(ZoneOffset.UTC).atTime(10, 12).toInstant(ZoneOffset.UTC)
+        show(
+            result(RequirementGroup.Met to listOf(sql))
+                .copy(isOffline = true, analysedAt = Instant.fromEpochMilliseconds(tenTwelveToday.toEpochMilli())),
+        )
+
+        composeRule.onNodeWithText("This is your last result, from today at 10:12", substring = true).assertExists()
+        composeRule.onNodeWithText("You're offline. This is your last result, from today at 10:12.").assertDoesNotExist()
+    }
+
+    private fun setClockFormat(format: String) {
+        Settings.System.putString(
+            ApplicationProvider.getApplicationContext<Context>().contentResolver,
+            Settings.System.TIME_12_24,
+            format,
+        )
+    }
+
+    @Test
     fun offlineShowsTheTimedBannerAndOnlyTheMetList() {
+        setClockFormat("24")
         val tenTwelveToday = LocalDate.now(ZoneOffset.UTC).atTime(10, 12).toInstant(ZoneOffset.UTC)
         show(
             result(

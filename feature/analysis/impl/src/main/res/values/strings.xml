@@ -107,8 +107,8 @@
     <string name="feature_analysis_impl_share_excluded">Only the JD fit is shared. No name, contact details or resume facts.</string>
     <string name="feature_analysis_impl_share_cancel">Cancel</string>
     <string name="feature_analysis_impl_share_image">Share image</string>
-    <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s partly met, %6$s to prepare</string>
-    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with TailorMyResume.</string>
+    <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s to prepare</string>
+    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s to prepare. Made with TailorMyResume.</string>
     <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
     <string name="feature_analysis_impl_question_priority">%1$s · %2$s</string>
     <string name="feature_analysis_impl_question_note">Your answer is saved as a User-stated fact.</string>
@@ -118,7 +118,6 @@
     <string name="feature_analysis_impl_question_new_fact_id">New fact</string>
     <string name="feature_analysis_impl_question_cancel">Cancel</string>
     <string name="feature_analysis_impl_summary_met">%1$s Met</string>
-    <string name="feature_analysis_impl_summary_partial">%1$s Partly met</string>
     <string name="feature_analysis_impl_summary_gap">%1$s To prepare</string>
     <string name="feature_analysis_impl_missing_terms_label">Not in your facts yet:</string>
     <string name="feature_analysis_impl_share_my_fit">Share my fit</string>

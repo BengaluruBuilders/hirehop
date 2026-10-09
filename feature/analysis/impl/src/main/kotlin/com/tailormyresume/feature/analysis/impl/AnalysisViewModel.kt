@@ -308,7 +308,7 @@ class AnalysisViewModel @Inject constructor(
             attempt { analyze(kept, profile) }.fold(
                 onSuccess = { analysis ->
                     if (analysis.gap.keywordCoverage.total > 0) countAnalysisOnce(kept)
-                    local.update { it.copy(phase = Phase.Ready(kept, profile, analysis, analysedAt = clock.now())) }
+                    local.update { it.copy(phase = Phase.Ready(kept, profile, analysis, analysedAt = analysis.analysedAt ?: clock.now())) }
                 },
                 onFailure = { failure ->
                     val phase = if (failure.isAiFailure(AiFailure.AllowanceExhausted)) {
@@ -437,7 +437,7 @@ class AnalysisViewModel @Inject constructor(
         }
         return ready.copy(
             profile = profile,
-            analysis = JobAnalysisResult(previous.job, previous.gap.copy(matches = matches, keywordCoverage = coverage)),
+            analysis = previous.copy(gap = previous.gap.copy(matches = matches, keywordCoverage = coverage)),
         )
     }
 

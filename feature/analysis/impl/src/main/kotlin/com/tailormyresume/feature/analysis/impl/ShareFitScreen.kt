@@ -39,7 +39,6 @@ import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.KeywordCoverage
-import com.tailormyresume.core.model.MatchStatus
 
 @Composable
 internal fun ShareFitScreen(
@@ -50,10 +49,9 @@ internal fun ShareFitScreen(
     BackHandler(onBack = actions.onDismissOverlay)
     val role = state.job.title.withoutCompany(state.job.company)
         .ifBlank { stringResource(R.string.feature_analysis_impl_role_not_set) }
-    val met = state.countOf(MatchStatus.MET)
-    val partial = state.countOf(MatchStatus.PARTIAL)
-    val gap = state.countOf(MatchStatus.GAP)
-    val shareText = stringResource(R.string.feature_analysis_impl_share_text, role, met, partial, gap)
+    val met = state.keywordCoverage.covered
+    val toPrepare = (state.keywordCoverage.total - met).coerceAtLeast(0)
+    val shareText = stringResource(R.string.feature_analysis_impl_share_text, role, met, toPrepare)
     TmrScreen(
         modifier = modifier.fillMaxSize(),
         header = {
@@ -93,9 +91,8 @@ internal fun ShareFitScreen(
                 role = role,
                 company = state.job.company.trim(),
                 coverage = state.keywordCoverage,
-                met = state.keywordCoverage.covered,
-                partial = 0,
-                gap = (state.keywordCoverage.total - state.keywordCoverage.covered).coerceAtLeast(0),
+                met = met,
+                gap = toPrepare,
             )
             NoteCard(icon = TmrIcons.Info) {
                 Text(
@@ -128,7 +125,6 @@ private fun ShareFitCard(
     company: String,
     coverage: KeywordCoverage,
     met: Int,
-    partial: Int,
     gap: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -141,7 +137,6 @@ private fun ShareFitCard(
         covered,
         total,
         met,
-        partial,
         gap,
     )
     TmrCard(
@@ -185,12 +180,6 @@ private fun ShareFitCard(
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         ) {
             TmrStatusChip(TmrStatusKind.Met, label = stringResource(R.string.feature_analysis_impl_summary_met, met))
-            if (partial > 0) {
-                TmrStatusChip(
-                    TmrStatusKind.Partial,
-                    label = stringResource(R.string.feature_analysis_impl_summary_partial, partial),
-                )
-            }
             TmrStatusChip(TmrStatusKind.Gap, label = stringResource(R.string.feature_analysis_impl_summary_gap, gap))
         }
     }

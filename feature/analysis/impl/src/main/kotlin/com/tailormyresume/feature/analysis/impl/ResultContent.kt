@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.analysis.impl
 
+import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -36,9 +38,11 @@ import com.tailormyresume.core.designsystem.component.TmrStatusChip
 import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.displayKeywords
+import com.tailormyresume.core.domain.isKnownSkill
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Date
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
@@ -89,14 +93,15 @@ internal fun ResultContent(
 @Composable
 private fun offlineBannerText(analysedAt: Instant?): String {
     if (analysedAt == null) return stringResource(R.string.feature_analysis_impl_offline_banner)
+    val context = LocalContext.current
     val moment = analysedAt.toJavaInstant().atZone(ZoneId.systemDefault())
-    val time = moment.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val time = DateFormat.getTimeFormat(context).format(Date(analysedAt.toEpochMilliseconds()))
     return if (moment.toLocalDate() == LocalDate.now(moment.zone)) {
         stringResource(R.string.feature_analysis_impl_offline_banner_today, time)
     } else {
         stringResource(
             R.string.feature_analysis_impl_offline_banner_dated,
-            moment.format(DateTimeFormatter.ofPattern("d MMM")),
+            moment.format(DateTimeFormatter.ofPattern(OFFLINE_DATE_PATTERN, context.resources.configuration.locales[0])),
             time,
         )
     }
@@ -205,6 +210,8 @@ private fun missingTermsText(terms: List<String>): AnnotatedString {
     }
 }
 
+private const val OFFLINE_DATE_PATTERN = "d MMM"
+
 private val companyWordSeparator = Regex("[^\\p{L}\\p{N}]+")
 
 private fun AnalysisUiState.Result.missingKeyTerms(): List<String> {
@@ -217,7 +224,7 @@ private fun AnalysisUiState.Result.missingKeyTerms(): List<String> {
         .flatMap { displayKeywords(it.requirement) }
         .filter { it.isNotBlank() }
         .distinct()
-        .filterNot { it.lowercase() in companyWords }
+        .filterNot { it.lowercase() in companyWords && !isKnownSkill(it) }
 }
 
 @Composable

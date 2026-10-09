@@ -30,7 +30,6 @@ import com.tailormyresume.core.designsystem.component.rememberTmrToastState
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
 import com.tailormyresume.core.model.DebugScenario
-import com.tailormyresume.core.model.MatchStatus
 
 data class AnalysisActions(
     val onBackClick: () -> Unit = {},
@@ -259,5 +258,3 @@ private fun AnalysisHeader(
         },
     )
 }
-
-internal fun AnalysisUiState.Result.countOf(status: MatchStatus): Int = items.count { it.status == status }
