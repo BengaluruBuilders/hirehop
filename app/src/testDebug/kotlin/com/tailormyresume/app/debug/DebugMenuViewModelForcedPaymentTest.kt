@@ -17,36 +17,37 @@ class DebugMenuViewModelForcedPaymentTest {
 
     private val forced = ForcedPaymentScenario()
     private val connectivity = TestConnectivityMonitor()
-    private val viewModel = DebugMenuViewModel(TestSampleDataController(), connectivity, connectivity, forced)
+    private fun viewModel() = DebugMenuViewModel(TestSampleDataController(), connectivity, connectivity, forced)
 
     @Test
     fun openingThePackScreenForcesTheChosenScenarioBeforeItShows() = runTest {
         var seenWhenReady: DebugScenario? = null
 
-        viewModel.openPreview(DebugScenarioTarget.PackPurchase, DebugScenario.PENDING) { seenWhenReady = forced.scenario }
+        viewModel().openPreview(DebugScenarioTarget.PackPurchase, DebugScenario.PENDING) { seenWhenReady = forced.scenario }
 
         assertThat(seenWhenReady).isEqualTo(DebugScenario.PENDING)
     }
 
     @Test
     fun openingCreditsForcesTheChosenScenario() = runTest {
-        viewModel.openPreview(DebugScenarioTarget.Credits, DebugScenario.PENDING) {}
+        viewModel().openPreview(DebugScenarioTarget.Credits, DebugScenario.PENDING) {}
 
         assertThat(forced.scenario).isEqualTo(DebugScenario.PENDING)
     }
 
     @Test
     fun otherScreensForceNothing() = runTest {
-        viewModel.openPreview(DebugScenarioTarget.Profile, DebugScenario.PENDING) {}
+        viewModel().openPreview(DebugScenarioTarget.Profile, DebugScenario.PENDING) {}
 
         assertThat(forced.scenario).isEqualTo(DebugScenario.DEFAULT)
     }
 
     @Test
     fun closingThePreviewClearsTheForcedScenario() = runTest {
-        viewModel.openPreview(DebugScenarioTarget.PackPurchase, DebugScenario.FAILED) {}
+        val subject = viewModel()
+        subject.openPreview(DebugScenarioTarget.PackPurchase, DebugScenario.FAILED) {}
 
-        viewModel.closePreview(DebugScenarioTarget.PackPurchase)
+        subject.closePreview(DebugScenarioTarget.PackPurchase)
 
         assertThat(forced.scenario).isEqualTo(DebugScenario.DEFAULT)
     }
