@@ -20,4 +20,5 @@ data class ConsentActions(
     val onNotNow: () -> Unit,
     val onReadAgain: () -> Unit,
     val onBack: () -> Unit,
+    val onBackToStart: () -> Unit = {},
 )

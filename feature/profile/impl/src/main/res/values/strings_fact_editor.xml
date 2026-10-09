@@ -32,6 +32,7 @@
     <string name="feature_profile_impl_fact_editor_organization_achievement">Organiser or team</string>
 
     <string name="feature_profile_impl_fact_editor_error_required">Add this to save.</string>
+    <string name="feature_profile_impl_fact_editor_error_invalid_date">Write the date as a month and year, for example Aug 2024.</string>
     <string name="feature_profile_impl_fact_editor_error_end_before_start">The end date is before the start date.</string>
     <string name="feature_profile_impl_fact_editor_error_too_long">Keep this shorter so it stays readable.</string>
 

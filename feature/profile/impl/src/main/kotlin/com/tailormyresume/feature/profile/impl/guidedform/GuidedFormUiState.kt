@@ -6,7 +6,7 @@ import com.tailormyresume.feature.profile.impl.ProfileExit
 
 enum class GuidedArrival { NORMAL, FROM_SCANNED_PDF }
 
-enum class GuidedFieldProblem { REQUIRED, END_BEFORE_START, TOO_LONG, INVALID_EMAIL, INVALID_PHONE }
+enum class GuidedFieldProblem { REQUIRED, END_BEFORE_START, TOO_LONG, INVALID_DATE, INVALID_EMAIL, INVALID_PHONE }
 
 enum class GuidedMessage { LOAD_FAILED, SAVE_FAILED }
 

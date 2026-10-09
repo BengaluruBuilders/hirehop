@@ -263,6 +263,7 @@ class GuidedFormViewModel @Inject internal constructor(
         FactDraftErrorReason.REQUIRED -> GuidedFieldProblem.REQUIRED
         FactDraftErrorReason.END_BEFORE_START -> GuidedFieldProblem.END_BEFORE_START
         FactDraftErrorReason.TOO_LONG -> GuidedFieldProblem.TOO_LONG
+        FactDraftErrorReason.INVALID_DATE -> GuidedFieldProblem.INVALID_DATE
     }
 
     private companion object {
