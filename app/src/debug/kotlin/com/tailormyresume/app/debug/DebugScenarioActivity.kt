@@ -1,6 +1,7 @@
 package com.tailormyresume.app.debug
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -42,7 +43,7 @@ class DebugScenarioActivity : ComponentActivity() {
     private var opened by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+        applyEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             TmrTheme {
@@ -72,6 +73,15 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyEdgeToEdge()
+    }
+
+    private fun applyEdgeToEdge() {
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+    }
+
     private fun openPreview() {
         rootStores.releaseAll()
         menuViewModel.openPreview(target) { opened = true }
@@ -84,7 +94,11 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun openApp() {
-        startActivity(Intent(this, MainActivity::class.java))
+        if (opensRealApp(target, scenario)) {
+            startActivity(Intent(this, MainActivity::class.java))
+        } else {
+            openPreview()
+        }
     }
 }
 
@@ -112,3 +126,6 @@ private fun DebugScenarioPreview(
 
 internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =
     seenMain && rootState == AppRootState.FirstRun
+
+internal fun opensRealApp(target: DebugScenarioTarget, scenario: DebugScenario): Boolean =
+    target == DebugScenarioTarget.Applications && scenario == DebugScenario.defaultValue

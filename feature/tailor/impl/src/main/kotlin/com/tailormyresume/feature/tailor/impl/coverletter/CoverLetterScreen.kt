@@ -343,13 +343,16 @@ private fun ParagraphBlock(
     val editing = uiState.editingOrdinal == paragraph.ordinal
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (editing) {
-            EditingBlock(paragraph, position, uiState, actions, onSource)
+            EditingBlock(position, uiState, actions)
         } else {
             TmrEvidenceText(
                 text = paragraph.annotated(marked, evidenceMarkSpanStyle(), TmrTheme.colors.partialContainer),
                 style = TmrTheme.typography.bodyM,
             )
-            ParagraphFactChipsFlow(paragraph.facts.map { fact -> fact.displayId }.distinct(), onSource)
+            ParagraphFactChipsFlow(
+                if (paragraph.isUserEdited) emptyList() else paragraph.facts.map { fact -> fact.displayId }.distinct(),
+                onSource,
+            )
             ParagraphNotes(paragraph)
             ParagraphActions(
                 paragraph = paragraph,
@@ -444,11 +447,9 @@ private fun ParagraphActions(paragraph: CoverLetterParagraph, isReported: Boolea
 
 @Composable
 private fun EditingBlock(
-    paragraph: CoverLetterParagraph,
     position: Int,
     uiState: CoverLetterUiState,
     actions: CoverLetterActions,
-    onSource: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         TmrTextField(
@@ -464,7 +465,6 @@ private fun EditingBlock(
             icon = TmrIcons.Edit,
             color = TmrTheme.colors.onSurface,
         )
-        ParagraphFactChipsFlow(paragraph.facts.map { fact -> fact.displayId }.distinct(), onSource)
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_cancel),
