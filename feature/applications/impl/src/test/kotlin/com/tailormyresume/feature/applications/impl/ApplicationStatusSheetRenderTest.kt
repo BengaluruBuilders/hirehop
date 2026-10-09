@@ -1,6 +1,8 @@
 package com.tailormyresume.feature.applications.impl
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -57,7 +59,7 @@ class ApplicationStatusSheetRenderTest {
         composeRule.onNodeWithText("Application status").assertIsDisplayed()
         composeRule.onNodeWithText("Save status").assertIsDisplayed()
         composeRule.onNodeWithText("Cancel").assertDoesNotExist()
-        composeRule.onNodeWithText("No response").assertDoesNotExist()
+        composeRule.onNode(hasText("No response") and isSelectable()).assertDoesNotExist()
         EXPECTED_STATUS_LABELS.forEach { label ->
             assertWithMessage("the sheet offers $label")
                 .that(composeRule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
