@@ -24,7 +24,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -68,7 +72,17 @@ class PasteJobDescriptionViewModel @Inject constructor(
             scenario = key.scenario,
             sharedText = sharedText,
         )
+        restoreTypedInput()
         schedulePrefill()
+        mutableState
+            .map { Triple(it.text.take(PASTE_JD_MAX_CHARACTERS + 1), it.company, it.role) }
+            .distinctUntilChanged()
+            .onEach { (text, company, role) ->
+                savedState[TEXT_KEY] = text
+                savedState[COMPANY_KEY] = company
+                savedState[ROLE_KEY] = role
+            }
+            .launchIn(viewModelScope)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
         viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
@@ -81,6 +95,17 @@ class PasteJobDescriptionViewModel @Inject constructor(
                     mutableState.update { it.copy(freeAnalysesLeft = left) }
                 }
             }
+        }
+    }
+
+    private fun restoreTypedInput() {
+        val text = savedState.get<String>(TEXT_KEY) ?: return
+        mutableState.update {
+            it.copy(
+                text = text,
+                company = savedState.get<String>(COMPANY_KEY).orEmpty(),
+                role = savedState.get<String>(ROLE_KEY).orEmpty(),
+            )
         }
     }
 
@@ -196,5 +221,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private companion object {
         const val PREFILL_DEBOUNCE_MS = 300L
+        const val TEXT_KEY = "pasteJd.text"
+        const val COMPANY_KEY = "pasteJd.company"
+        const val ROLE_KEY = "pasteJd.role"
     }
 }

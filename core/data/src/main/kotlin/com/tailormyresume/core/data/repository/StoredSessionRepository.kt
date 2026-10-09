@@ -78,7 +78,7 @@ internal class StoredSessionRepository @Inject constructor(
 
     override suspend fun clearConsent() = removeAll(CONSENT_KEY)
 
-    override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY)
+    override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 
     override suspend fun clear() = removeAll(ACCOUNT_KEY, LAST_ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 

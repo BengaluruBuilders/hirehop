@@ -67,7 +67,7 @@ class FactEditorViewModel @AssistedInject constructor(
         if (scenario != DebugScenario.LOADING) {
             viewModelScope.launch {
                 val profile = profileRepository.observeProfile().first()
-                mutableUiState.update { it.withLoadedProfile(profile) }
+                mutableUiState.update { it.withLoadedProfile(profile).withSavedDraft() }
             }
         }
     }
@@ -152,6 +152,7 @@ class FactEditorViewModel @AssistedInject constructor(
     ) {
         mutableUiState.update { current ->
             val draft = transform(current.draft)
+            saveDraft(draft)
             current.copy(
                 draft = draft,
                 fieldErrors = FactDraftValidator.validate(draft).toFieldErrorMap(),
@@ -187,6 +188,16 @@ class FactEditorViewModel @AssistedInject constructor(
         )
     }
 
+    private fun saveDraft(draft: FactDraft) {
+        savedState[DRAFT_KEY] = arrayListOf(draft.title, draft.detail, draft.organization, draft.startDate, draft.endDate)
+    }
+
+    private fun FactEditorUiState.withSavedDraft(): FactEditorUiState {
+        val (title, detail, organization, startDate, endDate) = savedState.get<ArrayList<String>>(DRAFT_KEY) ?: return this
+        val restored = copy(draft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate))
+        return if (mode == FactEditorMode.New) restored.withNewId(title) else restored
+    }
+
     private fun FactEditorUiState.withNewId(title: String): FactEditorUiState {
         val nextId = factIdAllocator.nextId(requestedCategory, existingEntries, title)
         return copy(factId = nextId, displayId = nextId)
@@ -215,6 +226,10 @@ class FactEditorViewModel @AssistedInject constructor(
         )
         val updated = if (existing == null) entries + entry else entries.map { if (it.id == id) entry else it }
         return copy(entries = updated)
+    }
+
+    private companion object {
+        const val DRAFT_KEY = "factEditor.draft"
     }
 
     @AssistedFactory

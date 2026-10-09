@@ -20,7 +20,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,10 +52,35 @@ class GuidedFormViewModel @Inject internal constructor(
             startStep = key.startStep,
             resumedFromScan = key.resumedFromScan,
         )
+        restoreTypedInput()
+        mutableState
+            .map { Typed(it.stepIndex, it.showIntro, it.skills, HashMap(it.values.mapKeys { (field, _) -> field.name })) }
+            .distinctUntilChanged()
+            .onEach { typed -> savedState[TYPED_KEY] = typed }
+            .launchIn(viewModelScope)
         connectivityMonitor.isOnline
             .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
             .launchIn(viewModelScope)
     }
+
+    private fun restoreTypedInput() {
+        val typed = savedState.get<Typed>(TYPED_KEY) ?: return
+        mutableState.update { state ->
+            state.copy(
+                stepIndex = typed.stepIndex.coerceIn(0, GUIDED_STEPS.lastIndex),
+                showIntro = typed.showIntro,
+                skills = typed.skills,
+                values = typed.values.mapNotNull { (name, value) -> GuidedField.entries.find { it.name == name }?.let { it to value } }.toMap(),
+            )
+        }
+    }
+
+    private data class Typed(
+        val stepIndex: Int,
+        val showIntro: Boolean,
+        val skills: List<String>,
+        val values: HashMap<String, String>,
+    ) : java.io.Serializable
 
     fun onAction(action: GuidedFormAction) {
         when (action) {
@@ -267,5 +294,6 @@ class GuidedFormViewModel @Inject internal constructor(
 
     private companion object {
         const val EVIDENCE_HANDOFF_CATEGORY = "projects"
+        const val TYPED_KEY = "guidedForm.typed"
     }
 }
