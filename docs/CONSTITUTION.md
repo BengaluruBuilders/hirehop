@@ -82,7 +82,12 @@ TailorMyResume follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the de
 
 Note on VI.1: GitHub blocks branch protection on private repositories on the Free plan.
 Until the repository is public or on GitHub Pro, nothing stops a direct push to `main`.
-When protection is available, require the `Constitution policy` and `Build, lint, and unit tests` checks.
+When protection is available, require the `Constitution policy` check.
+Do not require `Build, lint, and unit tests` yet. When an owner edits a PR title or base branch, that check reports success without a build.
+GitHub then counts the check as passed for a PR with a failed build.
+Until a job copies the result of the last full run, a person checks the build result before merge.
+
+The secret scan runs `tools/ci/scan-secrets.sh`. It uses the default gitleaks rules and the `.gitleaksignore` file of the base branch. A file in the PR cannot allow a secret. `tools/ci/test-scan-secrets.sh` tests the script.
 
 ## Article VII — Amendments
 

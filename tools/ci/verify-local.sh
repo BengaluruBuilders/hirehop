@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 tools/ci/check-constitution.sh
+tools/ci/test-scan-secrets.sh
 ./gradlew \
   :build-logic:convention:check \
   spotlessCheck \
