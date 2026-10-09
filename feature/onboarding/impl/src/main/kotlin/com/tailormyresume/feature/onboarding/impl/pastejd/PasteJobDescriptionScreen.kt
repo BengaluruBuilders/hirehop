@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -81,6 +82,7 @@ private val PASTE_CHIP_PADDING = 12.dp
 private val SOURCE_CHIP_ICON = 16.dp
 private val PASTE_WORD_ICON = 18.dp
 private const val STACKED_NOTICE_FONT_SCALE = 1.5f
+private val STACKED_NOTICE_MAX_SCREEN_HEIGHT = 560.dp
 
 @Composable
 internal fun PasteJobDescriptionScreen(
@@ -89,7 +91,10 @@ internal fun PasteJobDescriptionScreen(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
-    val isDisclosureStacked = LocalDensity.current.fontScale >= STACKED_NOTICE_FONT_SCALE
+    val density = LocalDensity.current
+    val windowHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val isDisclosureStacked = density.fontScale >= STACKED_NOTICE_FONT_SCALE ||
+        windowHeight < STACKED_NOTICE_MAX_SCREEN_HEIGHT
     var isDiscardRequested by remember { mutableStateOf(false) }
     val onBackRequest = {
         if (uiState.hasUnanalysedText) {

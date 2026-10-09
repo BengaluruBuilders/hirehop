@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +49,7 @@ import com.tailormyresume.feature.onboarding.impl.R
 
 private val TOP_ROW_HEIGHT = 48.dp
 private val LOGO_MARK = 36.dp
+private const val LINK_OWN_LINE_FONT_SCALE = 1.5f
 private val CHOICE_HEIGHT = 56.dp
 private val CHOICE_DISC = 22.dp
 private val CHOICE_CHECK = 13.dp
@@ -128,11 +130,8 @@ private fun WelcomeTopRow(
     actions: WelcomeActions,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth().heightIn(min = TOP_ROW_HEIGHT),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
+    val isLinkOnOwnLine = LocalDensity.current.fontScale >= LINK_OWN_LINE_FONT_SCALE
+    val brand: @Composable () -> Unit = {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
@@ -144,10 +143,27 @@ private fun WelcomeTopRow(
                 color = TmrTheme.colors.onSurface,
             )
         }
+    }
+    val haveAccount: @Composable () -> Unit = {
         TmrTextButton(
             label = stringResource(R.string.feature_onboarding_impl_welcome_have_account),
             onClick = actions.onHaveAccount,
         )
+    }
+    if (isLinkOnOwnLine) {
+        Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+            Box(modifier = Modifier.heightIn(min = TOP_ROW_HEIGHT), contentAlignment = Alignment.CenterStart) { brand() }
+            haveAccount()
+        }
+    } else {
+        Row(
+            modifier = modifier.fillMaxWidth().heightIn(min = TOP_ROW_HEIGHT),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            brand()
+            haveAccount()
+        }
     }
 }
 
@@ -157,6 +173,7 @@ private fun WelcomeLogoMark(modifier: Modifier = Modifier) {
         text = stringResource(R.string.feature_onboarding_impl_welcome_brand),
         modifier = modifier,
         size = LOGO_MARK,
+        shape = TmrTheme.shapes.logoTile,
     )
 }
 

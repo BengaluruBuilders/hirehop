@@ -22,6 +22,8 @@ import org.robolectric.annotation.Config
 
 private const val NARROW_QUALIFIERS = "w320dp-h480dp-normal-long-notround-any-xhdpi-keyshidden-nonav"
 
+private const val MODERATE_FONT_SCALE = 1.4f
+
 @RunWith(AndroidJUnit4::class)
 @Config(qualifiers = NARROW_QUALIFIERS, fontScale = TmrTestDevices.LARGE_FONT_SCALE)
 class PasteJobDescriptionNarrowLargeFontTest {
@@ -66,6 +68,16 @@ class PasteJobDescriptionNarrowLargeFontTest {
 
     @Test
     fun pastedFieldKeepsClearInsideTheVisibleArea() {
+        show(PasteJobDescriptionUiState(text = JD))
+
+        val clear = composeRule.onNodeWithText(CLEAR_LABEL)
+        clear.assertIsDisplayed()
+        assertTrue(clear.getUnclippedBoundsInRoot().bottom <= viewportBottom())
+    }
+
+    @Test
+    @Config(fontScale = MODERATE_FONT_SCALE)
+    fun shortWindowAtModerateFontKeepsClearInsideTheVisibleArea() {
         show(PasteJobDescriptionUiState(text = JD))
 
         val clear = composeRule.onNodeWithText(CLEAR_LABEL)
