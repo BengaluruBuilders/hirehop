@@ -111,7 +111,7 @@ private fun GapBody(
         RowMenuButton(item, actions, onMenuAnchor)
     }
     TmrStatusChip(kind = TmrStatusKind.Gap, label = statusLabel)
-    (item.requirement.text.splitDetail().second ?: item.requirement.text.trim().takeIf { item.requirement.text.headline() != name })?.let { askedFor ->
+    (if (item.requirement.text.headline() != name) item.requirement.text.trim() else item.requirement.text.splitDetail().second)?.let { askedFor ->
         Text(
             text = stringResource(R.string.feature_analysis_impl_asked_for, askedFor),
             style = TmrTheme.typography.bodyS,

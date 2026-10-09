@@ -22,7 +22,7 @@ class AnalysisGapNameTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val sentence = "You will build screens with Kotlin and Hilt in a modular codebase."
+    private val sentence = "You will build screens with Kotlin and SQL in a modular codebase."
 
     private val gap = RequirementItem(
         requirement = JobRequirement(
@@ -30,7 +30,7 @@ class AnalysisGapNameTest {
             text = sentence,
             type = RequirementType.SKILL,
             priority = RequirementPriority.MUST_HAVE,
-            keywords = listOf("kotlin", "hilt"),
+            keywords = listOf("kotlin", "sql"),
         ),
         status = MatchStatus.GAP,
         skills = emptyList(),
@@ -51,16 +51,32 @@ class AnalysisGapNameTest {
     fun gapCardUsesTheSkillNamesAndShowsTheSentenceAsAskedFor() {
         showResult()
 
-        composeRule.onNodeWithText("Kotlin, Hilt").assertExists()
+        composeRule.onNodeWithText("Kotlin, SQL").assertExists()
         composeRule.onNodeWithText("Asked for: $sentence").assertExists()
+    }
+
+    @Test
+    fun longRequirementWithBracketShowsTheWholeSentenceAsAskedFor() {
+        val bracketed = "Experience building dashboards for business users across regions (Power BI or Tableau)"
+        val item = gap.copy(requirement = gap.requirement.copy(text = bracketed, keywords = listOf("power bi", "tableau")))
+        val state = AnalysisUiState.Result(
+            job = JobLabel("Android Developer", "Acme"),
+            keywordCoverage = KeywordCoverage(0, 2),
+            sections = listOf(RequirementSection(RequirementGroup.MustHaveGaps, listOf(item))),
+            totalCredits = 1,
+        )
+        composeRule.setContent { TmrTheme { AnalysisScreen(uiState = state, actions = AnalysisActions()) } }
+
+        composeRule.onNodeWithText("Power BI, Tableau").assertExists()
+        composeRule.onNodeWithText("Asked for: $bracketed").assertExists()
     }
 
     @Test
     fun questionSheetAsksAboutTheSkillName() {
         composeRule.setContent { TmrTheme { QuestionSheetContent(gap, AnalysisActions()) } }
 
-        composeRule.onNodeWithText("Where have you used Kotlin, Hilt?").assertExists()
-        composeRule.onNodeWithText("Must-have · Kotlin, Hilt").assertExists()
+        composeRule.onNodeWithText("Where have you used Kotlin, SQL?").assertExists()
+        composeRule.onNodeWithText("Must-have · Kotlin, SQL").assertExists()
     }
 
     @Test
@@ -68,7 +84,7 @@ class AnalysisGapNameTest {
         composeRule.setContent { TmrTheme { QuestionSheetContent(gap, AnalysisActions(), notClosed = true) } }
 
         composeRule.onNodeWithText(
-            "Your words do not mention Kotlin or Hilt, so this gap stays open and nothing was saved. " +
+            "Your words do not mention Kotlin or SQL, so this gap stays open and nothing was saved. " +
                 "Say where you used it, in your own words.",
         ).assertExists()
     }

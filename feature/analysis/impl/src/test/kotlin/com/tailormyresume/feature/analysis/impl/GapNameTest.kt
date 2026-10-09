@@ -18,9 +18,9 @@ class GapNameTest {
 
     @Test
     fun longSentence_isNamedBySkillsFromItsKeywords() {
-        val name = requirement("You will build screens with Kotlin and Hilt in a modular codebase.", "kotlin", "hilt").gapName()
+        val name = requirement("You will build screens with Kotlin and SQL in a modular codebase.", "kotlin", "sql").gapName()
 
-        assertThat(name).isEqualTo("Kotlin, Hilt")
+        assertThat(name).isEqualTo("Kotlin, SQL")
     }
 
     @Test
@@ -52,5 +52,13 @@ class GapNameTest {
     fun detailInBrackets_doesNotCountTowardsTheLength() {
         assertThat(requirement("Cloud data warehouse (Snowflake or BigQuery)", "snowflake").gapName())
             .isEqualTo("Cloud data warehouse")
+    }
+
+    @Test
+    fun fallbackWordsThatAreNotSkillsKeepTheHeadline() {
+        val text = "Proven track record of shipping consumer apps to millions of users."
+
+        assertThat(requirement(text, "shipping", "consumer", "apps").gapName())
+            .isEqualTo("Proven track record of shipping consumer apps to millions of users")
     }
 }

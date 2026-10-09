@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.DiscardJobDraftsUseCase
 import com.tailormyresume.core.domain.JobDescriptionAnalyzer
@@ -87,6 +88,51 @@ class PasteJobDescriptionPrefillFlagsTest {
         assertThat(kept.companyIsPrefill).isFalse()
         assertThat(kept.roleIsPrefill).isTrue()
     }
+
+    @Test
+    fun analyse_afterEditingAwayFromTheProposalAndBack_flagsTheRoleAsTyped() = runTest {
+        viewModel.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        viewModel.onAction(PasteJobDescriptionAction.TextChanged(JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+        viewModel.onAction(PasteJobDescriptionAction.RoleChanged("Typed Role"))
+        viewModel.onAction(PasteJobDescriptionAction.RoleChanged("Offline Role"))
+
+        viewModel.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        val kept = checkNotNull(session.observeKeptJobDescription().first())
+        assertThat(kept.roleIsPrefill).isFalse()
+        assertThat(kept.companyIsPrefill).isTrue()
+    }
+
+    @Test
+    fun editedFlags_surviveARestore() = runTest {
+        val handle = SavedStateHandle()
+        val before = viewModelWith(handle)
+        before.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        before.onAction(PasteJobDescriptionAction.TextChanged(JD))
+        advanceTimeBy(PREFILL_DEBOUNCE_MS + 1)
+        before.onAction(PasteJobDescriptionAction.RoleChanged("Typed Role"))
+        before.onAction(PasteJobDescriptionAction.RoleChanged("Offline Role"))
+
+        val after = viewModelWith(SavedStateHandle(handle.keys().associateWith { handle.get<Any>(it) }))
+        after.onEnter(PasteJobDescriptionNavKey(scenario = DebugScenario.DEFAULT))
+        after.onAction(PasteJobDescriptionAction.AnalyseTapped)
+
+        val kept = checkNotNull(session.observeKeptJobDescription().first())
+        assertThat(kept.roleIsPrefill).isFalse()
+        assertThat(kept.companyIsPrefill).isTrue()
+    }
+
+    private fun viewModelWith(handle: SavedStateHandle) = PasteJobDescriptionViewModel(
+        sessionRepository = session,
+        nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
+        connectivityMonitor = TestConnectivityMonitor(),
+        usageAllowance = TestUsageAllowance(TestClock()),
+        proposeJobLabel = ProposeJobLabelUseCase(ProposingAnalyzer()),
+        discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
+        computeDispatcher = UnconfinedTestDispatcher(),
+        savedState = handle,
+    )
 
     private class ProposingAnalyzer : JobDescriptionAnalyzer {
         override suspend fun analyze(rawText: String): JobDescription = JobDescription(
