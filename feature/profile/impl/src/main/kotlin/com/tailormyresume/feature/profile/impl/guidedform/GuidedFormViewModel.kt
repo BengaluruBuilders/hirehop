@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.profile.impl.guidedform
 
+import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -19,17 +21,21 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class GuidedFormViewModel @Inject internal constructor(
     private val factWriter: UserFactWriter,
     private val exitResolver: ProfileExitResolver,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(GuidedFormUiState())
@@ -48,6 +54,12 @@ class GuidedFormViewModel @Inject internal constructor(
             startStep = key.startStep,
             resumedFromScan = key.resumedFromScan,
         )
+        restoreTypedInput()
+        mutableState
+            .map { it.toTyped() }
+            .distinctUntilChanged()
+            .onEach { typed -> savedState[TYPED_KEY] = typed }
+            .launchIn(viewModelScope)
         connectivityMonitor.isOnline
             .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
             .launchIn(viewModelScope)
@@ -55,6 +67,48 @@ class GuidedFormViewModel @Inject internal constructor(
             .onEach { entries -> mutableState.update { it.syncedWith(entries) } }
             .launchIn(viewModelScope)
     }
+
+    private fun restoreTypedInput() {
+        val typed = savedState.get<Typed>(TYPED_KEY) ?: return
+        mutableState.update { state ->
+            state.copy(
+                stepIndex = typed.stepIndex.coerceIn(0, GUIDED_STEPS.lastIndex),
+                showIntro = typed.showIntro,
+                skills = typed.skills,
+                experienceChoice = typed.experienceChoice?.let { name -> ExperienceChoice.entries.find { it.name == name } },
+                values = typed.values.mapNotNull { (name, value) -> GuidedField.entries.find { it.name == name }?.let { it to value } }.toMap(),
+                completedSteps = typed.completedSteps.mapNotNull(::stepNamed).toSet(),
+                stepEntryIds = typed.stepEntryIds.mapNotNull { (name, ids) -> stepNamed(name)?.let { it to ids.toList() } }.toMap(),
+                stepEntryFields = typed.stepEntryFields.mapNotNull { (name, fields) ->
+                    stepNamed(name)?.let { step -> step to fields.mapNotNull { field -> GuidedField.entries.find { it.name == field } } }
+                }.toMap(),
+            )
+        }
+    }
+
+    private data class Typed(
+        val stepIndex: Int,
+        val showIntro: Boolean,
+        val skills: List<String>,
+        val values: HashMap<String, String>,
+        val completedSteps: ArrayList<String>,
+        val stepEntryIds: HashMap<String, ArrayList<String>>,
+        val stepEntryFields: HashMap<String, ArrayList<String>>,
+        val experienceChoice: String?,
+    ) : java.io.Serializable
+
+    private fun GuidedFormUiState.toTyped() = Typed(
+        stepIndex = stepIndex,
+        showIntro = showIntro,
+        skills = skills.map { it.take(SAVED_VALUE_LIMIT) },
+        values = HashMap(values.entries.associate { (field, value) -> field.name to value.take(SAVED_VALUE_LIMIT) }),
+        completedSteps = ArrayList(completedSteps.map { it.name }),
+        stepEntryIds = HashMap(stepEntryIds.entries.associate { (step, ids) -> step.name to ArrayList(ids) }),
+        stepEntryFields = HashMap(stepEntryFields.entries.associate { (step, fields) -> step.name to ArrayList(fields.map { it.name }) }),
+        experienceChoice = experienceChoice?.name,
+    )
+
+    private fun stepNamed(name: String): GuidedStep? = GuidedStep.entries.find { it.name == name }
 
     fun onAction(action: GuidedFormAction) {
         when (action) {
@@ -298,5 +352,7 @@ class GuidedFormViewModel @Inject internal constructor(
 
     private companion object {
         const val EVIDENCE_HANDOFF_CATEGORY = "projects"
+        const val TYPED_KEY = "guidedForm.typed"
+        const val SAVED_VALUE_LIMIT = 4_000
     }
 }
