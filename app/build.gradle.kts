@@ -89,6 +89,7 @@ dependencies {
     implementation(projects.core.ui)
 
     "prodImplementation"(projects.core.network)
+    "prodImplementation"(libs.room.runtime)
     "prodImplementation"(platform(libs.firebase.bom))
     "prodImplementation"(libs.firebase.auth)
     "prodImplementation"(libs.androidx.credentials)

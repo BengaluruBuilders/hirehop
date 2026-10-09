@@ -9,9 +9,11 @@ import com.tailormyresume.app.auth.FirebaseSessionClient
 import com.tailormyresume.app.auth.ForegroundActivity
 import com.tailormyresume.app.auth.ForegroundActivityTracker
 import com.tailormyresume.app.auth.GoogleCredentialSource
+import com.tailormyresume.app.auth.LocalDataWiper
 import com.tailormyresume.app.auth.RemoteConsentUploader
 import com.tailormyresume.app.auth.RemoteServerAccountDeleter
 import com.tailormyresume.app.auth.RemoteSignInGateway
+import com.tailormyresume.app.auth.RoomLocalDataWiper
 import com.tailormyresume.core.domain.ConsentUploader
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.SignInGateway
@@ -29,6 +31,9 @@ import dagger.hilt.components.SingletonComponent
 interface SignInBindings {
     @Binds
     fun bindSignInGateway(impl: RemoteSignInGateway): SignInGateway
+
+    @Binds
+    fun bindLocalDataWiper(impl: RoomLocalDataWiper): LocalDataWiper
 
     @Binds
     fun bindGoogleCredentialSource(impl: CredentialManagerGoogleSource): GoogleCredentialSource

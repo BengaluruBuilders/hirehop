@@ -10,6 +10,7 @@ import com.tailormyresume.core.domain.SignInFailureReason
 import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.domain.SignInOutcome
 import com.tailormyresume.core.domain.SignInResult
+import com.tailormyresume.core.domain.account.ExportedFiles
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,6 +20,7 @@ class OfflineSignInGateway @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val latency: MockLatency,
     private val store: MockStateStore,
+    private val exportedFiles: ExportedFiles = ExportedFiles.None,
 ) : SignInGateway {
 
     private var outcome: SignInOutcome = SignInOutcome.SignedIn
@@ -47,5 +49,6 @@ class OfflineSignInGateway @Inject constructor(
 
     override suspend fun signOut() {
         sessionRepository.signOut()
+        exportedFiles.deleteAll()
     }
 }
