@@ -53,6 +53,7 @@ class DeleteAccountViewModel @Inject constructor(
                 accountEmail = snapshot.accountEmail,
                 isOffline = !isOnline || phase.forcedOffline,
                 failure = phase.failure,
+                isConfirmVisible = phase.isConfirmVisible,
             )
         }
     }.stateIn(
@@ -66,7 +67,7 @@ class DeleteAccountViewModel @Inject constructor(
         hasEntered = true
         phase.value = when (key.scenario) {
             DebugScenario.OFFLINE -> Phase(forcedOffline = true)
-            DebugScenario.DELETING -> Phase(stage = Stage.DELETING, step = AccountDeletionStep.DELETING_PROFILE_FACTS)
+            DebugScenario.DELETING -> Phase(stage = Stage.DELETING, step = AccountDeletionStep.DELETING_APPLICATIONS)
             DebugScenario.ERROR -> Phase(failure = DeleteAccountFailure.DATA_INTACT)
             else -> Phase()
         }
@@ -81,6 +82,23 @@ class DeleteAccountViewModel @Inject constructor(
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
         if (ready.isOffline) return
+        viewModelScope.launch {
+            snapshot.update { current -> current?.copy(counts = deleteAccount.preview()) }
+            phase.update { current -> current.copy(isConfirmVisible = true) }
+        }
+    }
+
+    fun onDeleteDismissed() {
+        phase.update { current -> current.copy(isConfirmVisible = false) }
+    }
+
+    fun onDeleteConfirmed() {
+        val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
+        if (!ready.isConfirmVisible) return
+        if (ready.isOffline) {
+            phase.update { current -> current.copy(isConfirmVisible = false) }
+            return
+        }
         phase.update { Phase(stage = Stage.DELETING, step = AccountDeletionStep.entries.first()) }
         PendingNavigation.set(listOf(AccountDeletedNavKey))
         viewModelScope.launch {
@@ -111,6 +129,7 @@ class DeleteAccountViewModel @Inject constructor(
         val step: AccountDeletionStep = AccountDeletionStep.entries.first(),
         val failure: DeleteAccountFailure? = null,
         val forcedOffline: Boolean = false,
+        val isConfirmVisible: Boolean = false,
     )
 
     private companion object {

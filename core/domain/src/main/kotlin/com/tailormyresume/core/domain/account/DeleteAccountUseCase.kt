@@ -45,13 +45,13 @@ class DeleteAccountUseCase @Inject constructor(
         if (serverAccountDeleter.delete().isFailure) return AccountDeletionResult.Failed(dataIntact = true)
         var creditsTouched = false
         return try {
+            startStep(AccountDeletionStep.DELETING_PROFILE_FACTS, onStep)
+            profileRepository.clearProfile()
+            exportHistoryRepository.clear()
             startStep(AccountDeletionStep.DELETING_APPLICATIONS, onStep)
             applications.forEach { application ->
                 applicationRepository.deleteApplication(application.id)
             }
-            startStep(AccountDeletionStep.DELETING_PROFILE_FACTS, onStep)
-            profileRepository.clearProfile()
-            exportHistoryRepository.clear()
             startStep(AccountDeletionStep.CLOSING_ACCOUNT, onStep)
             creditsTouched = true
             creditBalance.clearUnusedCredits()

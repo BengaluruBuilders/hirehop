@@ -4,6 +4,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.ConsentNavKey
@@ -25,7 +26,7 @@ fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
     entry<SettingsNavKey> { key ->
         SettingsRoute(
             key = key,
-            onNavigate = { destination -> navigator.navigateToSettingsDestination(destination) },
+            onNavigate = { destination -> navigator.navigateToSettingsDestination(destination, key.scenario) },
         )
     }
     entry<YourDataNavKey> { key ->
@@ -60,14 +61,17 @@ fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
     }
 }
 
-private fun Navigator.navigateToSettingsDestination(destination: SettingsDestination) {
+private fun Navigator.navigateToSettingsDestination(destination: SettingsDestination, scenario: DebugScenario) {
     when (destination) {
         SettingsDestination.CREDITS_AND_HELP -> navigate(CreditsNavKey())
         SettingsDestination.YOUR_DATA -> navigate(YourDataNavKey())
         SettingsDestination.CONSENT_NOTICE -> navigate(ConsentNavKey(readOnly = true))
-        SettingsDestination.DELETE_ACCOUNT -> navigate(DeleteAccountNavKey())
+        SettingsDestination.DELETE_ACCOUNT -> navigate(deleteAccountNavKey(scenario))
     }
 }
+
+internal fun deleteAccountNavKey(settingsScenario: DebugScenario): DeleteAccountNavKey =
+    if (settingsScenario == DebugScenario.OFFLINE) DeleteAccountNavKey(scenario = DebugScenario.OFFLINE) else DeleteAccountNavKey()
 
 private fun Navigator.navigateToYourDataDestination(destination: YourDataDestination) {
     when (destination) {
