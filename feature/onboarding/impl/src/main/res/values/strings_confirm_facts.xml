@@ -57,7 +57,7 @@
     <string name="feature_onboarding_impl_confirm_facts_pending">Pending</string>
     <string name="feature_onboarding_impl_confirm_facts_to_review">To review</string>
     <plurals name="feature_onboarding_impl_confirm_facts_confirmed_group_title">
-        <item quantity="one">%1$d facts confirmed</item>
+        <item quantity="one">%1$d fact confirmed</item>
         <item quantity="other">%1$d facts confirmed</item>
     </plurals>
     <string name="feature_onboarding_impl_confirm_facts_left_to_review">%1$s left to review</string>
