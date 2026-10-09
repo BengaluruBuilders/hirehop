@@ -43,8 +43,8 @@ data class EvidencePathUiState(
     val questionNumber: Int get() = questionIndex + 1
     val questionTotal: Int get() = category?.questionCount ?: 0
     val categoryCards: List<EvidenceFactCard> get() = cards.filter { it.category == category }
-    val projectName: String? get() = null
-    val canSave: Boolean get() = answer.isNotBlank() && !isSaving
+    val projectName: String? get() = categoryCards.firstOrNull()?.entry?.title
+    val canSave: Boolean get() = answer.isNotBlank() && !isSaving && stamped == null
 }
 
 fun evidencePathStateFor(

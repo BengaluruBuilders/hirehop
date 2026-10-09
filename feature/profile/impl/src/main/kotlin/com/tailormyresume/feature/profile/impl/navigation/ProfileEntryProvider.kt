@@ -28,8 +28,8 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
             navigation = ProfileNavigation(
                 onOpenFact = { entryId -> navigator.navigateToFactEditor(entryId) },
                 onAddFact = { entryType -> navigator.navigateToFactEditor(entryId = null, entryType = entryType) },
-                onAddEvidence = { navigator.navigateToFactEvidence() },
-                onBuildStepByStep = { navigator.navigateToGuidedProfileForm() },
+                onAddEvidence = { navigator.navigateToFactEvidence(returnsToProfile = true) },
+                onBuildStepByStep = { navigator.navigateToGuidedProfileForm(returnsToProfile = true) },
                 onImportResume = { navigator.navigateToImportResume() },
             ),
         )
@@ -42,7 +42,7 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
             key = key,
             navigation = GuidedFormNavigation(
                 onBack = { navigator.goBack() },
-                onOpenEvidence = { category -> navigator.navigateToFactEvidence(category) },
+                onOpenEvidence = { category -> navigator.navigateToFactEvidence(category, key.returnsToProfile) },
                 onAddJob = { navigator.navigateToFactEditor(entryId = null, entryType = EXPERIENCE_TYPE) },
                 onEditFact = { entryId, entryType -> navigator.navigateToFactEditor(entryId, entryType) },
                 onExit = { exit -> navigator.leave(exit) },
@@ -63,7 +63,7 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
 
 private fun Navigator.leave(exit: ProfileExit) {
     when (exit) {
-        ProfileExit.Profile -> navigate(DefaultProfileNavKey)
+        ProfileExit.Profile -> returnToTopLevel(DefaultProfileNavKey)
         is ProfileExit.Step -> navigate(exit.key)
     }
 }

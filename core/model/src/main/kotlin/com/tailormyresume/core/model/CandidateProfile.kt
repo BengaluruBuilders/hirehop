@@ -42,6 +42,9 @@ fun CandidateProfile.confirmedWithinLimits(): CandidateProfile {
     return copy(skills = limitedSkills, entries = limited)
 }
 
+fun CandidateProfile.isSkillUserStated(skill: String): Boolean =
+    userStatedSkills.any { it.equals(skill, ignoreCase = true) }
+
 fun CandidateProfile.evidenceIds(): Set<String> =
     entries.flatMap { entry -> listOf(entry.id) + entry.bullets.map { it.id } }.toSet() +
         skills.map { ProfileLimits.SKILL_ID_PREFIX + it }

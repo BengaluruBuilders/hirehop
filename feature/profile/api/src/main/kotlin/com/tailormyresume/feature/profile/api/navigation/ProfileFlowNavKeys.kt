@@ -31,10 +31,10 @@ fun Navigator.navigateToFactEditor(entryId: String?, entryType: String = "projec
     navigate(FactEditorNavKey(entryId = entryId, entryType = entryType))
 }
 
-fun Navigator.navigateToGuidedProfileForm(resumedFromScan: Boolean = false) {
-    navigate(GuidedProfileFormNavKey(resumedFromScan = resumedFromScan))
+fun Navigator.navigateToGuidedProfileForm(resumedFromScan: Boolean = false, returnsToProfile: Boolean = false) {
+    navigate(GuidedProfileFormNavKey(resumedFromScan = resumedFromScan, returnsToProfile = returnsToProfile))
 }
 
-fun Navigator.navigateToFactEvidence(category: String = "") {
-    navigate(FactEvidenceNavKey(category = category))
+fun Navigator.navigateToFactEvidence(category: String = "", returnsToProfile: Boolean = false) {
+    navigate(FactEvidenceNavKey(category = category, returnsToProfile = returnsToProfile))
 }

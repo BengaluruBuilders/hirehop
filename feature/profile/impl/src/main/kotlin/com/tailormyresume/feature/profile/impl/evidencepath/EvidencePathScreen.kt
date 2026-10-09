@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrInnerHeader
 import com.tailormyresume.core.designsystem.component.TmrLoadingWheel
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
+import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrProvenanceChip
 import com.tailormyresume.core.designsystem.component.TmrProvenanceKind
@@ -50,8 +52,11 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactLineRenderer
 import com.tailormyresume.feature.profile.impl.R
 import com.tailormyresume.feature.profile.impl.common.FactCard
+import com.tailormyresume.feature.profile.impl.common.NeutralChip
 import com.tailormyresume.feature.profile.impl.common.Note
 import com.tailormyresume.feature.profile.impl.common.NoteTone
+import com.tailormyresume.feature.profile.impl.common.kindRes
+import com.tailormyresume.feature.profile.impl.common.status
 
 private val RowGap = 10.dp
 private val ChipGap = 6.dp
@@ -137,19 +142,33 @@ private fun QuestionActionBar(
     uiState: EvidencePathUiState,
     actions: EvidencePathActions,
 ) {
+    val stamped = uiState.stamped
     TmrBottomActionBar(stacked = true, primaryLast = false) {
-        TmrPrimaryButton(
-            label = stringResource(R.string.feature_profile_impl_evidence_path_save),
-            onClick = actions.onSave,
-            enabled = uiState.canSave,
-            modifier = Modifier.weight(1f),
-        )
-        TmrTextButton(
-            label = stringResource(R.string.feature_profile_impl_evidence_path_skip),
-            onClick = actions.onSkip,
-            enabled = !uiState.isSaving,
-            modifier = Modifier.weight(1f),
-        )
+        if (stamped != null) {
+            TmrPrimaryButton(
+                label = stringResource(R.string.feature_profile_impl_evidence_path_next_question),
+                onClick = actions.onNextQuestion,
+                modifier = Modifier.weight(1f),
+            )
+            TmrOutlineButton(
+                label = stringResource(R.string.feature_profile_impl_evidence_path_edit),
+                onClick = { actions.onEditFact(stamped.entry.id, stamped.entry.category.name) },
+                modifier = Modifier.weight(1f),
+            )
+        } else {
+            TmrPrimaryButton(
+                label = stringResource(R.string.feature_profile_impl_evidence_path_save),
+                onClick = actions.onSave,
+                enabled = uiState.canSave,
+                modifier = Modifier.weight(1f),
+            )
+            TmrTextButton(
+                label = stringResource(R.string.feature_profile_impl_evidence_path_skip),
+                onClick = actions.onSkip,
+                enabled = !uiState.isSaving,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -249,25 +268,59 @@ private fun QuestionContent(
         }
     }
     QuestionProgress(uiState = uiState)
-    uiState.skipNote?.let { note ->
-        Note(
-            text = stringResource(
-                R.string.feature_profile_impl_evidence_path_skipped_note,
-                stringResource(note.category.labelRes()),
-                note.questionNumber,
-            ),
-        )
+    uiState.skipNote?.let { note -> SkippedRow(note) }
+    val stamped = uiState.stamped
+    if (stamped != null) {
+        StampedCard(stamped)
+    } else {
+        QuestionCard(uiState = uiState, category = category)
+        TextArea(uiState = uiState, actions = actions)
     }
-    SavedCards(uiState = uiState, actions = actions)
-    QuestionCard(uiState = uiState, category = category)
-    TextArea(uiState = uiState, actions = actions)
+}
+
+@Composable
+private fun SkippedRow(note: EvidenceSkipNote) {
+    TmrCard {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.feature_profile_impl_evidence_path_skipped_row,
+                    note.questionNumber,
+                    stringResource(note.category.questionRes(note.questionNumber - 1)),
+                ),
+                modifier = Modifier.weight(1f),
+                style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+                color = TmrTheme.colors.onSurface,
+            )
+            NeutralChip(
+                label = stringResource(R.string.feature_profile_impl_evidence_path_skipped_chip),
+                icon = TmrIcons.Info,
+                tint = TmrTheme.colors.onSurfaceVariant,
+            )
+        }
+    }
+    Note(
+        text = stringResource(R.string.feature_profile_impl_evidence_path_skipped_note),
+        tone = NoteTone.Plain,
+        icon = TmrIcons.Info,
+    )
 }
 
 @Composable
 private fun QuestionProgress(uiState: EvidencePathUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         Text(
-            text = stringResource(
+            text = uiState.projectName?.let { name ->
+                stringResource(
+                    R.string.feature_profile_impl_evidence_path_question_counter_named,
+                    uiState.questionNumber,
+                    uiState.questionTotal,
+                    name,
+                )
+            } ?: stringResource(
                 R.string.feature_profile_impl_evidence_path_question_counter,
                 uiState.questionNumber,
                 uiState.questionTotal,
@@ -292,24 +345,19 @@ private fun QuestionProgress(uiState: EvidencePathUiState) {
 }
 
 @Composable
-private fun SavedCards(
-    uiState: EvidencePathUiState,
-    actions: EvidencePathActions,
-) {
-    val cards = uiState.categoryCards
-    if (cards.isEmpty()) return
+private fun StampedCard(card: EvidenceFactCard) {
     Note(
-        text = stringResource(R.string.feature_profile_impl_evidence_path_saved_caption),
+        text = stringResource(R.string.feature_profile_impl_evidence_path_stamped_banner, card.entry.id),
         tone = NoteTone.Positive,
         icon = TmrIcons.CheckCircle,
     )
-    cards.forEachIndexed { index, card ->
-        FactCard(
-            entry = card.entry,
-            highlighted = index == cards.lastIndex,
-            onEdit = { actions.onEditFact(card.entry.id, card.entry.category.name) },
-        )
-    }
+    FactCard(
+        id = card.entry.id,
+        status = card.entry.status(),
+        kind = stringResource(card.entry.category.kindRes()),
+        summary = FactLineRenderer.render(card.entry),
+        highlighted = true,
+    )
 }
 
 @Composable

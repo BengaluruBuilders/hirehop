@@ -17,7 +17,9 @@ class Navigator(val state: NavigationState) {
         navigate(key)
     }
 
-    fun returnToTopLevel(key: NavKey) = Unit
+    fun returnToTopLevel(key: NavKey) {
+        navigate(state.topLevelKeys.firstOrNull { topLevel -> topLevel::class == key::class } ?: key)
+    }
 
     fun replace(key: NavKey) {
         val stack = state.currentSubStack

@@ -38,7 +38,6 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactDisplayIds
 import com.tailormyresume.feature.profile.impl.common.FactCard
-import com.tailormyresume.feature.profile.impl.common.FactStatus
 import com.tailormyresume.feature.profile.impl.common.ToConfirmChip
 
 private val SectionTile = 44.dp
@@ -164,7 +163,7 @@ internal fun SectionFacts(
             key("fact-skill-$index") {
                 FactCard(
                     id = skillId(index),
-                    status = FactStatus.Confirmed,
+                    status = state.profile.skillStatus(skill),
                     kind = stringResource(R.string.feature_profile_impl_kind_skill),
                     summary = skill,
                     embedded = true,

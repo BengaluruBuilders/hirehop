@@ -53,9 +53,11 @@ internal class UserFactWriter @Inject constructor(
 
     private suspend fun updateProfile(replacing: Set<String>, contact: ContactInput, skills: List<String>) {
         val profile = profileRepository.observeProfile().first() ?: blankProfile()
+        val added = newSkills(profile.skills, skills)
         profileRepository.saveProfile(
             profile.withContact(contact).copy(
-                skills = mergedSkills(profile.skills, skills),
+                skills = profile.skills + added,
+                userStatedSkills = profile.userStatedSkills + added,
                 entries = profile.entries.filterNot { it.id in replacing },
             ),
         )
@@ -67,9 +69,9 @@ internal class UserFactWriter @Inject constructor(
         phone = contact.phone.trim().ifEmpty { phone },
     )
 
-    private fun mergedSkills(existing: List<String>, added: List<String>): List<String> {
+    private fun newSkills(existing: List<String>, typed: List<String>): List<String> {
         val known = existing.map { it.lowercase() }.toMutableSet()
-        return existing + added.map { it.trim() }.filter { it.isNotEmpty() && known.add(it.lowercase()) }
+        return typed.map { it.trim() }.filter { it.isNotEmpty() && known.add(it.lowercase()) }
     }
 
     private fun blankProfile() = CandidateProfile(
