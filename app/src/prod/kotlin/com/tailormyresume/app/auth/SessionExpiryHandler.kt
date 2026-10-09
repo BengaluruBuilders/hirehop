@@ -11,6 +11,8 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,18 +27,32 @@ class SessionExpiryHandler @Inject constructor(
     private val pendingWipe: PendingAccountWipe = PendingAccountWipe.None,
 ) : SessionExpiredListener, AppStartTask {
     private val signingOut = AtomicBoolean(false)
+    private val signOutMutex = Mutex()
 
     fun onSessionExpired() = onSessionExpired(accountGone = false)
 
     override fun onSessionExpired(accountGone: Boolean) {
+        if (accountGone) {
+            scope.launch { signOutLocked(promoteMarker = true) }
+            return
+        }
         if (!signingOut.compareAndSet(false, true)) return
         scope.launch {
             try {
-                if (sessionRepository.observeAccount().first() != null) gateway.get().signOut()
+                signOutLocked(promoteMarker = false)
             } finally {
                 signingOut.set(false)
             }
         }
+    }
+
+    private suspend fun signOutLocked(promoteMarker: Boolean) = signOutMutex.withLock {
+        val accountId = sessionRepository.observeAccount().first()?.id
+        if (promoteMarker) {
+            val markerOwner = accountId ?: sessionRepository.lastAccountId()
+            if (markerOwner != null) pendingWipe.promoteToServerClosed(markerOwner)
+        }
+        if (accountId != null) gateway.get().signOut()
     }
 
     override fun start() {

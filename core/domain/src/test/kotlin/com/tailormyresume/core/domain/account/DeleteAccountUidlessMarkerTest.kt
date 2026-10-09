@@ -60,9 +60,13 @@ class DeleteAccountUidlessMarkerTest {
         creditBalance = AccountCreditBalance(TestPaymentGateway().withFreeCredits(2)),
         latency = NoMockLatency,
         pendingWipe = observedMarker,
-        finishPendingWipe = FinishPendingAccountWipeUseCase(observedMarker, object : AccountWipeFinisher {
-            override suspend fun finish() = Unit
-        }, deleter),
+        finishPendingWipe = FinishPendingAccountWipeUseCase(
+            observedMarker,
+            object : AccountWipeFinisher {
+                override suspend fun finish() = Unit
+            },
+            deleter,
+        ),
     )
 
     @Test

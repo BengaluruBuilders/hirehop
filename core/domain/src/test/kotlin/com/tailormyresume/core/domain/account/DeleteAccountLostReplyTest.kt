@@ -47,11 +47,15 @@ class DeleteAccountLostReplyTest {
         creditBalance = AccountCreditBalance(TestPaymentGateway().withFreeCredits(2)),
         latency = NoMockLatency,
         pendingWipe = marker,
-        finishPendingWipe = FinishPendingAccountWipeUseCase(marker, object : AccountWipeFinisher {
-            override suspend fun finish() {
-                wipes++
-            }
-        }, deleter),
+        finishPendingWipe = FinishPendingAccountWipeUseCase(
+            marker,
+            object : AccountWipeFinisher {
+                override suspend fun finish() {
+                    wipes++
+                }
+            },
+            deleter,
+        ),
     )
 
     @Test

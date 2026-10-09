@@ -54,12 +54,15 @@ class DeleteAccountUseCase @Inject constructor(
         val tracksPendingWipe = serverAccountDeleter.deletesRemoteData
         val earlierAttempt = tracksPendingWipe && hasEarlierRequestedAttempt()
         if (tracksPendingWipe && !earlierAttempt && !markRequested()) return AccountDeletionResult.Failed(dataIntact = true)
-        if (serverAccountDeleter.delete().isFailure) {
-            if (earlierAttempt) return settlePendingWipe(counts, dataIntactIfOpen = true)
+        val deleteFailure = serverAccountDeleter.delete().exceptionOrNull()
+        if (deleteFailure != null) {
+            val replyMayBeLost = tracksPendingWipe && serverAccountDeleter.mayHaveReachedServer(deleteFailure)
+            if (earlierAttempt || replyMayBeLost) return settlePendingWipe(counts, dataIntactIfOpen = true)
             if (tracksPendingWipe) clearMarkerQuietly()
             return AccountDeletionResult.Failed(dataIntact = true)
         }
         var creditsTouched = false
+        var artefactsTouched = false
         return try {
             if (tracksPendingWipe) withContext(NonCancellable) { pendingWipe.markServerClosed() }
             startStep(AccountDeletionStep.DELETING_PROFILE_FACTS, onStep)
@@ -67,11 +70,13 @@ class DeleteAccountUseCase @Inject constructor(
             exportHistoryRepository.clear()
             startStep(AccountDeletionStep.DELETING_APPLICATIONS, onStep)
             applications.forEach { application ->
-                applicationRepository.deleteApplication(application.id)
+                applicationRepository.deleteApplicationRow(application.id)
             }
             startStep(AccountDeletionStep.CLOSING_ACCOUNT, onStep)
             creditsTouched = true
             creditBalance.clearUnusedCredits()
+            artefactsTouched = true
+            applications.forEach { application -> applicationRepository.clearArtefacts(application.id) }
             withContext(NonCancellable) {
                 signInGateway.signOut()
                 sessionRepository.clear()
@@ -86,7 +91,7 @@ class DeleteAccountUseCase @Inject constructor(
                 settlePendingWipe(counts, dataIntactIfOpen = false)
             } else {
                 val restored = restore(applications, profile, exports, onStep)
-                AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched)
+                AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched && !artefactsTouched)
             }
         }
     }
@@ -101,16 +106,21 @@ class DeleteAccountUseCase @Inject constructor(
 
     private suspend fun hasEarlierRequestedAttempt(): Boolean = try {
         val markerOwner = pendingWipe.uid()
-        pendingWipe.state() == PendingWipeState.REQUESTED &&
-            (markerOwner == null || markerOwner == signInGateway.currentAccount()?.id)
+        val currentId = signInGateway.currentAccount()?.id
+        val adopts = pendingWipe.state() == PendingWipeState.REQUESTED &&
+            (markerOwner == null || markerOwner == currentId)
+        if (adopts && markerOwner == null && currentId != null) {
+            withContext(NonCancellable) { pendingWipe.recordUid(currentId) }
+        }
+        adopts
     } catch (failure: Exception) {
         false
     }
 
     private suspend fun markRequested(): Boolean = try {
         withContext(NonCancellable) {
-            pendingWipe.markRequested()
-            signInGateway.currentAccount()?.id?.let { pendingWipe.recordUid(it) }
+            val uid = signInGateway.currentAccount()?.id
+            if (uid == null) pendingWipe.markRequested() else pendingWipe.markRequested(uid)
         }
         true
     } catch (cancellation: CancellationException) {

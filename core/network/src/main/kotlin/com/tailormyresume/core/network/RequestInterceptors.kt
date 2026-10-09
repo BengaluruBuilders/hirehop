@@ -21,7 +21,7 @@ internal class AuthInterceptor(
         val token = try {
             tokens.idToken(forceRefresh = false)
         } catch (expired: SessionExpiredException) {
-            sessionListener.onSessionExpired(false)
+            sessionListener.onSessionExpired(expired.accountGone)
             return unauthorised(chain.request(), expired)
         } ?: return chain.proceed(chain.request())
         val first = chain.proceed(chain.request().withBearer(token))
@@ -29,7 +29,7 @@ internal class AuthInterceptor(
         val fresh = try {
             tokens.idToken(forceRefresh = true)
         } catch (expired: SessionExpiredException) {
-            sessionListener.onSessionExpired(false)
+            sessionListener.onSessionExpired(expired.accountGone)
             if (expired.accountGone) {
                 first.close()
                 return unauthorised(chain.request(), expired)
