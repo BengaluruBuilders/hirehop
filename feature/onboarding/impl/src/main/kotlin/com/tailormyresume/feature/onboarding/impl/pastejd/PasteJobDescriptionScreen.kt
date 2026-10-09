@@ -47,6 +47,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
 import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
+import com.tailormyresume.core.designsystem.component.TmrTextButton
 import com.tailormyresume.core.designsystem.component.TmrTextField
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -110,9 +111,7 @@ private fun PasteJobDescriptionContent(
     actions: PasteJobDescriptionActions,
     modifier: Modifier = Modifier,
 ) {
-    var revealsRoleAndCompany by remember(uiState.role, uiState.company) {
-        mutableStateOf(uiState.role.isNotBlank() || uiState.company.isNotBlank())
-    }
+    var isRoleAndCompanyRevealed by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -137,7 +136,7 @@ private fun PasteJobDescriptionContent(
                 tone = if (problem == PasteJobDescriptionProblem.TOO_SHORT) NoticeTone.Warning else NoticeTone.Error,
             )
         } else if (uiState.text.isNotEmpty()) {
-            SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
+            SpottedRow(uiState = uiState, onEdit = { isRoleAndCompanyRevealed = true })
         }
         if (uiState.isDailyLimitReached) {
             OnboardingNotice(
@@ -150,7 +149,7 @@ private fun PasteJobDescriptionContent(
                 tone = NoticeTone.Warning,
             )
         }
-        if (revealsRoleAndCompany) {
+        if (isRoleAndCompanyRevealed || uiState.role.isNotBlank() || uiState.company.isNotBlank()) {
             RoleAndCompanyFields(actions = actions, uiState = uiState)
         }
     }
@@ -322,31 +321,37 @@ private fun PasteJobDescriptionTextArea(
 
 @Composable
 private fun SpottedRow(uiState: PasteJobDescriptionUiState, onEdit: () -> Unit) {
-    if (uiState.role.isBlank() && uiState.company.isBlank()) return
-    Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_spotted),
-            style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = TmrTheme.colors.onSurface,
+    if (uiState.role.isBlank() && uiState.company.isBlank()) {
+        TmrTextButton(
+            label = stringResource(R.string.feature_onboarding_impl_paste_jd_add_labels),
+            onClick = onEdit,
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (uiState.role.isNotBlank()) {
-                SpottedChip(label = uiState.role)
-            }
-            if (uiState.company.isNotBlank()) {
-                SpottedChip(label = uiState.company)
-            }
-            TmrIconButton(
-                icon = TmrIcons.Edit,
-                contentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_edit_description),
-                onClick = onEdit,
-                tint = TmrTheme.colors.primary,
-                containerColor = Color.Transparent,
-                borderColor = Color.Transparent,
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_paste_jd_spotted),
+                style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+                color = TmrTheme.colors.onSurface,
             )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (uiState.role.isNotBlank()) {
+                    SpottedChip(label = uiState.role)
+                }
+                if (uiState.company.isNotBlank()) {
+                    SpottedChip(label = uiState.company)
+                }
+                TmrIconButton(
+                    icon = TmrIcons.Edit,
+                    contentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_edit_description),
+                    onClick = onEdit,
+                    tint = TmrTheme.colors.primary,
+                    containerColor = Color.Transparent,
+                    borderColor = Color.Transparent,
+                )
+            }
         }
     }
 }

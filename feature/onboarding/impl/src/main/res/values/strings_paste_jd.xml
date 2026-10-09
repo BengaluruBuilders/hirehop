@@ -38,6 +38,7 @@
     <string name="feature_onboarding_impl_paste_jd_heading">Paste the job description</string>
     <string name="feature_onboarding_impl_paste_jd_spotted">We spotted</string>
     <string name="feature_onboarding_impl_paste_jd_edit_description">Edit role and company</string>
+    <string name="feature_onboarding_impl_paste_jd_add_labels">Add role and company</string>
     <string name="feature_onboarding_impl_paste_jd_action_check">Analyse this JD</string>
     <string name="feature_onboarding_impl_paste_jd_link_count">1 link</string>
     <string name="feature_onboarding_impl_paste_jd_action_analyse_off">Analyse</string>
