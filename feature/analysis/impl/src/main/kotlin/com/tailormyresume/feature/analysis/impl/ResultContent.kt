@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -94,6 +95,7 @@ internal fun ResultContent(
 private fun offlineBannerText(analysedAt: Instant?): String {
     if (analysedAt == null) return stringResource(R.string.feature_analysis_impl_offline_banner)
     val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
     val moment = analysedAt.toJavaInstant().atZone(ZoneId.systemDefault())
     val time = DateFormat.getTimeFormat(context).format(Date(analysedAt.toEpochMilliseconds()))
     return if (moment.toLocalDate() == LocalDate.now(moment.zone)) {
@@ -101,7 +103,7 @@ private fun offlineBannerText(analysedAt: Instant?): String {
     } else {
         stringResource(
             R.string.feature_analysis_impl_offline_banner_dated,
-            moment.format(DateTimeFormatter.ofPattern(OFFLINE_DATE_PATTERN, context.resources.configuration.locales[0])),
+            moment.format(DateTimeFormatter.ofPattern(OFFLINE_DATE_PATTERN, locale)),
             time,
         )
     }
