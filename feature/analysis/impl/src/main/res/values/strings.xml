@@ -74,6 +74,7 @@
     <string name="feature_analysis_impl_menu_report">Report inaccurate content</string>
     <string name="feature_analysis_impl_menu_source">See where this comes from</string>
     <string name="feature_analysis_impl_source_title">Source for “%1$s”</string>
+    <string name="feature_analysis_impl_row_user_stated">User-stated skills: %1$s.</string>
     <string name="feature_analysis_impl_source_skills">From your skills: %1$s</string>
     <string name="feature_analysis_impl_edit_fact">Edit fact</string>
     <string name="feature_analysis_impl_fact_dates">%1$s · %2$s to %3$s</string>

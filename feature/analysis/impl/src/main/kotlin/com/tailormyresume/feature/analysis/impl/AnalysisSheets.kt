@@ -154,13 +154,24 @@ internal fun SourceSheetContent(item: RequirementItem, actions: AnalysisActions)
                 onEdit = { actions.onEditFact(ref.factId) }.takeIf { item.factRefs.size > 1 },
             )
         }
-        if (item.skills.isNotEmpty()) {
+        val confirmedSkills = item.skills - item.userStatedSkills.toSet()
+        if (confirmedSkills.isNotEmpty()) {
             Text(
-                text = stringResource(R.string.feature_analysis_impl_source_skills, item.skills.joinToString()),
+                text = stringResource(R.string.feature_analysis_impl_source_skills, confirmedSkills.joinToString()),
                 style = TmrTheme.typography.bodyM,
                 color = TmrTheme.colors.body,
             )
-            if (item.userStatedSkills.isNotEmpty()) {
+        }
+        if (item.userStatedSkills.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_analysis_impl_source_skills, item.userStatedSkills.joinToString()),
+                    style = TmrTheme.typography.bodyM,
+                    color = TmrTheme.colors.body,
+                )
                 TmrProvenanceChip(
                     kind = TmrProvenanceKind.UserStated,
                     label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),

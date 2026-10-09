@@ -1,11 +1,15 @@
 package com.tailormyresume.feature.analysis.impl
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertContentDescriptionContains
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
@@ -106,5 +110,82 @@ class AnalysisSkillProvenanceTest {
         showSheet(item(emptyList()))
 
         composeRule.onNodeWithText("User-stated").assertDoesNotExist()
+    }
+
+    private fun mixedFactItem() = RequirementItem(
+        requirement = requirement,
+        status = MatchStatus.MET,
+        skills = listOf("SQL"),
+        isInPrepPlan = false,
+        factRefs = listOf(
+            RequirementFactRef(
+                factId = "fact-3",
+                displayId = "F3",
+                title = "Analyst",
+                organization = "Contoso",
+                startDate = "",
+                endDate = "",
+                lines = emptyList(),
+                source = FactSource.IMPORTED,
+                isConfirmed = true,
+            ),
+        ),
+        userStatedSkills = listOf("SQL"),
+    )
+
+    private fun leftOf(text: String) =
+        composeRule.onNodeWithText(text, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+
+    @Test
+    fun rowKeepsTheChipOffAConfirmedFactAndOnTheUserStatedSkill() {
+        showRow(mixedFactItem())
+
+        val fact = leftOf("Analyst, Contoso")
+        val skill = leftOf("SQL")
+        val chip = leftOf("User-stated")
+        assertThat(skill.left > fact.left || skill.top > fact.top).isTrue()
+        assertThat(chip.left > skill.left || chip.top > skill.top).isTrue()
+        assertThat(chip.left > fact.left || chip.top > fact.top).isTrue()
+        composeRule.onNodeWithText("User-stated", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithText("F3", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun rowNamesOnlyTheConfirmedSkillsInTheSourceLabel() {
+        showRow(item(listOf("SQL")).copy(skills = listOf("SQL", "Excel")))
+
+        composeRule.onNodeWithText("Excel", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithText("SQL", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun rowDescriptionAnnouncesUserStatedSkills() {
+        showRow(mixedFactItem())
+
+        composeRule.onNode(hasContentDescription("SQL for reporting", substring = true)).assertContentDescriptionContains("SQL", substring = true)
+        composeRule.onNode(hasContentDescription("SQL for reporting", substring = true)).assertContentDescriptionContains("User-stated skills: SQL", substring = true)
+    }
+
+    @Test
+    fun rowDescriptionOmitsUserStatedWhenNoneAreUserStated() {
+        showRow(item(emptyList()))
+
+        val description = composeRule.onNode(hasContentDescription("SQL for reporting", substring = true)).fetchSemanticsNode()
+            .config[SemanticsProperties.ContentDescription].joinToString()
+        assertThat(description).doesNotContain("User-stated")
+    }
+
+    @Test
+    fun sheetPutsTheChipOnlyOnTheUserStatedGroup() {
+        showSheet(item(listOf("SQL")).copy(skills = listOf("SQL", "Excel")))
+
+        composeRule.onNodeWithText("From your skills: Excel").assertExists()
+        composeRule.onNodeWithText("From your skills: SQL").assertExists()
+        composeRule.onNodeWithText("User-stated").assertExists()
+        val excel = leftOf("From your skills: Excel")
+        val sql = leftOf("From your skills: SQL")
+        val chip = leftOf("User-stated")
+        assertThat(chip.top).isAtLeast(excel.bottom)
+        assertThat(chip.top).isAtMost(sql.bottom)
     }
 }
