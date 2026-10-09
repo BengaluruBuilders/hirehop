@@ -128,4 +128,37 @@ class FactEditorBulletsTest {
         assertThat(state.visibleReasonFor(FactField.DETAIL)).isEqualTo(FactDraftErrorReason.TOO_LONG)
         assertThat(state.isSaveEnabled).isFalse()
     }
+
+    @Test
+    fun savingAPendingImportedFactWithoutChangesConfirmsItAndKeepsItImported() = runTest {
+        repository.sendProfile(sampleProfile.copy(entries = listOf(threeBullets.copy(isConfirmed = false))))
+        val viewModel = createViewModel()
+
+        viewModel.save()
+
+        assertThat(savedEntry()).isEqualTo(threeBullets.copy(isConfirmed = true))
+    }
+
+    @Test
+    fun aTrailingSpaceInAnExtraBulletLeavesTheFactUnchanged() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.onMoreBulletChange(1, "Cut load time by half. ")
+        viewModel.save()
+
+        assertThat(savedEntry()).isEqualTo(threeBullets)
+    }
+
+    @Test
+    fun onlyTheOverLimitBulletShowsTheTooLongReason() {
+        val tooLong = "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + 1)
+        val viewModel = createViewModel()
+        viewModel.onMoreBulletChange(1, tooLong)
+        viewModel.onDetailChange(viewModel.uiState.value.draft.detail)
+        val state = viewModel.uiState.value
+
+        assertThat(state.visibleBulletReason(tooLong)).isEqualTo(FactDraftErrorReason.TOO_LONG)
+        assertThat(state.visibleBulletReason(state.draft.detail)).isNull()
+        assertThat(state.visibleBulletReason(state.draft.moreBullets[0].text)).isNull()
+    }
 }

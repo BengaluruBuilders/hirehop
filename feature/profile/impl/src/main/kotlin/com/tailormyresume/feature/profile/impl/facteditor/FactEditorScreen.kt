@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.facteditor
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -270,16 +271,16 @@ private fun FactEditorFields(
             placeholder = stringResource(R.string.feature_profile_impl_fact_editor_field_detail_placeholder),
             singleLine = false,
             minLines = DETAIL_MIN_LINES,
-            errorText = uiState.errorTextFor(FactField.DETAIL),
+            errorText = uiState.visibleBulletReason(uiState.draft.detail)?.let { stringResource(it.messageRes()) },
         )
         uiState.draft.moreBullets.forEachIndexed { index, bullet ->
             TmrTextField(
                 value = bullet.text,
                 onValueChange = { actions.onMoreBulletChange(index, it) },
-                label = stringResource(category.detailLabelRes()),
+                label = stringResource(R.string.feature_profile_impl_fact_editor_field_detail_numbered, index + 2),
                 singleLine = false,
                 minLines = DETAIL_MIN_LINES,
-                errorText = uiState.errorTextFor(FactField.DETAIL),
+                errorText = uiState.visibleBulletReason(bullet.text)?.let { stringResource(it.messageRes()) },
             )
         }
         if (category == EntryCategory.PROJECT) {
@@ -456,17 +457,15 @@ private fun FactEditorDeleteDialog(
 
 @Composable
 private fun FactEditorUiState.errorTextFor(field: FactField): String? =
-    visibleReasonFor(field)?.let { reason ->
-        stringResource(
-            when (reason) {
-                FactDraftErrorReason.REQUIRED -> R.string.feature_profile_impl_fact_editor_error_required
-                FactDraftErrorReason.END_BEFORE_START ->
-                    R.string.feature_profile_impl_fact_editor_error_end_before_start
-                FactDraftErrorReason.TOO_LONG -> R.string.feature_profile_impl_fact_editor_error_too_long
-                FactDraftErrorReason.INVALID_DATE -> R.string.feature_profile_impl_fact_editor_error_invalid_date
-            },
-        )
-    }
+    visibleReasonFor(field)?.let { stringResource(it.messageRes()) }
+
+@StringRes
+private fun FactDraftErrorReason.messageRes(): Int = when (this) {
+    FactDraftErrorReason.REQUIRED -> R.string.feature_profile_impl_fact_editor_error_required
+    FactDraftErrorReason.END_BEFORE_START -> R.string.feature_profile_impl_fact_editor_error_end_before_start
+    FactDraftErrorReason.TOO_LONG -> R.string.feature_profile_impl_fact_editor_error_too_long
+    FactDraftErrorReason.INVALID_DATE -> R.string.feature_profile_impl_fact_editor_error_invalid_date
+}
 
 private const val DETAIL_MIN_LINES = 3
 private const val TOOL_JOINER = ", "

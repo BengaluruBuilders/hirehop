@@ -44,7 +44,15 @@ private fun FactDraft.toBullets(
         existingBullet != null && existingBullet.text.trim() == text -> existingBullet
         else -> EvidenceBullet(id = existingBullet?.id ?: newBulletId, text = text)
     }
-    return listOfNotNull(first) + moreBullets.filter { it.text.isNotBlank() }
+    val more = moreBullets.mapNotNull { bullet ->
+        val trimmed = bullet.text.trim()
+        when {
+            trimmed.isEmpty() -> null
+            trimmed == bullet.text -> bullet
+            else -> bullet.copy(text = trimmed)
+        }
+    }
+    return listOfNotNull(first) + more
 }
 
 internal fun categoryOf(entryType: String?): EntryCategory =

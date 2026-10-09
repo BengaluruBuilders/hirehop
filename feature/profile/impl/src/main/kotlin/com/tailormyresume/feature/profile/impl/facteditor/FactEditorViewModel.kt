@@ -269,7 +269,7 @@ class FactEditorViewModel @AssistedInject constructor(
             newBulletId = idGenerator.newId(),
             isConfirmed = true,
         )
-        val entry = if (existing == null || unedited == existing) unedited else unedited.copy(source = FactSource.USER_EDITED)
+        val entry = if (existing == null || unedited == existing.copy(isConfirmed = true)) unedited else unedited.copy(source = FactSource.USER_EDITED)
         val updated = if (existing == null) entries + entry else entries.map { if (it.id == id) entry else it }
         return copy(entries = updated)
     }
