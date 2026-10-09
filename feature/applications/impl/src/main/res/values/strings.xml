@@ -76,7 +76,7 @@
     <string name="feature_applications_impl_workspace_resume_ready">Your tailored resume is ready to preview.</string>
     <string name="feature_applications_impl_workspace_resume_preview">Preview and export</string>
     <string name="feature_applications_impl_workspace_resume_share_again">Share</string>
-    <string name="feature_applications_impl_workspace_resume_review">Open</string>
+    <string name="feature_applications_impl_workspace_resume_review">Review resume</string>
     <string name="feature_applications_impl_workspace_resume_file_meta">%1$s · exported %2$s</string>
     <plurals name="feature_applications_impl_workspace_resume_pages">
         <item quantity="one">%1$d page</item>
