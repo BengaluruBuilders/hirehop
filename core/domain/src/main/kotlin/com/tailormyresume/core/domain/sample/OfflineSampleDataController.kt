@@ -7,8 +7,11 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.CreditSpend
-import com.tailormyresume.core.domain.PaymentGateway
+import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.TailorResumeUseCase
+import com.tailormyresume.core.domain.offline.OfflinePaymentGateway
+import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
+import com.tailormyresume.core.domain.onboarding.OnboardingStep
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.ConsentPurpose
 import com.tailormyresume.core.model.ConsentRecord
@@ -17,37 +20,27 @@ import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
 import kotlinx.coroutines.flow.first
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
-@Singleton
-class OfflineSampleDataController @Inject constructor(
+class OfflineSampleDataController(
     private val store: MockStateStore,
     private val sessionRepository: SessionRepository,
     private val profileRepository: ProfileRepository,
     private val applicationRepository: ApplicationRepository,
     private val exportHistoryRepository: ExportHistoryRepository,
-    private val paymentGateway: PaymentGateway,
+    private val paymentGateway: OfflinePaymentGateway,
     private val analyzeJob: AnalyzeJobUseCase,
     private val tailorResume: TailorResumeUseCase,
     private val clock: Clock,
+    private val firebaseUid: FirebaseUidProvider = FirebaseUidProvider { null },
 ) : SampleDataController {
 
     override suspend fun load() {
         reset()
         val now = clock.now()
-        sessionRepository.saveAccount(SampleDataSet.account)
-        sessionRepository.recordConsent(
-            ConsentRecord(
-                purposes = ConsentPurpose.entries.toSet(),
-                acceptedAt = now - CONSENT_DAYS_AGO.days,
-                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
-            ),
-        )
-        profileRepository.saveProfile(SampleDataSet.profile)
+        signInSampleCandidate(now)
         paymentGateway.purchase(SampleDataSet.PURCHASED_PACK_ID)
         SampleDataSet.applications.forEach { plan -> applicationRepository.upsertApplication(build(plan, now)) }
         SampleDataSet.exports.forEach { plan -> recordExport(plan, now) }
@@ -66,6 +59,20 @@ class OfflineSampleDataController @Inject constructor(
 
     override suspend fun keepSampleJobDescription() {
         sessionRepository.keepJobDescription(SampleDataSet.keptJob)
+        val next = NextOnboardingStepUseCase(sessionRepository, profileRepository)()
+        if (next !is OnboardingStep.GapAnalysis && firebaseUid.uid() == null) signInSampleCandidate(clock.now())
+    }
+
+    private suspend fun signInSampleCandidate(now: Instant) {
+        sessionRepository.saveAccount(SampleDataSet.account)
+        sessionRepository.recordConsent(
+            ConsentRecord(
+                purposes = ConsentPurpose.entries.toSet(),
+                acceptedAt = now - CONSENT_DAYS_AGO.days,
+                noticeVersion = ConsentRecord.CURRENT_NOTICE_VERSION,
+            ),
+        )
+        profileRepository.saveProfile(SampleDataSet.profile)
     }
 
     override suspend fun clearSampleJobDescription() {
