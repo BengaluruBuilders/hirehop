@@ -25,6 +25,7 @@ import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
@@ -161,6 +162,21 @@ class DeleteAccountPendingWipeViewModelTest {
         assertThat(viewModel.uiState.value).isNotInstanceOf(DeleteAccountUiState.Ready::class.java)
         viewModel.onDeleteTapped()
         assertThat(viewModel.uiState.value).isNotInstanceOf(DeleteAccountUiState.Ready::class.java)
+        assertThat(wipes).isEqualTo(1)
+    }
+
+    @Test
+    fun deleteTappedWhileTheMarkerIsBeingReadNeverSkipsTheLocalWipe() = runTest {
+        marker.current = PendingWipeState.SERVER_CLOSED
+        val gate = CompletableDeferred<Unit>()
+        marker.stateGate = gate
+        val viewModel = enteredViewModel()
+
+        viewModel.onDeleteTapped()
+        gate.complete(Unit)
+
+        val state = viewModel.uiState.value
+        assertThat(state is DeleteAccountUiState.Ready && state.isConfirmVisible).isFalse()
         assertThat(wipes).isEqualTo(1)
     }
 

@@ -115,6 +115,26 @@ class DeleteAccountFirstReadyTest {
         assertThat(viewModel.ready().counts.unusedCredits).isEqualTo(7)
     }
 
+    @Test
+    fun tappingDelete_cancelsASlowEnterRefreshSoItCannotOverwriteTheDeletingCounts() = runTest {
+        val calls = listOf(
+            CompletableDeferred<PurchaseEntitlement>(),
+            CompletableDeferred<PurchaseEntitlement>(),
+            CompletableDeferred(TestPaymentGateway().withFreeCredits(9).entitlement()),
+        )
+        var next = 0
+        perCall = { calls[next++] }
+        val viewModel = enteredViewModel()
+
+        viewModel.onDeleteTapped()
+        calls[1].complete(TestPaymentGateway().withFreeCredits(9).entitlement())
+        viewModel.onDeleteConfirmed()
+        calls[0].complete(TestPaymentGateway().withFreeCredits(9).entitlement())
+
+        val deleting = viewModel.uiState.value as DeleteAccountUiState.Deleting
+        assertThat(deleting.counts.applications).isEqualTo(4)
+    }
+
     private fun TestScope.enteredViewModel(): DeleteAccountViewModel {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }

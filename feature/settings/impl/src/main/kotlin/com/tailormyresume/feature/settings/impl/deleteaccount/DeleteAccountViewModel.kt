@@ -76,19 +76,22 @@ class DeleteAccountViewModel @Inject constructor(
             else -> Phase()
         }
         refreshJob = viewModelScope.launch {
-            snapshot.value = Snapshot(
-                counts = deleteAccount.preview(),
-                accountEmail = sessionRepository.observeAccount().first()?.email,
-            )
             if (deleteAccount.hasServerClosedPendingWipe()) {
+                snapshot.value = currentSnapshot()
                 phase.value = Phase(failure = DeleteAccountFailure.LOCAL_WIPE_PENDING)
                 onFinishRemovalTapped()
                 return@launch
             }
+            snapshot.value = currentSnapshot()
             val refreshed = deleteAccount.refreshedPreview()
             snapshot.update { current -> current?.copy(counts = refreshed) }
         }
     }
+
+    private suspend fun currentSnapshot() = Snapshot(
+        counts = deleteAccount.preview(),
+        accountEmail = sessionRepository.observeAccount().first()?.email,
+    )
 
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return

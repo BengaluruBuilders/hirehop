@@ -2,14 +2,19 @@ package com.tailormyresume.core.testing.repository
 
 import com.tailormyresume.core.data.repository.PendingAccountWipe
 import com.tailormyresume.core.data.repository.PendingWipeState
+import kotlinx.coroutines.CompletableDeferred
 
 class TestPendingAccountWipe(
     var current: PendingWipeState = PendingWipeState.NONE,
     var markerUid: String? = null,
 ) : PendingAccountWipe {
     val history = mutableListOf<PendingWipeState>()
+    var stateGate: CompletableDeferred<Unit>? = null
 
-    override suspend fun state(): PendingWipeState = current
+    override suspend fun state(): PendingWipeState {
+        stateGate?.await()
+        return current
+    }
 
     override suspend fun markRequested() {
         markerUid = null
