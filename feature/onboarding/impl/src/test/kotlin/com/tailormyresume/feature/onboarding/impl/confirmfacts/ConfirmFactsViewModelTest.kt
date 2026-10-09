@@ -75,6 +75,14 @@ class ConfirmFactsViewModelTest {
     }
 
     @Test
+    fun errorScenario_keepsTheFailedSaveCalloutAfterLoad() {
+        val state = createViewModel(DebugScenario.ERROR).uiState.value
+
+        assertThat(state.hasSaveFailed).isTrue()
+        assertThat(state.facts).isNotEmpty()
+    }
+
+    @Test
     fun removedBanner_followsWhatTheImportRemoved() {
         val viewModel = createViewModel()
         assertThat(viewModel.uiState.value.showsRemovedBanner).isTrue()
