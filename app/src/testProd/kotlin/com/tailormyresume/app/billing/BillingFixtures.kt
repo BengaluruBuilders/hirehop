@@ -12,7 +12,6 @@ import com.tailormyresume.core.testing.mock.TestMockStateStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 
 internal class FakePlayBilling : PlayBilling {
@@ -63,7 +62,7 @@ internal fun MockWebServer.signOutCleaner(session: SessionRepository): SignOutCl
     val api = api()
     return SignOutCleaner(
         RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1"), idleScope()),
-        RemoteJobAnalysisSource(api, NoMatcher, Json),
+        RemoteJobAnalysisSource(api, NoMatcher),
         PendingReportQueue(store),
         store,
         session,

@@ -11,7 +11,6 @@ import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.testing.mock.TestMockStateStore
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
@@ -32,7 +31,7 @@ class AiFailureMappingTest {
         val tailor = RemoteResumeTailor(backend.api, PendingTailoringIds(TestMockStateStore(), FixedIds))
         return mapOf(
             "parse" to { RemoteResumeTextParser(backend.api, FactIdAllocator(), ImportRemovalNotice()).parse("x".repeat(60)) },
-            "analyse" to { RemoteJobAnalysisSource(backend.api, matcher, Json).analyse(candidate, "jd text") },
+            "analyse" to { RemoteJobAnalysisSource(backend.api, matcher).analyse(candidate, "jd text") },
             "tailor" to { tailor.tailor(candidate, job, analysis.gap, "app-1", null) },
             "prep" to { RemotePrepQuestionSource(backend.api)(analysis, candidate, 6) },
             "letter" to { RemoteCoverLetterSource(backend.api)(candidate, job, analysis, 3) },
