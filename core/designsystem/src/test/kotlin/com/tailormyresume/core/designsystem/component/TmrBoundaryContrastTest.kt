@@ -22,21 +22,11 @@ class TmrBoundaryContrastTest {
     }
 
     @Test
-    fun outlineButtonAndTextFieldUseBoundary() {
+    fun boundaryTokenDiffersFromHairlineToken() {
         assertNotEquals(TmrLightColors.boundary, TmrLightColors.outlineVariant)
         assertNotEquals(TmrDarkColors.boundary, TmrDarkColors.outlineVariant)
         assertEquals(Color(0xFFD5D8D2), TmrLightColors.outlineVariant)
         assertEquals(Color(0xFF3A3D3B), TmrDarkColors.outlineVariant)
-    }
-
-    @Test
-    fun disabledOutlineLabelKeepsNormalTextContrast() {
-        listOf("light" to TmrLightColors, "dark" to TmrDarkColors).forEach { (mode, colors) ->
-            listOf("background" to colors.background, "card" to colors.card).forEach { (name, color) ->
-                val ratio = contrast(colors.onSurfaceVariant, color)
-                assertTrue("$mode disabled outline label on $name contrast was $ratio", ratio >= 4.5f)
-            }
-        }
     }
 
     private fun surfaces(colors: TmrColors): List<Pair<String, Color>> = with(colors) {

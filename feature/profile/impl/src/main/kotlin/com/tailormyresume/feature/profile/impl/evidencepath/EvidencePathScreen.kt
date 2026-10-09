@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -237,6 +238,7 @@ private fun QuestionContent(
 ) {
     val category = uiState.category ?: return
     FlowRow(
+        modifier = Modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(ChipGap),
         verticalArrangement = Arrangement.spacedBy(ChipGap),
     ) {

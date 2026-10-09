@@ -172,7 +172,7 @@ private fun ApplicationsHeaderBar(
 }
 
 @Composable
-private fun CreditsAction(
+internal fun CreditsAction(
     credits: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

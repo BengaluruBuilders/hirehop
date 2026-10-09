@@ -171,7 +171,7 @@ private fun FactsProgress(uiState: ConfirmFactsUiState) {
 }
 
 @Composable
-private fun ProgressBar(
+internal fun ProgressBar(
     confirmed: Int,
     total: Int,
 ) {

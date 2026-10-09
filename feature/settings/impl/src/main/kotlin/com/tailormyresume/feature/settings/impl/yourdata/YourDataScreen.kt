@@ -105,6 +105,7 @@ internal fun YourDataScreen(
             onConfirm = actions.onDeleteConfirm,
             onCancel = actions.onDeleteDismiss,
             destructive = true,
+            icon = TmrIcons.Error,
         )
     }
 }
@@ -131,6 +132,7 @@ private fun DeleteMyDataDialog(content: YourDataUiState.Content, actions: YourDa
         onConfirm = actions.onDeleteMyDataConfirm,
         onCancel = actions.onDeleteMyDataDismiss,
         destructive = true,
+        icon = TmrIcons.Error,
     )
 }
 

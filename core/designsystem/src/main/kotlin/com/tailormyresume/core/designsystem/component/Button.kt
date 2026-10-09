@@ -72,15 +72,15 @@ private fun TmrColors.outlinePalette(surface: TmrButtonSurface): TmrButtonPalett
 }
 
 private fun TmrColors.disabledPalette(kind: TmrButtonKind, surface: TmrButtonSurface): TmrButtonPalette {
-    if (kind.isFilled()) return TmrButtonPalette(primaryContainer, onSurfaceVariant, null)
     val onHeaderSurface = surface == TmrButtonSurface.Header
-    val label = if (onHeaderSurface) onHeaderVariant else onSurfaceVariant
-    val edge = if (onHeaderSurface) onHeaderVariant else outlineVariant
-    val border = if (kind == TmrButtonKind.Outline) BorderStroke(TmrWidthStroke, edge) else null
-    return TmrButtonPalette(Color.Transparent, label, border)
+    if (kind == TmrButtonKind.Text) {
+        return TmrButtonPalette(Color.Transparent, if (onHeaderSurface) onHeaderVariant else disabledContent, null)
+    }
+    if (kind == TmrButtonKind.Outline && onHeaderSurface) {
+        return TmrButtonPalette(Color.Transparent, onHeaderVariant, BorderStroke(TmrWidthStroke, onHeaderVariant))
+    }
+    return TmrButtonPalette(primaryContainer, onSurfaceVariant, null)
 }
-
-private fun TmrButtonKind.isFilled(): Boolean = this != TmrButtonKind.Outline && this != TmrButtonKind.Text
 
 private fun TmrColors.textPalette(surface: TmrButtonSurface): TmrButtonPalette = when (surface) {
     TmrButtonSurface.Header -> TmrButtonPalette(Color.Transparent, onHeader, null)
