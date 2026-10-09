@@ -17,7 +17,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.isSpecified
 
 private const val SHRINK_STEP = 0.92f
-private const val MIN_SCALE = 0.5f
 
 fun TextLayoutResult.splitsAWord(): Boolean {
     val text = layoutInput.text.text
@@ -39,6 +38,7 @@ fun TmrFitText(
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val density = LocalDensity.current
+    val minScale = (1f / density.fontScale).coerceAtMost(1f)
     var scale by remember(text, style, density.fontScale, density.density) { mutableFloatStateOf(1f) }
     Text(
         text = text,
@@ -49,7 +49,7 @@ fun TmrFitText(
         overflow = overflow,
         style = style.scaledBy(scale),
         onTextLayout = { layout ->
-            if (layout.splitsAWord() && scale > MIN_SCALE) scale = maxOf(MIN_SCALE, scale * SHRINK_STEP)
+            if (layout.splitsAWord() && scale > minScale) scale = maxOf(minScale, scale * SHRINK_STEP)
             onTextLayout(layout)
         },
     )
