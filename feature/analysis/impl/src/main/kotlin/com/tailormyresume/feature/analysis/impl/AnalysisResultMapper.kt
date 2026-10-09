@@ -6,6 +6,7 @@ import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.RequirementPriority
+import com.tailormyresume.core.model.isSkillUserStated
 
 internal fun List<RequirementMatch>.toSections(
     profile: CandidateProfile,
@@ -40,6 +41,7 @@ private fun RequirementMatch.toItem(
         isInPrepPlan = isInPrepPlan,
         isReported = isReported,
         factRefs = if (isGap) emptyList() else resolver.factRefsOf(evidenceIds),
+        userStatedSkills = if (isGap) emptyList() else resolver.userStatedSkillsOf(evidenceIds),
     )
 }
 
@@ -66,6 +68,9 @@ internal class EvidenceResolver(private val profile: CandidateProfile) {
     fun skillsOf(evidenceIds: List<String>): List<String> = evidenceIds
         .filter { it.startsWith(SKILL_ID_PREFIX) }
         .map { it.removePrefix(SKILL_ID_PREFIX) }
+
+    fun userStatedSkillsOf(evidenceIds: List<String>): List<String> =
+        skillsOf(evidenceIds).filter(profile::isSkillUserStated)
 
     fun factRefsOf(evidenceIds: List<String>): List<RequirementFactRef> {
         val linesByEntry = linkedMapOf<ProfileEntry, MutableList<String>>()
