@@ -2,6 +2,7 @@ package com.tailormyresume.feature.profile.impl.facteditor
 
 import com.tailormyresume.core.domain.fact.FactDraft
 import com.tailormyresume.core.domain.fact.FactDraftErrorReason
+import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.fact.FactField
 import com.tailormyresume.core.domain.fact.FactLineRenderer
 import com.tailormyresume.core.model.FactSource
@@ -55,4 +56,9 @@ data class FactEditorUiState(
 
     fun visibleReasonFor(field: FactField): FactDraftErrorReason? =
         fieldErrors[field]?.takeIf { field in touchedFields }
+
+    fun visibleBulletReason(bulletText: String): FactDraftErrorReason? =
+        visibleReasonFor(FactField.DETAIL)?.takeUnless {
+            it == FactDraftErrorReason.TOO_LONG && bulletText.length <= FactDraftValidator.DETAIL_LIMIT
+        }
 }

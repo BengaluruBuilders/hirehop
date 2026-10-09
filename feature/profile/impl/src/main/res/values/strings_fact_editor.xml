@@ -9,6 +9,7 @@
     <string name="feature_profile_impl_fact_editor_field_title">Title</string>
     <string name="feature_profile_impl_fact_editor_field_title_placeholder">Name of the project</string>
     <string name="feature_profile_impl_fact_editor_field_detail">What you did</string>
+    <string name="feature_profile_impl_fact_editor_field_detail_numbered">What you did, line %1$d</string>
     <string name="feature_profile_impl_fact_editor_detail_label_details">Details</string>
     <string name="feature_profile_impl_fact_editor_field_detail_placeholder">In your own words</string>
     <string name="feature_profile_impl_fact_editor_field_tools">Tools</string>

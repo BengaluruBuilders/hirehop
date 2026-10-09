@@ -23,6 +23,7 @@ import com.tailormyresume.core.domain.IdGenerator
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.PaymentGateway
 import com.tailormyresume.core.domain.SignInGateway
+import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.isAiFailure
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
@@ -237,7 +238,7 @@ class AnalysisViewModel @Inject constructor(
         val ready = local.value.phase as? Phase.Ready ?: return
         val match = ready.analysis.gap.matches.firstOrNull { it.requirement.id == requirementId }
         val requirement = match?.requirement
-        if (requirement == null || match.status != MatchStatus.GAP || statement.isBlank() || submitting) return
+        if (requirement == null || match.status != MatchStatus.GAP || statement.isBlank() || statement.trim().length > FactDraftValidator.DETAIL_LIMIT || submitting) return
         submitting = true
         viewModelScope.launch {
             try {
