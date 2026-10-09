@@ -11,24 +11,40 @@ import javax.inject.Singleton
 @Singleton
 class WalletSource @Inject constructor(private val api: TailorMyResumeApi) {
     private val state = MutableStateFlow<WalletDto?>(null)
+    private val lock = Any()
+    private var generation = 0
 
     val wallet: Flow<WalletDto?> get() = state
 
     val cached: WalletDto? get() = state.value
 
-    suspend fun refresh(): WalletDto = apiResult { api.wallet().wallet }.getOrThrow().also(::update)
-
-    suspend fun refreshOrCached(): WalletDto? = apiResult { api.wallet().wallet }.getOrNull()?.also(::update) ?: state.value
-
-    fun update(wallet: WalletDto) {
-        state.value = wallet
+    suspend fun refresh(): WalletDto {
+        val started = generation()
+        val answer = apiResult { api.wallet().wallet }.getOrThrow()
+        check(update(answer, started)) { "The wallet answer arrived after sign-out" }
+        return answer
     }
 
-    fun generation(): Int = 0
+    suspend fun refreshOrCached(): WalletDto? {
+        val started = generation()
+        val answer = apiResult { api.wallet().wallet }.getOrNull()
+        return if (answer != null && update(answer, started)) answer else state.value
+    }
 
-    fun update(wallet: WalletDto, started: Int) = update(wallet)
+    fun generation(): Int = synchronized(lock) { generation }
+
+    fun update(wallet: WalletDto) {
+        synchronized(lock) { state.value = wallet }
+    }
+
+    fun update(wallet: WalletDto, started: Int): Boolean = synchronized(lock) {
+        (started == generation).also { current -> if (current) state.value = wallet }
+    }
 
     fun clear() {
-        state.value = null
+        synchronized(lock) {
+            generation++
+            state.value = null
+        }
     }
 }
