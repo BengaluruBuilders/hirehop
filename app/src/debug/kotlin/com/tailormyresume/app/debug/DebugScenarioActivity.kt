@@ -114,6 +114,21 @@ private fun DebugScenarioPreview(
     modifier: Modifier = Modifier,
 ) {
     val key = target.navKey(scenario)
+    val shownRoot = observePreviewRoot(target.opensFirstRunRoot, rootState, hasAccount, rootStores)
+    when {
+        target.opensFirstRunRoot -> TmrFirstRunRoot(modifier = modifier, startKey = key)
+        shownRoot == NavigationRoot.FirstRun -> TmrFirstRunRoot(modifier = modifier, startKey = DefaultWelcomeNavKey)
+        else -> TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
+    }
+}
+
+@Composable
+internal fun observePreviewRoot(
+    opensFirstRunRoot: Boolean,
+    rootState: StateFlow<AppRootState>,
+    hasAccount: Flow<Boolean>,
+    rootStores: RootViewModelStores,
+): NavigationRoot {
     val currentRoot by rootState.collectAsStateWithLifecycle()
     val accountPresent by hasAccount.collectAsStateWithLifecycle(initialValue = false)
     var seenMain by remember { mutableStateOf(false) }
@@ -124,13 +139,9 @@ private fun DebugScenarioPreview(
     LaunchedEffect(accountPresent) {
         if (accountPresent) seenAccount = true
     }
-    val shownRoot = previewNavigationRoot(target.opensFirstRunRoot, seenMain, currentRoot, seenAccount, accountPresent)
+    val shownRoot = previewNavigationRoot(opensFirstRunRoot, seenMain, currentRoot, seenAccount, accountPresent)
     LaunchedEffect(shownRoot) { rootStores.keepOnly(shownRoot) }
-    when {
-        target.opensFirstRunRoot -> TmrFirstRunRoot(modifier = modifier, startKey = key)
-        shownRoot == NavigationRoot.FirstRun -> TmrFirstRunRoot(modifier = modifier, startKey = DefaultWelcomeNavKey)
-        else -> TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
-    }
+    return shownRoot
 }
 
 internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =

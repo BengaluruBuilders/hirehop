@@ -1,6 +1,8 @@
 package com.tailormyresume.app.ai
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.domain.AiException
+import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.testing.mock.TestMockStateStore
@@ -26,22 +28,35 @@ class RemoteResumeTailorRetryAfterTest {
     }
 
     @Test
-    fun aRetryAfterOfADayFallsBackToTheTenSecondDefault() = runTest {
-        plainRateLimit("86400")
+    fun aRetryAfterOfADaySurfacesRateLimitedAtOnce() = runTest {
+        backend.server.enqueue(MockResponse().setResponseCode(429).setHeader("Retry-After", "86400"))
+
+        val failure = runCatching { tailor.tailor(candidate, job, gap, "app-1", null) }.exceptionOrNull()
+
+        assertThat((failure as AiException).failure).isEqualTo(AiFailure.RateLimited)
+        assertThat(currentTime).isEqualTo(0L)
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun aRetryAfterOfExactlyAMinuteIsHonoured() = runTest {
+        plainRateLimit("60")
 
         tailor.tailor(candidate, job, gap, "app-1", null)
 
-        assertThat(currentTime).isEqualTo(10_000L)
+        assertThat(currentTime).isEqualTo(60_000L)
         assertThat(backend.server.requestCount).isEqualTo(2)
     }
 
     @Test
-    fun aRetryAfterOfExactlyAnHourIsHonoured() = runTest {
-        plainRateLimit("3600")
+    fun aRetryAfterOfSixtyOneSecondsSurfacesRateLimitedWithoutSleeping() = runTest {
+        backend.server.enqueue(MockResponse().setResponseCode(429).setHeader("Retry-After", "61"))
 
-        tailor.tailor(candidate, job, gap, "app-1", null)
+        val failure = runCatching { tailor.tailor(candidate, job, gap, "app-1", null) }.exceptionOrNull()
 
-        assertThat(currentTime).isEqualTo(3_600_000L)
+        assertThat((failure as AiException).failure).isEqualTo(AiFailure.RateLimited)
+        assertThat(currentTime).isEqualTo(0L)
+        assertThat(backend.server.requestCount).isEqualTo(1)
     }
 
     @Test

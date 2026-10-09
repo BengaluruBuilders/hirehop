@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -45,6 +46,8 @@ import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
+internal const val JOB_CARD_TAG = "analysis-job-card"
+
 private enum class WaitingPillKind { Done, InProgress, UpNext }
 
 @Composable
@@ -61,7 +64,10 @@ internal fun WaitingContent(
             .padding(top = contentPadding.calculateTopPadding() + TmrTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
-        JobCard(state, modifier = if (jobKnown) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})
+        JobCard(
+            state,
+            modifier = Modifier.testTag(JOB_CARD_TAG).then(if (jobKnown) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}),
+        )
         listOf(
             stringResource(R.string.feature_analysis_impl_step_read),
             stringResource(R.string.feature_analysis_impl_step_match),

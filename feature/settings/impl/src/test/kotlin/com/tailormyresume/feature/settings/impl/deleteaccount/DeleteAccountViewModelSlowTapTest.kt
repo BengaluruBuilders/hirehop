@@ -48,6 +48,7 @@ class DeleteAccountViewModelSlowTapTest {
     private val sessionRepository = TestSessionRepository().apply { sendAccount(SignInAccount.localAccount) }
     private val entitlementCalls = mutableListOf<CompletableDeferred<Unit>>()
     private var slowEntitlement = false
+    private val delegate = TestPaymentGateway().withFreeCredits(4)
 
     @Before
     fun clearPendingNavigation() {
@@ -92,12 +93,12 @@ class DeleteAccountViewModelSlowTapTest {
 
         viewModel.onDeleteTapped()
         connectivity.setOnline(false)
-        applications.value = FOUR_APPLICATIONS.drop(1)
+        delegate.withFreeCredits(1)
         entitlementCalls.single().complete(Unit)
 
         val ready = viewModel.ready()
         assertThat(ready.isConfirmVisible).isFalse()
-        assertThat(ready.counts.applications).isEqualTo(4)
+        assertThat(ready.counts.unusedCredits).isEqualTo(4)
     }
 
     @Test
@@ -125,7 +126,6 @@ class DeleteAccountViewModelSlowTapTest {
     private fun DeleteAccountViewModel.ready(): DeleteAccountUiState.Ready = uiState.value as DeleteAccountUiState.Ready
 
     private fun viewModel(): DeleteAccountViewModel {
-        val delegate = TestPaymentGateway().withFreeCredits(4)
         val gateway = object : PaymentGateway by delegate {
             override suspend fun entitlement(): PurchaseEntitlement {
                 if (slowEntitlement) CompletableDeferred<Unit>().also { entitlementCalls += it }.await()
