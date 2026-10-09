@@ -9,6 +9,8 @@ sealed interface EvidencePathAction {
 
     data object Skip : EvidencePathAction
 
+    data object NextQuestion : EvidencePathAction
+
     data object AddMore : EvidencePathAction
 
     data object Finish : EvidencePathAction
@@ -23,6 +25,7 @@ data class EvidencePathActions(
     val onAnswerChanged: (String) -> Unit,
     val onSave: () -> Unit,
     val onSkip: () -> Unit,
+    val onNextQuestion: () -> Unit,
     val onAddMore: () -> Unit,
     val onFinish: () -> Unit,
     val onEditFact: (entryId: String, entryType: String) -> Unit,
@@ -33,6 +36,7 @@ data class EvidencePathActions(
             onAnswerChanged = {},
             onSave = {},
             onSkip = {},
+            onNextQuestion = {},
             onAddMore = {},
             onFinish = {},
             onEditFact = { _, _ -> },

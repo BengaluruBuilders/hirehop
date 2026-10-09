@@ -67,14 +67,16 @@ class EvidencePathViewModelTest {
     }
 
     @Test
-    fun skippingTheLastQuestionOfACategory_movesToTheNextOneInTheStoredOrder() = runTest {
+    fun skippingTheLastQuestionOfACategory_endsOnAllDone() = runTest {
         session.saveCareerStage(CareerStage.JUST_STARTING_OUT)
         enter()
 
         act(EvidencePathAction.CategoryChosen(EvidenceCategory.INTERNSHIPS))
-        act(EvidencePathAction.Skip)
+        repeat(EvidenceCategory.INTERNSHIPS.questionCount) { act(EvidencePathAction.Skip) }
 
-        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.PROJECTS)
+        val state = viewModel.uiState.value
+        assertThat(state.isDone).isTrue()
+        assertThat(state.category).isNull()
     }
 
     @Test
@@ -125,7 +127,7 @@ class EvidencePathViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.category).isEqualTo(EvidenceCategory.PROJECTS)
         assertThat(state.questionNumber).isEqualTo(1)
-        assertThat(state.questionTotal).isEqualTo(2)
+        assertThat(state.questionTotal).isEqualTo(4)
     }
 
     @Test
@@ -145,7 +147,7 @@ class EvidencePathViewModelTest {
     }
 
     @Test
-    fun categories_includeWorkWithOneQuestion() {
+    fun categories_askFourQuestionsEach() {
         assertThat(EVIDENCE_CATEGORIES.map { it.key }).containsExactly(
             "work",
             "projects",
@@ -154,20 +156,23 @@ class EvidencePathViewModelTest {
             "competitions",
             "positions",
         ).inOrder()
-        assertThat(EvidenceCategory.WORK.questionCount).isEqualTo(1)
+        assertThat(EVIDENCE_CATEGORIES.map { it.questionCount }.distinct()).containsExactly(4)
         assertThat(EvidenceCategory.WORK.entryCategory).isEqualTo(EntryCategory.EXPERIENCE)
     }
 
     @Test
-    fun save_filesAUserStatedFactAndMovesToTheNextQuestion() = runTest {
+    fun save_filesAUserStatedFactAndWaitsForNextQuestion() = runTest {
         enter("projects")
         answer(dashboardAnswer)
 
         act(EvidencePathAction.Save)
 
         val state = viewModel.uiState.value
-        assertThat(state.questionNumber).isEqualTo(2)
+        assertThat(state.questionNumber).isEqualTo(1)
         assertThat(state.answer).isEmpty()
+        val stamped = checkNotNull(state.stamped)
+        assertThat(stamped.entry.source).isEqualTo(FactSource.USER_STATED)
+        assertThat(stamped.entry.title).isEqualTo("Placement Stats Dashboard")
         val card = state.categoryCards.single()
         assertThat(card.entry.title).isEqualTo("Placement Stats Dashboard")
         assertThat(card.entry.source).isEqualTo(FactSource.USER_STATED)
@@ -197,26 +202,23 @@ class EvidencePathViewModelTest {
     }
 
     @Test
-    fun skip_onTheLastQuestionMovesToTheFirstUnvisitedCategoryAndNotesTheSkip() {
+    fun skip_movesToTheNextQuestionOfTheSameCategoryAndNotesTheSkip() {
         enter("projects")
-        act(EvidencePathAction.Skip)
-        assertThat(viewModel.uiState.value.questionNumber).isEqualTo(2)
-
         act(EvidencePathAction.Skip)
 
         val state = viewModel.uiState.value
-        assertThat(state.category).isEqualTo(EvidenceCategory.WORK)
-        assertThat(state.skipNote).isEqualTo(EvidenceSkipNote(EvidenceCategory.PROJECTS, 2))
+        assertThat(state.category).isEqualTo(EvidenceCategory.PROJECTS)
+        assertThat(state.questionNumber).isEqualTo(2)
+        assertThat(state.skipNote).isEqualTo(EvidenceSkipNote(EvidenceCategory.PROJECTS, 1))
     }
 
     @Test
-    fun skippingEveryQuestion_endsOnTheAllDoneState() {
+    fun skip_onTheLastQuestionEndsTheCategoryWithoutOpeningAnother() {
         enter("projects")
-        repeat(EVIDENCE_CATEGORIES.sumOf { it.questionCount }) { act(EvidencePathAction.Skip) }
+        repeat(EvidenceCategory.PROJECTS.questionCount) { act(EvidencePathAction.Skip) }
 
         val state = viewModel.uiState.value
         assertThat(state.isDone).isTrue()
-        assertThat(state.cards).isEmpty()
         assertThat(state.category).isNull()
     }
 
@@ -239,7 +241,8 @@ class EvidencePathViewModelTest {
         enter("work")
         answer("Weekly sales reports, 40 stores")
         act(EvidencePathAction.Save)
-        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.PROJECTS)
+        assertThat(viewModel.uiState.value.category).isEqualTo(EvidenceCategory.WORK)
+        assertThat(viewModel.uiState.value.stamped).isNotNull()
 
         act(EvidencePathAction.AddMore)
 

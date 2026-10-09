@@ -4,6 +4,7 @@ import com.tailormyresume.core.domain.fact.FactDisplayIds
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.factCounts
+import com.tailormyresume.core.model.isSkillUserStated
 import com.tailormyresume.feature.profile.impl.common.FactStatus
 import com.tailormyresume.feature.profile.impl.common.status
 
@@ -66,7 +67,7 @@ data class ProfileOverviewState(
             entrySection(ProfileSectionKind.Projects, EntryCategory.PROJECT),
             ProfileSection(
                 kind = ProfileSectionKind.Skills,
-                facts = skills.indices.map { ProfileFactRef(id = skillId(it), status = FactStatus.Confirmed) },
+                facts = skills.mapIndexed { index, skill -> ProfileFactRef(id = skillId(index), status = skillStatus(skill)) },
             ),
             entrySection(ProfileSectionKind.Certifications, EntryCategory.CERTIFICATION),
             entrySection(ProfileSectionKind.Extras, EntryCategory.ACHIEVEMENT),
@@ -85,6 +86,9 @@ data class ProfileOverviewState(
         private const val HEADLINE_SEPARATOR = " · "
     }
 }
+
+internal fun CandidateProfile.skillStatus(skill: String): FactStatus =
+    if (isSkillUserStated(skill)) FactStatus.UserStated else FactStatus.Confirmed
 
 fun skillId(index: Int): String = "S-" + (index + 1).toString().padStart(2, '0')
 

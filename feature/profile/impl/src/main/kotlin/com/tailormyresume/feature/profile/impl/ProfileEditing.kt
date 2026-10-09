@@ -18,11 +18,14 @@ internal fun CandidateProfile.withContact(contact: ContactDraft): CandidateProfi
 internal fun CandidateProfile.withSkill(skill: String): CandidateProfile {
     val trimmed = skill.trim()
     val isDuplicate = skills.any { it.equals(trimmed, ignoreCase = true) }
-    return if (trimmed.isEmpty() || isDuplicate) this else copy(skills = skills + trimmed)
+    return if (trimmed.isEmpty() || isDuplicate) this else copy(skills = skills + trimmed, userStatedSkills = userStatedSkills + trimmed)
 }
 
 internal fun CandidateProfile.withoutSkill(skill: String): CandidateProfile =
-    copy(skills = skills.filterNot { it.equals(skill, ignoreCase = true) })
+    copy(
+        skills = skills.filterNot { it.equals(skill, ignoreCase = true) },
+        userStatedSkills = userStatedSkills.filterNot { it.equals(skill, ignoreCase = true) },
+    )
 
 data class ContactDraft(
     val fullName: String,

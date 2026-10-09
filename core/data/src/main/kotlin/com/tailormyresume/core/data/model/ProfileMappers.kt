@@ -18,6 +18,7 @@ fun CandidateProfile.asEntity() = ProfileEntity(
     phone = phone,
     headline = headline,
     skills = skills,
+    userStatedSkills = userStatedSkills,
 )
 
 fun ProfileEntry.asEntity(position: Int) = ProfileEntryEntity(
@@ -54,6 +55,7 @@ fun PopulatedProfile.asExternalModel() = CandidateProfile(
     phone = profile.phone,
     headline = profile.headline,
     skills = profile.skills,
+    userStatedSkills = profile.userStatedSkills,
     entries = entries
         .sortedBy(ProfileEntryEntity::position)
         .map(ProfileEntryEntity::asExternalModel),

@@ -65,6 +65,7 @@ class AccountDataArchiveWriter {
         val profile = data.profile ?: return@buildString
         appendLine("${profile.fullName} | ${profile.headline} | ${profile.email} | ${profile.phone}")
         appendLine("skills=${profile.skills.joinToString(",")}")
+        appendLine("userStatedSkills=${profile.userStatedSkills.joinToString(",")}")
         profile.entries.forEach { entry ->
             appendLine("${entry.id} | ${entry.category} | ${entry.title} | ${entry.organization} | confirmed=${entry.isConfirmed}")
             entry.bullets.forEach { bullet -> appendIndented(bullet.id, bullet.text) }
@@ -149,6 +150,7 @@ class AccountDataArchiveWriter {
         put("phone", profile.phone)
         put("headline", profile.headline)
         put("skills", strings(profile.skills))
+        put("userStatedSkills", strings(profile.userStatedSkills))
         put("entries", objects(profile.entries, ::profileEntryJson))
     }
 

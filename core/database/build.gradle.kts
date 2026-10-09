@@ -7,6 +7,13 @@ plugins {
 
 android {
     namespace = "com.tailormyresume.core.database"
+    testOptions.unitTests.isIncludeAndroidResources = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.hostTests["UnitTest"]?.sources?.assets?.addStaticSourceDirectory("schemas")
+    }
 }
 
 dependencies {
@@ -15,6 +22,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.truth)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.room.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.kotlin.test)
