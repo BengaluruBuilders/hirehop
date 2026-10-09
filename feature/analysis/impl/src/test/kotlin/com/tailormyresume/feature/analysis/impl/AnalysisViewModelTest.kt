@@ -8,6 +8,7 @@ import com.tailormyresume.core.domain.AddUserStatedFactUseCase
 import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.CreateApplicationUseCase
+import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.JobAnalysisSource
 import com.tailormyresume.core.domain.TailorResumeUseCase
@@ -18,11 +19,14 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ConsentPurpose
 import com.tailormyresume.core.model.ConsentRecord
 import com.tailormyresume.core.model.DebugScenario
+import com.tailormyresume.core.model.EntryCategory
+import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.KeptJobDescription
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
+import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.navigation.PendingNavigation
@@ -72,11 +76,13 @@ class AnalysisViewModelTest {
     private val analyzer = FixedJobDescriptionAnalyzer()
     private val tailor = EmptyResumeTailor()
     private val matcher = KeywordGapMatcher()
+    private var viewModelMatcher: GapMatcher = matcher
     private var nextId = 0
     private var analysisCalls = 0
     private var serverOnlyMetIds = emptySet<String>()
     private var serverGapIds = emptySet<String>()
     private var serverKeywordCovered: Int? = null
+    private var serverAnalysedAt: Instant? = null
     private val countingSource = object : JobAnalysisSource {
         override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult {
             analysisCalls++
@@ -91,7 +97,10 @@ class AnalysisViewModelTest {
             val coverage = serverKeywordCovered
                 ?.let { KeywordCoverage(covered = it, total = result.gap.keywordCoverage.total) }
                 ?: result.gap.keywordCoverage
-            return result.copy(gap = result.gap.copy(matches = matches, keywordCoverage = coverage))
+            return result.copy(
+                gap = result.gap.copy(matches = matches, keywordCoverage = coverage),
+                analysedAt = serverAnalysedAt,
+            )
         }
     }
 
@@ -128,7 +137,7 @@ class AnalysisViewModelTest {
         profileRepository = profileRepository,
         nextOnboardingStep = NextOnboardingStepUseCase(sessionRepository, profileRepository),
         analyzeJob = AnalyzeJobUseCase(countingSource),
-        gapMatcher = matcher,
+        gapMatcher = viewModelMatcher,
         addUserStatedFact = AddUserStatedFactUseCase(profileRepository, ::newId),
         createApplication = CreateApplicationUseCase(
             applicationRepository = flakyApplicationRepository,
@@ -862,9 +871,9 @@ class AnalysisViewModelTest {
     }
 
     @Test
-    fun iHaveThis_whenTheTargetedRequirementAlreadyMatchesOnTheDevice_closesItAndOthersStay() = runTest {
+    fun iHaveThis_newEvidenceClosesTheTargetedRequirementAndOthersStay() = runTest {
         serverGapIds = setOf("req-docker", "req-kotlin")
-        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin")) })
 
         viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
 
@@ -910,7 +919,7 @@ class AnalysisViewModelTest {
     @Test
     fun iHaveThis_laterSaveKeepsEarlierEvidenceClosedRequirementMet_andUndoRestoresOnlyTheLastOne() = runTest {
         serverGapIds = setOf("req-docker", "req-sql")
-        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin")) })
         viewModel.onTogglePrepPlan("req-docker")
         viewModel.onTogglePrepPlan("req-sql")
 
@@ -963,5 +972,66 @@ class AnalysisViewModelTest {
         assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
         assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.PARTIAL)
         assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+    }
+
+    @Test
+    fun iHaveThis_aStatementThatAddsNothingMatchable_closesNothingEvenWhenTheDeviceAlreadyMatches() = runTest {
+        serverGapIds = setOf("req-docker")
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        val before = profileRepository.observeProfile().first()
+
+        viewModel.onSubmitEvidence("req-docker", "I like tidy data.")
+
+        val result = result()
+        assertThat(result.item("req-docker").status).isEqualTo(MatchStatus.GAP)
+        assertThat(result.overlay).isEqualTo(AnalysisOverlay.Question("req-docker", notClosed = true))
+        assertThat(result.toast).isNull()
+        assertThat(profileRepository.observeProfile().first()).isEqualTo(before)
+    }
+
+    @Test
+    fun iHaveThis_aMatcherCitingEverySupportingBulletUpgradesTheOtherRequirementOnNewEvidence() = runTest {
+        serverGapIds = setOf("req-sql", "req-graphql")
+        viewModelMatcher = CitingEveryBulletMatcher()
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL and GraphQL queries.")
+
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.PARTIAL)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.PARTIAL)
+    }
+
+    @Test
+    fun result_carriesTheIdTheNextUserStatedFactWillGet() = runTest {
+        val userStated = ProfileEntry(
+            id = "U-03",
+            category = EntryCategory.ACHIEVEMENT,
+            title = "Additional experience",
+            organization = "",
+            startDate = "",
+            endDate = "",
+            bullets = listOf(EvidenceBullet("bullet-u3", "I led a college club.")),
+            source = FactSource.USER_STATED,
+            isConfirmed = true,
+        )
+        start(profile = confirmedProfile().let { it.copy(entries = it.entries + userStated) })
+
+        assertThat(result().nextFactId).isEqualTo("U-03")
+    }
+
+    @Test
+    fun result_carriesTheTimeOfTheAnalysis() = runTest {
+        start()
+
+        assertThat(result().analysedAt).isEqualTo(FixedClock.now())
+    }
+
+    @Test
+    fun result_carriesTheTimeTheServerAnsweredNotTheTimeOfEntry() = runTest {
+        val answeredAt = Instant.fromEpochMilliseconds(-3_600_000)
+        serverAnalysedAt = answeredAt
+        start()
+
+        assertThat(result().analysedAt).isEqualTo(answeredAt)
     }
 }

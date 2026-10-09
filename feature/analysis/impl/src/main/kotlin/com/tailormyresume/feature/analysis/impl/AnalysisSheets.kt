@@ -129,7 +129,7 @@ internal fun AnalysisSheets(state: AnalysisUiState.Result, actions: AnalysisActi
         }
         is AnalysisOverlay.Question -> state.itemOrNull(overlay.requirementId)?.let { item ->
             TmrBottomSheet(onDismissRequest = actions.onDismissOverlay) {
-                QuestionSheetContent(item, actions, notClosed = overlay.notClosed)
+                QuestionSheetContent(item, actions, notClosed = overlay.notClosed, nextFactId = state.nextFactId)
             }
         }
         AnalysisOverlay.ShareCard -> ShareFitScreen(state, actions)
@@ -245,7 +245,12 @@ private fun TmrProvenanceKind.labelRes(): Int = when (this) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
+internal fun QuestionSheetContent(
+    item: RequirementItem,
+    actions: AnalysisActions,
+    notClosed: Boolean = false,
+    nextFactId: String? = null,
+) {
     var statement by rememberSaveable { mutableStateOf("") }
     val name = item.requirement.text.headline()
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
@@ -291,7 +296,7 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             minLines = QUESTION_MIN_LINES,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-            TmrFactId(id = stringResource(R.string.feature_analysis_impl_question_new_fact_id))
+            TmrFactId(id = nextFactId ?: stringResource(R.string.feature_analysis_impl_question_new_fact_id))
             Text(
                 text = stringResource(R.string.feature_analysis_impl_question_note),
                 style = TmrTheme.typography.bodyS,
@@ -299,7 +304,8 @@ internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisAction
             )
         }
         TmrPrimaryButton(
-            label = stringResource(R.string.feature_analysis_impl_question_write),
+            label = nextFactId?.let { stringResource(R.string.feature_analysis_impl_question_write_as, it) }
+                ?: stringResource(R.string.feature_analysis_impl_question_write),
             onClick = { actions.onSubmitEvidence(item.id, statement) },
             modifier = Modifier.fillMaxWidth(),
             enabled = statement.isNotBlank(),
