@@ -264,6 +264,17 @@ class ApplicationDetailViewModelTest {
     }
 
     @Test
+    fun applicationWithTailoredResume_hasReviewProgress() = runTest {
+        viewModel.uiState.test {
+            applicationRepository.sendApplications(listOf(application))
+            runCurrent()
+
+            assertThat(current().ready().reviewProgress).isNotNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun uiState_whenAnExportExists_showsTheLastExportedFile() = runTest {
         viewModel.uiState.test {
             applicationRepository.sendApplications(listOf(application))
