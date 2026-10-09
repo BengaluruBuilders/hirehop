@@ -62,8 +62,8 @@
     <string name="feature_profile_impl_evidence_path_back_to_profile">Go to Profile</string>
 
     <plurals name="feature_profile_impl_evidence_path_done_title">
-        <item quantity="one">%1$d new fact added</item>
-        <item quantity="other">%1$d new facts added</item>
+        <item quantity="one">%1$d new fact</item>
+        <item quantity="other">%1$d new facts</item>
     </plurals>
     <string name="feature_profile_impl_evidence_path_done_body">Each one is in your words and marked user-stated. You can correct any of them from Profile.</string>
     <string name="feature_profile_impl_evidence_path_done_nothing_title">Nothing added, and that is fine</string>

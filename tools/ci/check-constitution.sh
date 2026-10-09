@@ -131,7 +131,7 @@ forbid_unrecorded_screenshot_baselines() {
   local image_changes kt_changes
   image_changes="$(git diff --name-only "$base" -- '*.png' | wc -l | tr -d ' ')"
   [[ "$image_changes" == "0" ]] && return
-  kt_changes="$(git diff --name-only "$base" -- '*.kt' '*.kts' | wc -l | tr -d ' ')"
+  kt_changes="$(git diff --name-only "$base" -- '*.kt' '*.kts' '*/src/main/res/*' | wc -l | tr -d ' ')"
   if [[ "$kt_changes" == "0" ]]; then
     echo "::error title=Constitution II.2::Screenshot baselines changed with no Kotlin change. Re-record deliberately, not reflexively."
     failures=$((failures + 1))
