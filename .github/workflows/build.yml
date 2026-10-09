@@ -104,8 +104,8 @@ jobs:
             echo "::notice title=Build skipped::This PR changes only docs, design, or Markdown files."
           fi
 
-  build:
-    name: "Build, lint, and unit tests"
+  static:
+    name: "Static checks"
     needs: changes
     if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -131,25 +131,72 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
-          cache-read-only: false
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - name: Check, test, lint, and build APKs
+      - name: Run Gradle tasks
         run: >-
           ./gradlew
           :build-logic:convention:check
           spotlessCheck
-          testDebugUnitTest
-          :app:testDemoDebugUnitTest
-          :app:testProdDebugUnitTest
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-static
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/spotless/
+            **/build/reports/tests/
+            **/build/test-results/
+
+  unit-core:
+    name: "Core unit tests"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          :core:common:testDebugUnitTest
+          :core:data:testDebugUnitTest
+          :core:database:testDebugUnitTest
+          :core:designsystem:testDebugUnitTest
+          :core:domain:testDebugUnitTest
+          :core:network:testDebugUnitTest
+          :core:navigation:testDebugUnitTest
+          :core:screenshot:testDebugUnitTest
+          :core:testing:testDebugUnitTest
+          :core:ui:testDebugUnitTest
           :core:domain:koverVerify
           :core:data:koverVerify
-          verifyRoborazziDebug
-          lintRelease
-          :app:lintDemoRelease
-          :app:lintProdRelease
-          assembleDebug
-          assembleRelease
-          :app:dependencyGuard
           -PwarningsAsErrors=true
           --continue
 
@@ -161,14 +208,296 @@ jobs:
             exit 1
           fi
 
-      - name: Upload test reports
+      - name: Upload reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-and-lint-reports
+          name: reports-unit-core
           retention-days: 7
+          if-no-files-found: ignore
           path: |
             **/build/reports/tests/
-            **/build/reports/lint-results-*.html
+            **/build/reports/kover/
+            **/build/test-results/
+
+  unit-feature:
+    name: "Feature unit tests"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          :feature:applications:api:testDebugUnitTest
+          :feature:applications:impl:testDebugUnitTest
+          :feature:onboarding:api:testDebugUnitTest
+          :feature:onboarding:impl:testDebugUnitTest
+          :feature:profile:api:testDebugUnitTest
+          :feature:profile:impl:testDebugUnitTest
+          :feature:settings:api:testDebugUnitTest
+          :feature:settings:impl:testDebugUnitTest
+          :feature:analysis:api:testDebugUnitTest
+          :feature:analysis:impl:testDebugUnitTest
+          :feature:tailor:api:testDebugUnitTest
+          :feature:tailor:impl:testDebugUnitTest
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-unit-feature
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+
+  unit-app:
+    name: "App unit tests"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          :app:testDemoDebugUnitTest
+          :app:testProdDebugUnitTest
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-unit-app
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+
+  screenshots:
+    name: "Screenshot tests"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          verifyRoborazziDebug
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-screenshots
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/tests/
             **/build/outputs/roborazzi/
             **/build/test-results/
+
+  lint:
+    name: "Lint"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          lintRelease
+          :app:lintDemoRelease
+          :app:lintProdRelease
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-lint
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/lint-results-*.html
+
+  assemble:
+    name: "Assemble APKs"
+    needs: changes
+    if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Gradle tasks
+        run: >-
+          ./gradlew
+          assembleDebug
+          assembleRelease
+          :app:dependencyGuard
+          -PwarningsAsErrors=true
+          --continue
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-assemble
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/dependency-guard/
+            **/build/outputs/apk/
+
+  build:
+    name: "Build, lint, and unit tests"
+    needs: [changes, static, unit-core, unit-feature, unit-app, screenshots, lint, assemble]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every shard to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          CHANGES: ${{ needs.changes.result }}
+          CODE_CHANGED: ${{ needs.changes.outputs.code }}
+        run: |
+          if [[ "$CHANGES" == "skipped" ]]; then
+            exit 0
+          fi
+          if [[ "$CHANGES" != "success" ]]; then
+            echo "::error::Detect code changes finished with $CHANGES"
+            exit 1
+          fi
+          wanted=success
+          if [[ "$CODE_CHANGED" != "true" ]]; then
+            wanted=skipped
+          fi
+          for result in $RESULTS; do
+            if [[ "$result" != "$wanted" && "$result" != "success" ]]; then
+              echo "::error::A shard finished with $result"
+              exit 1
+            fi
+          done
