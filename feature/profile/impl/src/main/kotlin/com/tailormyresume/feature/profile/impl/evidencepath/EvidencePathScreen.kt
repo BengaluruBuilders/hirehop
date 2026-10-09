@@ -271,9 +271,16 @@ private fun QuestionContent(
     uiState.skipNote?.let { note -> SkippedRow(note) }
     val stamped = uiState.stamped
     if (stamped != null) {
-        StampedCard(stamped)
+        StampedCard(stamped, attached = uiState.questionIndex > 0)
     } else {
         QuestionCard(uiState = uiState, category = category)
+        if (uiState.needsFirstAnswer) {
+            Note(
+                text = stringResource(R.string.feature_profile_impl_evidence_path_needs_first_answer),
+                tone = NoteTone.Plain,
+                icon = TmrIcons.Info,
+            )
+        }
         TextArea(uiState = uiState, actions = actions)
     }
 }
@@ -345,9 +352,13 @@ private fun QuestionProgress(uiState: EvidencePathUiState) {
 }
 
 @Composable
-private fun StampedCard(card: EvidenceFactCard) {
+private fun StampedCard(card: EvidenceFactCard, attached: Boolean) {
     Note(
-        text = stringResource(R.string.feature_profile_impl_evidence_path_stamped_banner, card.entry.id),
+        text = if (attached) {
+            stringResource(R.string.feature_profile_impl_evidence_path_stamped_banner_attached, card.entry.id, card.entry.title)
+        } else {
+            stringResource(R.string.feature_profile_impl_evidence_path_stamped_banner, card.entry.id)
+        },
         tone = NoteTone.Positive,
         icon = TmrIcons.CheckCircle,
     )

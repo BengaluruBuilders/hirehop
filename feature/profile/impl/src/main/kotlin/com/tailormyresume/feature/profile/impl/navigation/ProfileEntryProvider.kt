@@ -25,13 +25,7 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
     entry<ProfileNavKey> { key ->
         ProfileRoute(
             scenario = key.scenario,
-            navigation = ProfileNavigation(
-                onOpenFact = { entryId -> navigator.navigateToFactEditor(entryId) },
-                onAddFact = { entryType -> navigator.navigateToFactEditor(entryId = null, entryType = entryType) },
-                onAddEvidence = { navigator.navigateToFactEvidence(returnsToProfile = true) },
-                onBuildStepByStep = { navigator.navigateToGuidedProfileForm(returnsToProfile = true) },
-                onImportResume = { navigator.navigateToImportResume() },
-            ),
+            navigation = profileNavigation(navigator),
         )
     }
     entry<FactEditorNavKey> { key ->
@@ -60,6 +54,14 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
         )
     }
 }
+
+internal fun profileNavigation(navigator: Navigator) = ProfileNavigation(
+    onOpenFact = { entryId -> navigator.navigateToFactEditor(entryId) },
+    onAddFact = { entryType -> navigator.navigateToFactEditor(entryId = null, entryType = entryType) },
+    onAddEvidence = { navigator.navigateToFactEvidence(returnsToProfile = true) },
+    onBuildStepByStep = { navigator.navigateToGuidedProfileForm(returnsToProfile = true) },
+    onImportResume = { navigator.navigateToImportResume() },
+)
 
 private fun Navigator.leave(exit: ProfileExit) {
     when (exit) {

@@ -9,6 +9,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.ProfileLimits
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -27,6 +28,17 @@ class AddUserStatedFactsUseCase @Inject constructor(
         val merged = drafts.fold(profile.entries) { entries, draft -> entries + newEntry(draft, entries) }
         profileRepository.saveProfile(profile.copy(entries = merged))
         return AddFactsOutcome.Added(merged.drop(profile.entries.size))
+    }
+
+    suspend fun attachBullet(entryId: String, text: String): ProfileEntry? {
+        val detail = text.trim()
+        if (detail.isEmpty() || detail.length > FactDraftValidator.DETAIL_LIMIT) return null
+        val profile = profileRepository.observeProfile().first() ?: return null
+        val target = profile.entries.firstOrNull { it.id == entryId } ?: return null
+        if (target.bullets.size >= ProfileLimits.MAX_BULLETS_PER_ENTRY) return null
+        val updated = target.copy(bullets = target.bullets + EvidenceBullet(id = idGenerator.newId(), text = detail))
+        profileRepository.saveProfile(profile.copy(entries = profile.entries.map { if (it.id == entryId) updated else it }))
+        return updated
     }
 
     private fun newEntry(draft: FactDraft, existing: List<ProfileEntry>): ProfileEntry {

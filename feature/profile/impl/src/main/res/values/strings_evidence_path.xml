@@ -48,6 +48,8 @@
     <string name="feature_profile_impl_evidence_path_answer_placeholder">Say it plainly, in one or two sentences.</string>
     <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. TailorMyResume uses your words as facts.</string>
     <string name="feature_profile_impl_evidence_path_stamped_banner">Your answer is now fact %1$s.</string>
+    <string name="feature_profile_impl_evidence_path_stamped_banner_attached">Added to fact %1$s: %2$s.</string>
+    <string name="feature_profile_impl_evidence_path_needs_first_answer">Answer question 1 first. This answer is saved as part of that item.</string>
     <string name="feature_profile_impl_evidence_path_skipped_row">Question %1$d: %2$s</string>
     <string name="feature_profile_impl_evidence_path_skipped_chip">Skipped</string>
     <string name="feature_profile_impl_evidence_path_skipped_note">You can answer skipped questions later from Profile.</string>

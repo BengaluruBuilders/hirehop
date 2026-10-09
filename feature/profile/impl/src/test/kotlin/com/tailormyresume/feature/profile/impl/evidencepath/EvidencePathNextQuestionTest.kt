@@ -3,6 +3,7 @@ package com.tailormyresume.feature.profile.impl.evidencepath
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.AddUserStatedFactsUseCase
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
+import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.repository.TestProfileRepository
@@ -11,6 +12,7 @@ import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestIdGenerator
 import com.tailormyresume.feature.profile.api.navigation.FactEvidenceNavKey
 import com.tailormyresume.feature.profile.impl.ProfileExitResolver
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -124,8 +126,10 @@ class EvidencePathNextQuestionTest {
     @Test
     fun nextQuestion_afterSavingTheLastQuestionEndsOnAllDoneWithEveryFact() = runTest {
         enter("work")
-        repeat(3) { act(EvidencePathAction.Skip) }
         saveAnswer("Weekly sales reports, 40 stores")
+        act(EvidencePathAction.NextQuestion)
+        repeat(2) { act(EvidencePathAction.Skip) }
+        saveAnswer("Reports reached 40 stores")
         assertThat(viewModel.uiState.value.isDone).isFalse()
 
         act(EvidencePathAction.NextQuestion)
@@ -149,5 +153,48 @@ class EvidencePathNextQuestionTest {
         assertThat(state.isPicker).isTrue()
         assertThat(state.stamped).isNull()
         assertThat(state.cards).hasSize(1)
+    }
+
+    private suspend fun savedEntries() = repository.observeProfile().first()?.entries.orEmpty()
+
+    @Test
+    fun courseworkFollowUpAnswer_isABulletOnTheFirstEntryNotASecondEntry() = runTest {
+        enter("coursework")
+        saveAnswer("DBMS lab, built a library DB.")
+        act(EvidencePathAction.NextQuestion)
+
+        saveAnswer("MySQL and Java")
+
+        val education = savedEntries().filter { it.category == EntryCategory.EDUCATION }
+        assertThat(education).hasSize(1)
+        assertThat(education.single().bullets.map { it.text }).contains("MySQL and Java")
+        assertThat(viewModel.uiState.value.cards).hasSize(1)
+        assertThat(viewModel.uiState.value.stamped?.entry?.id).isEqualTo(education.single().id)
+    }
+
+    @Test
+    fun projectsNumbersAnswer_isAttachedToTheQuestionOneProject() = runTest {
+        enter("projects")
+        saveAnswer("Library database project")
+        act(EvidencePathAction.NextQuestion)
+        act(EvidencePathAction.Skip)
+        saveAnswer("Cut report time by 40%")
+
+        val projects = savedEntries().filter { it.category == EntryCategory.PROJECT }
+        assertThat(projects.map { it.title }).containsExactly("Library database project")
+        assertThat(projects.single().bullets.map { it.text }).containsExactly("Cut report time by 40%")
+    }
+
+    @Test
+    fun followUpAnswerWithoutAQuestionOneEntry_cannotBeSaved() = runTest {
+        enter("projects")
+        act(EvidencePathAction.Skip)
+
+        act(EvidencePathAction.AnswerChanged("Cut report time by 40%"))
+
+        assertThat(viewModel.uiState.value.needsFirstAnswer).isTrue()
+        assertThat(viewModel.uiState.value.canSave).isFalse()
+        act(EvidencePathAction.Save)
+        assertThat(savedEntries()).isEmpty()
     }
 }

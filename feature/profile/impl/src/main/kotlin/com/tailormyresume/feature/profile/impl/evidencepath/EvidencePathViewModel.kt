@@ -78,6 +78,7 @@ class EvidencePathViewModel @Inject internal constructor(
                 problem = null,
                 skipNote = null,
                 stamped = null,
+                anchor = null,
                 isDone = false,
                 message = null,
             )
@@ -103,6 +104,11 @@ class EvidencePathViewModel @Inject internal constructor(
         val state = mutableState.value
         val category = state.category ?: return
         if (!state.canSave) return
+        val anchor = state.anchor
+        if (anchor != null) {
+            attachToAnchor(state, category, anchor)
+            return
+        }
         val parts = splitAnswer(state.answer)
         val draft = FactDraft(
             category = category.entryCategory,
@@ -125,10 +131,37 @@ class EvidencePathViewModel @Inject internal constructor(
             if (outcome is AddFactsOutcome.Added) {
                 mutableState.update { current ->
                     val filed = outcome.entries.map { EvidenceFactCard(category, it) }
-                    current.copy(cards = current.cards + filed, isSaving = false, answer = "", stamped = filed.lastOrNull())
+                    current.copy(
+                        cards = current.cards + filed,
+                        isSaving = false,
+                        answer = "",
+                        stamped = filed.lastOrNull(),
+                        anchor = filed.lastOrNull(),
+                    )
                 }
             } else {
                 mutableState.update { it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED) }
+            }
+        }
+    }
+
+    private fun attachToAnchor(state: EvidencePathUiState, category: EvidenceCategory, anchor: EvidenceFactCard) {
+        mutableState.value = state.copy(isSaving = true, message = null)
+        viewModelScope.launch {
+            val updated = runCatching { addUserStatedFacts.attachBullet(anchor.entry.id, state.answer) }.getOrNull()
+            if (updated == null) {
+                mutableState.update { it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED) }
+                return@launch
+            }
+            val card = EvidenceFactCard(category, updated)
+            mutableState.update { current ->
+                current.copy(
+                    cards = current.cards.map { if (it.entry.id == updated.id) card else it },
+                    isSaving = false,
+                    answer = "",
+                    stamped = card,
+                    anchor = card,
+                )
             }
         }
     }
@@ -142,6 +175,7 @@ class EvidencePathViewModel @Inject internal constructor(
                 problem = null,
                 skipNote = null,
                 stamped = null,
+                anchor = null,
                 isDone = false,
             )
         }

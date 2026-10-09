@@ -213,6 +213,20 @@ class AccountDataArchiveWriterTest {
     }
 
     @Test
+    fun myDataJsonKeepsWhichSkillsTheUserStatedThemselves() {
+        val withStated = canonicalCandidateProfile.copy(userStatedSkills = listOf("SQL"))
+        val target = File(folder.root, "stated.zip")
+        AccountDataArchiveWriter().write(data.copy(profile = withStated), target, emptyMap())
+        val json = ZipFile(target).use { zip ->
+            Json.parseToJsonElement(zip.getInputStream(zip.getEntry("my-data.json")).readBytes().decodeToString()).jsonObject
+        }
+
+        val profile = json.getValue("profile").jsonObject
+        assertThat(profile.array("userStatedSkills").map { it.jsonPrimitive.content }).containsExactly("SQL")
+        assertThat(profile.array("skills")).hasSize(canonicalCandidateProfile.skills.size)
+    }
+
+    @Test
     fun noEntryHoldsATokenOrKey() {
         val files = archive()
         val everything = files.values.joinToString("\n").lowercase()
