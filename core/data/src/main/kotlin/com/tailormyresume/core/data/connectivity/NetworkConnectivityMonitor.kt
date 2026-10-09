@@ -1,20 +1,16 @@
 package com.tailormyresume.core.data.connectivity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class NetworkConnectivityMonitor @Inject constructor(
-    @ApplicationContext context: Context,
-) : ConnectivityMonitor {
+@SuppressLint("MissingPermission")
+class NetworkConnectivityMonitor(context: Context) : ConnectivityMonitor {
 
     private val manager = context.getSystemService(ConnectivityManager::class.java)
     private val lock = Any()

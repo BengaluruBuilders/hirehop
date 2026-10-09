@@ -41,4 +41,21 @@ class NetworkConnectivityMonitorTest {
 
         assertThat(monitor.isOnline.value).isTrue()
     }
+
+    @Test
+    fun aNetworkWithoutInternetEmitsOffline() {
+        network.connect()
+        val monitor = NetworkConnectivityMonitor(network.context)
+
+        network.loseInternetCapability()
+
+        assertThat(monitor.isOnline.value).isFalse()
+    }
+
+    @Test
+    fun startsOfflineWhenTheActiveNetworkReportsNoCapabilities() {
+        network.connectWithoutCapabilities()
+
+        assertThat(NetworkConnectivityMonitor(network.context).isOnline.value).isFalse()
+    }
 }
