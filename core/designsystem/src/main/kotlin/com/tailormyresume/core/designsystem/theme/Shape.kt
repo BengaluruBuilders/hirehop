@@ -21,6 +21,8 @@ class TmrShapes(
     val pillRow: Shape,
     val statusRow: Shape,
     val modalSheet: Shape,
+    val monogram: Shape,
+    val logoTile: Shape,
 )
 
 internal object TmrShapesDefaults {
@@ -35,6 +37,8 @@ internal object TmrShapesDefaults {
         pillRow = RoundedCornerShape(24.dp),
         statusRow = RoundedCornerShape(18.dp),
         modalSheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        monogram = RoundedCornerShape(14.dp),
+        logoTile = RoundedCornerShape(11.dp),
     )
 }
 
