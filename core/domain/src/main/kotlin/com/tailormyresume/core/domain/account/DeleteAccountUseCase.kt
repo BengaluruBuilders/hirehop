@@ -29,13 +29,15 @@ class DeleteAccountUseCase @Inject constructor(
     private val exportedFiles: ExportedFiles = ExportedFiles.None,
 ) {
 
-    suspend fun preview(): AccountDeletionCounts {
+    suspend fun preview(): AccountDeletionCounts = previewWith(creditBalance.cachedCredits())
+
+    suspend fun refreshedPreview(): AccountDeletionCounts = previewWith(creditBalance.unusedCredits())
+
+    private suspend fun previewWith(credits: Int): AccountDeletionCounts {
         val applications = applicationRepository.observeApplications().first()
         val profile = profileRepository.observeProfile().first()
-        return countsOf(applications, profile)
+        return countsOf(applications, profile, credits)
     }
-
-    suspend fun refreshedPreview(): AccountDeletionCounts = preview()
 
     suspend operator fun invoke(
         onStep: suspend (AccountDeletionStep) -> Unit = {},
@@ -43,7 +45,7 @@ class DeleteAccountUseCase @Inject constructor(
         val applications = applicationRepository.observeApplications().first()
         val profile = profileRepository.observeProfile().first()
         val exports = exportHistoryRepository.observeExports().first()
-        val counts = countsOf(applications, profile)
+        val counts = countsOf(applications, profile, creditBalance.unusedCredits())
         if (serverAccountDeleter.delete().isFailure) return AccountDeletionResult.Failed(dataIntact = true)
         var creditsTouched = false
         return try {
@@ -80,10 +82,11 @@ class DeleteAccountUseCase @Inject constructor(
     private suspend fun countsOf(
         applications: List<JobApplication>,
         profile: CandidateProfile?,
+        credits: Int,
     ) = AccountDeletionCounts(
         profileFacts = profile?.factCounts()?.total ?: 0,
         applications = applications.size,
-        unusedCredits = creditBalance.unusedCredits(),
+        unusedCredits = credits,
     )
 
     private suspend fun restore(

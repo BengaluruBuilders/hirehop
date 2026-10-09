@@ -13,6 +13,7 @@ import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -76,6 +77,14 @@ class DeleteAccountViewModel @Inject constructor(
                 counts = deleteAccount.preview(),
                 accountEmail = sessionRepository.observeAccount().first()?.email,
             )
+            try {
+                val refreshed = deleteAccount.refreshedPreview()
+                snapshot.update { current -> current?.copy(counts = refreshed) }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Exception) {
+                Unit
+            }
         }
     }
 
@@ -83,7 +92,7 @@ class DeleteAccountViewModel @Inject constructor(
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
         if (ready.isOffline) return
         viewModelScope.launch {
-            snapshot.update { current -> current?.copy(counts = deleteAccount.preview()) }
+            snapshot.update { current -> current?.copy(counts = deleteAccount.refreshedPreview()) }
             phase.update { current -> current.copy(isConfirmVisible = true) }
         }
     }

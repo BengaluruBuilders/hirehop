@@ -36,6 +36,7 @@ import com.tailormyresume.core.domain.account.AccountDeletionStep
 import com.tailormyresume.feature.settings.impl.R
 import com.tailormyresume.feature.settings.impl.common.SettingsAddressSlot
 import com.tailormyresume.feature.settings.impl.common.SettingsErrorNotice
+import com.tailormyresume.feature.settings.impl.common.SettingsLoading
 import com.tailormyresume.feature.settings.impl.common.SettingsTopBar
 import com.tailormyresume.feature.settings.impl.common.stepStatusWords
 
@@ -65,7 +66,7 @@ internal fun DeleteAccountScreen(
     ) { padding ->
         TmrContentSwitch(targetState = uiState, contentKey = { it::class }) { state ->
             when (state) {
-                DeleteAccountUiState.Loading -> Unit
+                DeleteAccountUiState.Loading -> SettingsLoading(padding = padding)
                 is DeleteAccountUiState.Ready -> ReadyContent(uiState = state, actions = actions, padding = padding)
                 is DeleteAccountUiState.Deleting -> DeletingContent(uiState = state, padding = padding)
             }

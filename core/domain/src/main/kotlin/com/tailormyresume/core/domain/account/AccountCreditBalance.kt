@@ -12,7 +12,7 @@ class AccountCreditBalance @Inject constructor(
 
     suspend fun unusedCredits(): Int = knownEntitlement().totalCredits
 
-    suspend fun cachedCredits(): Int = unusedCredits()
+    suspend fun cachedCredits(): Int = paymentGateway.observeEntitlement().first().totalCredits
 
     suspend fun creditLine(): AccountCreditLine {
         val entitlement = knownEntitlement()

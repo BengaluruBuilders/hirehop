@@ -8,7 +8,6 @@ import com.tailormyresume.core.domain.account.AccountCreditBalance
 import com.tailormyresume.core.domain.account.DeleteAccountUseCase
 import com.tailormyresume.core.domain.offline.OfflineServerAccountDeleter
 import com.tailormyresume.core.model.ApplicationStatus
-import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
