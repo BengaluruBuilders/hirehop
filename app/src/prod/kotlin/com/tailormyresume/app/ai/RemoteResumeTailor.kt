@@ -89,7 +89,7 @@ class RemoteResumeTailor @Inject constructor(
     }
 
     private companion object {
-        val RESUMABLE = setOf(AiFailure.Network, AiFailure.Timeout, AiFailure.Unavailable)
+        val RESUMABLE = setOf(AiFailure.Network, AiFailure.Timeout, AiFailure.RateLimited, AiFailure.Unavailable)
         const val START_ATTEMPTS = 3
         const val DEFAULT_RETRY_AFTER_SECONDS = 10
         const val MILLIS_PER_SECOND = 1_000L
