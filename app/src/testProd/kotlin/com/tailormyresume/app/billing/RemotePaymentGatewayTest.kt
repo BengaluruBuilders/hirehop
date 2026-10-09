@@ -25,7 +25,7 @@ class RemotePaymentGatewayTest {
     @After
     fun tearDown() = server.shutdown()
 
-    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid))
+    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid), idleScope())
 
     private fun reply(code: Int, body: String) = server.enqueue(MockResponse().setResponseCode(code).setBody(body))
 
@@ -121,19 +121,19 @@ class RemotePaymentGatewayTest {
     }
 
     @Test
-    fun serverErrorsMapToTheExistingFailureReasons() = runTest {
-        val cases = listOf(
-            400 to ("PURCHASE_INVALID" to PurchaseFailureReason.PaymentDeclined),
-            502 to ("PLAY_UNAVAILABLE" to PurchaseFailureReason.PaymentUnavailable),
-            403 to ("FORBIDDEN" to PurchaseFailureReason.PurchaseUnavailable),
-        )
-        cases.forEach { (status, outcome) ->
+    fun serverAnswersAfterPurchasedAreHeldPendingOrUnconfirmed() = runTest {
+        donePurchase()
+        repeat(3) { reply(502, errorJson("PLAY_UNAVAILABLE")) }
+        val held = gateway().purchase("application_pack_5") as PurchaseResult.Pending
+        assertThat(held.entitlement.pendingPackIds).containsExactly("application_pack_5")
+
+        listOf(400 to "PURCHASE_INVALID", 403 to "FORBIDDEN").forEach { (status, code) ->
             donePurchase()
-            reply(status, errorJson(outcome.first))
+            reply(status, errorJson(code))
 
             val result = gateway().purchase("application_pack_5") as PurchaseResult.Failed
 
-            assertThat(result.reason).isEqualTo(outcome.second)
+            assertThat(result.reason).isEqualTo(PurchaseFailureReason.PaymentUnconfirmed)
         }
     }
 

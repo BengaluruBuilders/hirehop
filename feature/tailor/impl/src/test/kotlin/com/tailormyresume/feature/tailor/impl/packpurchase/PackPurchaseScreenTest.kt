@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -12,6 +13,7 @@ import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.ApplicationPack
+import com.tailormyresume.core.domain.PurchaseFailureReason
 import com.tailormyresume.core.domain.offline.MockPackCatalogue
 import com.tailormyresume.core.model.ExportFormat
 import com.tailormyresume.core.screenshot.TmrTestDevices
@@ -87,6 +89,13 @@ class PackPurchaseScreenTest {
         show(readyState(), onBuy = { bought += it })
         composeRule.onNode(BUY_DESCRIPTION).performClick()
         assertEquals(listOf(ApplicationPack.APPLICATION_PACK_FIVE), bought)
+    }
+
+    @Test
+    fun anUnconfirmedPaymentNeverSaysNoChargeWasAdded() {
+        show(readyState().copy(stage = PackPurchaseStage.FAILED, failureReason = PurchaseFailureReason.PaymentUnconfirmed))
+        composeRule.onNodeWithText("We could not confirm your payment", substring = true).assertExists()
+        composeRule.onNode(hasText("added no charge", substring = true)).assertDoesNotExist()
     }
 
     @Test
