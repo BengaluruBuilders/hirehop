@@ -84,6 +84,8 @@ class FactEditorViewModel @AssistedInject constructor(
 
     fun onDetailChange(value: String) = onFieldChange(FactField.DETAIL) { it.copy(detail = value) }
 
+    fun onMoreBulletChange(index: Int, value: String) = Unit
+
     fun onToolsChange(value: String) = onFieldChange(FactField.ORGANIZATION) { it.copy(organization = value) }
 
     fun onStartDateChange(value: String) = onFieldChange(FactField.START_DATE) { it.copy(startDate = value) }
