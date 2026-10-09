@@ -118,6 +118,9 @@ class AnalysisPreviewJobTest {
         walletAnswer.complete(Unit)
 
         assertThat(applications.observeApplications().first()).isEmpty()
+        val state = viewModel.uiState.value as AnalysisUiState.Result
+        assertThat(state.isTailoring).isFalse()
+        assertThat(state.canTailor).isTrue()
     }
 
     @Test
