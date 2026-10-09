@@ -219,8 +219,9 @@ private fun ConfirmedFactsGroup(
     val confirmed = uiState.facts.filter(ConfirmFactUi::isConfirmed)
     var expanded by remember { mutableStateOf(false) }
     TmrPillRow(
-        title = stringResource(
-            R.string.feature_onboarding_impl_confirm_facts_confirmed_group_title,
+        title = pluralStringResource(
+            R.plurals.feature_onboarding_impl_confirm_facts_confirmed_group_title,
+            confirmed.size,
             confirmed.size,
         ),
         onClick = { expanded = !expanded },
@@ -281,7 +282,11 @@ private fun ConfirmedFactsBody(
     FactsProgress(uiState = uiState)
     OnboardingNotice(
         text = pluralStringResource(
-            R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed,
+            if (uiState.skills.isEmpty()) {
+                R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed
+            } else {
+                R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed_with_skills
+            },
             uiState.totalCount,
             uiState.totalCount,
         ),

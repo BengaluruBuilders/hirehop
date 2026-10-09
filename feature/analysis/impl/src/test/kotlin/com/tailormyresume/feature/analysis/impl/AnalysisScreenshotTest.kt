@@ -53,7 +53,9 @@ class AnalysisScreenshotTest {
 
     @Test
     fun questionSheet_f1s7_07() = capture("AnalysisQuestionSheet", resultState()) {
-        SheetOver { QuestionSheetContent(resultState().item(CLOUD), AnalysisActions()) }
+        SheetOver {
+            QuestionSheetContent(resultState().item(CLOUD), AnalysisActions(), nextFactId = resultState().nextFactId)
+        }
     }
 
     @Test
@@ -61,7 +63,14 @@ class AnalysisScreenshotTest {
 
     @Test
     fun questionNotClosed() = capture("AnalysisQuestionNotClosed", resultState()) {
-        SheetOver { QuestionSheetContent(resultState().item(CLOUD), AnalysisActions(), notClosed = true) }
+        SheetOver {
+            QuestionSheetContent(
+                resultState().item(CLOUD),
+                AnalysisActions(),
+                notClosed = true,
+                nextFactId = resultState().nextFactId,
+            )
+        }
     }
 
     @Test

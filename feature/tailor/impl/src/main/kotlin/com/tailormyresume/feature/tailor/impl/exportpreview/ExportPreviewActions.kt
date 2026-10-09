@@ -7,6 +7,7 @@ internal sealed interface ExportPreviewAction {
     data object Export : ExportPreviewAction
     data object RetryPreview : ExportPreviewAction
     data object NavigationHandled : ExportPreviewAction
+    data object CancelExport : ExportPreviewAction
 }
 
 internal data class ExportPreviewActions(
@@ -15,4 +16,5 @@ internal data class ExportPreviewActions(
     val onRetry: () -> Unit,
     val onNavigateBack: () -> Unit,
     val onBuyCredits: () -> Unit,
+    val onCancel: () -> Unit = {},
 )

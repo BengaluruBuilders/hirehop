@@ -32,6 +32,7 @@
     <string name="feature_profile_impl_fact_editor_organization_achievement">Organiser or team</string>
 
     <string name="feature_profile_impl_fact_editor_error_required">Add this to save.</string>
+    <string name="feature_profile_impl_fact_editor_error_invalid_date">Write the date as a month and year, for example Aug 2024.</string>
     <string name="feature_profile_impl_fact_editor_error_end_before_start">The end date is before the start date.</string>
     <string name="feature_profile_impl_fact_editor_error_too_long">Keep this shorter so it stays readable.</string>
 
@@ -42,7 +43,7 @@
     <string name="feature_profile_impl_fact_editor_save">Save fact</string>
     <string name="feature_profile_impl_fact_editor_delete">Delete fact</string>
 
-    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s?</string>
+    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s?</string>
     <string name="feature_profile_impl_fact_editor_delete_message">TailorMyResume won’t use it in new tailoring. Resumes you already exported don’t change. You can add it again later.</string>
     <string name="feature_profile_impl_fact_editor_delete_confirm">Delete</string>
     <string name="feature_profile_impl_fact_editor_delete_cancel">Cancel</string>

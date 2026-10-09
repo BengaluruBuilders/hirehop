@@ -11,6 +11,7 @@ import com.tailormyresume.core.model.WrittenCoverLetter
 import com.tailormyresume.core.model.WrittenParagraph
 import com.tailormyresume.core.model.confirmedWithinLimits
 import com.tailormyresume.core.model.evidenceIds
+import com.tailormyresume.feature.tailor.impl.AiNotice
 import kotlin.time.Instant
 
 enum class CoverLetterStage {
@@ -79,9 +80,11 @@ data class CoverLetterUiState(
     val totalCount: Int = 0,
     val paragraphCount: Int = 0,
     val factCount: Int = 0,
+    val showsFactCount: Boolean = true,
     val reportedIds: Set<String> = emptySet(),
     val generationId: String? = null,
     val citedFactIds: List<String>? = null,
+    val failure: AiNotice = AiNotice.Generic,
 ) {
     val wordCount: Int get() = paragraphs.sumOf { paragraph -> paragraph.text.wordCount() }
 
@@ -91,6 +94,9 @@ data class CoverLetterUiState(
         get() = paragraphs.firstOrNull { paragraph -> paragraph.ordinal == editingOrdinal }
 
     val isEditing: Boolean get() = editedParagraph != null
+
+    val showsOfflineBanner: Boolean
+        get() = isOffline && (stage == CoverLetterStage.READY || stage == CoverLetterStage.NO_MATCHING_EVIDENCE)
 }
 
 data class CoverLetterInputs(

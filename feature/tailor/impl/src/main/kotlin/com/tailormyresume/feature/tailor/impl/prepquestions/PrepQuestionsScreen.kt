@@ -63,7 +63,9 @@ import com.tailormyresume.feature.tailor.impl.StatusCard
 import com.tailormyresume.feature.tailor.impl.StatusPill
 import com.tailormyresume.feature.tailor.impl.StepMark
 import com.tailormyresume.feature.tailor.impl.TailoredBulletSource
+import com.tailormyresume.feature.tailor.impl.bodyRes
 import com.tailormyresume.feature.tailor.impl.coverletter.CoverLetterFactRef
+import com.tailormyresume.feature.tailor.impl.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +75,8 @@ internal fun PrepQuestionsScreen(
     modifier: Modifier = Modifier,
 ) {
     var openCard by remember { mutableStateOf<PrepQuestionCard?>(null) }
-    var showGaps by remember { mutableStateOf(uiState.factCards.isEmpty()) }
+    var gapsChosen by remember { mutableStateOf<Boolean?>(null) }
+    val showGaps = gapsChosen ?: uiState.factCards.isEmpty()
     val toastState = rememberTmrToastState()
     val message = uiState.message
     val messageText = message?.let { stringResource(R.string.feature_tailor_impl_report_thanks) }
@@ -105,7 +108,7 @@ internal fun PrepQuestionsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
         ) {
-            prepItems(uiState, actions, showGaps, { showGaps = it }) { openCard = it }
+            prepItems(uiState, actions, showGaps, { gapsChosen = it }) { openCard = it }
         }
     }
     openCard?.let { card ->
@@ -229,8 +232,8 @@ private fun LazyListScope.prepItems(
         PrepQuestionsStage.ERROR -> item(key = "error") {
             StatusCard(
                 kind = TmrSpotKind.Error,
-                title = stringResource(R.string.feature_tailor_impl_prep_questions_error_title),
-                body = stringResource(R.string.feature_tailor_impl_prep_questions_error_body),
+                title = stringResource(uiState.failure.titleRes(R.string.feature_tailor_impl_prep_questions_error_title)),
+                body = stringResource(uiState.failure.bodyRes(R.string.feature_tailor_impl_prep_questions_error_body)),
             )
         }
     }

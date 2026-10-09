@@ -9,6 +9,7 @@ import com.tailormyresume.core.data.repository.CoverLetterRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.JobAnalysisResult
+import com.tailormyresume.core.domain.coverletter.CoverLetterComposer
 import com.tailormyresume.core.domain.coverletter.CoverLetterSource
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
@@ -18,9 +19,11 @@ import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.feature.tailor.api.navigation.CoverLetterNavKey
+import com.tailormyresume.feature.tailor.impl.AiNotice
 import com.tailormyresume.feature.tailor.impl.TailorInputs
 import com.tailormyresume.feature.tailor.impl.TailorUiState
 import com.tailormyresume.feature.tailor.impl.buildTailorUiState
+import com.tailormyresume.feature.tailor.impl.toAiNotice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -111,6 +114,8 @@ class CoverLetterViewModel @Inject constructor(
                 jobCompany = application.job.company,
                 reviewedCount = reviewed,
                 totalCount = total,
+                factCount = profile?.let { CoverLetterComposer.evidenceCount(it, application.analysisOrEmpty()) } ?: 0,
+                showsFactCount = generateCoverLetter.choosesEvidence,
             )
         }
         restoreWrittenLetter(application, profile)
@@ -136,7 +141,7 @@ class CoverLetterViewModel @Inject constructor(
     }
 
     private fun onWriteOne() {
-        mutableState.update { state -> state.copy(stage = CoverLetterStage.GENERATING) }
+        mutableState.update { state -> state.copy(stage = CoverLetterStage.GENERATING, failure = AiNotice.Generic) }
         viewModelScope.launch { load() }
     }
 
@@ -152,10 +157,11 @@ class CoverLetterViewModel @Inject constructor(
             mutableState.update { state -> state.copy(stage = CoverLetterStage.EMPTY_PROFILE) }
             return
         }
-        val draft = runCatching { generateCoverLetter(candidate = profile, job = application.job, analysis = analysis) }
-            .getOrNull()
+        val drafted = runCatching { generateCoverLetter(candidate = profile, job = application.job, analysis = analysis) }
+        val draft = drafted.getOrNull()
         if (draft == null) {
-            mutableState.update { state -> state.copy(stage = CoverLetterStage.ERROR) }
+            val notice = drafted.exceptionOrNull()?.toAiNotice() ?: AiNotice.Generic
+            mutableState.update { state -> state.copy(stage = CoverLetterStage.ERROR, failure = notice) }
             return
         }
         val generated = coverLetterStateFor(CoverLetterInputs(profile = profile, analysis = analysis, draft = draft))

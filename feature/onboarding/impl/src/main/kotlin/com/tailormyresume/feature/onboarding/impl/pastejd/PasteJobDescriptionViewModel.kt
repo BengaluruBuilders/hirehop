@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.common.network.Dispatcher
@@ -23,12 +25,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class PasteJobDescriptionViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
@@ -38,6 +45,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
     private val proposeJobLabel: ProposeJobLabelUseCase,
     private val discardJobDrafts: DiscardJobDraftsUseCase,
     @param:Dispatcher(TmrDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(PasteJobDescriptionUiState())
@@ -49,6 +57,10 @@ class PasteJobDescriptionViewModel @Inject constructor(
     private var proposedCompany = ""
 
     private var proposedRole = ""
+
+    private var companyEdited = false
+
+    private var roleEdited = false
 
     private var labelsEditedSinceText = false
 
@@ -66,7 +78,31 @@ class PasteJobDescriptionViewModel @Inject constructor(
             scenario = key.scenario,
             sharedText = sharedText,
         )
+        restoreTypedInput()
         schedulePrefill()
+        mutableState
+            .map {
+                SavedFields(
+                    text = it.text.take(MAX_SAVED_TEXT_CHARACTERS),
+                    company = it.company,
+                    role = it.role,
+                    proposedCompany = proposedCompany,
+                    proposedRole = proposedRole,
+                    companyEdited = companyEdited,
+                    roleEdited = roleEdited,
+                )
+            }
+            .distinctUntilChanged()
+            .onEach { fields ->
+                savedState[TEXT_KEY] = fields.text
+                savedState[COMPANY_KEY] = fields.company
+                savedState[ROLE_KEY] = fields.role
+                savedState[PROPOSED_COMPANY_KEY] = fields.proposedCompany
+                savedState[PROPOSED_ROLE_KEY] = fields.proposedRole
+                savedState[COMPANY_EDITED_KEY] = fields.companyEdited
+                savedState[ROLE_EDITED_KEY] = fields.roleEdited
+            }
+            .launchIn(viewModelScope)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
         viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
@@ -79,6 +115,25 @@ class PasteJobDescriptionViewModel @Inject constructor(
                     mutableState.update { it.copy(freeAnalysesLeft = left) }
                 }
             }
+        }
+    }
+
+    private fun restoreTypedInput() {
+        val text = savedState.get<String>(TEXT_KEY) ?: return
+        proposedCompany = savedState.get<String>(PROPOSED_COMPANY_KEY).orEmpty()
+        proposedRole = savedState.get<String>(PROPOSED_ROLE_KEY).orEmpty()
+        companyEdited = savedState.get<Boolean>(COMPANY_EDITED_KEY) == true
+        roleEdited = savedState.get<Boolean>(ROLE_EDITED_KEY) == true
+        viewModelScope.launch {
+            val kept = sessionRepository.observeKeptJobDescription().first()
+            if (kept != null) mutableState.update { it.copy(keptText = kept.text) }
+        }
+        mutableState.update {
+            it.copy(
+                text = text,
+                company = savedState.get<String>(COMPANY_KEY).orEmpty(),
+                role = savedState.get<String>(ROLE_KEY).orEmpty(),
+            )
         }
     }
 
@@ -104,11 +159,13 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private fun onCompanyChanged(value: String) {
         labelsEditedSinceText = true
+        companyEdited = true
         mutableState.update { it.copy(company = value) }
     }
 
     private fun onRoleChanged(value: String) {
         labelsEditedSinceText = true
+        roleEdited = true
         mutableState.update { it.copy(role = value) }
     }
 
@@ -132,10 +189,16 @@ class PasteJobDescriptionViewModel @Inject constructor(
     }
 
     private fun PasteJobDescriptionUiState.withProposedLabels(proposal: JobLabelProposal): PasteJobDescriptionUiState {
-        val fillsCompany = company.isBlank() || company == proposedCompany
-        val fillsRole = role.isBlank() || role == proposedRole
-        if (fillsCompany) proposedCompany = proposal.company
-        if (fillsRole) proposedRole = proposal.role
+        val fillsCompany = company.isBlank() || (!companyEdited && company == proposedCompany)
+        val fillsRole = role.isBlank() || (!roleEdited && role == proposedRole)
+        if (fillsCompany) {
+            proposedCompany = proposal.company
+            companyEdited = false
+        }
+        if (fillsRole) {
+            proposedRole = proposal.role
+            roleEdited = false
+        }
         return copy(
             company = if (fillsCompany) proposal.company else company,
             role = if (fillsRole) proposal.role else role,
@@ -157,6 +220,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
             if (state.canClear) {
                 proposedCompany = ""
                 proposedRole = ""
+                companyEdited = false
+                roleEdited = false
                 state.copy(text = "", company = "", role = "", message = null, nextStep = null)
             } else {
                 state
@@ -182,17 +247,39 @@ class PasteJobDescriptionViewModel @Inject constructor(
                 text = current.text.trim(),
                 company = current.company.trim(),
                 role = current.role.trim(),
+                companyIsPrefill = !companyEdited && current.company.isUntouchedPrefill(proposedCompany),
+                roleIsPrefill = !roleEdited && current.role.isUntouchedPrefill(proposedRole),
             )
             val previous = sessionRepository.observeKeptJobDescription().first()
             if (previous != null && previous.draftKey != kept.draftKey) discardJobDrafts(previous)
             sessionRepository.keepJobDescription(kept)
             val step = nextOnboardingStep()
             isSubmitting = false
-            mutableState.update { it.copy(nextStep = step) }
+            mutableState.update { it.copy(nextStep = step, keptText = kept.text) }
         }
     }
 
+    private fun String.isUntouchedPrefill(proposed: String): Boolean = isNotBlank() && trim() == proposed.trim()
+
+    private data class SavedFields(
+        val text: String,
+        val company: String,
+        val role: String,
+        val proposedCompany: String,
+        val proposedRole: String,
+        val companyEdited: Boolean,
+        val roleEdited: Boolean,
+    )
+
     private companion object {
         const val PREFILL_DEBOUNCE_MS = 300L
+        const val TEXT_KEY = "pasteJd.text"
+        const val COMPANY_KEY = "pasteJd.company"
+        const val ROLE_KEY = "pasteJd.role"
+        const val PROPOSED_COMPANY_KEY = "pasteJd.proposedCompany"
+        const val PROPOSED_ROLE_KEY = "pasteJd.proposedRole"
+        const val COMPANY_EDITED_KEY = "pasteJd.companyEdited"
+        const val ROLE_EDITED_KEY = "pasteJd.roleEdited"
+        const val MAX_SAVED_TEXT_CHARACTERS = 100_000
     }
 }

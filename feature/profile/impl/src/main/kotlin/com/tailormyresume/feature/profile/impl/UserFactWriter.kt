@@ -7,7 +7,9 @@ import com.tailormyresume.core.domain.fact.FactDraft
 import com.tailormyresume.core.domain.fact.FactDraftError
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ProfileEntry
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 internal data class ContactInput(
@@ -31,6 +33,8 @@ internal class UserFactWriter @Inject constructor(
     private val addUserStatedFacts: AddUserStatedFactsUseCase,
 ) {
 
+    fun observeEntries(): Flow<List<ProfileEntry>> = profileRepository.observeProfile().map { it?.entries.orEmpty() }
+
     suspend fun write(
         drafts: List<FactDraft>,
         replacing: Set<String> = emptySet(),
@@ -49,9 +53,11 @@ internal class UserFactWriter @Inject constructor(
 
     private suspend fun updateProfile(replacing: Set<String>, contact: ContactInput, skills: List<String>) {
         val profile = profileRepository.observeProfile().first() ?: blankProfile()
+        val added = newSkills(profile.skills, skills)
         profileRepository.saveProfile(
             profile.withContact(contact).copy(
-                skills = mergedSkills(profile.skills, skills),
+                skills = profile.skills + added,
+                userStatedSkills = profile.userStatedSkills + added,
                 entries = profile.entries.filterNot { it.id in replacing },
             ),
         )
@@ -63,9 +69,9 @@ internal class UserFactWriter @Inject constructor(
         phone = contact.phone.trim().ifEmpty { phone },
     )
 
-    private fun mergedSkills(existing: List<String>, added: List<String>): List<String> {
+    private fun newSkills(existing: List<String>, typed: List<String>): List<String> {
         val known = existing.map { it.lowercase() }.toMutableSet()
-        return existing + added.map { it.trim() }.filter { it.isNotEmpty() && known.add(it.lowercase()) }
+        return typed.map { it.trim() }.filter { it.isNotEmpty() && known.add(it.lowercase()) }
     }
 
     private fun blankProfile() = CandidateProfile(

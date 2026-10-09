@@ -13,6 +13,7 @@ import com.tailormyresume.core.network.ApiException
 import com.tailormyresume.core.network.TailorMyResumeApi
 import com.tailormyresume.core.network.apiResult
 import com.tailormyresume.core.network.dto.TailoringDto
+import com.tailormyresume.core.network.dto.TailoringFailureCode
 import com.tailormyresume.core.network.dto.TailoringResultDto
 import com.tailormyresume.core.network.dto.TailoringStartRequest
 import com.tailormyresume.core.network.dto.TailoringStatus
@@ -45,7 +46,7 @@ class RemoteResumeTailor @Inject constructor(
             val finished = awaitFinished(start(request))
             pending.clear(applicationId, section)
             val result = finished.result?.takeIf { finished.status == TailoringStatus.SUCCEEDED }
-                ?: throw AiException(AiFailure.Unavailable)
+                ?: throw AiException(finished.failureCode.toAiFailure())
             return result.toTailoredResume(profile)
         } catch (failure: AiException) {
             if (failure.failure !in RESUMABLE) pending.clear(applicationId, section)
@@ -59,8 +60,11 @@ class RemoteResumeTailor @Inject constructor(
             val result = apiResult { api.startTailoring(request) }
             val error = (result.exceptionOrNull() as? ApiException)?.error
             if (error !is ApiError.RateLimited || attempt >= START_ATTEMPTS) return result.orAiFailure().tailoring
+            val advised = error.retryAfterSeconds
+            if (advised != null && advised > MAX_RETRY_AFTER_SECONDS) return result.orAiFailure().tailoring
             attempt++
-            delay((error.retryAfterSeconds ?: DEFAULT_RETRY_AFTER_SECONDS) * MILLIS_PER_SECOND)
+            val waitSeconds = advised?.takeIf { it >= MIN_RETRY_AFTER_SECONDS }
+            delay((waitSeconds ?: DEFAULT_RETRY_AFTER_SECONDS) * MILLIS_PER_SECOND)
         }
     }
 
@@ -78,6 +82,11 @@ class RemoteResumeTailor @Inject constructor(
         return current
     }
 
+    private fun TailoringFailureCode?.toAiFailure(): AiFailure = when (this) {
+        TailoringFailureCode.QUOTA_EXCEEDED, TailoringFailureCode.BUDGET_EXCEEDED -> AiFailure.QuotaExceeded
+        else -> AiFailure.Unavailable
+    }
+
     private fun TailoringResultDto.toTailoredResume(profile: CandidateProfile): TailoredResume {
         val sourceText = profile.entries.filter { it.isConfirmed }.flatMap { it.bullets }.associate { it.id to it.text }
         return TailoredResume(
@@ -92,6 +101,8 @@ class RemoteResumeTailor @Inject constructor(
         val RESUMABLE = setOf(AiFailure.Network, AiFailure.Timeout, AiFailure.RateLimited, AiFailure.Unavailable)
         const val START_ATTEMPTS = 3
         const val DEFAULT_RETRY_AFTER_SECONDS = 10
+        const val MIN_RETRY_AFTER_SECONDS = 1
+        const val MAX_RETRY_AFTER_SECONDS = 60
         const val MILLIS_PER_SECOND = 1_000L
         const val FIRST_POLL_MILLIS = 2_000L
         const val POLL_BACKOFF_MILLIS = 1_000L

@@ -3,13 +3,11 @@
     <string name="feature_tailor_impl_cover_letter_title">Cover letter</string>
     <string name="feature_tailor_impl_cover_letter_back">Back</string>
     <string name="feature_tailor_impl_cover_letter_offer_title">Want a short cover letter?</string>
-    <string name="feature_tailor_impl_cover_letter_prep_title">Prep for the interview</string>
-    <string name="feature_tailor_impl_cover_letter_prep_subtitle">Likely questions and how to answer</string>
     <string name="feature_tailor_impl_cover_letter_offer_body">It\'s optional. About 150 to 220 words, written only from your confirmed facts. Each paragraph shows its sources.</string>
     <string name="feature_tailor_impl_cover_letter_no_thanks">No thanks</string>
     <string name="feature_tailor_impl_cover_letter_write_one">Write one</string>
     <string name="feature_tailor_impl_cover_letter_step_pick">Picking facts for the letter</string>
-    <string name="feature_tailor_impl_cover_letter_step_write">Writing the paragraphs</string>
+    <string name="feature_tailor_impl_cover_letter_step_write">Writing 3 paragraphs</string>
     <string name="feature_tailor_impl_cover_letter_step_check">Checking every line</string>
     <plurals name="feature_tailor_impl_cover_letter_step_pick_detail">
         <item quantity="one">%1$d fact</item>

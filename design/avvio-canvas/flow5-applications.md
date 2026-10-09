@@ -34,7 +34,7 @@ Offline, Sync pending and Scrolled states reuse the List layout; only the differ
  top bar: two 48 circle icon buttons (back, more), card2
  header card bg=card r=20 pad=16 gap=10: logo tile 56 r=14; role 21/800; "Northwind GCC, updated 2 h ago" 13.5/600 mute; status chip; "Change status" outline 1.5 line h=48 14/800
  card: icon tile 44 r=14, "Gap check" 16/800, "Open" outline h=48; "9 of 14 key terms. This is not a score." 14.5/600
- card: "Resume" 16/800, file name 13.5/700, "Share" and "Open" bg=card2 r=24 h=48 pad=0 16 icon
+ card: "Resume" 16/800, file name 13.5/700, "Share" and "Review resume" bg=card2 r=24 h=48 pad=0 16 icon
  card: "Cover letter" 16/800, chip "Optional" mute, "Not written yet." 14/600 mute, "Write one" outline h=48 icon
  card: "Prep plan" 16/800, "1 of 3 done" 13.5/800 mute, checkbox rows 24 r=7 (done LIME), items 14.5/700
 

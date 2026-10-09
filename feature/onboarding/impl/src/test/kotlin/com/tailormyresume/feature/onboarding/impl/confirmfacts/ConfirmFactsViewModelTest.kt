@@ -68,10 +68,18 @@ class ConfirmFactsViewModelTest {
         val state = createViewModel().uiState.value
 
         assertThat(state.facts.map { it.id }).containsExactly("U-01", "I-01", "C-01", "P-01")
-        assertThat(state.confirmedCount).isEqualTo(2)
+        assertThat(state.confirmedCount).isEqualTo(0)
         assertThat(state.openCount).isEqualTo(4)
         assertThat(state.isFullyConfirmed).isFalse()
         assertThat(state.skills).containsExactly("SQL", "Power BI")
+    }
+
+    @Test
+    fun errorScenario_keepsTheFailedSaveCalloutAfterLoad() {
+        val state = createViewModel(DebugScenario.ERROR).uiState.value
+
+        assertThat(state.hasSaveFailed).isTrue()
+        assertThat(state.facts).isNotEmpty()
     }
 
     @Test
@@ -97,7 +105,7 @@ class ConfirmFactsViewModelTest {
     fun partlyConfirmedScenario_confirmsHalfTheFacts() {
         val state = createViewModel(DebugScenario.PARTLY_CONFIRMED).uiState.value
 
-        assertThat(state.confirmedCount).isEqualTo(4)
+        assertThat(state.confirmedCount).isEqualTo(2)
         assertThat(state.openCount).isEqualTo(2)
         assertThat(state.isFullyConfirmed).isFalse()
     }
@@ -106,7 +114,7 @@ class ConfirmFactsViewModelTest {
     fun fullyConfirmedScenario_confirmsEveryFact() {
         val state = createViewModel(DebugScenario.FULLY_CONFIRMED).uiState.value
 
-        assertThat(state.confirmedCount).isEqualTo(6)
+        assertThat(state.confirmedCount).isEqualTo(4)
         assertThat(state.openCount).isEqualTo(0)
         assertThat(state.isFullyConfirmed).isTrue()
     }
@@ -141,7 +149,7 @@ class ConfirmFactsViewModelTest {
         val stored = repository.observeProfile().first()
         assertThat(stored?.entries?.first { it.id == "C-01" }?.isConfirmed).isTrue()
         assertThat(stored?.entries?.first { it.id == "C-01" }?.source).isEqualTo(FactSource.IMPORTED)
-        assertThat(viewModel.uiState.value.confirmedCount).isEqualTo(3)
+        assertThat(viewModel.uiState.value.confirmedCount).isEqualTo(1)
         assertThat(viewModel.uiState.value.openCount).isEqualTo(3)
     }
 
@@ -154,7 +162,7 @@ class ConfirmFactsViewModelTest {
         }
 
         val state = viewModel.uiState.value
-        assertThat(state.confirmedCount).isEqualTo(6)
+        assertThat(state.confirmedCount).isEqualTo(4)
         assertThat(state.openCount).isEqualTo(0)
         assertThat(state.isFullyConfirmed).isTrue()
     }
@@ -200,7 +208,7 @@ class ConfirmFactsViewModelTest {
         val edited = state.facts.first { it.id == "C-01" }
         assertThat(edited.source).isEqualTo(FactSource.USER_EDITED)
         assertThat(edited.isConfirmed).isTrue()
-        assertThat(state.confirmedCount).isEqualTo(3)
+        assertThat(state.confirmedCount).isEqualTo(1)
     }
 
     @Test
@@ -210,7 +218,7 @@ class ConfirmFactsViewModelTest {
         viewModel.onAction(ConfirmFactsAction.Confirm("C-01"))
 
         assertThat(viewModel.uiState.value.isOffline).isTrue()
-        assertThat(viewModel.uiState.value.confirmedCount).isEqualTo(3)
+        assertThat(viewModel.uiState.value.confirmedCount).isEqualTo(1)
     }
 
     @Test

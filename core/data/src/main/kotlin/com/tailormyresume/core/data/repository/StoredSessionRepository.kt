@@ -69,7 +69,7 @@ internal class StoredSessionRepository @Inject constructor(
     }
 
     override suspend fun keepJobDescription(job: KeptJobDescription) {
-        store.writeValue(KEPT_JOB_KEY, KeptJobDto.serializer(), KeptJobDto(job.text, job.company, job.role))
+        store.writeValue(KEPT_JOB_KEY, KeptJobDto.serializer(), KeptJobDto(job.text, job.company, job.role, job.companyIsPrefill, job.roleIsPrefill))
     }
 
     override suspend fun clearKeptJobDescription() {
@@ -78,7 +78,7 @@ internal class StoredSessionRepository @Inject constructor(
 
     override suspend fun clearConsent() = removeAll(CONSENT_KEY)
 
-    override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY)
+    override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 
     override suspend fun clear() = removeAll(ACCOUNT_KEY, LAST_ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 
@@ -116,6 +116,18 @@ private data class ConsentDto(
 }
 
 @Serializable
-private data class KeptJobDto(val text: String, val company: String, val role: String) {
-    fun toModel() = KeptJobDescription(text = text, company = company, role = role)
+private data class KeptJobDto(
+    val text: String,
+    val company: String,
+    val role: String,
+    val companyIsPrefill: Boolean = false,
+    val roleIsPrefill: Boolean = false,
+) {
+    fun toModel() = KeptJobDescription(
+        text = text,
+        company = company,
+        role = role,
+        companyIsPrefill = companyIsPrefill,
+        roleIsPrefill = roleIsPrefill,
+    )
 }

@@ -27,8 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,8 +41,6 @@ import com.tailormyresume.core.designsystem.component.TmrFactId
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrInnerHeader
 import com.tailormyresume.core.designsystem.component.TmrMonogram
-import com.tailormyresume.core.designsystem.component.TmrPillRow
-import com.tailormyresume.core.designsystem.component.TmrPillRowStyle
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrProvenanceChip
 import com.tailormyresume.core.designsystem.component.TmrProvenanceKind
@@ -67,6 +63,8 @@ import com.tailormyresume.feature.tailor.impl.R
 import com.tailormyresume.feature.tailor.impl.StatusCard
 import com.tailormyresume.feature.tailor.impl.StatusPill
 import com.tailormyresume.feature.tailor.impl.StepMark
+import com.tailormyresume.feature.tailor.impl.bodyRes
+import com.tailormyresume.feature.tailor.impl.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,7 +163,7 @@ private fun LazyListScope.coverLetterItems(
     sourceOrdinal: Int?,
     onSource: (Int) -> Unit,
 ) {
-    if (uiState.isOffline && uiState.stage != CoverLetterStage.GENERATING) {
+    if (uiState.showsOfflineBanner) {
         item(key = "offline") {
             NoticeStrip(text = stringResource(R.string.feature_tailor_impl_cover_letter_offline), icon = TmrIcons.Offline)
         }
@@ -206,8 +204,8 @@ private fun LazyListScope.coverLetterItems(
         CoverLetterStage.ERROR -> item(key = "error") {
             StatusCard(
                 kind = TmrSpotKind.Error,
-                title = stringResource(R.string.feature_tailor_impl_cover_letter_error_title),
-                body = stringResource(R.string.feature_tailor_impl_cover_letter_error_body),
+                title = stringResource(uiState.failure.titleRes(R.string.feature_tailor_impl_cover_letter_error_title)),
+                body = stringResource(uiState.failure.bodyRes(R.string.feature_tailor_impl_cover_letter_error_body)),
             )
         }
     }
@@ -246,24 +244,6 @@ private fun OfferCard(uiState: CoverLetterUiState, actions: CoverLetterActions) 
                 }
             }
         }
-        uiState.exportedFileName?.let { fileName ->
-            TmrPillRow(
-                title = fileName,
-                onClick = {},
-                style = TmrPillRowStyle.Neutral,
-                icon = TmrIcons.Description,
-                trailingIcon = null,
-                titleMaxLines = 1,
-                modifier = Modifier.clearAndSetSemantics { contentDescription = fileName },
-            )
-        }
-        TmrPillRow(
-            title = stringResource(R.string.feature_tailor_impl_cover_letter_prep_title),
-            subtitle = stringResource(R.string.feature_tailor_impl_cover_letter_prep_subtitle),
-            onClick = actions.onPrepQuestions,
-            style = TmrPillRowStyle.Neutral,
-            icon = TmrIcons.Description,
-        )
     }
 }
 
@@ -272,11 +252,15 @@ private fun GeneratingCard(uiState: CoverLetterUiState) {
     val steps = listOf(
         GenerationStep(
             title = stringResource(R.string.feature_tailor_impl_cover_letter_step_pick),
-            detail = pluralStringResource(
-                R.plurals.feature_tailor_impl_cover_letter_step_pick_detail,
-                uiState.factCount,
-                uiState.factCount,
-            ),
+            detail = if (uiState.showsFactCount) {
+                pluralStringResource(
+                    R.plurals.feature_tailor_impl_cover_letter_step_pick_detail,
+                    uiState.factCount,
+                    uiState.factCount,
+                )
+            } else {
+                null
+            },
             status = stringResource(R.string.feature_tailor_impl_status_done),
             mark = StepMark.Done,
         ),
@@ -343,13 +327,16 @@ private fun ParagraphBlock(
     val editing = uiState.editingOrdinal == paragraph.ordinal
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (editing) {
-            EditingBlock(paragraph, position, uiState, actions, onSource)
+            EditingBlock(position, uiState, actions)
         } else {
             TmrEvidenceText(
                 text = paragraph.annotated(marked, evidenceMarkSpanStyle(), TmrTheme.colors.partialContainer),
                 style = TmrTheme.typography.bodyM,
             )
-            ParagraphFactChipsFlow(paragraph.facts.map { fact -> fact.displayId }.distinct(), onSource)
+            ParagraphFactChipsFlow(
+                if (paragraph.isUserEdited) emptyList() else paragraph.facts.map { fact -> fact.displayId }.distinct(),
+                onSource,
+            )
             ParagraphNotes(paragraph)
             ParagraphActions(
                 paragraph = paragraph,
@@ -444,11 +431,9 @@ private fun ParagraphActions(paragraph: CoverLetterParagraph, isReported: Boolea
 
 @Composable
 private fun EditingBlock(
-    paragraph: CoverLetterParagraph,
     position: Int,
     uiState: CoverLetterUiState,
     actions: CoverLetterActions,
-    onSource: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         TmrTextField(
@@ -464,7 +449,6 @@ private fun EditingBlock(
             icon = TmrIcons.Edit,
             color = TmrTheme.colors.onSurface,
         )
-        ParagraphFactChipsFlow(paragraph.facts.map { fact -> fact.displayId }.distinct(), onSource)
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_tailor_impl_cover_letter_edit_cancel),

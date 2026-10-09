@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -196,7 +196,7 @@ internal fun OnboardingStepBar(
     title: String? = null,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().height(TmrTheme.spacing.touch + TmrTheme.spacing.md),
+        modifier = modifier.fillMaxWidth().heightIn(min = TmrTheme.spacing.touch + TmrTheme.spacing.md),
         horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -206,7 +206,7 @@ internal fun OnboardingStepBar(
         if (title != null) {
             Text(
                 text = title,
-                modifier = Modifier.semantics { heading() },
+                modifier = Modifier.weight(1f).padding(vertical = TmrTheme.spacing.sm).semantics { heading() },
                 style = TmrTheme.typography.titleL,
                 color = TmrTheme.colors.onSurface,
             )

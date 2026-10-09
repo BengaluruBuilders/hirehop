@@ -82,7 +82,12 @@ TailorMyResume follows Now in Android (NiA). `docs/ARCHITECTURE.md` gives the de
 
 Note on VI.1: GitHub blocks branch protection on private repositories on the Free plan.
 Until the repository is public or on GitHub Pro, nothing stops a direct push to `main`.
-When protection is available, require the `Constitution policy` and `Build, lint, and unit tests` checks.
+When protection is available, require the `Constitution policy` check.
+Do not require `Build, lint, and unit tests` yet. When an owner edits a PR title or base branch, that check reports success without a build.
+GitHub then counts the check as passed for a PR with a failed build.
+Until a job copies the result of the last full run, a person checks the build result before merge.
+
+The secret scan runs `tools/ci/scan-secrets.sh`. It uses the gitleaks v8.30.1 default rules, pinned in `tools/ci/gitleaks.toml` without the default global path allowlist entries for image, font, document, binary and `gitleaks.toml` paths, and the `.gitleaksignore` file of the base branch. On a pull request the script reads `tools/ci/gitleaks.toml` from the base branch, and uses the PR copy only while the base has none. Before the scan, the script overwrites the workspace `.gitleaksignore` with the base copy, because gitleaks always loads that file from the source directory. A `.gitleaksignore` or `.gitleaks.toml` in the PR cannot allow a secret. A PR can still change what runs: `pull_request` runs the PR version of `build.yml` and `scan-secrets.sh`, so review those two files with extra care. The scan step runs before `check-constitution.sh` and before any other script of the PR, so those cannot rewrite `origin/main` or the scan first. The script scans merge commits in a second gitleaks pass (`--merges --diff-merges=first-parent`), because `git log -p` prints no diff for a merge and a token added only in a merge commit would pass. A merge of the base branch into the PR branch shows the base changes in that pass, so a secret already allowed on the base can be flagged again. The script forces `* diff` in `info/attributes`, so git prints a text diff for every file, including files with a NUL byte and files a PR `.gitattributes` marks `-diff` or `binary`, and gitleaks scans their content whatever the file name. Content in UTF-16 is a known gap, tracked in issue 223: gitleaks does not match the interleaved NUL bytes. `tools/ci/test-scan-secrets.sh` tests the script, including a run with the real gitleaks binary.
 
 ## Article VII — Amendments
 

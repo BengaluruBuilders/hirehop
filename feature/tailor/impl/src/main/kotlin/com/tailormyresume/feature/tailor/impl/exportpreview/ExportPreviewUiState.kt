@@ -53,6 +53,7 @@ internal data class ExportPreviewUiState(
     val purchasedCredits: Int = 0,
     val isFreeBeta: Boolean = false,
     val alreadyUnlocked: Boolean = false,
+    val isSpending: Boolean = false,
     val navigation: ExportPreviewNavigation? = null,
 ) {
     val totalCredits: Int get() = freeCredits + purchasedCredits

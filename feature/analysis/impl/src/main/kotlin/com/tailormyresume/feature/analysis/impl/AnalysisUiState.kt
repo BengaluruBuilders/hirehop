@@ -6,6 +6,7 @@ import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.RequirementPriority
+import kotlin.time.Instant
 
 data class JobLabel(
     val title: String = "",
@@ -43,6 +44,8 @@ sealed interface AnalysisUiState {
         val overlay: AnalysisOverlay = AnalysisOverlay.None,
         val toast: AnalysisToast? = null,
         val closedRequirementId: String? = null,
+        val nextFactId: String = FIRST_USER_STATED_FACT_ID,
+        val analysedAt: Instant? = null,
     ) : AnalysisUiState {
         val items: List<RequirementItem> get() = sections.flatMap { it.items }
         val gapCount: Int get() = items.count { it.isGap }
@@ -87,6 +90,8 @@ sealed interface AnalysisToast {
     data object EvidenceFailed : AnalysisToast
 
     data object TailorFailed : AnalysisToast
+
+    data class TailorBlocked(val cause: FailureCause) : AnalysisToast
 
     val hasUndo: Boolean get() = this is PrepAdded || this is GapClosed
 }
@@ -138,3 +143,5 @@ data class RequirementFactRef(
 )
 
 const val GAP_NOTE_THRESHOLD = 5
+
+const val FIRST_USER_STATED_FACT_ID = "U-01"

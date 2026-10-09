@@ -8,12 +8,12 @@ enum class EvidenceCategory(
     val entryCategory: EntryCategory,
     val questionCount: Int,
 ) {
-    WORK("work", EntryCategory.EXPERIENCE, 1),
-    PROJECTS("projects", EntryCategory.PROJECT, 2),
-    INTERNSHIPS("internships", EntryCategory.EXPERIENCE, 1),
-    COURSEWORK("coursework", EntryCategory.EDUCATION, 1),
-    COMPETITIONS("competitions", EntryCategory.ACHIEVEMENT, 1),
-    POSITIONS("positions", EntryCategory.ACHIEVEMENT, 1),
+    WORK("work", EntryCategory.EXPERIENCE, 4),
+    PROJECTS("projects", EntryCategory.PROJECT, 4),
+    INTERNSHIPS("internships", EntryCategory.EXPERIENCE, 4),
+    COURSEWORK("coursework", EntryCategory.EDUCATION, 4),
+    COMPETITIONS("competitions", EntryCategory.ACHIEVEMENT, 4),
+    POSITIONS("positions", EntryCategory.ACHIEVEMENT, 4),
 }
 
 val EVIDENCE_CATEGORIES: List<EvidenceCategory> = EvidenceCategory.entries

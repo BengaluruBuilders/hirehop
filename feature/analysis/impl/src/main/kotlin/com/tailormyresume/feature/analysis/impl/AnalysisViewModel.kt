@@ -60,6 +60,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -88,10 +89,10 @@ class AnalysisViewModel @Inject constructor(
     private val scenario = MutableStateFlow(DebugScenario.defaultValue)
     private val destinationChannel = Channel<AnalysisDestination>(Channel.BUFFERED)
     private var undoProfile: CandidateProfile? = null
-    private var undoClosedByEvidence: Set<String> = emptySet()
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
     private var submitting = false
+    private var entered = false
 
     val destinations: Flow<AnalysisDestination> = destinationChannel.receiveAsFlow()
 
@@ -136,19 +137,18 @@ class AnalysisViewModel @Inject constructor(
         prepIds,
         reportedIds,
     ) { state, env, prep, reported ->
-        state.toUiState(env, prep, reported)
+        state.toUiState(env, prep, reported, addUserStatedFact::nextFactId)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
         initialValue = AnalysisUiState.Loading,
     )
 
-    init {
-        load()
-    }
-
     fun onEnter(key: DebugScenario) {
         scenario.value = key
+        if (entered) return
+        entered = true
+        load()
     }
 
     fun onRetry() = load()
@@ -163,7 +163,6 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             if (currentProfile() != ready.profile) {
                 undoProfile = null
-                undoClosedByEvidence = emptySet()
                 load()
             }
         }
@@ -242,17 +241,13 @@ class AnalysisViewModel @Inject constructor(
             try {
                 attempt {
                     val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
-                    val previewed = refreshed(ready, preview, ready.closedByEvidence + requirementId)
+                    val previewed = refreshed(ready, preview)
                     val closed = previewed.analysis.gap.matches
                         .firstOrNull { it.requirement.id == requirementId }
                         ?.status != MatchStatus.GAP
                     if (closed) {
                         addUserStatedFact(requirement, statement)
-                        refreshed(
-                            ready,
-                            checkNotNull(currentProfile()) { "Profile is missing" },
-                            ready.closedByEvidence + requirementId,
-                        )
+                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
                     } else {
                         null
                     }
@@ -285,7 +280,7 @@ class AnalysisViewModel @Inject constructor(
                     local.update { it.copy(tailoring = false, tailorLimitHit = true) }
                 } else {
                     local.update { it.copy(tailoring = false) }
-                    showToast(AnalysisToast.TailorFailed)
+                    showToast(failure.tailorToast())
                 }
             }
         }
@@ -310,10 +305,11 @@ class AnalysisViewModel @Inject constructor(
                 return@launch
             }
             local.update { it.copy(phase = Phase.Analyzing(kept, profile.confirmedFactCount())) }
+            if (scenario.value in FORCED_WITHOUT_ANALYSIS) return@launch
             attempt { analyze(kept, profile) }.fold(
                 onSuccess = { analysis ->
                     if (analysis.gap.keywordCoverage.total > 0) countAnalysisOnce(kept)
-                    local.update { it.copy(phase = Phase.Ready(kept, profile, analysis)) }
+                    local.update { it.copy(phase = Phase.Ready(kept, profile, analysis, analysedAt = analysis.analysedAt ?: clock.now())) }
                 },
                 onFailure = { failure ->
                     val phase = if (failure.isAiFailure(AiFailure.AllowanceExhausted)) {
@@ -382,11 +378,10 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun applyEvidence(before: Phase.Ready, fresh: Phase.Ready, requirementId: String) {
         undoProfile = before.profile
-        undoClosedByEvidence = before.closedByEvidence
         dropClosedGapsFromPrepPlan(fresh)
         local.update {
             it.copy(
-                phase = fresh.copy(closedByEvidence = before.closedByEvidence + requirementId),
+                phase = fresh,
                 overlay = AnalysisOverlay.None,
                 closedId = requirementId,
             )
@@ -405,16 +400,14 @@ class AnalysisViewModel @Inject constructor(
         val ready = local.value.phase as? Phase.Ready ?: return
         val snapshot = undoProfile ?: return
         undoProfile = null
-        val previousClosedByEvidence = undoClosedByEvidence
-        undoClosedByEvidence = emptySet()
         viewModelScope.launch {
             attempt {
                 profileRepository.saveProfile(snapshot)
-                refreshed(ready, snapshot, previousClosedByEvidence)
+                refreshed(ready, snapshot)
             }.fold(
                 onSuccess = { fresh ->
                     dropClosedGapsFromPrepPlan(fresh)
-                    local.update { it.copy(phase = fresh.copy(closedByEvidence = previousClosedByEvidence)) }
+                    local.update { it.copy(phase = fresh) }
                     onToastDismiss()
                 },
                 onFailure = { showToast(AnalysisToast.EvidenceFailed) },
@@ -422,11 +415,7 @@ class AnalysisViewModel @Inject constructor(
         }
     }
 
-    private suspend fun refreshed(
-        ready: Phase.Ready,
-        profile: CandidateProfile,
-        targetedRequirementIds: Set<String>,
-    ): Phase.Ready {
+    private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
         val previous = ready.serverAnalysis
         val (local, baseline) = withContext(computeDispatcher) {
             gapMatcher.match(profile, previous.job) to gapMatcher.match(ready.baselineProfile, previous.job)
@@ -445,12 +434,11 @@ class AnalysisViewModel @Inject constructor(
                 server = old,
                 current = localById[old.requirement.id],
                 baseline = baselineById[old.requirement.id],
-                targeted = old.requirement.id in targetedRequirementIds,
             ) ?: old
         }
         return ready.copy(
             profile = profile,
-            analysis = JobAnalysisResult(previous.job, previous.gap.copy(matches = matches, keywordCoverage = coverage)),
+            analysis = previous.copy(gap = previous.gap.copy(matches = matches, keywordCoverage = coverage)),
         )
     }
 
@@ -492,12 +480,12 @@ class AnalysisViewModel @Inject constructor(
             val analysis: JobAnalysisResult,
             val serverAnalysis: JobAnalysisResult = analysis,
             val baselineProfile: CandidateProfile = profile,
-            val closedByEvidence: Set<String> = emptySet(),
+            val analysedAt: Instant,
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(
-                    title = kept.role.ifBlank { analysis.job.title },
-                    company = kept.company.ifBlank { analysis.job.company },
+                    title = kept.resolvedTitle(analysis.job.title),
+                    company = kept.resolvedCompany(analysis.job.company),
                 )
             override val facts: Int get() = profile.confirmedFactCount()
 
@@ -527,7 +515,12 @@ class AnalysisViewModel @Inject constructor(
         val freeTailoringCounted: Boolean = false,
         val tailorLimitHit: Boolean = false,
     ) {
-        fun toUiState(env: Environment, prepIds: Set<String>, reportedIds: Set<String>): AnalysisUiState {
+        fun toUiState(
+            env: Environment,
+            prepIds: Set<String>,
+            reportedIds: Set<String>,
+            nextFactIdOf: (CandidateProfile) -> String,
+        ): AnalysisUiState {
             val label = phase.label
             val factCount = phase.facts
             return when {
@@ -550,6 +543,8 @@ class AnalysisViewModel @Inject constructor(
                     overlay = overlay,
                     toast = toast,
                     closedRequirementId = closedId,
+                    nextFactId = nextFactIdOf(phase.profile),
+                    analysedAt = phase.analysedAt,
                 )
                 else -> AnalysisUiState.Loading
             }
@@ -558,6 +553,7 @@ class AnalysisViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        val FORCED_WITHOUT_ANALYSIS = setOf(DebugScenario.ERROR, DebugScenario.EMPTY, DebugScenario.LOADING)
         const val APPLICATION_ID_KEY = "application-id-"
     }
 }
@@ -572,6 +568,12 @@ private fun Throwable.toFailureCause(): FailureCause {
         else -> FailureCause.Generic
     }
 }
+
+private fun Throwable.tailorToast(): AnalysisToast =
+    when (val cause = toFailureCause()) {
+        FailureCause.Generic -> AnalysisToast.TailorFailed
+        else -> AnalysisToast.TailorBlocked(cause)
+    }
 
 private fun CandidateProfile.confirmedFactCount(): Int = factCounts().confirmed
 

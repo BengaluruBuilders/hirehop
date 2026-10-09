@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.profile.impl.guidedform
 
+import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -13,29 +15,35 @@ import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.feature.profile.api.navigation.GuidedProfileFormNavKey
 import com.tailormyresume.feature.profile.impl.ContactInput
 import com.tailormyresume.feature.profile.impl.FactWriteResult
+import com.tailormyresume.feature.profile.impl.ProfileExit
 import com.tailormyresume.feature.profile.impl.ProfileExitResolver
 import com.tailormyresume.feature.profile.impl.UserFactWriter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class GuidedFormViewModel @Inject internal constructor(
     private val factWriter: UserFactWriter,
     private val exitResolver: ProfileExitResolver,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(GuidedFormUiState())
 
     private var hasEntered = false
     private var forcedOffline = false
+    private var returnsToProfile = false
 
     val uiState: StateFlow<GuidedFormUiState> = mutableState.asStateFlow()
 
@@ -43,21 +51,74 @@ class GuidedFormViewModel @Inject internal constructor(
         if (hasEntered) return
         hasEntered = true
         forcedOffline = key.scenario == DebugScenario.OFFLINE
+        returnsToProfile = key.returnsToProfile
         mutableState.value = guidedFormStateFor(
             scenario = key.scenario,
             startStep = key.startStep,
             resumedFromScan = key.resumedFromScan,
         )
+        restoreTypedInput()
+        mutableState
+            .map { it.toTyped() }
+            .distinctUntilChanged()
+            .onEach { typed -> savedState[TYPED_KEY] = typed }
+            .launchIn(viewModelScope)
         connectivityMonitor.isOnline
             .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
             .launchIn(viewModelScope)
+        factWriter.observeEntries()
+            .onEach { entries -> mutableState.update { it.syncedWith(entries) } }
+            .launchIn(viewModelScope)
     }
+
+    private fun restoreTypedInput() {
+        val typed = savedState.get<Typed>(TYPED_KEY) ?: return
+        mutableState.update { state ->
+            state.copy(
+                stepIndex = typed.stepIndex.coerceIn(0, GUIDED_STEPS.lastIndex),
+                showIntro = typed.showIntro,
+                skills = typed.skills,
+                experienceChoice = typed.experienceChoice?.let { name -> ExperienceChoice.entries.find { it.name == name } },
+                values = typed.values.mapNotNull { (name, value) -> GuidedField.entries.find { it.name == name }?.let { it to value } }.toMap(),
+                completedSteps = typed.completedSteps.mapNotNull(::stepNamed).toSet(),
+                stepEntryIds = typed.stepEntryIds.mapNotNull { (name, ids) -> stepNamed(name)?.let { it to ids.toList() } }.toMap(),
+                stepEntryFields = typed.stepEntryFields.mapNotNull { (name, fields) ->
+                    stepNamed(name)?.let { step -> step to fields.mapNotNull { field -> GuidedField.entries.find { it.name == field } } }
+                }.toMap(),
+            )
+        }
+    }
+
+    private data class Typed(
+        val stepIndex: Int,
+        val showIntro: Boolean,
+        val skills: List<String>,
+        val values: HashMap<String, String>,
+        val completedSteps: ArrayList<String>,
+        val stepEntryIds: HashMap<String, ArrayList<String>>,
+        val stepEntryFields: HashMap<String, ArrayList<String>>,
+        val experienceChoice: String?,
+    ) : java.io.Serializable
+
+    private fun GuidedFormUiState.toTyped() = Typed(
+        stepIndex = stepIndex,
+        showIntro = showIntro,
+        skills = skills.map { it.take(SAVED_VALUE_LIMIT) },
+        values = HashMap(values.entries.associate { (field, value) -> field.name to value.take(SAVED_VALUE_LIMIT) }),
+        completedSteps = ArrayList(completedSteps.map { it.name }),
+        stepEntryIds = HashMap(stepEntryIds.entries.associate { (step, ids) -> step.name to ArrayList(ids) }),
+        stepEntryFields = HashMap(stepEntryFields.entries.associate { (step, fields) -> step.name to ArrayList(fields.map { it.name }) }),
+        experienceChoice = experienceChoice?.name,
+    )
+
+    private fun stepNamed(name: String): GuidedStep? = GuidedStep.entries.find { it.name == name }
 
     fun onAction(action: GuidedFormAction) {
         when (action) {
             is GuidedFormAction.ValueChanged -> onValueChanged(action.field, action.value)
             GuidedFormAction.AddSkill -> onAddSkill()
             is GuidedFormAction.RemoveSkill -> onRemoveSkill(action.skill)
+            is GuidedFormAction.ChooseExperience -> mutableState.update { it.copy(experienceChoice = action.choice) }
             GuidedFormAction.StartForm -> mutableState.update { it.copy(showIntro = false) }
             GuidedFormAction.Next -> onNext()
             GuidedFormAction.Back -> onBack()
@@ -97,7 +158,7 @@ class GuidedFormViewModel @Inject internal constructor(
                     fieldProblems = emptyMap(),
                     filedEntries = emptyList(),
                     message = null,
-                )
+                ).prefilledFromEntries(guidedStepAt(state.stepIndex - 1))
             }
         }
     }
@@ -135,7 +196,7 @@ class GuidedFormViewModel @Inject internal constructor(
 
     private fun onFinish() {
         viewModelScope.launch {
-            val exit = exitResolver.resolve()
+            val exit = if (returnsToProfile) ProfileExit.Profile else exitResolver.resolve()
             mutableState.update { it.copy(navigation = GuidedNavigation.Exit(exit)) }
         }
     }
@@ -146,7 +207,8 @@ class GuidedFormViewModel @Inject internal constructor(
     ) {
         val state = initial.withPendingSkill()
         val step = state.step
-        val drafts = draftsFor(step, state.values)
+        val fieldedDrafts = draftsFor(step, state.values)
+        val drafts = fieldedDrafts.map { it.second }
         val problems = problemsOf(step, drafts) + contactProblemsOf(step, state.values)
         if (problems.isNotEmpty()) {
             mutableState.value = state.copy(fieldProblems = problems)
@@ -169,6 +231,8 @@ class GuidedFormViewModel @Inject internal constructor(
                         isSaving = false,
                         completedSteps = current.completedSteps + step,
                         stepEntryIds = current.stepEntryIds + (step to outcome.entries.map { it.id }),
+                        stepEntryFields = current.stepEntryFields + (step to fieldedDrafts.map { it.first }),
+                        entries = current.entries?.let { known -> known.filterNot { old -> outcome.entries.any { it.id == old.id } } + outcome.entries },
                     )
                 }
                 onDone(outcome.entries)
@@ -191,11 +255,35 @@ class GuidedFormViewModel @Inject internal constructor(
         )
     }
 
+    private fun GuidedFormUiState.syncedWith(entries: List<ProfileEntry>): GuidedFormUiState {
+        return copy(entries = entries)
+    }
+
+    private fun GuidedFormUiState.prefilledFromEntries(target: GuidedStep): GuidedFormUiState {
+        val ids = stepEntryIds[target].orEmpty()
+        val fields = stepEntryFields[target].orEmpty()
+        val byId = entries.orEmpty().associateBy { it.id }
+        val restored = ids.zip(fields).mapNotNull { (id, field) -> byId[id]?.let { field to it } }
+            .flatMap { (field, entry) ->
+                if (field == GuidedField.COURSE) {
+                    listOf(
+                        GuidedField.COURSE to entry.title,
+                        GuidedField.COLLEGE to entry.organization,
+                        GuidedField.EDUCATION_END to entry.endDate,
+                    )
+                } else {
+                    listOf(field to entry.title)
+                }
+            }
+        return copy(values = values + restored)
+    }
+
     private fun GuidedFormUiState.finishedLater(): GuidedFormUiState = copy(
         saved = GuidedSaved(
             completedSteps = completedSteps.size,
             totalSteps = GUIDED_STEPS.size,
             entryIds = createdEntryIds,
+            doneSteps = completedSteps,
         ),
     )
 
@@ -205,7 +293,7 @@ class GuidedFormViewModel @Inject internal constructor(
         phone = values[GuidedField.PHONE].orEmpty(),
     )
 
-    private fun draftsFor(step: GuidedStep, values: Map<GuidedField, String>): List<FactDraft> {
+    private fun draftsFor(step: GuidedStep, values: Map<GuidedField, String>): List<Pair<GuidedField, FactDraft>> {
         if (step != GuidedStep.EDUCATION) return emptyList()
         val degree = FactDraft(
             category = EntryCategory.EDUCATION,
@@ -223,7 +311,8 @@ class GuidedFormViewModel @Inject internal constructor(
             endDate = "",
             detail = "",
         )
-        return listOf(degree, coursework).filter { it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
+        return listOf(GuidedField.COURSE to degree, GuidedField.COURSEWORK to coursework)
+            .filter { (_, it) -> it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
     }
 
     private fun contactProblemsOf(step: GuidedStep, values: Map<GuidedField, String>): Map<GuidedField, GuidedFieldProblem> {
@@ -261,9 +350,12 @@ class GuidedFormViewModel @Inject internal constructor(
         FactDraftErrorReason.REQUIRED -> GuidedFieldProblem.REQUIRED
         FactDraftErrorReason.END_BEFORE_START -> GuidedFieldProblem.END_BEFORE_START
         FactDraftErrorReason.TOO_LONG -> GuidedFieldProblem.TOO_LONG
+        FactDraftErrorReason.INVALID_DATE -> GuidedFieldProblem.INVALID_DATE
     }
 
     private companion object {
         const val EVIDENCE_HANDOFF_CATEGORY = "projects"
+        const val TYPED_KEY = "guidedForm.typed"
+        const val SAVED_VALUE_LIMIT = 4_000
     }
 }

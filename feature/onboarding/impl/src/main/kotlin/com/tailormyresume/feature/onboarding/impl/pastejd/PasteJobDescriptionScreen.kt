@@ -1,15 +1,20 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +37,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -41,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrButtonSize
+import com.tailormyresume.core.designsystem.component.TmrConfirmDialog
 import com.tailormyresume.core.designsystem.component.TmrErrorCallout
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrIconButton
@@ -72,6 +81,8 @@ private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
 private val SOURCE_CHIP_ICON = 16.dp
 private val PASTE_WORD_ICON = 18.dp
+private const val STACKED_NOTICE_FONT_SCALE = 1.5f
+private val STACKED_NOTICE_MAX_SCREEN_HEIGHT = 560.dp
 
 @Composable
 internal fun PasteJobDescriptionScreen(
@@ -79,17 +90,65 @@ internal fun PasteJobDescriptionScreen(
     actions: PasteJobDescriptionActions,
     modifier: Modifier = Modifier,
 ) {
+    val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
+    val windowHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val isDisclosureStacked = density.fontScale >= STACKED_NOTICE_FONT_SCALE ||
+        windowHeight < STACKED_NOTICE_MAX_SCREEN_HEIGHT
+    var isDiscardRequested by remember { mutableStateOf(false) }
+    val onBackRequest = {
+        if (uiState.hasUnanalysedText) {
+            isDiscardRequested = true
+        } else {
+            actions.onBack()
+        }
+    }
+    val focusClearingActions = actions.copy(
+        onBack = onBackRequest,
+        onPaste = {
+            focusManager.clearFocus()
+            actions.onPaste()
+        },
+        onAnalyse = {
+            focusManager.clearFocus()
+            actions.onAnalyse()
+        },
+    )
+    BackHandler(enabled = uiState.hasUnanalysedText) { onBackRequest() }
     TmrScreen(
         modifier = modifier,
         sheet = false,
-        bottomBar = { PasteJobDescriptionBottomBar(uiState = uiState, actions = actions) },
-        bottomBarNotice = { PasteJobDescriptionBarNotice(uiState = uiState) },
+        bottomBar = { PasteJobDescriptionBottomBar(uiState = uiState, actions = focusClearingActions) },
+        bottomBarNotice = if (isDisclosureStacked && uiState.barReason() == null) {
+            null
+        } else {
+            { PasteJobDescriptionBarNotice(uiState = uiState, isDisclosureStacked = isDisclosureStacked) }
+        },
     ) { padding ->
         if (uiState.isLoading) {
             PasteJobDescriptionLoading(modifier = Modifier.padding(padding))
         } else {
-            PasteJobDescriptionContent(uiState = uiState, actions = actions, modifier = Modifier.padding(padding))
+            PasteJobDescriptionContent(
+                uiState = uiState,
+                actions = focusClearingActions,
+                isDisclosureStacked = isDisclosureStacked,
+                modifier = Modifier.padding(padding),
+            )
         }
+    }
+    if (isDiscardRequested) {
+        TmrConfirmDialog(
+            title = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_title),
+            message = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_message),
+            confirmLabel = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_confirm),
+            cancelLabel = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_cancel),
+            onConfirm = {
+                isDiscardRequested = false
+                actions.onBack()
+            },
+            onCancel = { isDiscardRequested = false },
+            destructive = true,
+        )
     }
 }
 
@@ -112,6 +171,7 @@ private fun PasteJobDescriptionLoading(modifier: Modifier = Modifier) {
 private fun PasteJobDescriptionContent(
     uiState: PasteJobDescriptionUiState,
     actions: PasteJobDescriptionActions,
+    isDisclosureStacked: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var isRoleAndCompanyRevealed by remember { mutableStateOf(false) }
@@ -149,6 +209,17 @@ private fun PasteJobDescriptionContent(
         PasteJobDescriptionIntro()
         PasteJobDescriptionNotices(uiState = uiState, actions = contentActions)
         PasteJobDescriptionField(uiState = uiState, actions = contentActions)
+        if (uiState.isDailyLimitReached) {
+            OnboardingNotice(
+                text = pluralStringResource(
+                    R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
+                    FREE_ANALYSES_PER_DAY,
+                    FREE_ANALYSES_PER_DAY,
+                ),
+                icon = TmrIcons.Error,
+                tone = NoticeTone.Warning,
+            )
+        }
         val problem = uiState.problem
         if (problem != null) {
             OnboardingNotice(
@@ -166,19 +237,11 @@ private fun PasteJobDescriptionContent(
                 },
             )
         }
-        if (uiState.isDailyLimitReached) {
-            OnboardingNotice(
-                text = pluralStringResource(
-                    R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
-                    FREE_ANALYSES_PER_DAY,
-                    FREE_ANALYSES_PER_DAY,
-                ),
-                icon = TmrIcons.Error,
-                tone = NoticeTone.Warning,
-            )
-        }
         if (areFieldsShown) {
             RoleAndCompanyFields(actions = contentActions, uiState = uiState, companyFocus = companyFocus)
+        }
+        if (isDisclosureStacked) {
+            PasteJobDescriptionDisclosure(uiState = uiState)
         }
     }
 }
@@ -244,7 +307,7 @@ private fun PasteJobDescriptionField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = fieldHeight)
+            .height(fieldHeight)
             .clip(shape)
             .background(colors.card)
             .then(if (outline != null) Modifier.border(PASTE_FIELD_BORDER, outline, shape) else Modifier),
@@ -318,9 +381,7 @@ private fun PasteJobDescriptionTextArea(
     onTextChange: (String) -> Unit,
 ) {
     val label = stringResource(R.string.feature_onboarding_impl_paste_jd_field_label)
-    BasicTextField(
-        value = uiState.text,
-        onValueChange = onTextChange,
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .padding(
@@ -328,25 +389,37 @@ private fun PasteJobDescriptionTextArea(
                 end = PASTE_FIELD_PADDING,
                 top = PASTE_FIELD_PADDING,
                 bottom = PASTE_FOOTER_RESERVE,
+            ),
+    ) {
+        val fieldMinHeight = maxHeight
+        Box(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            BasicTextField(
+                value = uiState.text,
+                onValueChange = onTextChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = fieldMinHeight)
+                    .clearAndSetSemantics { contentDescription = label },
+                textStyle = TmrTheme.typography.bodyL.copy(color = TmrTheme.colors.onSurface),
+                cursorBrush = SolidColor(TmrTheme.colors.primary),
+                decorationBox = { inner ->
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        if (uiState.text.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.feature_onboarding_impl_paste_jd_field_placeholder),
+                                style = TmrTheme.typography.bodyL,
+                                color = TmrTheme.colors.onSurfaceVariant,
+                            )
+                        }
+                        inner()
+                    }
+                },
             )
-            .clearAndSetSemantics { contentDescription = label },
-        textStyle = TmrTheme.typography.bodyL.copy(color = TmrTheme.colors.onSurface),
-        cursorBrush = SolidColor(TmrTheme.colors.primary),
-        decorationBox = { inner ->
-            Box(modifier = Modifier.fillMaxWidth()) {
-                if (uiState.text.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.feature_onboarding_impl_paste_jd_field_placeholder),
-                        style = TmrTheme.typography.bodyL,
-                        color = TmrTheme.colors.onSurfaceVariant,
-                    )
-                }
-                inner()
-            }
-        },
-    )
+        }
+    }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SpottedRow(
     uiState: PasteJobDescriptionUiState,
@@ -367,9 +440,10 @@ private fun SpottedRow(
                 style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
                 color = TmrTheme.colors.onSurface,
             )
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 if (uiState.role.isNotBlank()) {
                     SpottedChip(label = uiState.role)
@@ -474,7 +548,8 @@ private fun PasteJobDescriptionBottomBar(
 ) {
     val label = when {
         uiState.isOffline -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_later)
-        uiState.canAnalyse -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
+        uiState.canAnalyse || uiState.isDailyLimitReached && uiState.text.isNotBlank() ->
+            stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
         else -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_off)
     }
     TmrBottomActionBar {
@@ -489,18 +564,32 @@ private fun PasteJobDescriptionBottomBar(
 }
 
 @Composable
-private fun PasteJobDescriptionBarNotice(uiState: PasteJobDescriptionUiState) {
-    val reason = when {
-        uiState.isDailyLimitReached || uiState.canAnalyse || uiState.isOffline -> null
-        uiState.problem == PasteJobDescriptionProblem.TOO_SHORT ||
-            uiState.problem == PasteJobDescriptionProblem.TOO_LONG ->
-            stringResource(R.string.feature_onboarding_impl_paste_jd_reason_incomplete)
-        else -> stringResource(R.string.feature_onboarding_impl_paste_jd_reason_empty)
-    }
+private fun PasteJobDescriptionUiState.barReason(): String? = when {
+    isDailyLimitReached || canAnalyse || isOffline -> null
+    problem == PasteJobDescriptionProblem.TOO_SHORT || problem == PasteJobDescriptionProblem.TOO_LONG ->
+        stringResource(R.string.feature_onboarding_impl_paste_jd_reason_incomplete)
+    else -> stringResource(R.string.feature_onboarding_impl_paste_jd_reason_empty)
+}
+
+@Composable
+private fun PasteJobDescriptionBarNotice(
+    uiState: PasteJobDescriptionUiState,
+    isDisclosureStacked: Boolean,
+) {
+    val reason = uiState.barReason()
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (reason != null) {
             ReasonText(text = reason)
         }
+        if (!isDisclosureStacked) {
+            PasteJobDescriptionDisclosure(uiState = uiState)
+        }
+    }
+}
+
+@Composable
+private fun PasteJobDescriptionDisclosure(uiState: PasteJobDescriptionUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         DisclosureCard(
             text = AnnotatedString(stringResource(R.string.feature_onboarding_impl_paste_jd_disclosure)),
             icon = TmrIcons.Lock,

@@ -31,6 +31,7 @@ internal fun problemText(problem: GuidedFieldProblem): String = stringResource(
         GuidedFieldProblem.REQUIRED -> R.string.feature_profile_impl_guided_form_error_required
         GuidedFieldProblem.END_BEFORE_START -> R.string.feature_profile_impl_guided_form_error_end_before_start
         GuidedFieldProblem.TOO_LONG -> R.string.feature_profile_impl_guided_form_error_too_long
+        GuidedFieldProblem.INVALID_DATE -> R.string.feature_profile_impl_guided_form_error_invalid_date
         GuidedFieldProblem.INVALID_EMAIL -> R.string.feature_profile_impl_guided_form_error_invalid_email
         GuidedFieldProblem.INVALID_PHONE -> R.string.feature_profile_impl_guided_form_error_invalid_phone
     },

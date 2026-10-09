@@ -5,7 +5,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.io.IOException
-import java.net.SocketTimeoutException
+import java.io.InterruptedIOException
 
 internal val errorJson = Json { ignoreUnknownKeys = true }
 
@@ -20,10 +20,10 @@ suspend fun <T> apiResult(block: suspend () -> T): Result<T> = try {
 internal fun Exception.toApiError(): ApiError = when (this) {
     is ApiException -> error
     is HttpException -> httpApiError()
-    is SocketTimeoutException -> ApiError.Timeout
+    is InterruptedIOException -> ApiError.Timeout
     is IOException -> ApiError.Offline
     is SerializationException -> ApiError.Unknown(httpStatus = 0)
-    else -> throw this
+    else -> ApiError.Unknown(httpStatus = 0)
 }
 
 private fun HttpException.httpApiError(): ApiError {

@@ -6,6 +6,9 @@ import com.tailormyresume.core.data.repository.PendingWipeState
 import com.tailormyresume.core.domain.account.FinishPendingAccountWipeUseCase
 import com.tailormyresume.core.domain.account.PendingWipeOutcome
 import com.tailormyresume.core.domain.account.ServerAccountDeleter
+import com.tailormyresume.core.network.TailorMyResumeApi
+import com.tailormyresume.core.network.dto.MeResponse
+import com.tailormyresume.core.network.tailormyresumeJson
 import com.tailormyresume.core.testing.repository.TestPendingAccountWipe
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.flow.first
@@ -27,11 +30,15 @@ class PendingMarkerAccountSwitchTest {
     @After
     fun tearDown() = runCatching { server.shutdown() }.let { }
 
+    private fun accountOnlyApi(): TailorMyResumeApi = object : TailorMyResumeApi by server.api() {
+        override suspend fun me() = tailormyresumeJson().decodeFromString<MeResponse>(ME_BODY)
+    }
+
     private fun gateway() = RemoteSignInGateway(
         completeConfig,
         ScriptedCredentials(),
         ScriptedFirebase(),
-        server.api(),
+        accountOnlyApi(),
         session,
         server.signOutCleaner(session),
         wiper,
@@ -46,7 +53,6 @@ class PendingMarkerAccountSwitchTest {
 
     @Test
     fun aClosedAccountsLeftoverMarkerNeverWipesTheNextAccount() = runTest {
-        server.enqueue(jsonResponse(200, ME_BODY))
         marker.current = PendingWipeState.SERVER_CLOSED
         marker.markerUid = "uid-a"
 
@@ -64,7 +70,6 @@ class PendingMarkerAccountSwitchTest {
 
     @Test
     fun aLeftoverRequestedMarkerForAnotherAccountIsClearedOnSignIn() = runTest {
-        server.enqueue(jsonResponse(200, ME_BODY))
         marker.current = PendingWipeState.REQUESTED
         marker.markerUid = "uid-a"
 
@@ -76,7 +81,6 @@ class PendingMarkerAccountSwitchTest {
 
     @Test
     fun theSameAccountSigningInKeepsTheMarkerAndTheFinishProceeds() = runTest {
-        server.enqueue(jsonResponse(200, ME_BODY))
         marker.current = PendingWipeState.SERVER_CLOSED
         marker.markerUid = "uid-1"
         val gateway = gateway()
@@ -96,12 +100,18 @@ class PendingMarkerAccountSwitchTest {
 
     @Test
     fun aMarkerWithoutAnAccountBehavesAsBefore() = runTest {
-        server.enqueue(jsonResponse(200, ME_BODY))
         marker.current = PendingWipeState.SERVER_CLOSED
 
         gateway().signIn()
 
         assertThat(wipes).isEqualTo(0)
         assertThat(marker.current).isEqualTo(PendingWipeState.SERVER_CLOSED)
+    }
+
+    @Test
+    fun signingInReadsTheAccountWithoutANetworkCall() = runTest {
+        gateway().signIn()
+
+        assertThat(server.requestCount).isEqualTo(0)
     }
 }

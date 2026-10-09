@@ -36,6 +36,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.feature.settings.impl.R
 import com.tailormyresume.feature.settings.impl.common.SettingsAddressSlot
+import com.tailormyresume.feature.settings.impl.common.SettingsLoading
 import com.tailormyresume.feature.settings.impl.common.SettingsTopBar
 import com.tailormyresume.feature.settings.impl.common.formatMediumDate
 
@@ -60,6 +61,8 @@ internal fun SettingsScreen(
                 versionName = versionName,
                 padding = padding,
             )
+        } else {
+            SettingsLoading(padding = padding)
         }
     }
     if (content != null && content.isSignOutConfirmVisible) {

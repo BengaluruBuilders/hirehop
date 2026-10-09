@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,15 +29,17 @@ class ProfileViewModel @Inject constructor(
 
     private val profileMutex = Mutex()
     private val mutableScenario = MutableStateFlow(DebugScenario.defaultValue)
+    private val confirmedInPreview = MutableStateFlow(emptySet<String>())
 
     val uiState: StateFlow<ProfileUiState> = combine(
         profileRepository.observeProfile(),
         sessionRepository.observeAccount(),
         connectivityMonitor.isOnline,
         mutableScenario,
-    ) { profile, account, isOnline, scenario ->
+        confirmedInPreview,
+    ) { profile, account, isOnline, scenario, confirmedIds ->
         scenario.toUiState(
-            profile = profile,
+            profile = profile?.previewedFor(scenario, confirmedIds),
             accountName = account?.displayName.orEmpty(),
             isOffline = !isOnline || scenario == DebugScenario.OFFLINE,
         )
@@ -50,7 +53,10 @@ class ProfileViewModel @Inject constructor(
         mutableScenario.value = debugScenario
     }
 
-    fun confirmEntry(entryId: String) = updateProfile { it.confirmEntry(entryId) }
+    fun confirmEntry(entryId: String) {
+        confirmedInPreview.update { it + entryId }
+        updateProfile { it.confirmEntry(entryId) }
+    }
 
     fun updateContact(contact: ContactDraft) = updateProfile { it.withContact(contact) }
 
@@ -65,6 +71,12 @@ class ProfileViewModel @Inject constructor(
                 profileRepository.saveProfile(transform(current))
             }
         }
+    }
+
+    private fun CandidateProfile.previewedFor(scenario: DebugScenario, confirmedIds: Set<String>): CandidateProfile {
+        if (scenario != DebugScenario.PARTLY_CONFIRMED && scenario != DebugScenario.PENDING) return this
+        val pendingIds = entries.take(PREVIEW_PENDING_COUNT).map { it.id }.filterNot { it in confirmedIds }.toSet()
+        return copy(entries = entries.map { if (it.id in pendingIds) it.copy(isConfirmed = false) else it })
     }
 
     private fun DebugScenario.toUiState(
@@ -84,5 +96,6 @@ class ProfileViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val PREVIEW_PENDING_COUNT = 2
     }
 }

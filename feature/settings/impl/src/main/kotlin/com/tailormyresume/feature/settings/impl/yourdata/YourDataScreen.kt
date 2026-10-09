@@ -46,6 +46,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.feature.settings.impl.R
 import com.tailormyresume.feature.settings.impl.common.SettingsErrorNotice
+import com.tailormyresume.feature.settings.impl.common.SettingsLoading
 import com.tailormyresume.feature.settings.impl.common.SettingsTopBar
 import com.tailormyresume.feature.settings.impl.common.formatMediumDate
 import com.tailormyresume.feature.settings.impl.common.formatPriceInPaise
@@ -83,7 +84,7 @@ internal fun YourDataScreen(
     ) { padding ->
         TmrContentSwitch(targetState = content, contentKey = { it?.export?.equals(YourDataExport.PREPARING) }) { state ->
             when {
-                state == null -> Unit
+                state == null -> SettingsLoading(padding = padding)
                 state.export == YourDataExport.PREPARING -> PreparingContent(content = state, padding = padding)
                 else -> LedgerContent(content = state, actions = actions, padding = padding)
             }
@@ -149,11 +150,15 @@ private fun PreparingContent(content: YourDataUiState.Content, padding: PaddingV
             content.applications.size,
             content.applications.size,
         ),
-        pluralStringResource(
-            R.plurals.feature_settings_impl_your_data_preparing_purchases,
-            content.purchases.size,
-            content.purchases.size,
-        ),
+        if (content.purchasesKnown) {
+            pluralStringResource(
+                R.plurals.feature_settings_impl_your_data_preparing_purchases,
+                content.purchases.size,
+                content.purchases.size,
+            )
+        } else {
+            stringResource(R.string.feature_settings_impl_your_data_preparing_purchases_unknown)
+        },
     )
     Column(
         modifier = Modifier
@@ -326,12 +331,14 @@ private fun PurchasesRow(content: YourDataUiState.Content, actions: YourDataActi
     LedgerRow(
         icon = TmrIcons.Award,
         title = stringResource(R.string.feature_settings_impl_your_data_purchases_title),
-        summary = if (content.purchases.isEmpty()) {
+        summary = if (!content.purchasesKnown) {
+            stringResource(R.string.feature_settings_impl_your_data_purchases_unavailable)
+        } else if (content.purchases.isEmpty()) {
             stringResource(R.string.feature_settings_impl_your_data_purchases_none)
         } else {
             content.purchases.map { purchase -> purchaseLine(purchase) }.joinToString(separator = "\n")
         },
-        trailing = { LedgerCount(content.purchases.size) },
+        trailing = { if (content.purchasesKnown) LedgerCount(content.purchases.size) },
         actions = {
             TmrOutlineButton(
                 label = stringResource(R.string.feature_settings_impl_your_data_action_view),

@@ -16,6 +16,8 @@ import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.feature.tailor.api.navigation.PrepQuestionsNavKey
+import com.tailormyresume.feature.tailor.impl.AiNotice
+import com.tailormyresume.feature.tailor.impl.toAiNotice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -109,15 +111,17 @@ class PrepQuestionsViewModel @Inject constructor(
             }
             return
         }
-        val questions = runCatching {
+        val asked = runCatching {
             generatePrepQuestions(
                 analysis = analysis,
                 profile = profile,
                 limit = PrepQuestionGenerator.MAX_QUESTIONS,
             )
-        }.getOrNull()
+        }
+        val questions = asked.getOrNull()
         if (questions == null) {
-            mutableState.update { state -> state.copy(stage = PrepQuestionsStage.ERROR) }
+            val notice = asked.exceptionOrNull()?.toAiNotice() ?: AiNotice.Generic
+            mutableState.update { state -> state.copy(stage = PrepQuestionsStage.ERROR, failure = notice) }
             return
         }
         val generated = prepQuestionsStateFor(
@@ -153,7 +157,7 @@ class PrepQuestionsViewModel @Inject constructor(
     }
 
     private fun onRetry() {
-        mutableState.update { state -> state.copy(stage = PrepQuestionsStage.GENERATING) }
+        mutableState.update { state -> state.copy(stage = PrepQuestionsStage.GENERATING, failure = AiNotice.Generic) }
         viewModelScope.launch { load() }
     }
 

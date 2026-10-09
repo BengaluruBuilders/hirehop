@@ -448,11 +448,11 @@ The first rule that matches wins:
 | 6 | Onboarding is complete | `Applications` |
 | 7 | Otherwise | `PasteJobDescription` |
 
-The Confirm facts screen enables "Continue to my analysis" only when at least one entry is confirmed. This matches rule 4. Skills count as confirmed, as in `factCounts()`. Paste JD treats a text of fewer than 20 words as too short (`PASTE_JD_MIN_WORDS`). Design frame S2-05 shows that 18 words is too short.
+The Confirm facts screen enables "Continue to my analysis" only when at least one entry is confirmed. This matches rule 4. The Confirm facts screen counts only the facts it lists. Skills are excluded because the screen cannot confirm them. Paste JD treats a text of fewer than 20 words as too short (`PASTE_JD_MIN_WORDS`). Design frame S2-05 shows that 18 words is too short.
 
 ### Fact counts
 
-`CandidateProfile.factCounts()` (in `core:model`) gives `ProfileFactCounts(total, confirmed, userStated)`. `total` is skills plus entries. `confirmed` is skills plus confirmed entries that are not user-stated. `userStated` is confirmed user-stated entries. Profile, Your data, and Delete account use it. No screen counts facts by itself.
+`CandidateProfile.factCounts()` (in `core:model`) gives `ProfileFactCounts(total, confirmed, userStated)`. `total` is skills plus entries. `confirmed` is skills plus confirmed entries that are not user-stated. `userStated` is confirmed user-stated entries. Profile, Your data, and Delete account use it. Confirm facts is the exception: it counts its own listed facts in `ConfirmFactsUiState`.
 
 ### `ObserveStartDestinationUseCase`
 
@@ -549,8 +549,9 @@ interface SampleDataController {
 The dataset is one file: `core/domain/src/main/kotlin/com/tailormyresume/core/domain/sample/SampleDataSet.kt`.
 The controller is in `core:domain`, not `core:data`, because it uses `AnalyzeJobUseCase`, `TailorResumeUseCase`, and `PaymentGateway`. `core:data` cannot see them.
 
-- Mock: `OfflineSampleDataController` (`@Singleton`).
-- Binding: `DomainModule.bindSampleDataController`.
+- Mock: `OfflineSampleDataController`. It always uses the offline payment gateway and the offline analysis and tailoring sources. In `prod` it never opens a Play purchase and never calls the backend.
+- Binding: `DomainModule.provideSampleDataController` (`@Singleton`).
+- `keepSampleJobDescription()` also signs in the sample candidate when the app has no account, consent, or profile. This lets the Gap analysis preview open with the Error and Daily limit scenarios.
 - Test fake: `TestSampleDataController` (counts calls). Contract: `SampleDataControllerContractTest`.
 - Real implementation: none. Remove the binding and the developer-menu entry in a production flavor.
 

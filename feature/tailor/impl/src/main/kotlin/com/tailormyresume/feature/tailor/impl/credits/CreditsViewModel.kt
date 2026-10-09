@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.PaymentGateway
+import com.tailormyresume.core.domain.PurchaseHistoryState
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseState
+import com.tailormyresume.core.domain.observePurchaseHistoryState
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.feature.tailor.api.navigation.CreditsNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,14 +71,17 @@ internal class CreditsViewModel @Inject constructor(
             val online: Flow<Boolean> = if (creditsIsOffline(scenario)) flowOf(false) else connectivityMonitor.isOnline
             combine(
                 paymentGateway.observeEntitlement(),
-                paymentGateway.observePurchaseHistory(),
+                paymentGateway.observePurchaseHistoryState(),
                 online,
-            ) { entitlement, history, isOnline ->
+            ) { entitlement, historyState, isOnline ->
+                val history = (historyState as? PurchaseHistoryState.Known)?.records.orEmpty()
                 CreditsUiState(
                     stage = CreditsStage.READY,
                     freeCredits = entitlement.freeCredits,
                     purchasedCredits = entitlement.purchasedCredits,
                     purchases = history.mapNotNull { record -> entryFor(record = record, packs = packs) },
+                    hasPurchaseHistory = history.isNotEmpty(),
+                    purchasesKnown = historyState is PurchaseHistoryState.Known,
                     isOffline = !isOnline,
                     creditsNeverExpire = packs.none { pack -> pack.creditsExpire },
                 )

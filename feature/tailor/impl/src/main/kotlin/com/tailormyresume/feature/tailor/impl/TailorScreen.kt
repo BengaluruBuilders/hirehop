@@ -58,6 +58,8 @@ internal sealed interface ReviewToastState {
     data object RegenerateNoCredit : ReviewToastState
 
     data object RegenerateFailed : ReviewToastState
+
+    data class RegenerateBlocked(val notice: AiNotice) : ReviewToastState
 }
 
 @Stable
@@ -70,6 +72,7 @@ internal class ReviewInteraction(initialBulletId: String? = null, initialToast: 
         private set
     var sourceBulletId by mutableStateOf<String?>(null)
     var regenerateCategory by mutableStateOf<EntryCategory?>(null)
+    var limitSheetOpen by mutableStateOf(false)
     var toast by mutableStateOf(initialToast)
 
     fun startEdit(bulletId: String, proposedText: String) {
@@ -175,7 +178,7 @@ private fun headerTitle(state: TailorUiState): String {
 @Composable
 private fun RegenerateButton(state: TailorUiState.Success, interaction: ReviewInteraction) {
     TmrIconButton(
-        icon = TmrIcons.Edit,
+        icon = TmrIcons.Refresh,
         contentDescription = if (state.regenerationsLeft == 0) {
             stringResource(R.string.feature_tailor_impl_menu_regenerate_none)
         } else {
@@ -190,6 +193,8 @@ private fun RegenerateButton(state: TailorUiState.Success, interaction: ReviewIn
                 state.sections.filterIsInstance<ReviewSection.Entries>()
                     .firstOrNull { it.changeCount > 0 }
                     ?.let { section -> interaction.regenerateCategory = section.category }
+            } else {
+                interaction.limitSheetOpen = true
             }
         },
     )
@@ -200,11 +205,14 @@ private fun ReviewToastState.messageRes(): Int = when (this) {
     ReviewToastState.Reported -> R.string.feature_tailor_impl_report_thanks
     ReviewToastState.RegenerateNoCredit -> R.string.feature_tailor_impl_regenerate_no_credit
     ReviewToastState.RegenerateFailed -> R.string.feature_tailor_impl_regenerate_failed
+    is ReviewToastState.RegenerateBlocked -> notice.bodyRes(R.string.feature_tailor_impl_regenerate_failed)
 }
 
 private fun ReviewToastState.messageArgs(): Array<Any> = when (this) {
     is ReviewToastState.Accepted -> arrayOf(position)
-    ReviewToastState.Reported, ReviewToastState.RegenerateNoCredit, ReviewToastState.RegenerateFailed -> emptyArray()
+    ReviewToastState.Reported, ReviewToastState.RegenerateNoCredit, ReviewToastState.RegenerateFailed,
+    is ReviewToastState.RegenerateBlocked,
+    -> emptyArray()
 }
 
 @Composable
@@ -357,6 +365,7 @@ internal fun ReviewOverlays(state: TailorUiState.Success, actions: TailorActions
         }
     }
     interaction.regenerateCategory?.let { category -> RegenerateDialog(state, category, actions, interaction) }
+    if (interaction.limitSheetOpen) RegenerateLimitSheet(interaction)
 }
 
 private fun TailorUiState.Success.allBullets(): List<TailorBulletUi> = sections
@@ -434,6 +443,34 @@ private fun RegenerateDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RegenerateLimitSheet(interaction: ReviewInteraction) {
+    TmrBottomSheet(onDismissRequest = { interaction.limitSheetOpen = false }) {
+        StatusPill(
+            label = pluralStringResource(R.plurals.feature_tailor_impl_regen_limit_chip, MAX_REGENERATIONS, MAX_REGENERATIONS),
+            icon = TmrIcons.Refresh,
+            color = TmrTheme.colors.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.feature_tailor_impl_regen_limit_title),
+            style = TmrTheme.typography.headlineM,
+            color = TmrTheme.colors.onSurface,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        NoticeStrip(
+            text = stringResource(R.string.feature_tailor_impl_regenerations_used),
+            icon = TmrIcons.Info,
+            tone = BannerTone.Warn,
+        )
+        TmrPrimaryButton(
+            label = stringResource(R.string.feature_tailor_impl_regen_limit_got_it),
+            onClick = { interaction.limitSheetOpen = false },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
 @Composable
 private fun RegenerateSheet(
     title: String,
@@ -460,7 +497,7 @@ private fun RegenerateSheet(
         label = confirmLabel,
         onClick = onConfirm,
         modifier = Modifier.fillMaxWidth(),
-        leadingIcon = TmrIcons.Edit,
+        leadingIcon = TmrIcons.Refresh,
     )
     TmrSecondaryButton(label = cancelDescription, onClick = onCancel, modifier = Modifier.fillMaxWidth())
 }

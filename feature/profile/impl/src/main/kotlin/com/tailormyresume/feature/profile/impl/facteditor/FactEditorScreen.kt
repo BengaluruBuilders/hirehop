@@ -431,11 +431,7 @@ private fun FactEditorDeleteDialog(
     actions: FactEditorActions,
 ) {
     TmrConfirmDialog(
-        title = stringResource(
-            R.string.feature_profile_impl_fact_editor_delete_title,
-            uiState.displayId,
-            uiState.draft.title,
-        ),
+        title = stringResource(R.string.feature_profile_impl_fact_editor_delete_title, uiState.displayId),
         message = stringResource(R.string.feature_profile_impl_fact_editor_delete_message),
         confirmLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_confirm),
         cancelLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_cancel),
@@ -454,6 +450,7 @@ private fun FactEditorUiState.errorTextFor(field: FactField): String? =
                 FactDraftErrorReason.END_BEFORE_START ->
                     R.string.feature_profile_impl_fact_editor_error_end_before_start
                 FactDraftErrorReason.TOO_LONG -> R.string.feature_profile_impl_fact_editor_error_too_long
+                FactDraftErrorReason.INVALID_DATE -> R.string.feature_profile_impl_fact_editor_error_invalid_date
             },
         )
     }
