@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.guidedform
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class GuidedFormViewModel @Inject internal constructor(
     private val factWriter: UserFactWriter,

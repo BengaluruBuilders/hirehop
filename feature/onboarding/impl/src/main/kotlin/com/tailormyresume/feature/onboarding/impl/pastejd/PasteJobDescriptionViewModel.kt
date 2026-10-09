@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class PasteJobDescriptionViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,

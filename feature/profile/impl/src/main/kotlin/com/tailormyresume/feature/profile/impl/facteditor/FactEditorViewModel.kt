@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.facteditor
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel(assistedFactory = FactEditorViewModel.Factory::class)
 class FactEditorViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
