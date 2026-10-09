@@ -279,7 +279,11 @@ private fun ConfirmedFactsBody(
     FactsProgress(uiState = uiState)
     OnboardingNotice(
         text = pluralStringResource(
-            R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed,
+            if (uiState.skills.isEmpty()) {
+                R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed
+            } else {
+                R.plurals.feature_onboarding_impl_confirm_facts_all_confirmed_with_skills
+            },
             uiState.totalCount,
             uiState.totalCount,
         ),

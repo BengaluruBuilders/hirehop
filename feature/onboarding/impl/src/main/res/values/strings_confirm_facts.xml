@@ -20,6 +20,10 @@
         <item quantity="one">The fact is confirmed. TailorMyResume uses only this one.</item>
         <item quantity="other">All %1$d facts are confirmed. TailorMyResume uses only these.</item>
     </plurals>
+    <plurals name="feature_onboarding_impl_confirm_facts_all_confirmed_with_skills">
+        <item quantity="one">The fact is confirmed. TailorMyResume uses only this one and your skills.</item>
+        <item quantity="other">All %1$d facts are confirmed. TailorMyResume uses only these and your skills.</item>
+    </plurals>
     <string name="feature_onboarding_impl_confirm_facts_continue">Continue to my analysis</string>
     <string name="feature_onboarding_impl_confirm_facts_reason_needs_one">Continue is off until you confirm at least one item below.</string>
 

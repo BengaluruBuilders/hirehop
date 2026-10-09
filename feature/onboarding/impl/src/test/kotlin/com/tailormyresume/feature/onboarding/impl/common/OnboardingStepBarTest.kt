@@ -18,8 +18,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = TmrTestDevices.BOARD_QUALIFIERS, fontScale = TmrTestDevices.LARGE_FONT_SCALE)
 class OnboardingStepBarTest {
 
@@ -30,7 +32,7 @@ class OnboardingStepBarTest {
     fun title_isNotClippedAtFontScale2() {
         composeRule.setContent {
             TmrTheme(darkTheme = false) {
-                Box(Modifier.width(360.dp)) {
+                Box(Modifier.width(240.dp)) {
                     OnboardingStepBar(
                         onBack = {},
                         title = TITLE,
@@ -45,11 +47,14 @@ class OnboardingStepBarTest {
         val results = mutableListOf<TextLayoutResult>()
         node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
         val bar = composeRule.onNodeWithTag(BAR).fetchSemanticsNode()
-        assertThat(bar.size.height.toFloat()).isAtLeast(results.single().multiParagraph.height)
+        val layout = results.single()
+        assertThat(layout.hasVisualOverflow).isFalse()
+        assertThat(layout.lineCount).isAtLeast(2)
+        assertThat(bar.size.height.toFloat()).isAtLeast(layout.multiParagraph.height)
     }
 
     private companion object {
         const val BAR = "bar"
-        const val TITLE = "Tell us about\nyour resume"
+        const val TITLE = "Tell us about your resume and the work you are proudest of"
     }
 }
