@@ -50,3 +50,19 @@ Validated on 2026-10-07: `tools/ci/verify-local.sh` passed, including the consti
 formatting, unit tests, coverage gates, screenshot verification, release lint, and debug/release
 builds. Render review covered light, dark, and 200% text examples. The emulator check covered
 Applications in light, dark, and 200% text. The original emulator settings were restored.
+
+## Flow 1 deviations from the canvas (issue 106)
+
+Fixed on main already: S1 logo tile (211), S2 (184), S4 first-run heading, Delete card, counter and
+declined Back to start (184, 242), and the S4 footer note, which now scrolls with the cards above
+the counter. S5 Reading state exists (`ReadingContent`, stage `Parsing`); the demo reads instantly,
+so only the debug scenario `PARTIAL` shows it.
+
+Open decisions, each needs an owner choice and none is built:
+
+- S1 "Where are you in your career?" chips. The answer is stored in the session and sent at sign-in
+  (`RemoteSignInGateway`). Removing the chips drops that field. Keep until the owner decides.
+- S1 "I have an account" link. It is the only route to sign-in for a returning user. Removing it
+  needs a replacement entry, for example on S3.
+- S4 shows 4 cards, not 3: "Use AI on your text" and "You are 18 or older" are consent purposes
+  with legal weight. Merging them into the canvas's 3 cards needs a legal and product decision.
