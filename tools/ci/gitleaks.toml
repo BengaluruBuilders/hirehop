@@ -1,9 +1,8 @@
-# Copy of gitleaks v8.30.1 config/gitleaks.toml. Changes: (1) the four global path allowlist entries for
-# gitleaks.toml, image, font and document/binary extensions are removed, because a PR picks file names
-# (Leak.png, Leak.bin) and those entries made gitleaks skip the file, issue 216;
-# (2) two local rule-level path allowlists, marked "Local addition"; (3) the gcp-api-key rule's allowlist of 16 published example keys,
-# because the constitution secret check flags key-shaped literals in a public repo. Regenerate from the upstream tag when the pinned gitleaks version
-# changes.
+# Copy of gitleaks v8.30.1 config/gitleaks.toml. Changes: (1) every global path allowlist entry is removed on purpose, so a
+# file name never skips the scan (issue 216), and so are the two @octokit/auth-token/README.md rule allowlists;
+# (2) two local rule-level allowlists, marked "Local addition", that match literals and not paths; (3) the gcp-api-key
+# rule's 16 example keys are anchored regexes with a bracketed last character, because the constitution secret check flags
+# key-shaped literals in a public repo. Regenerate from the upstream tag when the pinned gitleaks version changes.
 # This file has been auto-generated. Do not edit manually.
 # If you would like to contribute new rules, please use
 # cmd/generate/config/main.go and follow the contributing guidelines
@@ -27,29 +26,6 @@ minVersion = "v8.25.0"
 # TODO: change to [[allowlists]]
 [allowlist]
 description = "global allow lists"
-paths = [
-    '''go\.(?:mod|sum|work(?:\.sum)?)$''',
-    '''(?:^|/)vendor/modules\.txt$''',
-    '''(?:^|/)vendor/(?:github\.com|golang\.org/x|google\.golang\.org|gopkg\.in|istio\.io|k8s\.io|sigs\.k8s\.io)(?:/.*)?$''',
-    '''(?:^|/)gradlew(?:\.bat)?$''',
-    '''(?:^|/)gradle\.lockfile$''',
-    '''(?:^|/)mvnw(?:\.cmd)?$''',
-    '''(?:^|/)\.mvn/wrapper/MavenWrapperDownloader\.java$''',
-    '''(?:^|/)node_modules(?:/.*)?$''',
-    '''(?:^|/)(?:deno\.lock|npm-shrinkwrap\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$''',
-    '''(?:^|/)bower_components(?:/.*)?$''',
-    '''(?:^|/)(?:angular|bootstrap|jquery(?:-?ui)?|plotly|swagger-?ui)[a-zA-Z0-9.-]*(?:\.min)?\.js(?:\.map)?$''',
-    '''(?:^|/)javascript\.json$''',
-    '''(?:^|/)(?:Pipfile|poetry)\.lock$''',
-    '''(?i)(?:^|/)(?:v?env|virtualenv)/lib(?:64)?(?:/.*)?$''',
-    '''(?i)(?:^|/)(?:lib(?:64)?/python[23](?:\.\d{1,2})+|python/[23](?:\.\d{1,2})+/lib(?:64)?)(?:/.*)?$''',
-    '''(?i)(?:^|/)[a-z0-9_.]+-[0-9.]+\.dist-info(?:/.+)?$''',
-    '''(?:^|/)vendor/(?:bundle|ruby)(?:/.*?)?$''',
-    '''\.gem$''',
-    '''verification-metadata\.xml''',
-    '''Database.refactorlog''',
-    '''(?:^|/)\.git$''',
-]
 regexes = [
     '''(?i)^true|false|null$''',
     '''^(?i:a+|b+|c+|d+|e+|f+|g+|h+|i+|j+|k+|l+|m+|n+|o+|p+|q+|r+|s+|t+|u+|v+|w+|x+|y+|z+|\*+|\.+)$''',
@@ -234,11 +210,12 @@ description = "Identified a pattern that may indicate short-lived Amazon Bedrock
 regex = '''bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t'''
 entropy = 3
 keywords = ["bedrock-api-key-"]
-# Local addition: this rule's regex is the literal prefix, so it matches its own line in this file once the
-# gitleaks\.toml path allowlist is removed (gitleaks 8.30.1 with --ignore-gitleaks-allow).
+# Local addition: the rule's regex is the literal prefix, so it matches its own line in this file (gitleaks 8.30.1
+# with --ignore-gitleaks-allow). Only that exact line is exempt; git mode may prefix a newline.
 [[rules.allowlists]]
-description = "the rule's own prefix in this file"
-paths = ['''^tools/ci/gitleaks\.toml$''']
+description = "the rule's own definition line"
+regexTarget = "line"
+regexes = ['''\A\n?regex = '{3}bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29[t]'{3}\z''']
 
 [[rules]]
 id = "azure-ad-client-secret"
@@ -621,11 +598,28 @@ description = "Uncovered a GCP API key, which could lead to unauthorized access 
 regex = '''\b(AIza[\w-]{35})(?:[\x60'"\s;]|\\[nr]|$)'''
 entropy = 4
 keywords = ["aiza"]
-# Local addition: an earlier commit of PR 218 carried the upstream example keys in this file and history cannot be
-# rewritten by merge. A commit-bound allowlist was rejected: the 40-hex commit id trips sourcegraph-access-token.
+# Local addition: the 16 upstream example keys, matched whole with the last character bracketed so this file does not
+# itself hold a key-shaped literal (constitution I.4). A path allowlist was rejected: it would exempt any key put in this file.
 [[rules.allowlists]]
-description = "upstream example keys in an earlier commit of this file"
-paths = ['''^tools/ci/gitleaks\.toml$''']
+description = "upstream example keys"
+regexes = [
+    '''^AIzaSyA4UrcGxgwQFTfaI3no3t7Lt1sjmdnP5s[Q]$''',
+    '''^AIzaSyA5_iVawFQ8ABuTZNUdcwERLJv_a_p4wt[M]$''',
+    '''^AIzaSyA8vmApnrHNFE0bApF4hoZ11srVL_n0nv[Y]$''',
+    '''^AIzaSyANUvH9H9BsUccjsu2pCmEkOPjjaXeDQg[Y]$''',
+    '''^AIzaSyASWm6HmTMdYWpgMnjRBjxcQ9CKctWmLd[4]$''',
+    '''^AIzaSyAdOS2zB6NCsk1pCdZ4-P6GBdi_UUPwX7[c]$''',
+    '''^AIzaSyAnLA7NfeLquW1tJFpx_eQCxoX-oo6YyI[s]$''',
+    '''^AIzaSyB8qGxt4ec15vitgn44duC5ucxaOi4Fmq[E]$''',
+    '''^AIzaSyBF2RrAIm4a0mO64EShQfqfd2AFnzAvvu[U]$''',
+    '''^AIzaSyBcE-OOIbhjyR83gm4r2MFCu4MJmprNXs[w]$''',
+    '''^AIzaSyCkEhVjf3pduRDt6d1yKOMitrUEke8agE[M]$''',
+    '''^AIzaSyD3asb-2pEZVqMkmL6M9N6nHZRR_znhrh[0]$''',
+    '''^AIzaSyDMAScliyLx7F0NPDEJi1QmyCgHIAODrl[U]$''',
+    '''^AIzaSyDSb51JiIcB6OJpwwMicseKRhhrOq1cS7[g]$''',
+    '''^AIzaSyabcdefghijklmnopqrstuvwxyz123456[7]$''',
+    '''^AIzayDNSXIbFmlXbIE6mCzDLQAqITYefhixbX4[A]$''',
+]
 
 [[rules]]
 id = "generic-api-key"
@@ -2129,10 +2123,6 @@ keywords = [
     "ghu_",
     "ghs_",
 ]
-[[rules.allowlists]]
-paths = [
-    '''(?:^|/)@octokit/auth-token/README\.md$''',
-]
 
 [[rules]]
 id = "github-fine-grained-pat"
@@ -2154,10 +2144,6 @@ description = "Uncovered a GitHub Personal Access Token, potentially leading to 
 regex = '''ghp_[0-9a-zA-Z]{36}'''
 entropy = 3
 keywords = ["ghp_"]
-[[rules.allowlists]]
-paths = [
-    '''(?:^|/)@octokit/auth-token/README\.md$''',
-]
 
 [[rules]]
 id = "github-refresh-token"

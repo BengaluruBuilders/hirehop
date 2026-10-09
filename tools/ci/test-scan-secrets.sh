@@ -302,16 +302,17 @@ real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
 }
 
 real_gitleaks_fails_for_a_token_in() {
-  local file="$1" prefix="$2" real status=0
+  local file="$1" prefix="$2" lead="${3-token = }" real status=0
   real="$(find_real_gitleaks)" || status=$?
   [[ $status -eq 2 ]] && return 0
   [[ $status -ne 0 ]] && return 1
-  local r="$work/real-$file"
+  local r="$work/real-${file//\//_}"
   new_real_repo "$r"
   printf "Leak.dat -diff\n" >"$r/.gitattributes"
   git -C "$r" add -A
   git -C "$r" commit -q -m attributes
-  printf "${prefix}token = \"%s\"\n" "$(fake_token)" >"$r/$file"
+  mkdir -p "$(dirname "$r/$file")"
+  printf "${prefix}${lead}\"%s\"\n" "$(fake_token)" >>"$r/$file"
   git -C "$r" add -A
   git -C "$r" commit -q -m leak
   local out
@@ -377,6 +378,76 @@ real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config() {
 }
 
 check "real gitleaks passes when a pull request adds the pinned config" real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config
+real_gitleaks_fails_for_a_token_in_gradlew() {
+  real_gitleaks_fails_for_a_token_in gradlew ''
+}
+
+real_gitleaks_fails_for_a_token_in_node_modules() {
+  real_gitleaks_fails_for_a_token_in node_modules/x/index.js ''
+}
+
+real_gitleaks_fails_for_a_token_in_a_gem_file() {
+  real_gitleaks_fails_for_a_token_in Leak.gem ''
+}
+
+real_gitleaks_fails_for_a_token_in_package_lock() {
+  real_gitleaks_fails_for_a_token_in package-lock.json ''
+}
+
+real_gitleaks_fails_for_a_token_in_the_octokit_readme() {
+  real_gitleaks_fails_for_a_token_in x/@octokit/auth-token/README.md '' ''
+}
+
+fake_gcp_key() {
+  echo "AIza$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 35)"
+}
+
+fake_bedrock_key() {
+  echo "bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 120)"
+}
+
+real_gitleaks_fails_for_a_key_appended_to_the_config() {
+  local kind="$1" real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-config-$kind"
+  new_real_repo "$r"
+  printf 'k = "%s"\n' "$("fake_${kind}_key")" >>"$r/tools/ci/gitleaks.toml"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_fails_for_a_gcp_key_appended_to_the_config() {
+  real_gitleaks_fails_for_a_key_appended_to_the_config gcp
+}
+
+real_gitleaks_fails_for_a_bedrock_key_appended_to_the_config() {
+  real_gitleaks_fails_for_a_key_appended_to_the_config bedrock
+}
+
+real_gitleaks_passes_the_unchanged_config_in_a_pull_request() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-config-unchanged"
+  new_real_repo "$r"
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
+  real_scan "$r" "$real" >/dev/null
+}
+
+check "real gitleaks passes the unchanged config in a pull request" real_gitleaks_passes_the_unchanged_config_in_a_pull_request
+check "real gitleaks fails for a token in gradlew" real_gitleaks_fails_for_a_token_in_gradlew
+check "real gitleaks fails for a token in node_modules" real_gitleaks_fails_for_a_token_in_node_modules
+check "real gitleaks fails for a token in a .gem file" real_gitleaks_fails_for_a_token_in_a_gem_file
+check "real gitleaks fails for a token in package-lock.json" real_gitleaks_fails_for_a_token_in_package_lock
+check "real gitleaks fails for a token in the octokit readme" real_gitleaks_fails_for_a_token_in_the_octokit_readme
+check "real gitleaks fails for a gcp key appended to the config" real_gitleaks_fails_for_a_gcp_key_appended_to_the_config
+check "real gitleaks fails for a bedrock key appended to the config" real_gitleaks_fails_for_a_bedrock_key_appended_to_the_config
 check "real gitleaks fails for a token in a .bin file" real_gitleaks_fails_for_a_token_in_a_bin_file
 check "real gitleaks fails for a token in a .png file" real_gitleaks_fails_for_a_token_in_a_png_file
 check "real gitleaks fails for a token in an uppercase .PDF file" real_gitleaks_fails_for_a_token_in_an_uppercase_pdf_file
