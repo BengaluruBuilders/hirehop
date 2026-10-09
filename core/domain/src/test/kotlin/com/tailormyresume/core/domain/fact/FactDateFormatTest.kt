@@ -98,4 +98,39 @@ class FactDateFormatTest {
     fun sixDigitRunIsNotReadable() {
         assertThat(FactDateFormat.isReadable("20242023")).isFalse()
     }
+
+    @Test
+    fun appProduced_tillDate_isReadable() {
+        assertThat(FactDateFormat.isReadable("Till date")).isTrue()
+    }
+
+    @Test
+    fun appProduced_toDate_isReadable() {
+        assertThat(FactDateFormat.isReadable("To date")).isTrue()
+    }
+
+    @Test
+    fun appProduced_lowercaseTillDate_isReadable() {
+        assertThat(FactDateFormat.isReadable("till date")).isTrue()
+    }
+
+    @Test
+    fun appProduced_twoDigitYear_isReadable() {
+        assertThat(FactDateFormat.isReadable("23")).isTrue()
+    }
+
+    @Test
+    fun appProduced_curlyApostropheMonthYear_isReadable() {
+        assertThat(FactDateFormat.isReadable("Jul’2024")).isTrue()
+    }
+
+    @Test
+    fun appProduced_monthYearWithoutSpace_isReadable() {
+        assertThat(FactDateFormat.isReadable("Jul2024")).isTrue()
+    }
+
+    @Test
+    fun appProduced_monthSlashYear_isReadable() {
+        assertThat(FactDateFormat.isReadable("06/2021")).isTrue()
+    }
 }

@@ -1,6 +1,7 @@
 package com.tailormyresume.app.debug
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -42,7 +43,7 @@ class DebugScenarioActivity : ComponentActivity() {
     private var opened by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+        applyEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             TmrTheme {
@@ -70,6 +71,15 @@ class DebugScenarioActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyEdgeToEdge()
+    }
+
+    private fun applyEdgeToEdge() {
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
     }
 
     private fun openPreview() {

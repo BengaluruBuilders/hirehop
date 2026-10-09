@@ -63,10 +63,28 @@ class CreditsRefundCardTest {
             composeRule.onAllNodesWithText(REFUND_BUTTON).fetchSemanticsNodes(),
         ).isNotEmpty()
     }
+
+    @Test
+    fun historyWithoutListedPurchasesKeepsGooglePlayCopyAndButton() {
+        composeRule.setContent {
+            Host(CreditsUiState(stage = CreditsStage.READY, purchases = emptyList(), hasPurchaseHistory = true))
+        }
+
+        assertThat(
+            composeRule.onAllNodesWithText(GOOGLE_PLAY_CLAIM, substring = true).fetchSemanticsNodes(),
+        ).isNotEmpty()
+        assertThat(
+            composeRule.onAllNodesWithText(REFUND_BUTTON).fetchSemanticsNodes(),
+        ).isNotEmpty()
+        assertThat(
+            composeRule.onAllNodesWithText(NOT_BOUGHT_COPY, substring = true).fetchSemanticsNodes(),
+        ).isEmpty()
+    }
 }
 
 private const val GOOGLE_PLAY_CLAIM = "You paid through Google Play"
 private const val REFUND_BUTTON = "Ask for a refund"
+private const val NOT_BOUGHT_COPY = "You have not bought credits yet"
 private const val HELP_TITLE = "How refunds work"
 
 @androidx.compose.runtime.Composable

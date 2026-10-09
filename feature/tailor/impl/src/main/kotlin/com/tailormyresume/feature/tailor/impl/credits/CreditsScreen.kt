@@ -122,7 +122,7 @@ private fun CreditsReady(
     TmrSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
     CreditsPurchases(uiState = uiState)
     TmrSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
-    CreditsHelp(actions = actions, hasPurchases = uiState.purchases.isNotEmpty())
+    CreditsHelp(actions = actions, hasPurchases = uiState.hasPurchaseHistory || uiState.purchases.isNotEmpty())
 }
 
 @Composable
