@@ -43,11 +43,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check constitution rules
-        env:
-          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
-        run: tools/ci/check-constitution.sh
-
       - name: Scan for secrets
         env:
           BASE_REF: ${{ github.base_ref }}
@@ -67,6 +62,11 @@ jobs:
         env:
           REAL_GITLEAKS: ${{ runner.temp }}/gitleaks/gitleaks
         run: tools/ci/test-scan-secrets.sh
+
+      - name: Check constitution rules
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: tools/ci/check-constitution.sh
 
   changes:
     name: "Detect code changes"
