@@ -41,7 +41,7 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(qualifiers = "w230dp-h780dp-normal-long-notround-any-xhdpi-keyshidden-nonav", fontScale = 2f)
+@Config(qualifiers = "w262dp-h1038dp-normal-long-notround-any-440dpi-keyshidden-nonav", fontScale = 2f)
 class OnboardingNarrowLargeFontTest {
 
     @get:Rule

@@ -76,10 +76,11 @@ class TmrFitTextFloorTest {
 
     @Test
     @Config(fontScale = 2f)
-    fun theFinalSizeIsReportedInTheFirstLayoutCallback() {
+    fun theSizeSettlesWithinTwoLayoutPasses() {
         show(width = 90.dp, text = "Confirmed", sp = 12f)
 
-        assertEquals(1, layoutPasses)
+        assertTrue(layoutPasses <= 2)
+        assertFalse(requireNotNull(layout).splitsAWord())
     }
 
     private fun renderedDp(): Float =

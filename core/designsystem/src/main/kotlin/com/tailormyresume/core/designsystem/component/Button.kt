@@ -40,6 +40,7 @@ object TmrButtonDefaults {
     val IconSize = 20.dp
     val CompactContentPadding = PaddingValues(horizontal = 16.dp)
     val CompactIconSize = 17.dp
+    val WrappedLabelPadding = 10.dp
 }
 
 private class TmrButtonPalette(val container: Color, val content: Color, val border: BorderStroke?)
@@ -162,6 +163,7 @@ internal fun TmrButtonLabeled(
         TmrFitText(
             text = label,
             style = if (size == TmrButtonSize.Compact) TmrTheme.typography.labelL else TmrTheme.typography.button,
+            modifier = if (wrapped) Modifier.padding(vertical = TmrButtonDefaults.WrappedLabelPadding) else Modifier,
             textAlign = if (wrapped) TextAlign.Center else TextAlign.Unspecified,
             onTextLayout = { wrapped = it.lineCount > 1 },
         )
