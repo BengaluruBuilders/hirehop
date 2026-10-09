@@ -25,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.icon.TmrIcons
@@ -57,7 +59,12 @@ fun TmrBottomSheet(
     ) {
         Column(modifier = Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
             if (title != null) {
-                Text(text = title, style = TmrTheme.typography.headlineM, color = colors.onSurface)
+                Text(
+                    text = title,
+                    modifier = Modifier.semantics { heading() },
+                    style = TmrTheme.typography.headlineM,
+                    color = colors.onSurface,
+                )
             }
             if (subtitle != null) {
                 Text(text = subtitle, style = TmrTheme.typography.bodyM, color = colors.onSurfaceVariant)
