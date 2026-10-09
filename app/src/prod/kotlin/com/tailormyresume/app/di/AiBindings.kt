@@ -1,9 +1,9 @@
 package com.tailormyresume.app.di
 
+import com.tailormyresume.app.ai.GuardedCoverLetterSource
 import com.tailormyresume.app.ai.GuardedJobAnalysisSource
-import com.tailormyresume.app.ai.RemoteCoverLetterSource
-import com.tailormyresume.app.ai.RemotePrepQuestionSource
-import com.tailormyresume.app.ai.RemoteResumeTailor
+import com.tailormyresume.app.ai.GuardedPrepQuestionSource
+import com.tailormyresume.app.ai.GuardedResumeTailor
 import com.tailormyresume.app.ai.RemoteResumeTextParser
 import com.tailormyresume.core.domain.JobAnalysisSource
 import com.tailormyresume.core.domain.ResumeTailor
@@ -22,14 +22,14 @@ interface AiBindings {
     fun bindJobAnalysisSource(impl: GuardedJobAnalysisSource): JobAnalysisSource
 
     @Binds
-    fun bindResumeTailor(impl: RemoteResumeTailor): ResumeTailor
+    fun bindResumeTailor(impl: GuardedResumeTailor): ResumeTailor
 
     @Binds
     fun bindResumeTextParser(impl: RemoteResumeTextParser): ResumeTextParser
 
     @Binds
-    fun bindCoverLetterSource(impl: RemoteCoverLetterSource): CoverLetterSource
+    fun bindCoverLetterSource(impl: GuardedCoverLetterSource): CoverLetterSource
 
     @Binds
-    fun bindPrepQuestionSource(impl: RemotePrepQuestionSource): PrepQuestionSource
+    fun bindPrepQuestionSource(impl: GuardedPrepQuestionSource): PrepQuestionSource
 }

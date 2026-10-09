@@ -54,11 +54,20 @@ class DebugScenarioActivity : ComponentActivity() {
     @Inject
     lateinit var previewMode: DebugPreviewMode
 
+    private val previewLifecycle by lazy {
+        DebugPreviewLifecycle(
+            previewMode = previewMode,
+            forcePayment = { menuViewModel.forcePaymentScenario(target, scenario) },
+            releasePayment = menuViewModel::releasePaymentScenario,
+        )
+    }
+
     private val hasAccount: Flow<Boolean> by lazy { sessionRepository.observeAccount().map { it != null } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyEdgeToEdge()
         super.onCreate(savedInstanceState)
+        previewLifecycle.onCreate()
         setContent {
             TmrTheme {
                 BackHandler(enabled = opened) { closePreview() }
@@ -95,13 +104,12 @@ class DebugScenarioActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (opened) menuViewModel.forcePaymentScenario(target, scenario)
+        previewLifecycle.onStart(opened)
     }
 
     override fun onStop() {
         super.onStop()
-        if (!opened || isChangingConfigurations) return
-        if (isFinishing) closePreview() else menuViewModel.releasePaymentScenario()
+        if (previewLifecycle.onStop(opened, isFinishing, isChangingConfigurations)) closePreview()
     }
 
     override fun onDestroy() {
