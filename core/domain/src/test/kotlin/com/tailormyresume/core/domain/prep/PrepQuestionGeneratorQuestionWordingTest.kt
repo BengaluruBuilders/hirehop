@@ -27,7 +27,7 @@ class PrepQuestionGeneratorQuestionWordingTest {
         val prompt = promptFor(canonicalKotlinRequirement, MatchStatus.MET, "I-01-b1")
 
         assertThat(prompt).isEqualTo(
-            "Walk me through your work on strong Kotlin for Android app development. " +
+            "Walk me through your work with Kotlin and Android. " +
                 "Which example from Android developer intern would you use?",
         )
     }
@@ -53,6 +53,24 @@ class PrepQuestionGeneratorQuestionWordingTest {
         val prompt = promptFor(canonicalKotlinRequirement, MatchStatus.MET, "Z-01-b1", untitled)
 
         assertThat(prompt).endsWith("Which example from your record would you use?")
+    }
+
+    @Test
+    fun strengthPromptJoinsThreeKeywordsWithCommasAndAnd() {
+        val requirement = canonicalKotlinRequirement.copy(keywords = listOf("kotlin", "android", "jetpack compose"))
+
+        val prompt = promptFor(requirement, MatchStatus.MET, "I-01-b1")
+
+        assertThat(prompt).startsWith("Walk me through your work with Kotlin, Android and Jetpack Compose. ")
+    }
+
+    @Test
+    fun strengthPromptBackedByAListEntryAsksAboutTheRecordNotTheListTitle() {
+        val prompt = promptFor(canonicalKotlinRequirement, MatchStatus.MET, "P-03-b1")
+
+        assertThat(prompt).isEqualTo(
+            "Walk me through your work with Kotlin and Android. Which example from your record would you use?",
+        )
     }
 
     @Test

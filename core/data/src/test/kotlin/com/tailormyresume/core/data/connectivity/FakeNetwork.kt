@@ -27,6 +27,15 @@ internal class FakeNetwork {
         shadow.setActiveNetworkInfo(connectedWifi())
     }
 
+    fun connectWithoutInternetCapability() {
+        shadow.setActiveNetworkInfo(connectedWifi())
+        shadow.setNetworkCapabilities(manager.activeNetwork, ShadowNetworkCapabilities.newInstance())
+    }
+
+    fun noActiveNetwork() {
+        shadow.setActiveNetworkInfo(null)
+    }
+
     fun disconnect() {
         shadow.networkCallbacks.forEach { callback -> callback.onLost(network) }
     }
