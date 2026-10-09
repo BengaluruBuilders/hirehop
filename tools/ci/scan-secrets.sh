@@ -8,6 +8,11 @@ printf '[extend]\nuseDefault = true\n' >"$config"
 
 if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
   git show "origin/${BASE_REF}:.gitleaksignore" >"$ignore_dir/.gitleaksignore" 2>/dev/null || : >"$ignore_dir/.gitleaksignore"
+  if git cat-file -e "origin/${BASE_REF}:.gitleaksignore" 2>/dev/null; then
+    cp "$ignore_dir/.gitleaksignore" .gitleaksignore
+  else
+    rm -f .gitleaksignore
+  fi
 elif [[ -f .gitleaksignore ]]; then
   cp .gitleaksignore "$ignore_dir/.gitleaksignore"
 else

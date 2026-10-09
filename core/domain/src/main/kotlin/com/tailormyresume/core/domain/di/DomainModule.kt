@@ -7,6 +7,7 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.FabricationGuard
+import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.GapMatcher
 import com.tailormyresume.core.domain.IdGenerator
 import com.tailormyresume.core.domain.JobDescriptionAnalyzer
@@ -59,6 +60,7 @@ internal abstract class DomainModule {
             resumeTailor: OfflineResumeTailor,
             fabricationGuard: FabricationGuard,
             clock: Clock,
+            firebaseUid: FirebaseUidProvider,
         ): SampleDataController = OfflineSampleDataController(
             store = store,
             sessionRepository = sessionRepository,
@@ -69,6 +71,7 @@ internal abstract class DomainModule {
             analyzeJob = AnalyzeJobUseCase(analysisSource),
             tailorResume = TailorResumeUseCase(resumeTailor, fabricationGuard),
             clock = clock,
+            firebaseUid = firebaseUid,
         )
     }
 }

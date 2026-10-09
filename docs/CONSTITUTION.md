@@ -87,7 +87,7 @@ Do not require `Build, lint, and unit tests` yet. When an owner edits a PR title
 GitHub then counts the check as passed for a PR with a failed build.
 Until a job copies the result of the last full run, a person checks the build result before merge.
 
-The secret scan runs `tools/ci/scan-secrets.sh`. It uses the default gitleaks rules and the `.gitleaksignore` file of the base branch. A file in the PR cannot allow a secret. `tools/ci/test-scan-secrets.sh` tests the script.
+The secret scan runs `tools/ci/scan-secrets.sh`. It uses the default gitleaks rules and the `.gitleaksignore` file of the base branch. Before the scan, the script overwrites the workspace `.gitleaksignore` with the base copy, because gitleaks always loads that file from the source directory. A `.gitleaksignore` or `.gitleaks.toml` in the PR cannot allow a secret. A PR can still edit `scan-secrets.sh` or `build.yml`, and `pull_request` runs the PR version of both. Review those two files with extra care. `tools/ci/test-scan-secrets.sh` tests the script, including a run with the real gitleaks binary.
 
 ## Article VII — Amendments
 

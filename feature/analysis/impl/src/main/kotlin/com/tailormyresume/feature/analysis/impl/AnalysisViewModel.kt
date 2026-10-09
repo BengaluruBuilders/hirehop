@@ -92,6 +92,7 @@ class AnalysisViewModel @Inject constructor(
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
     private var submitting = false
+    private var entered = false
 
     val destinations: Flow<AnalysisDestination> = destinationChannel.receiveAsFlow()
 
@@ -143,12 +144,11 @@ class AnalysisViewModel @Inject constructor(
         initialValue = AnalysisUiState.Loading,
     )
 
-    init {
-        load()
-    }
-
     fun onEnter(key: DebugScenario) {
         scenario.value = key
+        if (entered) return
+        entered = true
+        load()
     }
 
     fun onRetry() = load()
@@ -310,6 +310,7 @@ class AnalysisViewModel @Inject constructor(
                 return@launch
             }
             local.update { it.copy(phase = Phase.Analyzing(kept, profile.confirmedFactCount())) }
+            if (scenario.value in FORCED_WITHOUT_ANALYSIS) return@launch
             attempt { analyze(kept, profile) }.fold(
                 onSuccess = { analysis ->
                     if (analysis.gap.keywordCoverage.total > 0) countAnalysisOnce(kept)
@@ -558,6 +559,7 @@ class AnalysisViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        val FORCED_WITHOUT_ANALYSIS = setOf(DebugScenario.ERROR, DebugScenario.EMPTY, DebugScenario.LOADING)
         const val APPLICATION_ID_KEY = "application-id-"
     }
 }

@@ -3,6 +3,7 @@ package com.tailormyresume.core.domain.sample
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.data.mock.NoMockLatency
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
+import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.TailorResumeUseCase
 import com.tailormyresume.core.domain.offline.OfflineFabricationGuard
 import com.tailormyresume.core.domain.offline.OfflineGapMatcher
@@ -31,6 +32,7 @@ class SampleJobPreviewTest {
     private val applications = TestApplicationRepository()
     private val clock = TestClock()
     private val payments = OfflinePaymentGateway(store, NoMockLatency, clock, TestIdGenerator("order"))
+    private var firebaseUid: String? = null
     private val controller = OfflineSampleDataController(
         store = store,
         sessionRepository = session,
@@ -41,6 +43,7 @@ class SampleJobPreviewTest {
         analyzeJob = AnalyzeJobUseCase(OfflineJobAnalysisSource(OfflineJobDescriptionAnalyzer(), OfflineGapMatcher())),
         tailorResume = TailorResumeUseCase(OfflineResumeTailor(), OfflineFabricationGuard()),
         clock = clock,
+        firebaseUid = FirebaseUidProvider { firebaseUid },
     )
     private val nextStep = NextOnboardingStepUseCase(session, profiles)
 
@@ -71,5 +74,16 @@ class SampleJobPreviewTest {
 
         assertThat(profiles.observeProfile().first()).isEqualTo(profileBefore)
         assertThat(applications.observeApplications().first()).hasSize(4)
+    }
+
+    @Test
+    fun keepingTheSampleJobWithARealFirebaseUserWritesNoSampleAccountConsentOrProfile() = runTest {
+        firebaseUid = "real-uid"
+
+        controller.keepSampleJobDescription()
+
+        assertThat(session.observeAccount().first()).isNull()
+        assertThat(session.observeConsent().first()).isNull()
+        assertThat(profiles.observeProfile().first()).isNull()
     }
 }

@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 class SampleDataWiringTest {
 
-    private val constructor = OfflineSampleDataController::class.java.constructors.single()
+    private val constructor = OfflineSampleDataController::class.java.constructors.filterNot { it.isSynthetic }.single()
 
     @Test
     fun theControllerTakesTheOfflinePaymentGatewayAndNeverAFlavourBoundOne() {

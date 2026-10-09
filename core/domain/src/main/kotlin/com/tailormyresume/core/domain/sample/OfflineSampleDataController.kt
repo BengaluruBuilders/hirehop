@@ -7,6 +7,7 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
 import com.tailormyresume.core.domain.CreditSpend
+import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.TailorResumeUseCase
 import com.tailormyresume.core.domain.offline.OfflinePaymentGateway
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
@@ -33,6 +34,7 @@ class OfflineSampleDataController(
     private val analyzeJob: AnalyzeJobUseCase,
     private val tailorResume: TailorResumeUseCase,
     private val clock: Clock,
+    private val firebaseUid: FirebaseUidProvider = FirebaseUidProvider { null },
 ) : SampleDataController {
 
     override suspend fun load() {
@@ -58,7 +60,7 @@ class OfflineSampleDataController(
     override suspend fun keepSampleJobDescription() {
         sessionRepository.keepJobDescription(SampleDataSet.keptJob)
         val next = NextOnboardingStepUseCase(sessionRepository, profileRepository)()
-        if (next !is OnboardingStep.GapAnalysis) signInSampleCandidate(clock.now())
+        if (next !is OnboardingStep.GapAnalysis && firebaseUid.uid() == null) signInSampleCandidate(clock.now())
     }
 
     private suspend fun signInSampleCandidate(now: Instant) {

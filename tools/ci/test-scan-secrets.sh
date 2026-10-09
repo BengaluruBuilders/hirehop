@@ -135,6 +135,36 @@ policy_job_runs_the_script_and_its_test() {
     grep -q 'tools/ci/test-scan-secrets.sh' "$root/.github/workflows/build.yml"
 }
 
+real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry() {
+  local real
+  real="${REAL_GITLEAKS:-$(command -v gitleaks)}" || {
+    echo "SKIP real gitleaks not found; CI installs 8.30.1 and runs this check"
+    return 0
+  }
+  local r="$work/real"
+  local token="ghp_$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 36)"
+  git init -q -b main "$r"
+  git -C "$r" config user.email test@example.test
+  git -C "$r" config user.name test
+  printf 'base\n' >"$r/README"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m base
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD)"
+  printf 'token = "%s"\n' "$token" >"$r/Leak.kt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local leak_sha
+  leak_sha="$(git -C "$r" rev-parse HEAD)"
+  local scan="(cd '$r' && RUNNER_TEMP='$work/real-temp' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER=HEAD GITLEAKS='$real' '$script')"
+  mkdir -p "$work/real-temp"
+  eval "$scan" >/dev/null 2>&1 && return 1
+  printf '%s:Leak.kt:github-pat:1\n' "$leak_sha" >"$r/.gitleaksignore"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m "ignore the leak"
+  ! eval "$scan" >/dev/null 2>&1
+}
+
+check "real gitleaks still fails when a pull request adds its own ignore entry" real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry
 check "pull request uses a temp config that extends the defaults" pull_request_uses_a_temp_config_that_extends_the_defaults
 check "pull request takes the ignore file from the base branch" pull_request_takes_the_ignore_file_from_the_base_branch
 check "pull request scans only the pull request range" pull_request_scans_only_the_pull_request_range
