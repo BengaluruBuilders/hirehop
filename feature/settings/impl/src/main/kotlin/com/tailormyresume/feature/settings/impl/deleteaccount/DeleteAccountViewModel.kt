@@ -53,7 +53,7 @@ class DeleteAccountViewModel @Inject constructor(
                 accountEmail = snapshot.accountEmail,
                 isOffline = !isOnline || phase.forcedOffline,
                 failure = phase.failure,
-                isConfirmVisible = false,
+                isConfirmVisible = phase.isConfirmVisible,
             )
         }
     }.stateIn(
@@ -67,7 +67,7 @@ class DeleteAccountViewModel @Inject constructor(
         hasEntered = true
         phase.value = when (key.scenario) {
             DebugScenario.OFFLINE -> Phase(forcedOffline = true)
-            DebugScenario.DELETING -> Phase(stage = Stage.DELETING, step = AccountDeletionStep.DELETING_PROFILE_FACTS)
+            DebugScenario.DELETING -> Phase(stage = Stage.DELETING, step = AccountDeletionStep.DELETING_APPLICATIONS)
             DebugScenario.ERROR -> Phase(failure = DeleteAccountFailure.DATA_INTACT)
             else -> Phase()
         }
@@ -82,6 +82,16 @@ class DeleteAccountViewModel @Inject constructor(
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
         if (ready.isOffline) return
+        phase.update { current -> current.copy(isConfirmVisible = true) }
+    }
+
+    fun onDeleteDismissed() {
+        phase.update { current -> current.copy(isConfirmVisible = false) }
+    }
+
+    fun onDeleteConfirmed() {
+        val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
+        if (!ready.isConfirmVisible || ready.isOffline) return
         phase.update { Phase(stage = Stage.DELETING, step = AccountDeletionStep.entries.first()) }
         PendingNavigation.set(listOf(AccountDeletedNavKey))
         viewModelScope.launch {
@@ -92,10 +102,6 @@ class DeleteAccountViewModel @Inject constructor(
             }
         }
     }
-
-    fun onDeleteConfirmed() = Unit
-
-    fun onDeleteDismissed() = Unit
 
     private fun AccountDeletionResult.Failed.toFailure(): DeleteAccountFailure =
         if (dataIntact) DeleteAccountFailure.DATA_INTACT else DeleteAccountFailure.PARTLY_DELETED
@@ -116,6 +122,7 @@ class DeleteAccountViewModel @Inject constructor(
         val step: AccountDeletionStep = AccountDeletionStep.entries.first(),
         val failure: DeleteAccountFailure? = null,
         val forcedOffline: Boolean = false,
+        val isConfirmVisible: Boolean = false,
     )
 
     private companion object {
