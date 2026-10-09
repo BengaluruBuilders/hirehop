@@ -63,7 +63,7 @@ class PrepQuestionGeneratorTest {
         assertThat(question.kind).isEqualTo(PrepQuestionKind.STRENGTH)
         assertThat(question.requirementText).isEqualTo(canonicalKotlinRequirement.text)
         assertThat(question.backingFactId).isEqualTo("I-01-b1")
-        assertThat(question.prompt).contains("Walk me through your work on strong Kotlin for Android app development.")
+        assertThat(question.prompt).contains("Walk me through your work with Kotlin and Android.")
         assertThat(question.prompt).contains("Android developer intern")
     }
 
@@ -229,7 +229,7 @@ class PrepQuestionGeneratorTest {
         val raw = canonicalKotlinRequirement.copy(text = "Must have Kotlin for Android apps.")
         val question = only(generate(raw, MatchStatus.MET, "I-01-b1"))
 
-        assertThat(question.prompt).contains("Walk me through your work on kotlin for Android apps. Which example")
+        assertThat(question.prompt).contains("Walk me through your work with Kotlin and Android. Which example")
         assertThat(question.prompt).doesNotContain("..")
         assertThat(question.requirementText).isEqualTo("Must have Kotlin for Android apps.")
     }
