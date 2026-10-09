@@ -62,13 +62,17 @@ fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
 }
 
 private fun Navigator.navigateToSettingsDestination(destination: SettingsDestination, scenario: DebugScenario) {
-    when (destination) {
-        SettingsDestination.CREDITS_AND_HELP -> navigate(CreditsNavKey())
-        SettingsDestination.YOUR_DATA -> navigate(YourDataNavKey())
-        SettingsDestination.CONSENT_NOTICE -> navigate(ConsentNavKey(readOnly = true))
-        SettingsDestination.DELETE_ACCOUNT -> navigate(deleteAccountNavKey(scenario))
-    }
+    navigate(settingsDestinationNavKey(destination, scenario))
 }
+
+internal fun settingsDestinationNavKey(destination: SettingsDestination, scenario: DebugScenario): NavKey =
+    when (destination) {
+        SettingsDestination.CREDITS_AND_HELP -> CreditsNavKey()
+        SettingsDestination.YOUR_DATA -> YourDataNavKey()
+        SettingsDestination.CONSENT_NOTICE -> ConsentNavKey(readOnly = true)
+        SettingsDestination.DELETE_ACCOUNT -> deleteAccountNavKey(scenario)
+        SettingsDestination.SIGN_IN -> CreditsNavKey()
+    }
 
 internal fun deleteAccountNavKey(settingsScenario: DebugScenario): DeleteAccountNavKey =
     if (settingsScenario == DebugScenario.OFFLINE) DeleteAccountNavKey(scenario = DebugScenario.OFFLINE) else DeleteAccountNavKey()

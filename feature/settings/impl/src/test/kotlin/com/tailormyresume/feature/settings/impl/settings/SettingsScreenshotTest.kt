@@ -1,6 +1,7 @@
 package com.tailormyresume.feature.settings.impl.settings
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -64,6 +65,45 @@ class SettingsScreenshotTest {
     }
 
     @Test
+    fun signedOut_readsInLightAndDark() {
+        captureBothThemes(screenName = "SettingsSignedOut", uiState = content(signedIn = false))
+    }
+
+    @Test
+    fun signedOut_showsAnEnabledSignInRowAndNoSignOutRow() {
+        var signInRequests = 0
+        composeRule.setContent {
+            TmrTheme {
+                SettingsScreen(
+                    uiState = content(signedIn = false),
+                    actions = noActions.copy(onSignIn = { signInRequests++ }),
+                    versionName = VERSION,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Sign in").assertIsEnabled().performClick()
+        composeRule.onNodeWithText("Sign out").assertDoesNotExist()
+
+        assertThat(signInRequests).isEqualTo(1)
+    }
+
+    @Test
+    fun signedOut_offlineKeepsTheSignInRowEnabled() {
+        composeRule.setContent {
+            TmrTheme {
+                SettingsScreen(
+                    uiState = content(signedIn = false, isOffline = true),
+                    actions = noActions,
+                    versionName = VERSION,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Sign in").assertIsEnabled()
+    }
+
+    @Test
     @Config(fontScale = TmrTestDevices.LARGE_FONT_SCALE)
     fun default_atLargeText() {
         captureBothThemes(
@@ -95,8 +135,9 @@ class SettingsScreenshotTest {
     private fun content(
         isOffline: Boolean = false,
         isSignOutConfirmVisible: Boolean = false,
+        signedIn: Boolean = true,
     ) = SettingsUiState.Content(
-        account = SignInAccount.localAccount,
+        account = SignInAccount.localAccount.takeIf { signedIn },
         creditsLeft = CREDITS,
         consentAcceptedAt = CONSENT_TIME,
         isOffline = isOffline,
@@ -104,6 +145,7 @@ class SettingsScreenshotTest {
     )
 
     private val noActions = SettingsActions(
+        onSignIn = {},
         onSignOut = {},
         onSignOutConfirm = {},
         onSignOutDismiss = {},

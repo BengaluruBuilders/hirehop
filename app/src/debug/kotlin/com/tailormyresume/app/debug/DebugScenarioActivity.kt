@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tailormyresume.app.MainActivity
+import com.tailormyresume.app.ui.AppRootState
 import com.tailormyresume.app.ui.RootViewModelStores
 import com.tailormyresume.app.ui.TmrFirstRunRoot
 import com.tailormyresume.app.ui.TmrMainRoot
@@ -94,3 +95,5 @@ private fun DebugScenarioPreview(
         TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
     }
 }
+
+internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean = false

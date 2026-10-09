@@ -18,6 +18,7 @@ class SettingsSignOutDialogTest {
     val composeRule = createComposeRule()
 
     private val noActions = SettingsActions(
+        onSignIn = {},
         onSignOut = {},
         onSignOutConfirm = {},
         onSignOutDismiss = {},
