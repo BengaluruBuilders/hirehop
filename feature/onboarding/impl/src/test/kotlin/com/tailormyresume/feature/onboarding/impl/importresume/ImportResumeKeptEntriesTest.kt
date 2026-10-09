@@ -31,7 +31,11 @@ class ImportResumeKeptEntriesTest {
     @Test
     fun userStatedEntriesAreCountedAndImportedOnesAreNotWhenParsing() = runTest {
         val profile = CandidateProfile(
-            "P", "", "", "", emptyList(),
+            "P",
+            "",
+            "",
+            "",
+            emptyList(),
             listOf(
                 entry("W-01", FactSource.USER_STATED),
                 entry("W-02", FactSource.USER_EDITED),
