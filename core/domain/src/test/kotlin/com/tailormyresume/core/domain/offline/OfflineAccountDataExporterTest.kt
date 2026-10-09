@@ -31,7 +31,7 @@ class OfflineAccountDataExporterTest : AccountDataExporterContractTest() {
         OfflineAccountDataExporter({ folder.root }, NoMockLatency, Dispatchers.Unconfined)
 
     @Test
-    fun theArchiveHoldsTheFourDataFiles() = runTest {
+    fun theArchiveHoldsTheFiveDataFiles() = runTest {
         val now = Instant.fromEpochMilliseconds(1_790_000_000_000)
         val data = AccountData(
             generatedAt = now,
@@ -48,7 +48,7 @@ class OfflineAccountDataExporterTest : AccountDataExporterContractTest() {
 
         ZipFile(archive.file).use { zip ->
             assertThat(zip.entries().toList().map { it.name })
-                .containsExactly("account.txt", "profile.txt", "applications.txt", "purchases.txt")
+                .containsExactly("account.txt", "profile.txt", "applications.txt", "purchases.txt", "my-data.json")
             val purchases = zip.getInputStream(zip.getEntry("purchases.txt")).bufferedReader().readText()
             assertThat(purchases).contains("order-1")
             val applications = zip.getInputStream(zip.getEntry("applications.txt")).bufferedReader().readText()
