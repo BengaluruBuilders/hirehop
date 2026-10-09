@@ -15,6 +15,7 @@ import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.feature.profile.api.navigation.GuidedProfileFormNavKey
 import com.tailormyresume.feature.profile.impl.ContactInput
 import com.tailormyresume.feature.profile.impl.FactWriteResult
+import com.tailormyresume.feature.profile.impl.ProfileExit
 import com.tailormyresume.feature.profile.impl.ProfileExitResolver
 import com.tailormyresume.feature.profile.impl.UserFactWriter
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +43,7 @@ class GuidedFormViewModel @Inject internal constructor(
 
     private var hasEntered = false
     private var forcedOffline = false
+    private var returnsToProfile = false
 
     val uiState: StateFlow<GuidedFormUiState> = mutableState.asStateFlow()
 
@@ -49,6 +51,7 @@ class GuidedFormViewModel @Inject internal constructor(
         if (hasEntered) return
         hasEntered = true
         forcedOffline = key.scenario == DebugScenario.OFFLINE
+        returnsToProfile = key.returnsToProfile
         mutableState.value = guidedFormStateFor(
             scenario = key.scenario,
             startStep = key.startStep,
@@ -193,7 +196,7 @@ class GuidedFormViewModel @Inject internal constructor(
 
     private fun onFinish() {
         viewModelScope.launch {
-            val exit = exitResolver.resolve()
+            val exit = if (returnsToProfile) ProfileExit.Profile else exitResolver.resolve()
             mutableState.update { it.copy(navigation = GuidedNavigation.Exit(exit)) }
         }
     }

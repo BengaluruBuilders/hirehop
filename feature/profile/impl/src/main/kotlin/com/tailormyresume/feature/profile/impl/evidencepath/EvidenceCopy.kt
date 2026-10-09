@@ -35,17 +35,31 @@ internal fun EvidenceCategory.icon(): ImageVector = when (this) {
 }
 
 @StringRes
-internal fun EvidenceCategory.questionRes(index: Int): Int = when (this) {
+internal fun EvidenceCategory.questionRes(index: Int): Int = when (index) {
+    0 -> firstQuestionRes()
+    1 -> R.string.feature_profile_impl_evidence_path_question_tools
+    2 -> R.string.feature_profile_impl_evidence_path_question_result
+    else -> lastQuestionRes()
+}
+
+@StringRes
+private fun EvidenceCategory.firstQuestionRes(): Int = when (this) {
     EvidenceCategory.WORK -> R.string.feature_profile_impl_evidence_path_question_work_1
-    EvidenceCategory.PROJECTS -> if (index == 0) {
-        R.string.feature_profile_impl_evidence_path_question_projects_1
-    } else {
-        R.string.feature_profile_impl_evidence_path_question_projects_2
-    }
+    EvidenceCategory.PROJECTS -> R.string.feature_profile_impl_evidence_path_question_projects_1
     EvidenceCategory.INTERNSHIPS -> R.string.feature_profile_impl_evidence_path_question_internships_1
     EvidenceCategory.COURSEWORK -> R.string.feature_profile_impl_evidence_path_question_coursework_1
     EvidenceCategory.COMPETITIONS -> R.string.feature_profile_impl_evidence_path_question_competitions_1
     EvidenceCategory.POSITIONS -> R.string.feature_profile_impl_evidence_path_question_positions_1
+}
+
+@StringRes
+private fun EvidenceCategory.lastQuestionRes(): Int = when (this) {
+    EvidenceCategory.WORK -> R.string.feature_profile_impl_evidence_path_question_work_4
+    EvidenceCategory.PROJECTS -> R.string.feature_profile_impl_evidence_path_question_projects_4
+    EvidenceCategory.INTERNSHIPS -> R.string.feature_profile_impl_evidence_path_question_internships_4
+    EvidenceCategory.COURSEWORK -> R.string.feature_profile_impl_evidence_path_question_coursework_4
+    EvidenceCategory.COMPETITIONS -> R.string.feature_profile_impl_evidence_path_question_competitions_4
+    EvidenceCategory.POSITIONS -> R.string.feature_profile_impl_evidence_path_question_positions_4
 }
 
 @StringRes

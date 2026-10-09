@@ -2,6 +2,7 @@ package com.tailormyresume.core.database.di
 
 import android.content.Context
 import androidx.room.Room
+import com.tailormyresume.core.database.MIGRATION_1_2
 import com.tailormyresume.core.database.TmrDatabase
 import dagger.Module
 import dagger.Provides
@@ -21,5 +22,5 @@ internal object DatabaseModule {
         context,
         TmrDatabase::class.java,
         "hh-database",
-    ).build()
+    ).addMigrations(MIGRATION_1_2).build()
 }

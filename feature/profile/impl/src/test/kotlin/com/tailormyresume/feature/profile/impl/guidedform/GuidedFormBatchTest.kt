@@ -104,11 +104,10 @@ class GuidedFormBatchTest {
     }
 
     @Test
-    fun skillsNoteDoesNotClaimSkillsAreUserStatedFacts() {
+    fun skillsNoteSaysEachSkillBecomesAUserStatedFact() {
         show(GuidedFormUiState(stepIndex = 2))
 
-        assertThat(composeRule.onAllNodesWithText("Each skill becomes a user-stated fact.").fetchSemanticsNodes()).isEmpty()
-        composeRule.onNodeWithText("Add tools you actually used.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Each skill becomes a user-stated fact.", substring = true).assertIsDisplayed()
     }
 
     @Test

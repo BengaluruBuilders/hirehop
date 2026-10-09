@@ -16,12 +16,14 @@ data class FactEditorNavKey(
 data class GuidedProfileFormNavKey(
     val startStep: String = "contact",
     val resumedFromScan: Boolean = false,
+    val returnsToProfile: Boolean = false,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
 @Serializable
 data class FactEvidenceNavKey(
     val category: String = "",
+    val returnsToProfile: Boolean = false,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
@@ -29,10 +31,10 @@ fun Navigator.navigateToFactEditor(entryId: String?, entryType: String = "projec
     navigate(FactEditorNavKey(entryId = entryId, entryType = entryType))
 }
 
-fun Navigator.navigateToGuidedProfileForm(resumedFromScan: Boolean = false) {
-    navigate(GuidedProfileFormNavKey(resumedFromScan = resumedFromScan))
+fun Navigator.navigateToGuidedProfileForm(resumedFromScan: Boolean = false, returnsToProfile: Boolean = false) {
+    navigate(GuidedProfileFormNavKey(resumedFromScan = resumedFromScan, returnsToProfile = returnsToProfile))
 }
 
-fun Navigator.navigateToFactEvidence(category: String = "") {
-    navigate(FactEvidenceNavKey(category = category))
+fun Navigator.navigateToFactEvidence(category: String = "", returnsToProfile: Boolean = false) {
+    navigate(FactEvidenceNavKey(category = category, returnsToProfile = returnsToProfile))
 }

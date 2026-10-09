@@ -231,6 +231,33 @@ class AddUserStatedFactsUseCaseTest {
         assertThat(entry.bullets.single().text).isEqualTo("Built it offline with Room.")
     }
 
+    @Test
+    fun attachingToAnEntryWithFifteenBulletsIsRejectedAndLeavesTheProfileUnchanged() = runTest {
+        val full = entry("project-1", EntryCategory.PROJECT, "Full").copy(
+            bullets = List(15) { EvidenceBullet("b$it", "Bullet $it.") },
+        )
+        val seeded = baseProfile.copy(entries = listOf(full))
+        val seededRepository = FakeProfileRepository(seeded)
+        val seededUseCase = AddUserStatedFactsUseCase(seededRepository, SequentialIdGenerator("bullet"))
+
+        val result = seededUseCase.attachBullet("project-1", "One more.")
+
+        assertThat(result).isNull()
+        assertThat(seededRepository.current()).isEqualTo(seeded)
+    }
+
+    @Test
+    fun attachingToAMissingEntryIsRejectedAndHasEntryReportsItGone() = runTest {
+        val seeded = baseProfile.copy(entries = listOf(entry("project-1", EntryCategory.PROJECT, "Kept")))
+        val seededRepository = FakeProfileRepository(seeded)
+        val seededUseCase = AddUserStatedFactsUseCase(seededRepository, SequentialIdGenerator("bullet"))
+
+        assertThat(seededUseCase.attachBullet("project-9", "Words.")).isNull()
+        assertThat(seededUseCase.hasEntry("project-9")).isFalse()
+        assertThat(seededUseCase.hasEntry("project-1")).isTrue()
+        assertThat(seededRepository.current()).isEqualTo(seeded)
+    }
+
     private fun addedEntries(outcome: AddFactsOutcome): List<ProfileEntry> {
         assertThat(outcome).isInstanceOf(AddFactsOutcome.Added::class.java)
         return (outcome as AddFactsOutcome.Added).entries
