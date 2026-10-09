@@ -58,6 +58,10 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private var proposedRole = ""
 
+    private var companyEdited = false
+
+    private var roleEdited = false
+
     private var labelsEditedSinceText = false
 
     private var prefillJob: Job? = null
@@ -77,14 +81,26 @@ class PasteJobDescriptionViewModel @Inject constructor(
         restoreTypedInput()
         schedulePrefill()
         mutableState
-            .map { listOf(it.text.take(MAX_SAVED_TEXT_CHARACTERS), it.company, it.role, proposedCompany, proposedRole) }
+            .map {
+                SavedFields(
+                    text = it.text.take(MAX_SAVED_TEXT_CHARACTERS),
+                    company = it.company,
+                    role = it.role,
+                    proposedCompany = proposedCompany,
+                    proposedRole = proposedRole,
+                    companyEdited = companyEdited,
+                    roleEdited = roleEdited,
+                )
+            }
             .distinctUntilChanged()
-            .onEach { (text, company, role, proposedCompany, proposedRole) ->
-                savedState[TEXT_KEY] = text
-                savedState[COMPANY_KEY] = company
-                savedState[ROLE_KEY] = role
-                savedState[PROPOSED_COMPANY_KEY] = proposedCompany
-                savedState[PROPOSED_ROLE_KEY] = proposedRole
+            .onEach { fields ->
+                savedState[TEXT_KEY] = fields.text
+                savedState[COMPANY_KEY] = fields.company
+                savedState[ROLE_KEY] = fields.role
+                savedState[PROPOSED_COMPANY_KEY] = fields.proposedCompany
+                savedState[PROPOSED_ROLE_KEY] = fields.proposedRole
+                savedState[COMPANY_EDITED_KEY] = fields.companyEdited
+                savedState[ROLE_EDITED_KEY] = fields.roleEdited
             }
             .launchIn(viewModelScope)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
@@ -106,6 +122,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
         val text = savedState.get<String>(TEXT_KEY) ?: return
         proposedCompany = savedState.get<String>(PROPOSED_COMPANY_KEY).orEmpty()
         proposedRole = savedState.get<String>(PROPOSED_ROLE_KEY).orEmpty()
+        companyEdited = savedState.get<Boolean>(COMPANY_EDITED_KEY) == true
+        roleEdited = savedState.get<Boolean>(ROLE_EDITED_KEY) == true
         viewModelScope.launch {
             val kept = sessionRepository.observeKeptJobDescription().first()
             if (kept != null) mutableState.update { it.copy(keptText = kept.text) }
@@ -141,11 +159,13 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private fun onCompanyChanged(value: String) {
         labelsEditedSinceText = true
+        companyEdited = true
         mutableState.update { it.copy(company = value) }
     }
 
     private fun onRoleChanged(value: String) {
         labelsEditedSinceText = true
+        roleEdited = true
         mutableState.update { it.copy(role = value) }
     }
 
@@ -169,10 +189,16 @@ class PasteJobDescriptionViewModel @Inject constructor(
     }
 
     private fun PasteJobDescriptionUiState.withProposedLabels(proposal: JobLabelProposal): PasteJobDescriptionUiState {
-        val fillsCompany = company.isBlank() || company == proposedCompany
-        val fillsRole = role.isBlank() || role == proposedRole
-        if (fillsCompany) proposedCompany = proposal.company
-        if (fillsRole) proposedRole = proposal.role
+        val fillsCompany = company.isBlank() || (!companyEdited && company == proposedCompany)
+        val fillsRole = role.isBlank() || (!roleEdited && role == proposedRole)
+        if (fillsCompany) {
+            proposedCompany = proposal.company
+            companyEdited = false
+        }
+        if (fillsRole) {
+            proposedRole = proposal.role
+            roleEdited = false
+        }
         return copy(
             company = if (fillsCompany) proposal.company else company,
             role = if (fillsRole) proposal.role else role,
@@ -194,6 +220,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
             if (state.canClear) {
                 proposedCompany = ""
                 proposedRole = ""
+                companyEdited = false
+                roleEdited = false
                 state.copy(text = "", company = "", role = "", message = null, nextStep = null)
             } else {
                 state
@@ -219,6 +247,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
                 text = current.text.trim(),
                 company = current.company.trim(),
                 role = current.role.trim(),
+                companyIsPrefill = !companyEdited && current.company.isUntouchedPrefill(proposedCompany),
+                roleIsPrefill = !roleEdited && current.role.isUntouchedPrefill(proposedRole),
             )
             val previous = sessionRepository.observeKeptJobDescription().first()
             if (previous != null && previous.draftKey != kept.draftKey) discardJobDrafts(previous)
@@ -229,6 +259,18 @@ class PasteJobDescriptionViewModel @Inject constructor(
         }
     }
 
+    private fun String.isUntouchedPrefill(proposed: String): Boolean = isNotBlank() && trim() == proposed.trim()
+
+    private data class SavedFields(
+        val text: String,
+        val company: String,
+        val role: String,
+        val proposedCompany: String,
+        val proposedRole: String,
+        val companyEdited: Boolean,
+        val roleEdited: Boolean,
+    )
+
     private companion object {
         const val PREFILL_DEBOUNCE_MS = 300L
         const val TEXT_KEY = "pasteJd.text"
@@ -236,6 +278,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
         const val ROLE_KEY = "pasteJd.role"
         const val PROPOSED_COMPANY_KEY = "pasteJd.proposedCompany"
         const val PROPOSED_ROLE_KEY = "pasteJd.proposedRole"
+        const val COMPANY_EDITED_KEY = "pasteJd.companyEdited"
+        const val ROLE_EDITED_KEY = "pasteJd.roleEdited"
         const val MAX_SAVED_TEXT_CHARACTERS = 100_000
     }
 }
