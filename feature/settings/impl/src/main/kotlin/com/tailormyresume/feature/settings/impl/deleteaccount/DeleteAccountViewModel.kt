@@ -101,8 +101,10 @@ class DeleteAccountViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val refreshed = deleteAccount.refreshedPreview()
-                snapshot.update { current -> current?.copy(counts = refreshed) }
-                phase.update { current -> current.copy(isConfirmVisible = true) }
+                val current = uiState.value as? DeleteAccountUiState.Ready
+                if (current == null || current.isConfirmVisible || current.isOffline) return@launch
+                snapshot.update { it?.copy(counts = refreshed) }
+                phase.update { it.copy(isConfirmVisible = true) }
             } finally {
                 tapRefreshing = false
             }

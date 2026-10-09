@@ -178,7 +178,7 @@ private fun AnalysisBody(
     onMenuAnchor: (String, Rect) -> Unit,
 ) {
     when (uiState) {
-        AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding)
+        AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding, jobKnown = false)
         is AnalysisUiState.Analyzing -> WaitingContent(uiState, contentPadding)
         is AnalysisUiState.Failed -> FailedContent(uiState.cause, contentPadding)
         is AnalysisUiState.DailyLimit -> MessageContent(
