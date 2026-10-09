@@ -50,6 +50,7 @@ class RemoteSignInGateway @Inject constructor(
         val markerIsForAnotherAccount = markerOwner != null && markerOwner != user.uid
         withContext(NonCancellable) {
             if ((previousAccountId != null && previousAccountId != user.uid) || markerIsForAnotherAccount) {
+                cleaner.clear()
                 wipeKeepingOnboardingInput()
             }
             if (markerIsForAnotherAccount) pendingWipe.clear()
