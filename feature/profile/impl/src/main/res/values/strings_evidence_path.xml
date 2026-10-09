@@ -26,23 +26,38 @@
     <string name="feature_profile_impl_evidence_path_hint_positions">Clubs, events, teams</string>
 
     <string name="feature_profile_impl_evidence_path_question_work_1">What did you do every week? Who used it?</string>
-    <string name="feature_profile_impl_evidence_path_question_projects_1">What did you build? Which tools? Who used it?</string>
-    <string name="feature_profile_impl_evidence_path_question_projects_2">Anything else you built, for a course or on your own?</string>
-    <string name="feature_profile_impl_evidence_path_question_internships_1">What did you do as an intern? Which tools? Who used it?</string>
+    <string name="feature_profile_impl_evidence_path_question_projects_1">What did you build?</string>
+    <string name="feature_profile_impl_evidence_path_question_internships_1">What did you do as an intern?</string>
     <string name="feature_profile_impl_evidence_path_question_coursework_1">Which course taught you something you can explain? What did you do in it?</string>
     <string name="feature_profile_impl_evidence_path_question_competitions_1">Which contest or hackathon did you join? What did your team do?</string>
     <string name="feature_profile_impl_evidence_path_question_positions_1">Which club, event, or team did you help run? What was your role?</string>
 
+    <string name="feature_profile_impl_evidence_path_question_tools">Which tools did you use?</string>
+    <string name="feature_profile_impl_evidence_path_question_result">What was the result, in numbers you can stand behind?</string>
+    <string name="feature_profile_impl_evidence_path_question_work_4">Who used or read your work?</string>
+    <string name="feature_profile_impl_evidence_path_question_projects_4">Who used it?</string>
+    <string name="feature_profile_impl_evidence_path_question_internships_4">Who used or read your work?</string>
+    <string name="feature_profile_impl_evidence_path_question_coursework_4">Who checked or used your work?</string>
+    <string name="feature_profile_impl_evidence_path_question_competitions_4">What was your own part?</string>
+    <string name="feature_profile_impl_evidence_path_question_positions_4">How many people did it reach?</string>
+
     <string name="feature_profile_impl_evidence_path_question_counter">Question %1$d of %2$d</string>
+    <string name="feature_profile_impl_evidence_path_question_counter_named">Question %1$d of %2$d · %3$s</string>
     <string name="feature_profile_impl_evidence_path_one_question">One question</string>
     <string name="feature_profile_impl_evidence_path_answer_label">Your answer</string>
     <string name="feature_profile_impl_evidence_path_answer_placeholder">Say it plainly, in one or two sentences.</string>
     <string name="feature_profile_impl_evidence_path_own_words_note">Write only what you did. TailorMyResume uses your words as facts.</string>
-    <string name="feature_profile_impl_evidence_path_saved_caption">Your answer is now a fact</string>
-    <string name="feature_profile_impl_evidence_path_skipped_note">Skipped %1$s question %2$d. You can come back to it any time.</string>
+    <string name="feature_profile_impl_evidence_path_stamped_banner">Your answer is now fact %1$s.</string>
+    <string name="feature_profile_impl_evidence_path_stamped_banner_attached">Added to fact %1$s: %2$s.</string>
+    <string name="feature_profile_impl_evidence_path_needs_first_answer">Answer question 1 first. This answer is saved as part of that item.</string>
+    <string name="feature_profile_impl_evidence_path_skipped_row">Question %1$d: %2$s</string>
+    <string name="feature_profile_impl_evidence_path_skipped_chip">Skipped</string>
+    <string name="feature_profile_impl_evidence_path_skipped_note">You can answer skipped questions later from Profile.</string>
 
     <string name="feature_profile_impl_evidence_path_skip">Skip this one</string>
     <string name="feature_profile_impl_evidence_path_save">Save answer</string>
+    <string name="feature_profile_impl_evidence_path_next_question">Next question</string>
+    <string name="feature_profile_impl_evidence_path_edit">Edit</string>
     <string name="feature_profile_impl_evidence_path_add_more">Add more</string>
     <string name="feature_profile_impl_evidence_path_back_to_profile">Go to Profile</string>
 

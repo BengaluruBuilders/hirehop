@@ -46,6 +46,7 @@ fun TmrFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
     count: Int? = null,
     colors: TmrFilterChipColors = TmrFilterChipDefaults.colors(),
@@ -63,7 +64,7 @@ fun TmrFilterChip(
             .heightIn(min = TmrFilterChipDefaults.height())
             .selectable(
                 selected = selected,
-                enabled = true,
+                enabled = enabled,
                 role = Role.Checkbox,
                 interactionSource = interactionSource,
                 indication = ripple(),

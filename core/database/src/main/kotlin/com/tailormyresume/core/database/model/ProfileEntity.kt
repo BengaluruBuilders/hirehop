@@ -1,5 +1,6 @@
 package com.tailormyresume.core.database.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -12,6 +13,8 @@ data class ProfileEntity(
     val phone: String,
     val headline: String,
     val skills: List<String>,
+    @ColumnInfo(defaultValue = "'[]'")
+    val userStatedSkills: List<String> = emptyList(),
 ) {
     companion object {
         const val SINGLETON_ID = 1
