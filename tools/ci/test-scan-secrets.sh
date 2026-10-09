@@ -135,6 +135,17 @@ policy_job_runs_the_script_and_its_test() {
     grep -q 'tools/ci/test-scan-secrets.sh' "$root/.github/workflows/build.yml"
 }
 
+policy_job_scans_before_running_any_pull_request_script() {
+  python3 - "$root/.github/workflows/build.yml" <<'PY'
+import sys, yaml
+steps = yaml.safe_load(open(sys.argv[1]))["jobs"]["policy"]["steps"]
+runs = [s.get("run", "") for s in steps]
+scan = next(i for i, r in enumerate(runs) if "tools/ci/scan-secrets.sh" in r)
+constitution = next(i for i, r in enumerate(runs) if "tools/ci/check-constitution.sh" in r)
+sys.exit(0 if scan < constitution else 1)
+PY
+}
+
 find_real_gitleaks() {
   local candidate="${REAL_GITLEAKS:-$(command -v gitleaks)}"
   if [[ -n "$candidate" && -x "$candidate" ]]; then
@@ -209,6 +220,32 @@ real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes(
   grep -q 'leaks found' <<<"$out"
 }
 
+real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-merge"
+  new_real_repo "$r"
+  git -C "$r" checkout -q -b side
+  printf 'side\n' >"$r/Side"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m side
+  git -C "$r" checkout -q main
+  printf 'main\n' >"$r/Main"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m main
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
+  git -C "$r" merge -q --no-ff --no-commit side
+  printf 'token = "%s"\n' "$(fake_token)" >"$r/Leak.kt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m "merge side"
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+check "real gitleaks still fails when a token is added only in a merge commit" real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit
 check "real gitleaks still fails when a pull request adds its own ignore entry" real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry
 check "real gitleaks still fails when a pull request hides the diff with gitattributes" real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes
 check "pull request uses a temp config that extends the defaults" pull_request_uses_a_temp_config_that_extends_the_defaults
@@ -221,6 +258,7 @@ check "pull request with an unknown base fails without scanning" pull_request_wi
 check "a finding fails the step" a_finding_fails_the_step
 check "policy job serialises runs per ref" policy_job_serialises_runs_per_ref
 check "policy job has time for the gitleaks download" policy_job_has_time_for_the_gitleaks_download
+check "policy job scans before running any pull request script" policy_job_scans_before_running_any_pull_request_script
 check "policy job runs the script and its test" policy_job_runs_the_script_and_its_test
 
 if ((failures > 0)); then
