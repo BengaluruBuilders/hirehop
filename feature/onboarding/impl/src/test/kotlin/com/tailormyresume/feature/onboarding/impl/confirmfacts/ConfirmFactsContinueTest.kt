@@ -11,7 +11,6 @@ import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.SignInAccount
-import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.core.testing.connectivity.TestConnectivityMonitor
 import com.tailormyresume.core.testing.data.sampleEducationEntry
 import com.tailormyresume.core.testing.data.sampleProfile
@@ -88,21 +87,19 @@ class ConfirmFactsContinueTest {
     }
 
     @Test
-    fun counts_followTheProfileFactCountsRule() = runTest {
+    fun counts_followTheListedFacts() = runTest {
         val viewModel = createViewModel()
 
         val before = viewModel.uiState.value
-        val beforeCounts = importedProfile.factCounts()
-        assertThat(before.confirmedCount + before.openCount).isEqualTo(beforeCounts.total)
-        assertThat(before.confirmedCount).isEqualTo(beforeCounts.confirmed + beforeCounts.userStated)
+        assertThat(before.confirmedCount + before.openCount).isEqualTo(importedProfile.entries.size)
+        assertThat(before.confirmedCount).isEqualTo(importedProfile.entries.count { it.isConfirmed })
 
         viewModel.onAction(ConfirmFactsAction.Confirm("U-01"))
 
-        val stored = repository.observeProfile().first()
+        val stored = requireNotNull(repository.observeProfile().first())
         val after = viewModel.uiState.value
-        val afterCounts = requireNotNull(stored).factCounts()
-        assertThat(after.confirmedCount + after.openCount).isEqualTo(afterCounts.total)
-        assertThat(after.confirmedCount).isEqualTo(afterCounts.confirmed + afterCounts.userStated)
+        assertThat(after.confirmedCount + after.openCount).isEqualTo(stored.entries.size)
+        assertThat(after.confirmedCount).isEqualTo(stored.entries.count { it.isConfirmed })
     }
 
     private fun consentRecord() = ConsentRecord(

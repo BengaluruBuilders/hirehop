@@ -38,8 +38,9 @@
     <string name="feature_analysis_impl_back_to_job">Back to my JD</string>
     <string name="feature_analysis_impl_daily_limit_left">0 of 3 left today</string>
 
-    <string name="feature_analysis_impl_offline_banner">You\'re offline. This is your last result. Tailoring needs a connection.</string>
-    <string name="feature_analysis_impl_offline_caption">Tailor needs a connection.</string>
+    <string name="feature_analysis_impl_offline_banner">You\'re offline. This is your last result.</string>
+    <string name="feature_analysis_impl_offline_banner_today">You\'re offline. This is your last result, from today at %1$s.</string>
+    <string name="feature_analysis_impl_offline_banner_dated">You\'re offline. This is your last result, from %1$s at %2$s.</string>
 
     <string name="feature_analysis_impl_coverage_title">You cover %1$s of %2$s key terms. This is not a score.</string>
     <string name="feature_analysis_impl_coverage_total">of %1$s key terms</string>
@@ -92,10 +93,6 @@
     <string name="feature_analysis_impl_toast_tailor_failed">We couldn’t create your application. Try again.</string>
     <string name="feature_analysis_impl_undo">Undo</string>
 
-    <plurals name="feature_analysis_impl_credit_note">
-        <item quantity="one">Free to tailor and preview. Downloading uses 1 credit. You have %1$d credit.</item>
-        <item quantity="other">Free to tailor and preview. Downloading uses 1 credit. You have %1$d credits.</item>
-    </plurals>
     <string name="feature_analysis_impl_tailor_limit">You\'ve used today\'s free tailoring. Your analysis is saved. You can tailor again tomorrow.</string>
     <string name="feature_analysis_impl_tailor_limit_cap">Free tailors today: %1$d</string>
     <string name="feature_analysis_impl_tailor">Tailor my resume</string>
@@ -109,18 +106,17 @@
     <string name="feature_analysis_impl_share_not_score">This is not a score.</string>
     <string name="feature_analysis_impl_share_excluded">Only the JD fit is shared. No name, contact details or resume facts.</string>
     <string name="feature_analysis_impl_share_cancel">Cancel</string>
-    <string name="feature_analysis_impl_share_whatsapp">Share to WhatsApp</string>
-    <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s partly met, %6$s to prepare</string>
-    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s partly met, %4$s to prepare. Made with TailorMyResume.</string>
+    <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s to prepare</string>
+    <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s to prepare. Made with TailorMyResume.</string>
     <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
     <string name="feature_analysis_impl_question_priority">%1$s · %2$s</string>
     <string name="feature_analysis_impl_question_note">Your answer is saved as a User-stated fact.</string>
-    <string name="feature_analysis_impl_question_new_fact_id">New fact</string>
     <string name="feature_analysis_impl_question_label">Where and how</string>
     <string name="feature_analysis_impl_question_write">Save as new fact</string>
+    <string name="feature_analysis_impl_question_write_as">Save as %1$s</string>
+    <string name="feature_analysis_impl_question_new_fact_id">New fact</string>
     <string name="feature_analysis_impl_question_cancel">Cancel</string>
     <string name="feature_analysis_impl_summary_met">%1$s Met</string>
-    <string name="feature_analysis_impl_summary_partial">%1$s Partly met</string>
     <string name="feature_analysis_impl_summary_gap">%1$s To prepare</string>
     <string name="feature_analysis_impl_missing_terms_label">Not in your facts yet:</string>
     <string name="feature_analysis_impl_share_my_fit">Share my fit</string>
