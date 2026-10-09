@@ -141,8 +141,12 @@ class ImportResumeViewModel @Inject constructor(
         }
         mutableUiState.update { it.copy(readStepIndex = 1) }
         retainedText = read.text
+<<<<<<< HEAD
         val keptEntries = runCatching { profileRepository.observeProfile().first().userFacts().size }.getOrDefault(0)
-        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty(), keptEntries) }
+        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty(), keptEntries) }.getOrNull()
+=======
+        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty()) }
+>>>>>>> origin/main
         retainedText = null
         val profile = parsed.getOrNull()
         if (profile == null) {

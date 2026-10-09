@@ -132,7 +132,7 @@ private fun FactsToReviewBody(
         selected = selectedSection,
         onSelect = { section -> selectedSection = section.takeIf { it != selectedSection } },
     )
-    FlaggedConfirmedFacts(uiState = uiState, flagged = shown.filter { it.isConfirmed && it.hasTooLongBullet }, actions = actions)
+    FlaggedConfirmedFacts(uiState = uiState, flagged = shown.filter { it.isConfirmed && it.isOverLimits }, actions = actions)
     if (shown.any(ConfirmFactUi::isConfirmedWithinLimits)) {
         ConfirmedFactsGroup(uiState = uiState, confirmed = shown.filter(ConfirmFactUi::isConfirmedWithinLimits), actions = actions)
     }
@@ -225,7 +225,7 @@ private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
 private fun FlaggedConfirmedFacts(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
-    flagged: List<ConfirmFactUi> = uiState.facts.filter { it.isConfirmed && it.hasTooLongBullet },
+    flagged: List<ConfirmFactUi> = uiState.facts.filter { it.isConfirmed && it.isOverLimits },
 ) {
     flagged.forEach { fact ->
         FactCard(
@@ -363,7 +363,7 @@ private fun ReviewTheList(
     )
     TmrExpandable(expanded = expanded) {
         Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-            uiState.facts.filterNot { it.isConfirmed && it.hasTooLongBullet }.forEach { fact ->
+            uiState.facts.filterNot { it.isConfirmed && it.isOverLimits }.forEach { fact ->
                 FactCard(
                     fact = fact,
                     category = fact.section.categoryOf(),
@@ -398,17 +398,23 @@ private fun FactCard(
     val state = stringResource(
         when {
             fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+            fact.hasTooManyBullets -> R.string.feature_onboarding_impl_confirm_facts_too_many_lines_status
             fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_state_confirmed
             else -> R.string.feature_onboarding_impl_confirm_facts_state_open
         },
     )
-    val description = stringResource(
+    val baseDescription = stringResource(
         R.string.feature_onboarding_impl_confirm_facts_card_description,
         fact.title,
         fact.detail,
         fact.displayId,
         state,
     )
+    val description = if (fact.continuesPrevious) {
+        stringResource(R.string.feature_onboarding_impl_confirm_facts_continued) + ". " + baseDescription
+    } else {
+        baseDescription
+    }
     TmrCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(TmrTheme.spacing.cardPadding),
@@ -445,6 +451,13 @@ private fun FactHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TmrFactId(id = fact.displayId)
+        if (fact.continuesPrevious) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_continued),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        }
         Text(
             text = stringResource(
                 R.string.feature_onboarding_impl_confirm_facts_source_page,
@@ -456,10 +469,11 @@ private fun FactHeader(
             color = TmrTheme.colors.onSurfaceVariant,
         )
         TmrStatusChip(
-            kind = if (fact.isConfirmed && !fact.hasTooLongBullet) TmrStatusKind.Met else TmrStatusKind.Gap,
+            kind = if (fact.isConfirmed && !fact.isOverLimits) TmrStatusKind.Met else TmrStatusKind.Gap,
             label = stringResource(
                 when {
                     fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+                    fact.hasTooManyBullets -> R.string.feature_onboarding_impl_confirm_facts_too_many_lines_status
                     fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_status_confirmed
                     else -> R.string.feature_onboarding_impl_confirm_facts_pending
                 },
@@ -475,9 +489,16 @@ private fun FactActions(
     actions: ConfirmFactsActions,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-        if (fact.hasTooLongBullet) {
+        if (fact.isOverLimits) {
             Text(
-                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_too_long_note),
+                text = stringResource(
+                    when {
+                        fact.hasTooLongBullet && fact.hasTooManyBullets ->
+                            R.string.feature_onboarding_impl_confirm_facts_too_long_and_many_lines_note
+                        fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_note
+                        else -> R.string.feature_onboarding_impl_confirm_facts_too_many_lines_note
+                    },
+                ),
                 modifier = Modifier.weight(1f),
                 style = TmrTheme.typography.labelM,
                 color = TmrTheme.colors.onSurfaceVariant,

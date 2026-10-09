@@ -8,7 +8,9 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.continues
 import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.hasTooManyBullets
 
 enum class ConfirmFactsSection { Education, Experience, Projects, Skills, Certifications, Extras }
 
@@ -29,8 +31,11 @@ data class ConfirmFactUi(
     val isConfirmed: Boolean,
     val displayId: String = id,
     val hasTooLongBullet: Boolean = false,
+    val hasTooManyBullets: Boolean = false,
+    val continuesPrevious: Boolean = false,
 ) {
-    val isConfirmedWithinLimits: Boolean get() = isConfirmed && !hasTooLongBullet
+    val isOverLimits: Boolean get() = hasTooLongBullet || hasTooManyBullets
+    val isConfirmedWithinLimits: Boolean get() = isConfirmed && !isOverLimits
 }
 
 data class ConfirmFactsSectionUi(
@@ -93,6 +98,7 @@ object ConfirmFactsScenarioMapper {
                 isConfirmed = confirmedFor(entry, index, total, scenario),
                 scenario = scenario,
                 displayId = FactDisplayIds.of(entry, profile.entries),
+                continuesPrevious = index > 0 && entry.continues(profile.entries[index - 1]),
             )
         }
         return state.copy(
@@ -129,6 +135,7 @@ object ConfirmFactsScenarioMapper {
         isConfirmed: Boolean,
         scenario: DebugScenario,
         displayId: String,
+        continuesPrevious: Boolean,
     ): ConfirmFactUi = ConfirmFactUi(
         id = id,
         section = category.sectionOf(),
@@ -138,6 +145,8 @@ object ConfirmFactsScenarioMapper {
         isConfirmed = isConfirmed,
         displayId = displayId,
         hasTooLongBullet = hasTooLongBullet,
+        hasTooManyBullets = hasTooManyBullets,
+        continuesPrevious = continuesPrevious,
     )
 }
 

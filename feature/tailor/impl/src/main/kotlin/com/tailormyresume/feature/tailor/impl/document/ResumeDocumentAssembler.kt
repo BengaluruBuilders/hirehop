@@ -4,6 +4,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.continues
 import javax.inject.Inject
 
 internal class ResumeDocumentAssembler @Inject constructor(
@@ -22,12 +23,26 @@ internal class ResumeDocumentAssembler @Inject constructor(
                 reviewed
                     .filter { it.category == category }
                     .filter { entry -> entry.bullets.isNotEmpty() || recordedIds == null || entry.id in recordedIds }
-                    .map { it.toResumeEntry(resume) }
+                    .mergingContinuations(resume)
                     .takeIf { it.isNotEmpty() }
                     ?.let { ResumeSection(category, headings.forCategory(category), it) }
             },
             skillsHeading = headings.skills,
         )
+    }
+
+    private fun List<ProfileEntry>.mergingContinuations(resume: TailoredResume): List<ResumeEntry> {
+        val merged = mutableListOf<Pair<ProfileEntry, ResumeEntry>>()
+        forEach { entry ->
+            val resumeEntry = entry.toResumeEntry(resume)
+            val head = merged.lastOrNull()
+            if (head != null && entry.continues(head.first)) {
+                merged[merged.lastIndex] = head.first to head.second.copy(bullets = head.second.bullets + resumeEntry.bullets)
+            } else {
+                merged += entry to resumeEntry
+            }
+        }
+        return merged.map { it.second }
     }
 
     private fun ProfileEntry.toResumeEntry(resume: TailoredResume): ResumeEntry = ResumeEntry(
