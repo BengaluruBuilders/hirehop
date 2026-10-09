@@ -383,7 +383,7 @@ class RemotePaymentGatewayTest {
         elapseBackoff()
         awaitCompletion(purchase)
 
-        assertThat(scripted.bodies).hasSize(FOREGROUND_ATTEMPTS_AFTER_A_401_RETRY)
+        assertThat(scripted.bodies).hasSize(REQUESTS_SENT_BEFORE_THE_CLEAR)
         assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
         assertThat(gateway.repostCount()).isEqualTo(0)
     }
@@ -460,7 +460,7 @@ class RemotePaymentGatewayTest {
         const val IO_PAUSE_MILLIS = 15L
         const val HELD_PACKS = 1_500
         const val WRITERS = 8
-        const val FOREGROUND_ATTEMPTS_AFTER_A_401_RETRY = 4
+        const val REQUESTS_SENT_BEFORE_THE_CLEAR = 2
         const val SETTLED_PACKS = 1_500
         const val EXTRAS_PER_PACK = 1
         const val RACING_WRITERS = 8

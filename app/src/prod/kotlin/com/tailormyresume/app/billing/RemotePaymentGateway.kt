@@ -138,6 +138,7 @@ class RemotePaymentGateway @Inject constructor(
     }
 
     private suspend fun post(purchase: PlayPurchase, retries: Int, epoch: Int): PurchaseResult {
+        if (currentGeneration() != epoch) return failed(PurchaseFailureReason.PaymentUnconfirmed)
         val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
         val response = result.getOrElse { failure ->
             if (failure.isRejection()) return unconfirmed(purchase.productId, epoch)
