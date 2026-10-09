@@ -68,6 +68,7 @@ class TestSessionRepository : SessionRepository {
     override suspend fun signOut() {
         account.value = null
         keptJob.value = null
+        careerStage.value = null
     }
 
     override suspend fun clear() {
