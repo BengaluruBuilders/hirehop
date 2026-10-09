@@ -777,6 +777,26 @@ class AnalysisViewModelTest {
     }
 
     @Test
+    fun tailor_whenTheServerBlocksTheRoute_showsTheMatchingCauseInTheToast() = runTest {
+        val expected = mapOf(
+            AiFailure.RateLimited to FailureCause.RateLimited(null),
+            AiFailure.AnalysisInProgress to FailureCause.InProgress,
+            AiFailure.QuotaExceeded to FailureCause.QuotaReached,
+            AiFailure.SignInRequired to FailureCause.SignInRequired,
+        )
+        start(onboardingComplete = true)
+
+        expected.forEach { (failure, cause) ->
+            tailor.failure = failure
+            viewModel.onTailor()
+
+            assertThat(result().toast).isEqualTo(AnalysisToast.TailorBlocked(cause))
+            assertThat(result().isTailoring).isFalse()
+            viewModel.onToastDismiss()
+        }
+    }
+
+    @Test
     fun tailor_withACredit_ignoresAnEmptyFreeTailoringAllowance() = runTest {
         usageAllowance.consumeFreeTailoring()
         start(onboardingComplete = true)

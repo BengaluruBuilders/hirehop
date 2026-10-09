@@ -91,6 +91,8 @@ sealed interface AnalysisToast {
 
     data object TailorFailed : AnalysisToast
 
+    data class TailorBlocked(val cause: FailureCause) : AnalysisToast
+
     val hasUndo: Boolean get() = this is PrepAdded || this is GapClosed
 }
 

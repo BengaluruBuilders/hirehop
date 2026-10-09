@@ -136,6 +136,28 @@ class RemoteResumeTailorTest {
     }
 
     @Test
+    fun aJobThatEndsOnTheCoreQuotaIsQuotaExceededAndForgetsItsRequestId() = runTest {
+        backend.reply(200, tailoringBody("FAILED", ""","failureCode":"QUOTA_EXCEEDED""""))
+        backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
+
+        val failure = runCatching { tailor.tailor(candidate, job, gap, "app-1", null) }.exceptionOrNull()
+        tailor.tailor(candidate, job, gap, "app-1", null)
+
+        assertThat((failure as AiException).failure).isEqualTo(AiFailure.QuotaExceeded)
+        val ids = List(2) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
+        assertThat(ids.distinct()).hasSize(2)
+    }
+
+    @Test
+    fun aJobThatEndsOnTheBudgetIsQuotaExceeded() = runTest {
+        backend.reply(200, tailoringBody("FAILED", ""","failureCode":"BUDGET_EXCEEDED""""))
+
+        val failure = runCatching { tailor.tailor(candidate, job, gap, "app-1", null) }.exceptionOrNull()
+
+        assertThat((failure as AiException).failure).isEqualTo(AiFailure.QuotaExceeded)
+    }
+
+    @Test
     fun noCreditEndsTheAttemptAndForgetsItsRequestId() = runTest {
         backend.fail(402, "NO_CREDIT")
 

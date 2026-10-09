@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tailormyresume.app.MainActivity
+import com.tailormyresume.app.ai.DebugPreviewMode
 import com.tailormyresume.app.ui.AppRootState
 import com.tailormyresume.app.ui.AppViewModel
 import com.tailormyresume.app.ui.NavigationRoot
@@ -50,11 +51,23 @@ class DebugScenarioActivity : ComponentActivity() {
     @Inject
     lateinit var sessionRepository: SessionRepository
 
+    @Inject
+    lateinit var previewMode: DebugPreviewMode
+
+    private val previewLifecycle by lazy {
+        DebugPreviewLifecycle(
+            previewMode = previewMode,
+            forcePayment = { menuViewModel.forcePaymentScenario(target, scenario) },
+            releasePayment = menuViewModel::releasePaymentScenario,
+        )
+    }
+
     private val hasAccount: Flow<Boolean> by lazy { sessionRepository.observeAccount().map { it != null } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyEdgeToEdge()
         super.onCreate(savedInstanceState)
+        previewLifecycle.onCreate()
         setContent {
             TmrTheme {
                 BackHandler(enabled = opened) { closePreview() }
@@ -91,13 +104,17 @@ class DebugScenarioActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (opened) menuViewModel.forcePaymentScenario(target, scenario)
+        previewLifecycle.onStart(opened)
     }
 
     override fun onStop() {
         super.onStop()
-        if (!opened || isChangingConfigurations) return
-        if (isFinishing) closePreview() else menuViewModel.releasePaymentScenario()
+        if (previewLifecycle.onStop(opened, isFinishing, isChangingConfigurations)) closePreview()
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) previewMode.active = false
+        super.onDestroy()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -110,11 +127,13 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun openPreview() {
+        previewMode.active = true
         rootStores.releaseAll()
         menuViewModel.openPreview(target, scenario) { opened = true }
     }
 
     private fun closePreview() {
+        previewMode.active = false
         opened = false
         rootStores.releaseAll()
         menuViewModel.closePreview(target)

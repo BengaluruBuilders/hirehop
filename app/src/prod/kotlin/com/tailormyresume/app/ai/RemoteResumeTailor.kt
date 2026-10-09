@@ -13,6 +13,7 @@ import com.tailormyresume.core.network.ApiException
 import com.tailormyresume.core.network.TailorMyResumeApi
 import com.tailormyresume.core.network.apiResult
 import com.tailormyresume.core.network.dto.TailoringDto
+import com.tailormyresume.core.network.dto.TailoringFailureCode
 import com.tailormyresume.core.network.dto.TailoringResultDto
 import com.tailormyresume.core.network.dto.TailoringStartRequest
 import com.tailormyresume.core.network.dto.TailoringStatus
@@ -45,7 +46,7 @@ class RemoteResumeTailor @Inject constructor(
             val finished = awaitFinished(start(request))
             pending.clear(applicationId, section)
             val result = finished.result?.takeIf { finished.status == TailoringStatus.SUCCEEDED }
-                ?: throw AiException(AiFailure.Unavailable)
+                ?: throw AiException(finished.failureCode.toAiFailure())
             return result.toTailoredResume(profile)
         } catch (failure: AiException) {
             if (failure.failure !in RESUMABLE) pending.clear(applicationId, section)
@@ -79,6 +80,11 @@ class RemoteResumeTailor @Inject constructor(
             step = minOf(step + POLL_BACKOFF_MILLIS, MAX_POLL_MILLIS)
         }
         return current
+    }
+
+    private fun TailoringFailureCode?.toAiFailure(): AiFailure = when (this) {
+        TailoringFailureCode.QUOTA_EXCEEDED, TailoringFailureCode.BUDGET_EXCEEDED -> AiFailure.QuotaExceeded
+        else -> AiFailure.Unavailable
     }
 
     private fun TailoringResultDto.toTailoredResume(profile: CandidateProfile): TailoredResume {
