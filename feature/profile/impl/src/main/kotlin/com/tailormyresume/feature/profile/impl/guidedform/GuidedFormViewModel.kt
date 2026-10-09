@@ -101,7 +101,7 @@ class GuidedFormViewModel @Inject internal constructor(
                     fieldProblems = emptyMap(),
                     filedEntries = emptyList(),
                     message = null,
-                )
+                ).prefilledFromEntries(guidedStepAt(state.stepIndex - 1))
             }
         }
     }
@@ -150,7 +150,8 @@ class GuidedFormViewModel @Inject internal constructor(
     ) {
         val state = initial.withPendingSkill()
         val step = state.step
-        val drafts = draftsFor(step, state.values)
+        val fieldedDrafts = draftsFor(step, state.values)
+        val drafts = fieldedDrafts.map { it.second }
         val problems = problemsOf(step, drafts) + contactProblemsOf(step, state.values)
         if (problems.isNotEmpty()) {
             mutableState.value = state.copy(fieldProblems = problems)
@@ -173,6 +174,8 @@ class GuidedFormViewModel @Inject internal constructor(
                         isSaving = false,
                         completedSteps = current.completedSteps + step,
                         stepEntryIds = current.stepEntryIds + (step to outcome.entries.map { it.id }),
+                        stepEntryFields = current.stepEntryFields + (step to fieldedDrafts.map { it.first }),
+                        entries = current.entries?.let { known -> known.filterNot { old -> outcome.entries.any { it.id == old.id } } + outcome.entries },
                     )
                 }
                 onDone(outcome.entries)
@@ -196,11 +199,26 @@ class GuidedFormViewModel @Inject internal constructor(
     }
 
     private fun GuidedFormUiState.syncedWith(entries: List<ProfileEntry>): GuidedFormUiState {
-        val current = entries.associateBy { it.id }
-        return copy(
-            filedEntries = filedEntries.mapNotNull { current[it.id] },
-            stepEntryIds = stepEntryIds.mapValues { (_, ids) -> ids.filter { it in current } },
-        )
+        return copy(entries = entries)
+    }
+
+    private fun GuidedFormUiState.prefilledFromEntries(target: GuidedStep): GuidedFormUiState {
+        val ids = stepEntryIds[target].orEmpty()
+        val fields = stepEntryFields[target].orEmpty()
+        val byId = entries.orEmpty().associateBy { it.id }
+        val restored = ids.zip(fields).mapNotNull { (id, field) -> byId[id]?.let { field to it } }
+            .flatMap { (field, entry) ->
+                if (field == GuidedField.COURSE) {
+                    listOf(
+                        GuidedField.COURSE to entry.title,
+                        GuidedField.COLLEGE to entry.organization,
+                        GuidedField.EDUCATION_END to entry.endDate,
+                    )
+                } else {
+                    listOf(field to entry.title)
+                }
+            }
+        return copy(values = values + restored)
     }
 
     private fun GuidedFormUiState.finishedLater(): GuidedFormUiState = copy(
@@ -218,7 +236,7 @@ class GuidedFormViewModel @Inject internal constructor(
         phone = values[GuidedField.PHONE].orEmpty(),
     )
 
-    private fun draftsFor(step: GuidedStep, values: Map<GuidedField, String>): List<FactDraft> {
+    private fun draftsFor(step: GuidedStep, values: Map<GuidedField, String>): List<Pair<GuidedField, FactDraft>> {
         if (step != GuidedStep.EDUCATION) return emptyList()
         val degree = FactDraft(
             category = EntryCategory.EDUCATION,
@@ -236,7 +254,8 @@ class GuidedFormViewModel @Inject internal constructor(
             endDate = "",
             detail = "",
         )
-        return listOf(degree, coursework).filter { it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
+        return listOf(GuidedField.COURSE to degree, GuidedField.COURSEWORK to coursework)
+            .filter { (_, it) -> it.title.isNotEmpty() || it.organization.isNotEmpty() || it.endDate.isNotEmpty() }
     }
 
     private fun contactProblemsOf(step: GuidedStep, values: Map<GuidedField, String>): Map<GuidedField, GuidedFieldProblem> {

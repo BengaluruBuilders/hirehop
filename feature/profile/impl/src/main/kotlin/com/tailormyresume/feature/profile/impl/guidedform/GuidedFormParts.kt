@@ -32,7 +32,7 @@ import com.tailormyresume.feature.profile.impl.R
 
 private val SegmentHeight = 6.dp
 private val StepTile = 44.dp
-private const val LABEL_WRAP_FONT_SCALE = 1.3f
+private const val LABEL_WRAP_FONT_SCALE = 1.0f
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

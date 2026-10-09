@@ -47,6 +47,7 @@ class GuidedFormBatchTest {
         val done = setOf(GuidedStep.CONTACT, GuidedStep.EDUCATION, GuidedStep.SKILLS)
         show(GuidedFormUiState(saved = GuidedSaved(completedSteps = 3, totalSteps = 4, entryIds = listOf("U-01"), doneSteps = done)))
 
+        composeRule.onNodeWithText("3 of 4").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Skills, done").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Contact, done").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Education, done").assertIsDisplayed()

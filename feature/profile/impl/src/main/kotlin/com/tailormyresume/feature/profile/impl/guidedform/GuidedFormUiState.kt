@@ -38,8 +38,10 @@ data class GuidedFormUiState(
     val skills: List<String> = emptyList(),
     val fieldProblems: Map<GuidedField, GuidedFieldProblem> = emptyMap(),
     val filedEntries: List<ProfileEntry> = emptyList(),
+    val entries: List<ProfileEntry>? = null,
     val completedSteps: Set<GuidedStep> = emptySet(),
     val stepEntryIds: Map<GuidedStep, List<String>> = emptyMap(),
+    val stepEntryFields: Map<GuidedStep, List<GuidedField>> = emptyMap(),
     val experienceChoice: ExperienceChoice? = null,
     val saved: GuidedSaved? = null,
     val message: GuidedMessage? = null,
@@ -48,7 +50,9 @@ data class GuidedFormUiState(
     val step: GuidedStep get() = guidedStepAt(stepIndex)
     val isLastStep: Boolean get() = stepIndex == GUIDED_STEPS.lastIndex
     val isFirstStep: Boolean get() = stepIndex == 0
-    val createdEntryIds: List<String> get() = GUIDED_STEPS.flatMap { stepEntryIds[it].orEmpty() }
+    val createdEntryIds: List<String> get() = GUIDED_STEPS.flatMap { stepEntryIds[it].orEmpty() }.filter { entries == null || it in entryById }
+    val shownFiledEntries: List<ProfileEntry> get() = if (entries == null) filedEntries else filedEntries.mapNotNull { entryById[it.id] }
+    private val entryById: Map<String, ProfileEntry> get() = entries.orEmpty().associateBy { it.id }
 }
 
 fun guidedFormStateFor(

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -89,6 +90,7 @@ internal fun SectionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = TmrTheme.spacing.touch)
                 .clickable(onClick = onToggle)
                 .clearAndSetSemantics {
                     contentDescription = description

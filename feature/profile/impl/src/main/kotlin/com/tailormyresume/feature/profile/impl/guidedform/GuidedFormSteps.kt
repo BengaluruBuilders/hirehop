@@ -54,14 +54,14 @@ internal fun FiledEntries(
     uiState: GuidedFormUiState,
     onEditFact: (entryId: String, entryType: String) -> Unit,
 ) {
-    if (uiState.filedEntries.isEmpty()) return
+    if (uiState.shownFiledEntries.isEmpty()) return
     val previous = guidedStepAt(uiState.stepIndex - 1)
     Note(
         text = stringResource(R.string.feature_profile_impl_guided_form_filed_caption, stringResource(stepTitleRes(previous))),
         tone = NoteTone.Positive,
         icon = TmrIcons.CheckCircle,
     )
-    uiState.filedEntries.forEachIndexed { index, entry ->
+    uiState.shownFiledEntries.forEachIndexed { index, entry ->
         FiledCard(entry = entry, highlighted = index == 0, onEdit = { onEditFact(entry.id, entry.category.name) })
     }
 }
