@@ -35,6 +35,8 @@ class DeleteAccountUseCase @Inject constructor(
         return countsOf(applications, profile)
     }
 
+    suspend fun refreshedPreview(): AccountDeletionCounts = preview()
+
     suspend operator fun invoke(
         onStep: suspend (AccountDeletionStep) -> Unit = {},
     ): AccountDeletionResult {
