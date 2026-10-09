@@ -17,6 +17,7 @@
     <string name="feature_onboarding_impl_consent_declined_title">Nothing has left your phone</string>
     <string name="feature_onboarding_impl_consent_declined_body">You can come back to this at any time.</string>
     <string name="feature_onboarding_impl_consent_declined_action_read_again">Review again</string>
+    <string name="feature_onboarding_impl_consent_declined_action_back_to_start">Back to start</string>
 
     <string name="feature_onboarding_impl_consent_agreed_on">You agreed on %1$s</string>
     <string name="feature_onboarding_impl_consent_heading">Choose what we may do</string>

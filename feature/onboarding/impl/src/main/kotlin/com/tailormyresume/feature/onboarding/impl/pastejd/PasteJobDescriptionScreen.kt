@@ -1,15 +1,18 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +35,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -41,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrButtonSize
+import com.tailormyresume.core.designsystem.component.TmrConfirmDialog
 import com.tailormyresume.core.designsystem.component.TmrErrorCallout
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrIconButton
@@ -79,17 +84,56 @@ internal fun PasteJobDescriptionScreen(
     actions: PasteJobDescriptionActions,
     modifier: Modifier = Modifier,
 ) {
+    val focusManager = LocalFocusManager.current
+    var isDiscardRequested by remember { mutableStateOf(false) }
+    val onBackRequest = {
+        if (uiState.text.isNotBlank()) {
+            isDiscardRequested = true
+        } else {
+            actions.onBack()
+        }
+    }
+    val focusClearingActions = actions.copy(
+        onBack = onBackRequest,
+        onPaste = {
+            focusManager.clearFocus()
+            actions.onPaste()
+        },
+        onAnalyse = {
+            focusManager.clearFocus()
+            actions.onAnalyse()
+        },
+    )
+    BackHandler(enabled = uiState.text.isNotBlank()) { onBackRequest() }
     TmrScreen(
         modifier = modifier,
         sheet = false,
-        bottomBar = { PasteJobDescriptionBottomBar(uiState = uiState, actions = actions) },
+        bottomBar = { PasteJobDescriptionBottomBar(uiState = uiState, actions = focusClearingActions) },
         bottomBarNotice = { PasteJobDescriptionBarNotice(uiState = uiState) },
     ) { padding ->
         if (uiState.isLoading) {
             PasteJobDescriptionLoading(modifier = Modifier.padding(padding))
         } else {
-            PasteJobDescriptionContent(uiState = uiState, actions = actions, modifier = Modifier.padding(padding))
+            PasteJobDescriptionContent(
+                uiState = uiState,
+                actions = focusClearingActions,
+                modifier = Modifier.padding(padding),
+            )
         }
+    }
+    if (isDiscardRequested) {
+        TmrConfirmDialog(
+            title = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_title),
+            message = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_message),
+            confirmLabel = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_confirm),
+            cancelLabel = stringResource(R.string.feature_onboarding_impl_paste_jd_discard_cancel),
+            onConfirm = {
+                isDiscardRequested = false
+                actions.onBack()
+            },
+            onCancel = { isDiscardRequested = false },
+            destructive = true,
+        )
     }
 }
 
@@ -149,6 +193,17 @@ private fun PasteJobDescriptionContent(
         PasteJobDescriptionIntro()
         PasteJobDescriptionNotices(uiState = uiState, actions = contentActions)
         PasteJobDescriptionField(uiState = uiState, actions = contentActions)
+        if (uiState.isDailyLimitReached) {
+            OnboardingNotice(
+                text = pluralStringResource(
+                    R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
+                    FREE_ANALYSES_PER_DAY,
+                    FREE_ANALYSES_PER_DAY,
+                ),
+                icon = TmrIcons.Error,
+                tone = NoticeTone.Warning,
+            )
+        }
         val problem = uiState.problem
         if (problem != null) {
             OnboardingNotice(
@@ -164,17 +219,6 @@ private fun PasteJobDescriptionContent(
                     isRoleAndCompanyRevealed = true
                     focusCompanyRequested = true
                 },
-            )
-        }
-        if (uiState.isDailyLimitReached) {
-            OnboardingNotice(
-                text = pluralStringResource(
-                    R.plurals.feature_onboarding_impl_paste_jd_disclosure_limit,
-                    FREE_ANALYSES_PER_DAY,
-                    FREE_ANALYSES_PER_DAY,
-                ),
-                icon = TmrIcons.Error,
-                tone = NoticeTone.Warning,
             )
         }
         if (areFieldsShown) {
@@ -244,7 +288,7 @@ private fun PasteJobDescriptionField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = fieldHeight)
+            .height(fieldHeight)
             .clip(shape)
             .background(colors.card)
             .then(if (outline != null) Modifier.border(PASTE_FIELD_BORDER, outline, shape) else Modifier),
@@ -318,9 +362,7 @@ private fun PasteJobDescriptionTextArea(
     onTextChange: (String) -> Unit,
 ) {
     val label = stringResource(R.string.feature_onboarding_impl_paste_jd_field_label)
-    BasicTextField(
-        value = uiState.text,
-        onValueChange = onTextChange,
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .padding(
@@ -328,23 +370,34 @@ private fun PasteJobDescriptionTextArea(
                 end = PASTE_FIELD_PADDING,
                 top = PASTE_FIELD_PADDING,
                 bottom = PASTE_FOOTER_RESERVE,
+            ),
+    ) {
+        val fieldMinHeight = maxHeight
+        Box(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            BasicTextField(
+                value = uiState.text,
+                onValueChange = onTextChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = fieldMinHeight)
+                    .clearAndSetSemantics { contentDescription = label },
+                textStyle = TmrTheme.typography.bodyL.copy(color = TmrTheme.colors.onSurface),
+                cursorBrush = SolidColor(TmrTheme.colors.primary),
+                decorationBox = { inner ->
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        if (uiState.text.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.feature_onboarding_impl_paste_jd_field_placeholder),
+                                style = TmrTheme.typography.bodyL,
+                                color = TmrTheme.colors.onSurfaceVariant,
+                            )
+                        }
+                        inner()
+                    }
+                },
             )
-            .clearAndSetSemantics { contentDescription = label },
-        textStyle = TmrTheme.typography.bodyL.copy(color = TmrTheme.colors.onSurface),
-        cursorBrush = SolidColor(TmrTheme.colors.primary),
-        decorationBox = { inner ->
-            Box(modifier = Modifier.fillMaxWidth()) {
-                if (uiState.text.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.feature_onboarding_impl_paste_jd_field_placeholder),
-                        style = TmrTheme.typography.bodyL,
-                        color = TmrTheme.colors.onSurfaceVariant,
-                    )
-                }
-                inner()
-            }
-        },
-    )
+        }
+    }
 }
 
 @Composable
@@ -474,7 +527,8 @@ private fun PasteJobDescriptionBottomBar(
 ) {
     val label = when {
         uiState.isOffline -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_later)
-        uiState.canAnalyse -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
+        uiState.canAnalyse || uiState.isDailyLimitReached && uiState.text.isNotBlank() ->
+            stringResource(R.string.feature_onboarding_impl_paste_jd_action_check)
         else -> stringResource(R.string.feature_onboarding_impl_paste_jd_action_analyse_off)
     }
     TmrBottomActionBar {
