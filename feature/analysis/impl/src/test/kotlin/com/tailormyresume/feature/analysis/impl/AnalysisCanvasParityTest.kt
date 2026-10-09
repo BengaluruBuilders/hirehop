@@ -109,7 +109,7 @@ class AnalysisCanvasParityTest {
     }
 
     @Test
-    fun shareCardShowsTheCompanyLineAndShareImage() {
+    fun shareCardShowsTheCompanyLineAndShareMyFit() {
         composeRule.setContent {
             TmrTheme {
                 ShareFitScreen(
@@ -120,7 +120,7 @@ class AnalysisCanvasParityTest {
         }
 
         composeRule.onNodeWithText("Northwind Logistics").assertExists()
-        composeRule.onNodeWithText("Share image").assertExists()
+        composeRule.onNodeWithText("Share my fit").assertExists()
     }
 
     @Test
@@ -135,7 +135,7 @@ class AnalysisCanvasParityTest {
             }
         }
 
-        composeRule.onNodeWithText("Share image").performClick()
+        composeRule.onNodeWithText("Share my fit").performClick()
 
         assertThat(shared).containsExactly("My fit for Associate Analyst: 9 met, 5 to prepare. Made with TailorMyResume.")
     }

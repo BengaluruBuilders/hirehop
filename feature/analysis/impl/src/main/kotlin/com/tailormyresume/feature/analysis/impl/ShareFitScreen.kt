@@ -65,7 +65,7 @@ internal fun ShareFitScreen(
         bottomBar = {
             TmrBottomActionBar(stacked = true, primaryLast = false) {
                 TmrPrimaryButton(
-                    label = stringResource(R.string.feature_analysis_impl_share_image),
+                    label = stringResource(R.string.feature_analysis_impl_share_my_fit),
                     onClick = { actions.onShareText(shareText) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = TmrIcons.Share,

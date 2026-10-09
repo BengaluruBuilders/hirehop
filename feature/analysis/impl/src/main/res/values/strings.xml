@@ -106,7 +106,6 @@
     <string name="feature_analysis_impl_share_not_score">This is not a score.</string>
     <string name="feature_analysis_impl_share_excluded">Only the JD fit is shared. No name, contact details or resume facts.</string>
     <string name="feature_analysis_impl_share_cancel">Cancel</string>
-    <string name="feature_analysis_impl_share_image">Share image</string>
     <string name="feature_analysis_impl_share_card_description">Share preview: %1$s, covers %2$s of %3$s key terms, %4$s met, %5$s to prepare</string>
     <string name="feature_analysis_impl_share_text">My fit for %1$s: %2$s met, %3$s to prepare. Made with TailorMyResume.</string>
     <string name="feature_analysis_impl_question_title">Where have you used %1$s?</string>
