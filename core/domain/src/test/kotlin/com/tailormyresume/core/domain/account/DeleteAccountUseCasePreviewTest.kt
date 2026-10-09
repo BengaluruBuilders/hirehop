@@ -16,6 +16,7 @@ import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -50,6 +51,19 @@ class DeleteAccountUseCasePreviewTest {
         val counts = useCase(gateway).refreshedPreview()
 
         assertThat(counts.unusedCredits).isEqualTo(4)
+    }
+
+    @Test
+    fun refreshedPreviewFallsBackToTheCachedCreditsWhenTheWalletFails() = runTest {
+        val gateway = object : PaymentGateway by TestPaymentGateway().withFreeCredits(4) {
+            override suspend fun entitlement(): PurchaseEntitlement = throw java.io.IOException("offline")
+
+            override fun observeEntitlement(): Flow<PurchaseEntitlement> = flowOf(PurchaseEntitlement(0, 3, emptyList()))
+        }
+
+        val counts = useCase(gateway).refreshedPreview()
+
+        assertThat(counts.unusedCredits).isEqualTo(3)
     }
 
     private fun useCase(gateway: PaymentGateway): DeleteAccountUseCase = DeleteAccountUseCase(

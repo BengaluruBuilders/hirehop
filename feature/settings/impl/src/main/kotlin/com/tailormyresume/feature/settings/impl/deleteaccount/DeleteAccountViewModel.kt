@@ -8,12 +8,13 @@ import com.tailormyresume.core.domain.account.AccountDeletionCounts
 import com.tailormyresume.core.domain.account.AccountDeletionResult
 import com.tailormyresume.core.domain.account.AccountDeletionStep
 import com.tailormyresume.core.domain.account.DeleteAccountUseCase
+import com.tailormyresume.core.domain.account.PendingWipeOutcome
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.navigation.PendingNavigation
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,8 @@ class DeleteAccountViewModel @Inject constructor(
     private val phase = MutableStateFlow(Phase())
 
     private var hasEntered = false
+    private var refreshJob: Job? = null
+    private var tapRefreshing = false
 
     val uiState: StateFlow<DeleteAccountUiState> = combine(
         snapshot,
@@ -72,28 +75,53 @@ class DeleteAccountViewModel @Inject constructor(
             DebugScenario.ERROR -> Phase(failure = DeleteAccountFailure.DATA_INTACT)
             else -> Phase()
         }
-        viewModelScope.launch {
+        refreshJob = viewModelScope.launch {
             snapshot.value = Snapshot(
                 counts = deleteAccount.preview(),
                 accountEmail = sessionRepository.observeAccount().first()?.email,
             )
-            try {
-                val refreshed = deleteAccount.refreshedPreview()
-                snapshot.update { current -> current?.copy(counts = refreshed) }
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (failure: Exception) {
-                Unit
+            if (deleteAccount.hasServerClosedPendingWipe()) {
+                phase.value = Phase(failure = DeleteAccountFailure.LOCAL_WIPE_PENDING)
+                onFinishRemovalTapped()
+                return@launch
             }
+            val refreshed = deleteAccount.refreshedPreview()
+            snapshot.update { current -> current?.copy(counts = refreshed) }
         }
     }
 
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
-        if (ready.isOffline) return
+        if (ready.isOffline || tapRefreshing) return
+        refreshJob?.cancel()
+        tapRefreshing = true
         viewModelScope.launch {
-            snapshot.update { current -> current?.copy(counts = deleteAccount.refreshedPreview()) }
-            phase.update { current -> current.copy(isConfirmVisible = true) }
+            try {
+                val refreshed = deleteAccount.refreshedPreview()
+                snapshot.update { current -> current?.copy(counts = refreshed) }
+                phase.update { current -> current.copy(isConfirmVisible = true) }
+            } finally {
+                tapRefreshing = false
+            }
+        }
+    }
+
+    fun onFinishRemovalTapped() {
+        if (!phase.value.failure.isWipePending()) return
+        phase.value = Phase(stage = Stage.DELETING, step = AccountDeletionStep.CLOSING_ACCOUNT)
+        PendingNavigation.set(listOf(AccountDeletedNavKey))
+        viewModelScope.launch {
+            when (deleteAccount.finishRemoval()) {
+                PendingWipeOutcome.FINISHED, PendingWipeOutcome.NOTHING_PENDING -> Unit
+                PendingWipeOutcome.ACCOUNT_KEPT -> {
+                    PendingNavigation.consume()
+                    phase.value = Phase()
+                }
+                PendingWipeOutcome.STILL_PENDING -> {
+                    PendingNavigation.consume()
+                    phase.value = Phase(failure = pendingFailure())
+                }
+            }
         }
     }
 
@@ -111,13 +139,26 @@ class DeleteAccountViewModel @Inject constructor(
         phase.update { Phase(stage = Stage.DELETING, step = AccountDeletionStep.entries.first()) }
         PendingNavigation.set(listOf(AccountDeletedNavKey))
         viewModelScope.launch {
-            val result = deleteAccount(onStep = ::onStep)
-            if (result is AccountDeletionResult.Failed) {
-                PendingNavigation.consume()
-                phase.update { Phase(failure = result.toFailure()) }
+            when (val result = deleteAccount(onStep = ::onStep)) {
+                is AccountDeletionResult.Deleted -> Unit
+                is AccountDeletionResult.Failed -> {
+                    PendingNavigation.consume()
+                    phase.update { Phase(failure = result.toFailure()) }
+                }
+                AccountDeletionResult.LocalWipePending -> {
+                    PendingNavigation.consume()
+                    phase.update { Phase(failure = pendingFailure()) }
+                }
             }
         }
     }
+
+    private suspend fun pendingFailure(): DeleteAccountFailure =
+        if (deleteAccount.hasServerClosedPendingWipe()) {
+            DeleteAccountFailure.LOCAL_WIPE_PENDING
+        } else {
+            DeleteAccountFailure.CLOSE_UNCONFIRMED
+        }
 
     private fun AccountDeletionResult.Failed.toFailure(): DeleteAccountFailure =
         if (dataIntact) DeleteAccountFailure.DATA_INTACT else DeleteAccountFailure.PARTLY_DELETED

@@ -55,6 +55,8 @@ class DeleteAccountFirstReadyTest {
     private val profileRepository = TestProfileRepository().apply { sendProfile(canonicalCandidateProfile) }
     private val entitlementDeferred = CompletableDeferred<PurchaseEntitlement>()
     private var entitlementFails = false
+    private var perCall: (() -> CompletableDeferred<PurchaseEntitlement>)? = null
+    private var cachedCredits = 4
 
     @Test
     fun entitlementSuspended_stillReachesReadyWithLocalCountsAndCachedCredits() = runTest {
@@ -84,6 +86,35 @@ class DeleteAccountFirstReadyTest {
         assertThat(viewModel.ready().counts.unusedCredits).isEqualTo(4)
     }
 
+    @Test
+    fun tappingDelete_callsTheWalletOnceMoreNotTwice() = runTest {
+        val calls = mutableListOf<CompletableDeferred<PurchaseEntitlement>>()
+        perCall = { CompletableDeferred<PurchaseEntitlement>().also { calls += it } }
+        val viewModel = enteredViewModel()
+        viewModel.ready()
+
+        viewModel.onDeleteTapped()
+        viewModel.onDeleteTapped()
+        calls.forEach { it.complete(TestPaymentGateway().withFreeCredits(9).entitlement()) }
+
+        assertThat(viewModel.ready().isConfirmVisible).isTrue()
+        assertThat(calls).hasSize(2)
+    }
+
+    @Test
+    fun tappingDelete_showsTheFreshCreditCountNotTheCache() = runTest {
+        val answers = ArrayDeque(listOf(9, 7).map { CompletableDeferred(TestPaymentGateway().withFreeCredits(it).entitlement()) })
+        perCall = { answers.removeFirst() }
+        cachedCredits = 0
+        val viewModel = enteredViewModel()
+        viewModel.ready()
+
+        viewModel.onDeleteTapped()
+
+        assertThat(viewModel.ready().isConfirmVisible).isTrue()
+        assertThat(viewModel.ready().counts.unusedCredits).isEqualTo(7)
+    }
+
     private fun TestScope.enteredViewModel(): DeleteAccountViewModel {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
@@ -106,9 +137,10 @@ class DeleteAccountFirstReadyTest {
             serverAccountDeleter = OfflineServerAccountDeleter(),
             creditBalance = AccountCreditBalance(
                 paymentGateway = DeferredEntitlementPaymentGateway(
-                    delegate = TestPaymentGateway().withFreeCredits(4),
+                    delegate = TestPaymentGateway().withFreeCredits(cachedCredits),
                     entitlement = entitlementDeferred,
                     fails = { entitlementFails },
+                    perCall = { perCall },
                 ),
             ),
             latency = NoMockLatency,
@@ -119,11 +151,12 @@ class DeleteAccountFirstReadyTest {
         private val delegate: PaymentGateway,
         private val entitlement: CompletableDeferred<PurchaseEntitlement>,
         private val fails: () -> Boolean,
+        private val perCall: () -> (() -> CompletableDeferred<PurchaseEntitlement>)?,
     ) : PaymentGateway by delegate {
 
         override suspend fun entitlement(): PurchaseEntitlement {
             if (fails()) throw IOException("entitlement unavailable")
-            return entitlement.await()
+            return (perCall()?.invoke() ?: entitlement).await()
         }
     }
 

@@ -11,6 +11,7 @@ import com.tailormyresume.core.network.tailormyresumeJson
 import com.tailormyresume.core.network.tailormyresumeOkHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -342,7 +343,7 @@ class RemotePaymentGatewayTest {
     }
 
     @Test
-    fun concurrentHoldRecordedAndUnconfirmedLeaveTheExpectedPending() = runTest {
+    fun concurrentRestoresHoldingManyPacksLoseNoPending() = runTest {
         val gateway = scriptedGateway()
         val packs = List(HELD_PACKS) { "pack_$it" }
         billing.owned = packs.map { PlayPurchase(it, "t-$it", PlayPurchaseState.PENDING) }
@@ -458,6 +459,36 @@ class RemotePaymentGatewayTest {
         }
 
         assertThat(gateway.observeEntitlement().first().pendingPackIds).containsExactlyElementsIn(filler + extras)
+    }
+
+    @Test
+    fun anUnlockAnsweredAfterSignOutDoesNotRestoreTheOldWallet() = runTest {
+        val unlock = """{"unlock":{"applicationId":"a1","creditKind":"PURCHASED","unlockedAt":"2026-10-07T09:00:00Z"},"wallet":${walletJson(free = 0, purchased = 4, unlocked = "\"a1\"")}}"""
+        val held = HeldAnswer(MockResponse().setResponseCode(201).setBody(unlock)).also { server.dispatcher = it }
+        val gateway = gateway()
+        val spend = async(Dispatchers.Default) { gateway.unlock("a1") }
+        held.awaitRequest()
+
+        gateway.clearCredits()
+        held.release()
+        spend.await()
+
+        assertThat(source.cached).isNull()
+        assertThat(gateway.observeEntitlement().first().totalCredits).isEqualTo(0)
+    }
+
+    @Test
+    fun aWalletRefreshInFlightAtSignOutDoesNotRestoreTheOldWallet() = runTest {
+        val held = HeldAnswer(MockResponse().setResponseCode(200).setBody("""{"wallet":${walletJson(free = 0, purchased = 4)}}""")).also { server.dispatcher = it }
+        val gateway = gateway()
+        val refresh = async(Dispatchers.Default) { runCatching { gateway.entitlement() } }
+        held.awaitRequest()
+
+        gateway.clearCredits()
+        held.release()
+        refresh.await()
+
+        assertThat(source.cached).isNull()
     }
 
     @Test
