@@ -5,7 +5,9 @@ import com.tailormyresume.core.model.CandidateProfile
 import javax.inject.Inject
 
 class OfflineResumeTextParser @Inject constructor() : ResumeTextParser {
-    override suspend fun parse(rawText: String): CandidateProfile {
+    override suspend fun parse(rawText: String): CandidateProfile = parse(rawText, keptEntries = 0)
+
+    override suspend fun parse(rawText: String, keptEntries: Int): CandidateProfile {
         val lines = rawText.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val nameIndex = lines.indexOfFirst { it.lowercase().trim(':') !in documentTitles }
         val session = ResumeParseSession()
@@ -16,7 +18,7 @@ class OfflineResumeTextParser @Inject constructor() : ResumeTextParser {
             phone = ContactExtractor.phone(lines),
             headline = headlineFrom(session.preambleLines),
             skills = session.collectedSkills,
-            entries = session.buildEntries(),
+            entries = session.buildEntries(keptEntries),
         )
     }
 

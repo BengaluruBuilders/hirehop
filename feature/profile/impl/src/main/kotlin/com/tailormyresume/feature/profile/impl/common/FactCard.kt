@@ -33,7 +33,9 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactLineRenderer
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.exceedsLimits
 import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.hasTooManyBullets
 import com.tailormyresume.feature.profile.impl.R
 
 private val HighlightWidth = 2.dp
@@ -46,6 +48,7 @@ internal fun FactCard(
     displayId: String = entry.id,
     highlighted: Boolean = false,
     embedded: Boolean = false,
+    continued: Boolean = false,
     onConfirm: (() -> Unit)? = null,
 ) {
     FactCard(
@@ -56,9 +59,16 @@ internal fun FactCard(
         modifier = modifier,
         highlighted = highlighted,
         embedded = embedded,
-        note = if (entry.hasTooLongBullet) stringResource(R.string.feature_profile_impl_fact_too_long_note) else null,
+        continued = continued,
+        note = when {
+            entry.hasTooLongBullet && entry.hasTooManyBullets ->
+                stringResource(R.string.feature_profile_impl_fact_too_long_and_many_lines_note)
+            entry.hasTooLongBullet -> stringResource(R.string.feature_profile_impl_fact_too_long_note)
+            entry.hasTooManyBullets -> stringResource(R.string.feature_profile_impl_fact_too_many_lines_note)
+            else -> null
+        },
     ) {
-        if (onConfirm != null && !entry.hasTooLongBullet) {
+        if (onConfirm != null && !entry.exceedsLimits) {
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_profile_impl_fact_confirm),
                 onClick = onConfirm,
@@ -81,14 +91,17 @@ internal fun FactCard(
     highlighted: Boolean = false,
     embedded: Boolean = false,
     note: String? = null,
+    continued: Boolean = false,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val statusLabel = stringResource(status.labelRes())
-    val description = if (note == null) {
+    val continuedLabel = stringResource(R.string.feature_profile_impl_fact_continued)
+    val baseDescription = if (note == null) {
         stringResource(R.string.feature_profile_impl_fact_card_description, kind, summary, statusLabel, id)
     } else {
         stringResource(R.string.feature_profile_impl_fact_card_description_with_note, kind, summary, statusLabel, id, note)
     }
+    val description = if (continued) "$continuedLabel. $baseDescription" else baseDescription
     val outline = if (highlighted) Modifier.border(HighlightWidth, TmrTheme.colors.primary, TmrTheme.shapes.card) else Modifier
     val semanticModifier = modifier.semantics(mergeDescendants = true) { contentDescription = description }.then(outline)
     if (embedded) {
@@ -99,11 +112,11 @@ internal fun FactCard(
                 .padding(TmrTheme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         ) {
-            FactCardContent(id, status, statusLabel, summary, note, actions)
+            FactCardContent(id, status, statusLabel, summary, note, continued, actions)
         }
     } else {
         TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.cardPadding), modifier = semanticModifier) {
-            FactCardContent(id, status, statusLabel, summary, note, actions)
+            FactCardContent(id, status, statusLabel, summary, note, continued, actions)
         }
     }
 }
@@ -116,6 +129,7 @@ private fun FactCardContent(
     statusLabel: String,
     summary: String,
     note: String?,
+    continued: Boolean,
     actions: (@Composable RowScope.() -> Unit)?,
 ) {
     FlowRow(
@@ -123,6 +137,13 @@ private fun FactCardContent(
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
     ) {
         TmrFactId(id = id)
+        if (continued) {
+            Text(
+                text = stringResource(R.string.feature_profile_impl_fact_continued),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        }
         val provenance = status.provenanceKind()
         if (provenance != null) {
             TmrProvenanceChip(kind = provenance, label = statusLabel)

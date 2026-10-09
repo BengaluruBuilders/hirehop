@@ -9,7 +9,7 @@ import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.EntryCategory
-import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.exceedsLimits
 import com.tailormyresume.feature.onboarding.api.navigation.ConfirmFactsNavKey
 import com.tailormyresume.feature.onboarding.impl.common.observeOffline
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -129,7 +129,7 @@ class ConfirmFactsViewModel @Inject constructor(
 
     private fun confirm(factId: String) {
         val state = mutableUiState.value
-        if (state.isSaving || state.facts.any { it.id == factId && it.hasTooLongBullet }) return
+        if (state.isSaving || state.facts.any { it.id == factId && it.isOverLimits }) return
         mutableUiState.update { it.copy(isSaving = true, hasSaveFailed = false) }
         viewModelScope.launch {
             val failed = runCatching {
@@ -162,7 +162,7 @@ class ConfirmFactsViewModel @Inject constructor(
         }
 
     private fun CandidateProfile.confirming(factId: String): CandidateProfile =
-        copy(entries = entries.map { entry -> if (entry.id == factId && !entry.hasTooLongBullet) entry.copy(isConfirmed = true) else entry })
+        copy(entries = entries.map { entry -> if (entry.id == factId && !entry.exceedsLimits) entry.copy(isConfirmed = true) else entry })
 }
 
 fun ConfirmFactsSection.categoryOf(): EntryCategory = when (this) {

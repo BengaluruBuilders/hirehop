@@ -28,9 +28,15 @@ internal class ResumeParseSession {
         if (header.remainder.isNotBlank() && header.switchesSection) route(header.remainder)
     }
 
-    fun buildEntries(): List<ProfileEntry> {
+    fun buildEntries(keptEntries: Int = 0): List<ProfileEntry> {
         var counter = 0
-        return entryParsers.values.flatMap { parser -> parser.build { "entry-${++counter}" } }
+        var draftsAfter = entryParsers.values.sumOf { it.entryCount }
+        val built = mutableListOf<ProfileEntry>()
+        entryParsers.values.forEach { parser ->
+            draftsAfter -= parser.entryCount
+            built += parser.build({ "entry-${++counter}" }, keptEntries + built.size, draftsAfter)
+        }
+        return built
     }
 
     private fun route(line: String) {
