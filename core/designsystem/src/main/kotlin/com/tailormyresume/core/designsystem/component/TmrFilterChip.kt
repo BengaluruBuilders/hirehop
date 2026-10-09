@@ -48,6 +48,7 @@ fun TmrFilterChip(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     count: Int? = null,
+    singleSelect: Boolean = false,
     colors: TmrFilterChipColors = TmrFilterChipDefaults.colors(),
 ) {
     val containerColor by animateColorAsState(

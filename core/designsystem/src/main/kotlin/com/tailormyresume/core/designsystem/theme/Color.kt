@@ -30,6 +30,7 @@ class TmrColors(
     val outline: Color,
     val outlineVariant: Color,
     val outlineSoft: Color,
+    val boundary: Color,
     val onSurface: Color,
     val onSurfaceVariant: Color,
     val body: Color,
