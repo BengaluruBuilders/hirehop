@@ -15,6 +15,7 @@ data class ConsentUiState(
     val isSaving: Boolean = false,
     val isDeclined: Boolean = false,
     val isReadOnly: Boolean = false,
+    val isReconsent: Boolean = false,
     val uploadFailed: Boolean = false,
     val agreedAt: Instant? = null,
     val nextStep: OnboardingStep? = null,

@@ -151,6 +151,28 @@ class YourDataViewModelTest {
     }
 
     @Test
+    fun cancelExport_stopsThePreparingExportAndSharesNothing() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val slowExporter = object : AccountDataExporter {
+            override suspend fun export(data: AccountData): AccountDataArchive {
+                gate.await()
+                return AccountDataArchive(fileName = "x.zip", file = File("x.zip"))
+            }
+        }
+        val viewModel = viewModel(slowExporter)
+        collectState(viewModel)
+        val shared = mutableListOf<YourDataEvent>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.events.collect { shared += it } }
+
+        viewModel.onDownload()
+        viewModel.onCancelExport()
+        gate.complete(Unit)
+
+        assertThat(viewModel.content().export).isEqualTo(YourDataExport.IDLE)
+        assertThat(shared).isEmpty()
+    }
+
+    @Test
     fun download_whenTheExportFails_showsTheFailure() = runTest {
         val failingExporter = object : AccountDataExporter {
             override suspend fun export(data: AccountData): AccountDataArchive =
