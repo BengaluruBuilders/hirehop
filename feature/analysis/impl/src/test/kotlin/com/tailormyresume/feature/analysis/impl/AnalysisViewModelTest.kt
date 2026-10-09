@@ -867,9 +867,9 @@ class AnalysisViewModelTest {
     }
 
     @Test
-    fun iHaveThis_whenTheTargetedRequirementAlreadyMatchesOnTheDevice_closesItAndOthersStay() = runTest {
+    fun iHaveThis_newEvidenceClosesTheTargetedRequirementAndOthersStay() = runTest {
         serverGapIds = setOf("req-docker", "req-kotlin")
-        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin")) })
 
         viewModel.onSubmitEvidence("req-docker", "I shipped Docker images during my internship.")
 
@@ -915,7 +915,7 @@ class AnalysisViewModelTest {
     @Test
     fun iHaveThis_laterSaveKeepsEarlierEvidenceClosedRequirementMet_andUndoRestoresOnlyTheLastOne() = runTest {
         serverGapIds = setOf("req-docker", "req-sql")
-        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin", "Docker")) })
+        start(profile = confirmedProfile().let { it.copy(skills = listOf("Kotlin")) })
         viewModel.onTogglePrepPlan("req-docker")
         viewModel.onTogglePrepPlan("req-sql")
 
