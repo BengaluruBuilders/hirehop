@@ -23,10 +23,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.designsystem.component.TmrBackButton
+import com.tailormyresume.core.designsystem.component.TmrFitText
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -74,10 +76,11 @@ internal fun OnboardingNotice(
         verticalAlignment = Alignment.Top,
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(NOTICE_ICON_SIZE))
-        Text(
+        TmrFitText(
             text = text,
             style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
             color = colors.onSurface,
+            lineBreak = LineBreak.Paragraph,
             modifier = Modifier.weight(1f),
         )
     }
@@ -101,10 +104,11 @@ internal fun DisclosureCard(
             tint = colors.onSurfaceVariant,
             modifier = Modifier.size(DISCLOSURE_ICON_SIZE),
         )
-        Text(
+        TmrFitText(
             text = text,
             style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
             color = colors.onSurfaceVariant,
+            lineBreak = LineBreak.Paragraph,
             modifier = Modifier.weight(1f),
         )
     }
@@ -133,11 +137,12 @@ internal fun ReasonText(
             tint = TmrTheme.colors.onSurfaceVariant,
             modifier = Modifier.size(DISCLOSURE_ICON_SIZE),
         )
-        Text(
+        TmrFitText(
             text = styled,
             modifier = Modifier.weight(1f),
             style = TmrTheme.typography.labelM,
             color = TmrTheme.colors.onSurfaceVariant,
+            lineBreak = LineBreak.Paragraph,
         )
     }
 }
@@ -176,11 +181,12 @@ internal fun StateCard(
             Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(STATE_ICON_SIZE))
         }
         TmrHeadline(text = title, style = TmrTheme.typography.headlineL, color = colors.onSurface)
-        Text(
+        TmrFitText(
             text = body,
             style = TmrTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
             color = colors.onSurfaceVariant,
             textAlign = TextAlign.Center,
+            lineBreak = LineBreak.Paragraph,
         )
         if (extra != null) {
             extra()

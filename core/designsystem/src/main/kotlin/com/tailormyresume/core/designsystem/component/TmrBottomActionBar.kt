@@ -88,7 +88,8 @@ fun TmrIconActionBar(
     secondaryBadge: String? = null,
     ink: Boolean = false,
 ) {
-    TmrBottomActionBar(modifier = modifier, stacked = false) {
+    val stacked = LocalDensity.current.fontScale >= TMR_STACKED_FONT_SCALE
+    TmrBottomActionBar(modifier = modifier, stacked = stacked) {
         Box {
             TmrIconButton(
                 icon = secondaryIcon,
@@ -101,7 +102,7 @@ fun TmrIconActionBar(
                 TmrActionBadge(secondaryBadge, Modifier.align(Alignment.TopEnd))
             }
         }
-        val primaryModifier = Modifier.weight(1f)
+        val primaryModifier = if (stacked) Modifier.fillMaxWidth() else Modifier.weight(1f)
         if (ink) {
             TmrInkButton(primaryLabel, onPrimaryClick, primaryModifier, primaryEnabled, trailingIcon = primaryTrailingIcon)
         } else {

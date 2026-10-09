@@ -34,12 +34,14 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrCheckbox
 import com.tailormyresume.core.designsystem.component.TmrDivider
+import com.tailormyresume.core.designsystem.component.TmrFitText
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
@@ -253,7 +255,12 @@ private fun PurposeTitleRow(copy: PurposeCopy) {
 private fun PurposeLine(@StringRes label: Int, @StringRes text: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xxs)) {
         TmrSectionLabel(text = stringResource(label))
-        Text(text = stringResource(text), style = TmrTheme.typography.bodyM, color = TmrTheme.colors.onSurface)
+        TmrFitText(
+            text = stringResource(text),
+            style = TmrTheme.typography.bodyM,
+            color = TmrTheme.colors.onSurface,
+            lineBreak = LineBreak.Paragraph,
+        )
     }
 }
 

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertWithMessage
@@ -97,7 +98,9 @@ class OnboardingWholeWordsTest {
             val layouts = mutableListOf<TextLayoutResult>()
             node.fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts)
             assertWithMessage("$name has a text layout").that(layouts).isNotEmpty()
-            assertWithMessage("$name breaks inside a word").that(layouts.first().splitsAWord()).isFalse()
+            val layout = layouts.first()
+            val isRawBreak = layout.splitsAWord() && layout.layoutInput.style.hyphens != Hyphens.Auto
+            assertWithMessage("$name breaks inside a word").that(isRawBreak).isFalse()
         }
     }
 

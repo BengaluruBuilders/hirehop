@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,14 +102,14 @@ internal fun TmrConfirmPanel(
                     )
                 }
             }
-            Text(
+            TmrFitText(
                 text = title,
                 modifier = Modifier.semantics { heading() },
                 style = TmrTheme.typography.titleL,
                 color = colors.onSurface,
             )
             if (message != null) {
-                Text(text = message, style = TmrTheme.typography.bodyM, color = colors.body)
+                TmrFitText(text = message, style = TmrTheme.typography.bodyM, color = colors.body)
             }
             TmrConfirmActions(confirmLabel, cancelLabel, onConfirm, onCancel, destructive)
         }

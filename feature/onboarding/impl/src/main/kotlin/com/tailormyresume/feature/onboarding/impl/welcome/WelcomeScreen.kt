@@ -49,6 +49,7 @@ import com.tailormyresume.core.model.CareerStage
 import com.tailormyresume.feature.onboarding.impl.R
 
 private val TOP_ROW_HEIGHT = 48.dp
+private const val WORDMARK_MIN_SCALE = 0.5f
 private val LOGO_MARK = 36.dp
 private const val LINK_OWN_LINE_FONT_SCALE = 1.5f
 private val CHOICE_HEIGHT = 56.dp
@@ -143,6 +144,7 @@ private fun WelcomeTopRow(
                 modifier = Modifier.weight(1f, fill = false),
                 style = TmrTheme.typography.titleL,
                 color = TmrTheme.colors.onSurface,
+                minScale = WORDMARK_MIN_SCALE,
             )
         }
     }
@@ -190,7 +192,7 @@ private fun WelcomeHeadline(modifier: Modifier = Modifier) {
             style = TmrTheme.typography.displayM,
             color = TmrTheme.colors.onSurface,
         )
-        Text(
+        TmrFitText(
             text = stringResource(R.string.feature_onboarding_impl_welcome_subline),
             style = TmrTheme.typography.titleM,
             color = TmrTheme.colors.onSurface,

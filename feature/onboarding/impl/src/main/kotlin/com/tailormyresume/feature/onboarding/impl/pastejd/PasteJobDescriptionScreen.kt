@@ -5,13 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,7 +73,6 @@ private val PASTE_FIELD_HEIGHT_PASTED = 230.dp
 private val PASTE_FIELD_CORNER = 22.dp
 private val PASTE_FIELD_BORDER = 2.dp
 private val PASTE_FIELD_PADDING = 18.dp
-private val PASTE_FOOTER_RESERVE = 82.dp
 private val PASTE_ERROR_ICON = 22.dp
 private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
@@ -304,7 +301,7 @@ private fun PasteJobDescriptionField(
     }
     val shape = RoundedCornerShape(PASTE_FIELD_CORNER)
     val fieldHeight = if (uiState.text.isEmpty()) PASTE_FIELD_HEIGHT_EMPTY else PASTE_FIELD_HEIGHT_PASTED
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(fieldHeight)
@@ -312,22 +309,28 @@ private fun PasteJobDescriptionField(
             .background(colors.card)
             .then(if (outline != null) Modifier.border(PASTE_FIELD_BORDER, outline, shape) else Modifier),
     ) {
-        PasteJobDescriptionTextArea(uiState = uiState, onTextChange = actions.onTextChange)
+        PasteJobDescriptionTextArea(
+            uiState = uiState,
+            onTextChange = actions.onTextChange,
+            modifier = Modifier.weight(1f),
+        )
         PasteJobDescriptionFieldFooter(uiState = uiState, actions = actions)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BoxScope.PasteJobDescriptionFieldFooter(
+private fun PasteJobDescriptionFieldFooter(
     uiState: PasteJobDescriptionUiState,
     actions: PasteJobDescriptionActions,
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier
-            .align(Alignment.BottomStart)
             .fillMaxWidth()
             .padding(start = PASTE_FIELD_PADDING, end = PASTE_FIELD_PADDING, bottom = PASTE_FIELD_PADDING),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         if (uiState.text.isEmpty()) {
             TmrSecondaryButton(
@@ -338,7 +341,6 @@ private fun BoxScope.PasteJobDescriptionFieldFooter(
             )
         } else {
             PasteJobDescriptionCount(uiState = uiState)
-            Spacer(modifier = Modifier.weight(1f))
             TmrOutlineButton(
                 label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_clear),
                 onClick = actions.onClear,
@@ -379,16 +381,17 @@ private fun PasteJobDescriptionWordCount(wordCount: Int) {
 private fun PasteJobDescriptionTextArea(
     uiState: PasteJobDescriptionUiState,
     onTextChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val label = stringResource(R.string.feature_onboarding_impl_paste_jd_field_label)
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
+            .fillMaxWidth()
             .padding(
                 start = PASTE_FIELD_PADDING,
                 end = PASTE_FIELD_PADDING,
                 top = PASTE_FIELD_PADDING,
-                bottom = PASTE_FOOTER_RESERVE,
+                bottom = TmrTheme.spacing.sm,
             ),
     ) {
         val fieldMinHeight = maxHeight
