@@ -212,7 +212,7 @@ private fun ExportedFileCard(
             IconTile(icon = TmrIcons.Description)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = uiState.fileName,
+                    text = uiState.fileName.replace("_", "_\u200B"),
                     style = TmrTheme.typography.labelL,
                     color = TmrTheme.colors.onSurface,
                 )
@@ -264,7 +264,10 @@ private fun fileDetail(uiState: ExportedUiState): String {
             ExportFormat.DOCX -> R.string.feature_tailor_impl_exported_format_docx
         },
     )
-    return listOfNotNull(format, pages, uiState.templateName).joinToString(" · ")
+    val size = uiState.fileSizeBytes?.let { bytes ->
+        stringResource(R.string.feature_tailor_impl_exported_file_size_kb, ((bytes + FILE_SIZE_ROUNDING) / BYTES_PER_KB).coerceAtLeast(1))
+    }
+    return listOfNotNull(format, pages, size).joinToString(" · ")
 }
 
 @Composable
@@ -417,3 +420,7 @@ private fun ApplicationStatus.label(): String = stringResource(
         ApplicationStatus.NO_RESPONSE -> R.string.feature_tailor_impl_exported_status_no_response
     },
 )
+
+private const val BYTES_PER_KB = 1024
+
+private const val FILE_SIZE_ROUNDING = 512

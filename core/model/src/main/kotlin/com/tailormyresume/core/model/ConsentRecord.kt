@@ -9,6 +9,8 @@ data class ConsentRecord(
     val acceptedAt: Instant,
     val noticeVersion: String,
 ) {
+    val isCurrent: Boolean get() = noticeVersion == CURRENT_NOTICE_VERSION
+
     companion object {
         const val CURRENT_NOTICE_VERSION = "2026-10-b"
     }

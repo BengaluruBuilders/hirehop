@@ -30,7 +30,6 @@ import com.tailormyresume.core.designsystem.component.rememberTmrToastState
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
 import com.tailormyresume.core.model.DebugScenario
-import com.tailormyresume.core.model.MatchStatus
 
 data class AnalysisActions(
     val onBackClick: () -> Unit = {},
@@ -178,7 +177,7 @@ private fun AnalysisBody(
     onMenuAnchor: (String, Rect) -> Unit,
 ) {
     when (uiState) {
-        AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding)
+        AnalysisUiState.Loading -> WaitingContent(AnalysisUiState.Analyzing(uiState.job, 0), contentPadding, jobKnown = false)
         is AnalysisUiState.Analyzing -> WaitingContent(uiState, contentPadding)
         is AnalysisUiState.Failed -> FailedContent(uiState.cause, contentPadding)
         is AnalysisUiState.DailyLimit -> MessageContent(
@@ -259,5 +258,3 @@ private fun AnalysisHeader(
         },
     )
 }
-
-internal fun AnalysisUiState.Result.countOf(status: MatchStatus): Int = items.count { it.status == status }

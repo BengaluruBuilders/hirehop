@@ -10,6 +10,8 @@ sealed interface GuidedFormAction {
 
     data class RemoveSkill(val skill: String) : GuidedFormAction
 
+    data class ChooseExperience(val choice: ExperienceChoice) : GuidedFormAction
+
     data object StartForm : GuidedFormAction
 
     data object Next : GuidedFormAction
@@ -38,6 +40,8 @@ data class GuidedFormActions(
     val onFinishSaved: () -> Unit,
     val onGoToProjects: () -> Unit,
     val onAddJob: () -> Unit,
+    val onChooseExperience: (ExperienceChoice) -> Unit,
+    val onEditFact: (entryId: String, entryType: String) -> Unit,
 ) {
     companion object {
         val None = GuidedFormActions(
@@ -51,6 +55,8 @@ data class GuidedFormActions(
             onFinishSaved = {},
             onGoToProjects = {},
             onAddJob = {},
+            onChooseExperience = {},
+            onEditFact = { _, _ -> },
         )
     }
 }

@@ -21,15 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.data.repository.UsageAllowance
@@ -43,10 +41,16 @@ import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
+internal const val JOB_CARD_TAG = "analysis-job-card"
+
 private enum class WaitingPillKind { Done, InProgress, UpNext }
 
 @Composable
-internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: PaddingValues) {
+internal fun WaitingContent(
+    state: AnalysisUiState.Analyzing,
+    contentPadding: PaddingValues,
+    jobKnown: Boolean = true,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +59,10 @@ internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: Pa
             .padding(top = contentPadding.calculateTopPadding() + TmrTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
-        JobCard(state)
+        JobCard(
+            state,
+            modifier = Modifier.testTag(JOB_CARD_TAG).then(if (jobKnown) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}),
+        )
         listOf(
             stringResource(R.string.feature_analysis_impl_step_read),
             stringResource(R.string.feature_analysis_impl_step_match),
@@ -82,10 +89,10 @@ internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: Pa
 }
 
 @Composable
-private fun JobCard(state: AnalysisUiState) {
+private fun JobCard(state: AnalysisUiState, modifier: Modifier = Modifier) {
     val title = state.headerTitle()
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(TmrTheme.colors.card, TmrTheme.shapes.card)
             .padding(horizontal = TmrTheme.spacing.lg, vertical = 14.dp),
@@ -275,7 +282,8 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
     }
 
 internal fun analysisBottomBarNotice(uiState: AnalysisUiState): (@Composable () -> Unit)? =
-    (uiState as? AnalysisUiState.Result)?.takeIf { it.hasKeyTerms }?.let { result -> { BarNote(result) } }
+    (uiState as? AnalysisUiState.Result)?.takeIf { it.hasKeyTerms && it.tailorLimitReached && !it.isOffline }
+        ?.let { { BarNote() } }
 
 @Composable
 private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
@@ -293,43 +301,21 @@ private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActi
 }
 
 @Composable
-private fun BarNote(state: AnalysisUiState.Result) {
-    when {
-        state.isOffline -> Text(
-            text = stringResource(R.string.feature_analysis_impl_offline_caption),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = TmrTheme.spacing.sm),
-            style = TmrTheme.typography.labelM,
+private fun BarNote() {
+    NoteCard(icon = TmrIcons.Clock) {
+        Text(
+            text = stringResource(R.string.feature_analysis_impl_tailor_limit),
+            style = TmrTheme.typography.bodyM,
             color = TmrTheme.colors.onSurface,
         )
-        state.tailorLimitReached -> NoteCard(icon = TmrIcons.Clock) {
-            Text(
-                text = stringResource(R.string.feature_analysis_impl_tailor_limit),
-                style = TmrTheme.typography.bodyM,
-                color = TmrTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(
-                    R.string.feature_analysis_impl_tailor_limit_cap,
-                    UsageAllowance.DAILY_FREE_TAILORINGS,
-                ),
-                style = TmrTheme.typography.labelM,
-                color = TmrTheme.colors.onSurfaceVariant,
-            )
-        }
-        else -> NoteCard(icon = TmrIcons.Download) {
-            Text(
-                text = boldNumber(
-                    pluralStringResource(
-                        R.plurals.feature_analysis_impl_credit_note,
-                        state.totalCredits,
-                        state.totalCredits,
-                    ),
-                    state.totalCredits.toString(),
-                ),
-                style = TmrTheme.typography.bodyM,
-                color = TmrTheme.colors.onSurface,
-            )
-        }
+        Text(
+            text = stringResource(
+                R.string.feature_analysis_impl_tailor_limit_cap,
+                UsageAllowance.DAILY_FREE_TAILORINGS,
+            ),
+            style = TmrTheme.typography.labelM,
+            color = TmrTheme.colors.onSurfaceVariant,
+        )
     }
 }
 
@@ -365,9 +351,3 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
 }
 
 private val NOTE_ICON_SIZE = 22.dp
-
-private fun boldNumber(text: String, number: String): AnnotatedString = buildAnnotatedString {
-    append(text)
-    val start = text.lastIndexOf(number)
-    if (start >= 0) addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, start + number.length)
-}

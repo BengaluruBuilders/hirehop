@@ -19,6 +19,7 @@
         <item quantity="one">Free application used. %1$d credit left. Nothing was charged.</item>
         <item quantity="other">Free application used. %1$d credits left. Nothing was charged.</item>
     </plurals>
+    <string name="feature_tailor_impl_exported_file_size_kb">%1$d KB</string>
     <string name="feature_tailor_impl_exported_format_pdf">PDF</string>
     <string name="feature_tailor_impl_exported_format_docx">DOCX</string>
     <string name="feature_tailor_impl_exported_share_action">Share</string>

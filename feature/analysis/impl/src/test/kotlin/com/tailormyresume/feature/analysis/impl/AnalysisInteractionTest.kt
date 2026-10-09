@@ -108,7 +108,7 @@ class AnalysisInteractionTest {
     fun tailor_isOffInOfflineAndFreeLimitStates() {
         show(resultWith(met).copy(isOffline = true))
         composeRule.onNodeWithText("Tailor when I'm back").assertIsNotEnabled()
-        composeRule.onNodeWithText("Tailor needs a connection.").assertExists()
+        composeRule.onNodeWithText("Tailor needs a connection.").assertDoesNotExist()
     }
 
     @Test
@@ -252,10 +252,10 @@ class AnalysisInteractionTest {
         }
 
         composeRule.onNodeWithText("Only the JD fit is shared. No name, contact details or resume facts.").assertExists()
-        composeRule.onNodeWithText("Share to WhatsApp").performClick()
+        composeRule.onNodeWithText("Share my fit").performClick()
 
         assertThat(shared).containsExactly(
-            "My fit for Associate Analyst: 1 met, 0 partly met, 1 to prepare. Made with TailorMyResume.",
+            "My fit for Associate Analyst: 1 met, 1 to prepare. Made with TailorMyResume.",
         )
     }
 }

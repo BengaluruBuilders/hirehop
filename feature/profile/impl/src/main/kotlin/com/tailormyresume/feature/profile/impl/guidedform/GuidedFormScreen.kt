@@ -94,8 +94,14 @@ private fun FormBody(
             if (uiState.isOffline) {
                 TmrOfflineBanner(message = stringResource(R.string.feature_profile_impl_guided_form_offline_message))
             }
-            StepProgress(stepIndex = uiState.stepIndex)
-            FiledEntries(uiState = uiState)
+            StepProgress(
+                number = uiState.stepIndex + 1,
+                stepName = stringResource(stepTitleRes(uiState.step)),
+                filledBars = uiState.stepIndex + 1,
+                doneSteps = uiState.completedSteps,
+                currentStep = uiState.step,
+            )
+            FiledEntries(uiState = uiState, onEditFact = actions.onEditFact)
             Text(
                 text = stringResource(stepTitleRes(uiState.step)),
                 style = TmrTheme.typography.headlineM,
@@ -121,7 +127,7 @@ private fun GuidedActionBar(
         } else {
             TmrPrimaryButton(
                 label = primaryLabel(uiState),
-                onClick = if (uiState.showIntro) actions.onStartForm else actions.onNext,
+                onClick = primaryAction(uiState, actions),
                 enabled = !uiState.isSaving,
                 trailingIcon = TmrIcons.ArrowForward,
                 modifier = Modifier.weight(1f),
@@ -136,10 +142,15 @@ private fun GuidedActionBar(
     }
 }
 
+private fun primaryAction(uiState: GuidedFormUiState, actions: GuidedFormActions): () -> Unit = when {
+    uiState.showIntro -> actions.onStartForm
+    else -> actions.onNext
+}
+
 @Composable
 private fun primaryLabel(uiState: GuidedFormUiState): String = when {
     uiState.showIntro -> stringResource(R.string.feature_profile_impl_guided_form_start_with_contact)
-    uiState.isLastStep -> stringResource(R.string.feature_profile_impl_guided_form_next_evidence)
+    uiState.isLastStep -> stringResource(R.string.feature_profile_impl_guided_form_continue_to_projects)
     else -> stringResource(
         R.string.feature_profile_impl_guided_form_next,
         stringResource(stepTitleRes(guidedStepAt(uiState.stepIndex + 1))),
