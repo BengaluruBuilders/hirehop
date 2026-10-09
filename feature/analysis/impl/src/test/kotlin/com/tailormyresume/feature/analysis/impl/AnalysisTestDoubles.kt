@@ -75,11 +75,12 @@ fun unconfirmedProfile() = confirmedProfile().let { profile ->
 class FixedJobDescriptionAnalyzer : JobDescriptionAnalyzer {
     var failing = false
     var failure: AiFailure? = null
+    var retryAfterSeconds: Int? = null
     var withoutRequirements = false
 
     override suspend fun analyze(rawText: String): JobDescription {
         check(!failing) { "analyzer failure" }
-        failure?.let { throw AiException(it) }
+        failure?.let { throw AiException(it, retryAfterSeconds) }
         return describe(rawText)
     }
 
