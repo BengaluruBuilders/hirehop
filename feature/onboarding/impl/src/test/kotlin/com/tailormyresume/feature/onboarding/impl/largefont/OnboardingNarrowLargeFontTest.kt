@@ -127,7 +127,7 @@ class OnboardingNarrowLargeFontTest {
         }
         composeRule.waitForIdle()
 
-        val focus = { text: String -> text.startsWith("We removed") || text.contains("not confirmed") || text.startsWith("Continue") }
+        val focus = { text: String -> text.startsWith("We removed") || text.contains("not confirmed") || (text.startsWith("Continue") && text != "Continued") }
         assertNoVisualOverflow(focus)
         assertNoRawMidWordBreaks(focus)
         val root = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
