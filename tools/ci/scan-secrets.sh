@@ -105,6 +105,7 @@ PY
 if [[ -n "$(ls -A "$text_dir")" ]]; then
   # gitleaks 8.30.1 dir and stdin skip content that sniffs as application/* (pdf, zip, tar); the git source does not sniff
   git init -q "$text_dir"
+  mkdir -p "$text_dir/.git/info"
   printf '* diff\n' >"$text_dir/.git/info/attributes"
   git -C "$text_dir" add -f -A
   git -C "$text_dir" -c user.name=scan -c user.email=scan@example.test -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -q -m text-copies
