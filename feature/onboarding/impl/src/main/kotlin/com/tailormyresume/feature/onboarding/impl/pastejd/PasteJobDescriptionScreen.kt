@@ -5,11 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,16 +37,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrButtonSize
@@ -68,6 +68,8 @@ import com.tailormyresume.feature.onboarding.impl.common.NoticeTone
 import com.tailormyresume.feature.onboarding.impl.common.OnboardingNotice
 import com.tailormyresume.feature.onboarding.impl.common.OnboardingStepBar
 import com.tailormyresume.feature.onboarding.impl.common.ReasonText
+import com.tailormyresume.feature.onboarding.impl.common.rememberIsStacked
+import com.tailormyresume.feature.onboarding.impl.common.stackedHyphens
 
 private val PASTE_FIELD_HEIGHT_EMPTY = 300.dp
 private val PASTE_FIELD_HEIGHT_PASTED = 230.dp
@@ -80,8 +82,6 @@ private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
 private val SOURCE_CHIP_ICON = 16.dp
 private val PASTE_WORD_ICON = 18.dp
-private const val STACKED_NOTICE_FONT_SCALE = 1.5f
-private val STACKED_NOTICE_MAX_SCREEN_HEIGHT = 560.dp
 
 @Composable
 internal fun PasteJobDescriptionScreen(
@@ -90,10 +90,7 @@ internal fun PasteJobDescriptionScreen(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
-    val density = LocalDensity.current
-    val windowHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
-    val isDisclosureStacked = density.fontScale >= STACKED_NOTICE_FONT_SCALE ||
-        windowHeight < STACKED_NOTICE_MAX_SCREEN_HEIGHT
+    val isDisclosureStacked = rememberIsStacked()
     var isDiscardRequested by remember { mutableStateOf(false) }
     val onBackRequest = {
         if (uiState.hasUnanalysedText) {
@@ -249,7 +246,7 @@ private fun PasteJobDescriptionContent(
 private fun PasteJobDescriptionIntro() {
     TmrHeadline(
         text = stringResource(R.string.feature_onboarding_impl_paste_jd_heading),
-        style = TmrTheme.typography.headlineL.copy(hyphens = Hyphens.Auto),
+        style = TmrTheme.typography.headlineL.copy(hyphens = stackedHyphens()),
         color = TmrTheme.colors.onSurface,
     )
 }
@@ -303,6 +300,25 @@ private fun PasteJobDescriptionField(
     }
     val shape = RoundedCornerShape(PASTE_FIELD_CORNER)
     val fieldHeight = if (uiState.text.isEmpty()) PASTE_FIELD_HEIGHT_EMPTY else PASTE_FIELD_HEIGHT_PASTED
+    if (!rememberIsStacked()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(fieldHeight)
+                .clip(shape)
+                .background(colors.card)
+                .then(if (outline != null) Modifier.border(PASTE_FIELD_BORDER, outline, shape) else Modifier),
+        ) {
+            PasteJobDescriptionTextArea(
+                uiState = uiState,
+                onTextChange = actions.onTextChange,
+                modifier = Modifier.fillMaxSize(),
+                bottomPadding = PASTE_FOOTER_RESERVE,
+            )
+            PasteJobDescriptionInlineFooter(uiState = uiState, actions = actions)
+        }
+        return
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -316,6 +332,38 @@ private fun PasteJobDescriptionField(
             modifier = Modifier.height(fieldHeight - PASTE_FOOTER_RESERVE),
         )
         PasteJobDescriptionFieldFooter(uiState = uiState, actions = actions)
+    }
+}
+
+@Composable
+private fun BoxScope.PasteJobDescriptionInlineFooter(
+    uiState: PasteJobDescriptionUiState,
+    actions: PasteJobDescriptionActions,
+) {
+    Row(
+        modifier = Modifier
+            .align(Alignment.BottomStart)
+            .fillMaxWidth()
+            .padding(start = PASTE_FIELD_PADDING, end = PASTE_FIELD_PADDING, bottom = PASTE_FIELD_PADDING),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (uiState.text.isEmpty()) {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_paste),
+                onClick = actions.onPaste,
+                size = TmrButtonSize.Compact,
+                leadingIcon = TmrIcons.Description,
+            )
+        } else {
+            PasteJobDescriptionCount(uiState = uiState)
+            Spacer(modifier = Modifier.weight(1f))
+            TmrOutlineButton(
+                label = stringResource(R.string.feature_onboarding_impl_paste_jd_action_clear),
+                onClick = actions.onClear,
+                size = TmrButtonSize.Compact,
+                leadingIcon = TmrIcons.Close,
+            )
+        }
     }
 }
 
@@ -388,12 +436,18 @@ private fun PasteJobDescriptionTextArea(
     uiState: PasteJobDescriptionUiState,
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    bottomPadding: Dp = 0.dp,
 ) {
     val label = stringResource(R.string.feature_onboarding_impl_paste_jd_field_label)
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = PASTE_FIELD_PADDING, end = PASTE_FIELD_PADDING, top = PASTE_FIELD_PADDING),
+            .padding(
+                start = PASTE_FIELD_PADDING,
+                end = PASTE_FIELD_PADDING,
+                top = PASTE_FIELD_PADDING,
+                bottom = bottomPadding,
+            ),
     ) {
         val fieldMinHeight = maxHeight
         Box(modifier = Modifier.verticalScroll(rememberScrollState())) {

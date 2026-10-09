@@ -64,6 +64,7 @@ import com.tailormyresume.feature.onboarding.impl.common.OnboardingNotice
 import com.tailormyresume.feature.onboarding.impl.common.OnboardingStepBar
 import com.tailormyresume.feature.onboarding.impl.common.ReasonText
 import com.tailormyresume.feature.onboarding.impl.common.StateCard
+import com.tailormyresume.feature.onboarding.impl.common.rememberIsStacked
 
 data class ConfirmFactsActions(
     val onBack: () -> Unit,
@@ -81,6 +82,7 @@ fun ConfirmFactsScreen(
     actions: ConfirmFactsActions,
     modifier: Modifier = Modifier,
 ) {
+    val isStacked = rememberIsStacked()
     TmrScreen(
         modifier = modifier,
         sheet = false,
@@ -88,6 +90,11 @@ fun ConfirmFactsScreen(
             null
         } else {
             ({ ConfirmFactsBottomBar(uiState = uiState, actions = actions) })
+        },
+        bottomBarNotice = if (isStacked || uiState.isLoading || uiState.isEmpty || uiState.isFullyConfirmed) {
+            null
+        } else {
+            ({ ConfirmFactsNotice(uiState = uiState, isStacked = false) })
         },
     ) { padding ->
         Column(
@@ -109,7 +116,9 @@ fun ConfirmFactsScreen(
                 uiState.isFullyConfirmed -> ConfirmedFactsBody(uiState = uiState, actions = actions)
                 else -> {
                     FactsToReviewBody(uiState = uiState, actions = actions)
-                    ConfirmFactsNotice(uiState)
+                    if (isStacked) {
+                        ConfirmFactsNotice(uiState = uiState, isStacked = true)
+                    }
                 }
             }
         }
@@ -433,36 +442,46 @@ private fun FactCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FactHeader(
     fact: ConfirmFactUi,
     page: Int,
 ) {
+    val sourceText = stringResource(
+        R.string.feature_onboarding_impl_confirm_facts_source_page,
+        stringResource(sectionTitle(fact.section)),
+        page,
+    )
+    val sourceStyle = TmrTheme.typography.labelM
+    val sourceColor = TmrTheme.colors.onSurfaceVariant
+    val statusKind = if (fact.isConfirmed && !fact.hasTooLongBullet) TmrStatusKind.Met else TmrStatusKind.Gap
+    val statusLabel = stringResource(
+        when {
+            fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+            fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_status_confirmed
+            else -> R.string.feature_onboarding_impl_confirm_facts_pending
+        },
+    )
+    if (rememberIsStacked()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            TmrFactId(id = fact.displayId)
+            TmrStatusChip(kind = statusKind, label = statusLabel)
+            Text(text = sourceText, style = sourceStyle, color = sourceColor)
+        }
+        return
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TmrFactId(id = fact.displayId)
-        Text(
-            text = stringResource(
-                R.string.feature_onboarding_impl_confirm_facts_source_page,
-                stringResource(sectionTitle(fact.section)),
-                page,
-            ),
-            modifier = Modifier.weight(1f),
-            style = TmrTheme.typography.labelM,
-            color = TmrTheme.colors.onSurfaceVariant,
-        )
-        TmrStatusChip(
-            kind = if (fact.isConfirmed && !fact.hasTooLongBullet) TmrStatusKind.Met else TmrStatusKind.Gap,
-            label = stringResource(
-                when {
-                    fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
-                    fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_status_confirmed
-                    else -> R.string.feature_onboarding_impl_confirm_facts_pending
-                },
-            ),
-        )
+        Text(text = sourceText, modifier = Modifier.weight(1f), style = sourceStyle, color = sourceColor)
+        TmrStatusChip(kind = statusKind, label = statusLabel)
     }
 }
 
@@ -472,6 +491,10 @@ private fun FactActions(
     category: EntryCategory,
     actions: ConfirmFactsActions,
 ) {
+    if (rememberIsStacked()) {
+        StackedFactActions(fact = fact, category = category, actions = actions)
+        return
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (fact.hasTooLongBullet) {
             Text(
@@ -508,6 +531,39 @@ private fun FactActions(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+private fun StackedFactActions(
+    fact: ConfirmFactUi,
+    category: EntryCategory,
+    actions: ConfirmFactsActions,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (fact.hasTooLongBullet) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_too_long_note),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        } else if (!fact.isConfirmed) {
+            TmrPrimaryButton(
+                label = stringResource(R.string.feature_onboarding_impl_confirm_facts_confirm),
+                onClick = { actions.onConfirm(fact.id) },
+                size = TmrButtonSize.Compact,
+            )
+        }
+        TmrOutlineButton(
+            label = stringResource(R.string.feature_onboarding_impl_confirm_facts_edit),
+            onClick = { actions.onEdit(fact.id, category) },
+            size = TmrButtonSize.Compact,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun SkillsCard(skills: List<String>) {
     TmrCard(
         modifier = Modifier.fillMaxWidth(),
@@ -535,6 +591,7 @@ private fun SkillChip(skill: String) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EmptySectionCard(
     section: ConfirmFactsSection,
@@ -549,6 +606,23 @@ private fun EmptySectionCard(
             style = TmrTheme.typography.bodyM,
             color = TmrTheme.colors.onSurface,
         )
+        if (rememberIsStacked()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            ) {
+                TmrOutlineButton(
+                    label = stringResource(R.string.feature_onboarding_impl_confirm_facts_skip),
+                    onClick = { actions.onSkip(section) },
+                )
+                TmrOutlineButton(
+                    label = stringResource(R.string.feature_onboarding_impl_confirm_facts_add_one),
+                    onClick = { actions.onAddOne(section) },
+                    leadingIcon = TmrIcons.Add,
+                )
+            }
+            return@TmrCard
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
             TmrOutlineButton(
                 label = stringResource(R.string.feature_onboarding_impl_confirm_facts_skip),
@@ -616,13 +690,21 @@ private fun ConfirmFactsBottomBar(
 }
 
 @Composable
-private fun ConfirmFactsNotice(uiState: ConfirmFactsUiState) {
+private fun ConfirmFactsNotice(uiState: ConfirmFactsUiState, isStacked: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (uiState.openCount > 0) {
             OpenFactsDisclosure(uiState.openCount)
         }
         if (!uiState.canContinue) {
-            ReasonText(text = stringResource(R.string.feature_onboarding_impl_confirm_facts_reason_needs_one))
+            ReasonText(
+                text = stringResource(
+                    if (isStacked) {
+                        R.string.feature_onboarding_impl_confirm_facts_reason_needs_one_stacked
+                    } else {
+                        R.string.feature_onboarding_impl_confirm_facts_reason_needs_one
+                    },
+                ),
+            )
         }
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -36,10 +38,22 @@ import kotlinx.coroutines.flow.map
 
 internal enum class NoticeTone { Neutral, Success, Warning, Error }
 
+private const val STACKED_FONT_SCALE = 1.5f
+private val STACKED_MAX_SCREEN_HEIGHT = 560.dp
 private val NOTICE_ICON_SIZE = 20.dp
 private val DISCLOSURE_ICON_SIZE = 18.dp
 private val STATE_CIRCLE_SIZE = 88.dp
 private val STATE_ICON_SIZE = 40.dp
+
+@Composable
+internal fun rememberIsStacked(): Boolean {
+    val density = LocalDensity.current
+    val windowHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    return density.fontScale >= STACKED_FONT_SCALE || windowHeight < STACKED_MAX_SCREEN_HEIGHT
+}
+
+@Composable
+internal fun stackedHyphens(): Hyphens = if (rememberIsStacked()) Hyphens.Auto else Hyphens.Unspecified
 
 internal fun ConnectivityMonitor.observeOffline(forced: Boolean): Flow<Boolean> =
     isOnline.map { online -> forced || !online }
@@ -77,7 +91,7 @@ internal fun OnboardingNotice(
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(NOTICE_ICON_SIZE))
         Text(
             text = text,
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold, hyphens = stackedHyphens()),
             color = colors.onSurface,
             modifier = Modifier.weight(1f),
         )
@@ -104,7 +118,7 @@ internal fun DisclosureCard(
         )
         Text(
             text = text,
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold, hyphens = Hyphens.Auto),
+            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold, hyphens = stackedHyphens()),
             color = colors.onSurfaceVariant,
             modifier = Modifier.weight(1f),
         )
@@ -137,7 +151,7 @@ internal fun ReasonText(
         Text(
             text = styled,
             modifier = Modifier.weight(1f),
-            style = TmrTheme.typography.labelM.copy(hyphens = Hyphens.Auto),
+            style = TmrTheme.typography.labelM.copy(hyphens = stackedHyphens()),
             color = TmrTheme.colors.onSurfaceVariant,
         )
     }

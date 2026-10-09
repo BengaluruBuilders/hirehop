@@ -36,7 +36,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
@@ -57,6 +56,7 @@ import com.tailormyresume.feature.onboarding.impl.common.NoticeTone
 import com.tailormyresume.feature.onboarding.impl.common.OnboardingNotice
 import com.tailormyresume.feature.onboarding.impl.common.OnboardingStepBar
 import com.tailormyresume.feature.onboarding.impl.common.StateCard
+import com.tailormyresume.feature.onboarding.impl.common.stackedHyphens
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -149,7 +149,7 @@ private fun ConsentHeading(isReconsent: Boolean) {
                     R.string.feature_onboarding_impl_consent_heading_first_run
                 },
             ),
-            style = TmrTheme.typography.headlineL.copy(hyphens = Hyphens.Auto),
+            style = TmrTheme.typography.headlineL.copy(hyphens = stackedHyphens()),
             color = TmrTheme.colors.onSurface,
         )
         Text(

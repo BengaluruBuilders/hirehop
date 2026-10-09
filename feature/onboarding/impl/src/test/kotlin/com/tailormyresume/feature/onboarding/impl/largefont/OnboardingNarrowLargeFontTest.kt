@@ -42,6 +42,8 @@ import org.robolectric.annotation.GraphicsMode
 
 private const val EMULATOR_QUALIFIERS = "w230dp-h914dp-normal-long-notround-any-500dpi-keyshidden-nonav"
 private const val LONG_WORD_LENGTH = 8
+private const val MIN_BEFORE_BREAK = 2
+private const val MIN_AFTER_BREAK = 3
 private const val MAX_FOOTER_SHARE = 0.4f
 private const val MIN_LIST_SHARE = 0.3f
 
@@ -93,7 +95,9 @@ class OnboardingNarrowLargeFontTest {
         }
         assertNoVisualOverflow { text -> focus(text) && text != "I understand" }
         assertNoRawMidWordBreaks(focus)
-        assertTrue(layoutsOf().filter { it.layoutInput.text.text == "I understand" }.all { it.lineCount == 1 })
+        val buttons = layoutsOf().filter { it.layoutInput.text.text == "I understand" }
+        assertTrue("no I understand label found", buttons.isNotEmpty())
+        assertTrue(buttons.all { it.lineCount == 1 })
     }
 
     @Test
@@ -170,22 +174,28 @@ class OnboardingNarrowLargeFontTest {
 
     private fun assertNoRawMidWordBreaks(focus: (String) -> Boolean) {
         val offenders = focused(focus)
-            .flatMap { layout -> midWordBreaks(layout).map { word -> layout to word } }
-            .filter { (layout, word) -> layout.layoutInput.style.hyphens != Hyphens.Auto || word.length < LONG_WORD_LENGTH }
+            .flatMap { layout -> midWordBreaks(layout).map { split -> layout to split } }
+            .filter { (layout, split) -> layout.layoutInput.style.hyphens != Hyphens.Auto || !split.isHyphenatable() }
         assertTrue(
-            "raw mid-word breaks: " + offenders.joinToString { (layout, word) -> "$word in ${layout.layoutInput.text.text.take(30)}" },
+            "raw mid-word breaks: " + offenders.joinToString { (layout, split) ->
+                "${split.word}@${split.before} in ${layout.layoutInput.text.text.take(30)}"
+            },
             offenders.isEmpty(),
         )
     }
 
-    private fun midWordBreaks(layout: TextLayoutResult): List<String> {
+    private data class WordSplit(val word: String, val before: Int) {
+        fun isHyphenatable() = word.length >= LONG_WORD_LENGTH && before >= MIN_BEFORE_BREAK && word.length - before >= MIN_AFTER_BREAK
+    }
+
+    private fun midWordBreaks(layout: TextLayoutResult): List<WordSplit> {
         val text = layout.layoutInput.text.text
         return (0 until layout.lineCount - 1).mapNotNull { line ->
             val end = layout.getLineEnd(line, visibleEnd = false)
             if (end in 1 until text.length && !text[end - 1].isWhitespace() && !text[end].isWhitespace() && text[end - 1] != '-') {
                 val start = text.substring(0, end).lastIndexOfAny(charArrayOf(' ', '\n')) + 1
                 val stop = text.indexOfAny(charArrayOf(' ', '\n'), end).let { if (it < 0) text.length else it }
-                text.substring(start, stop)
+                WordSplit(text.substring(start, stop), end - start)
             } else {
                 null
             }
