@@ -27,8 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,8 +41,6 @@ import com.tailormyresume.core.designsystem.component.TmrFactId
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrInnerHeader
 import com.tailormyresume.core.designsystem.component.TmrMonogram
-import com.tailormyresume.core.designsystem.component.TmrPillRow
-import com.tailormyresume.core.designsystem.component.TmrPillRowStyle
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrProvenanceChip
 import com.tailormyresume.core.designsystem.component.TmrProvenanceKind
@@ -165,7 +161,7 @@ private fun LazyListScope.coverLetterItems(
     sourceOrdinal: Int?,
     onSource: (Int) -> Unit,
 ) {
-    if (uiState.isOffline && uiState.stage != CoverLetterStage.GENERATING) {
+    if (uiState.showsOfflineBanner) {
         item(key = "offline") {
             NoticeStrip(text = stringResource(R.string.feature_tailor_impl_cover_letter_offline), icon = TmrIcons.Offline)
         }
@@ -246,24 +242,6 @@ private fun OfferCard(uiState: CoverLetterUiState, actions: CoverLetterActions) 
                 }
             }
         }
-        uiState.exportedFileName?.let { fileName ->
-            TmrPillRow(
-                title = fileName,
-                onClick = {},
-                style = TmrPillRowStyle.Neutral,
-                icon = TmrIcons.Description,
-                trailingIcon = null,
-                titleMaxLines = 1,
-                modifier = Modifier.clearAndSetSemantics { contentDescription = fileName },
-            )
-        }
-        TmrPillRow(
-            title = stringResource(R.string.feature_tailor_impl_cover_letter_prep_title),
-            subtitle = stringResource(R.string.feature_tailor_impl_cover_letter_prep_subtitle),
-            onClick = actions.onPrepQuestions,
-            style = TmrPillRowStyle.Neutral,
-            icon = TmrIcons.Description,
-        )
     }
 }
 

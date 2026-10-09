@@ -549,8 +549,9 @@ interface SampleDataController {
 The dataset is one file: `core/domain/src/main/kotlin/com/tailormyresume/core/domain/sample/SampleDataSet.kt`.
 The controller is in `core:domain`, not `core:data`, because it uses `AnalyzeJobUseCase`, `TailorResumeUseCase`, and `PaymentGateway`. `core:data` cannot see them.
 
-- Mock: `OfflineSampleDataController` (`@Singleton`).
-- Binding: `DomainModule.bindSampleDataController`.
+- Mock: `OfflineSampleDataController`. It always uses the offline payment gateway and the offline analysis and tailoring sources. In `prod` it never opens a Play purchase and never calls the backend.
+- Binding: `DomainModule.provideSampleDataController` (`@Singleton`).
+- `keepSampleJobDescription()` also signs in the sample candidate when the app has no account, consent, or profile. This lets the Gap analysis preview open with the Error and Daily limit scenarios.
 - Test fake: `TestSampleDataController` (counts calls). Contract: `SampleDataControllerContractTest`.
 - Real implementation: none. Remove the binding and the developer-menu entry in a production flavor.
 

@@ -1,6 +1,7 @@
 package com.tailormyresume.core.domain
 
 import com.tailormyresume.core.data.repository.ProfileRepository
+import com.tailormyresume.core.domain.fact.FactDisplayIds
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
@@ -31,6 +32,13 @@ class AddUserStatedFactUseCase @Inject constructor(
         return profile.copy(skills = mergedSkills(profile.skills, stated)).withStatement(trimmed)
     }
 
+    fun nextFactId(profile: CandidateProfile): String =
+        profile.userStatedTarget()?.let { FactDisplayIds.of(it, profile.entries) }
+            ?: idAllocator.nextUncategorisedId(profile.entries)
+
+    private fun CandidateProfile.userStatedTarget(): ProfileEntry? =
+        entries.lastOrNull { it.isUserStatedCollection() && it.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY }
+
     private fun mergedSkills(existing: List<String>, stated: List<String>): List<String> {
         val known = existing.map { it.lowercase() }.toMutableSet()
         return existing + stated.filter { known.add(it.lowercase()) }
@@ -38,7 +46,7 @@ class AddUserStatedFactUseCase @Inject constructor(
 
     private fun CandidateProfile.withStatement(statement: String): CandidateProfile {
         val bullet = EvidenceBullet(id = idGenerator.newId(), text = statement)
-        val target = entries.lastOrNull { it.isUserStatedCollection() && it.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY }
+        val target = userStatedTarget()
         val updated = if (target != null) {
             entries.map { if (it === target) it.copy(bullets = it.bullets + bullet) else it }
         } else {

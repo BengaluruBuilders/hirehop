@@ -162,4 +162,31 @@ class RemoteAnalysisRematchTest {
         assertThat(rematched.status).isEqualTo(MatchStatus.GAP)
         assertThat(backend.server.requestCount).isEqualTo(1)
     }
+
+    @Test
+    fun anOverLimitSkillCitedForAServerGapDoesNotFlipOnReentryOfTheSameProfile() = runBlocking<Unit> {
+        backend.reply(200, TWO_REQUIREMENT_RESPONSE)
+        val overLimitSkill = "Designing, tuning and maintaining production SQL databases for analytics teams"
+        val profile = candidate.copy(skills = candidate.skills + overLimitSkill)
+        val citing = object : GapMatcher {
+            override fun match(profile: CandidateProfile, job: JobDescription) =
+                GapAnalysis(
+                    job.requirements.map { requirement ->
+                        val sql = requirement.id == "req-1"
+                        val evidence = if (sql) listOf("skill:$overLimitSkill") else emptyList()
+                        RequirementMatch(requirement, if (sql) MatchStatus.PARTIAL else MatchStatus.GAP, evidence)
+                    },
+                    coverage,
+                )
+        }
+        val citingSource = RemoteJobAnalysisSource(backend.api, citing)
+
+        citingSource.analyse(profile, jobText)
+        val rematched = citingSource.analyse(profile, jobText).gap.matches.first { it.requirement.id == "req-1" }
+
+        assertThat(overLimitSkill.length).isGreaterThan(60)
+        assertThat(rematched.status).isEqualTo(MatchStatus.GAP)
+        assertThat(rematched.evidenceIds).isEmpty()
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
 }
