@@ -45,7 +45,9 @@ fun applicationStatusOptions(labelOf: (ApplicationStatus) -> String): List<Appli
 fun applicationStatusOptionsFor(
     current: ApplicationStatus,
     labelOf: (ApplicationStatus) -> String,
-): List<ApplicationStatusOption> = applicationStatusOptions(labelOf)
+): List<ApplicationStatusOption> = applicationStatusOptions(labelOf).filter { option ->
+    option.status != ApplicationStatus.NO_RESPONSE || current == ApplicationStatus.NO_RESPONSE
+}
 
 @Stable
 class ApplicationStatusSelection(initial: ApplicationStatus) {
@@ -69,7 +71,7 @@ fun ApplicationStatusSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     saveLabel: String,
-    cancelLabel: String,
+    cancelLabel: String? = null,
     eyebrow: String? = null,
     title: String? = null,
     note: String? = null,
@@ -106,11 +108,13 @@ fun ApplicationStatusSheet(
                 onClick = { onConfirm(selection.confirm()) },
                 modifier = Modifier.weight(1f),
             )
-            TmrOutlineButton(
-                label = cancelLabel,
-                onClick = onDismiss,
-                modifier = Modifier.weight(1f),
-            )
+            if (cancelLabel != null) {
+                TmrOutlineButton(
+                    label = cancelLabel,
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }

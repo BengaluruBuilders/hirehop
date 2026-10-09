@@ -43,13 +43,12 @@ fun TmrApplicationStatusChip(
 }
 
 internal fun TmrColors.applicationStatusContainer(kind: TmrApplicationStatusKind): Color = when (kind) {
-    TmrApplicationStatusKind.Interview -> partialContainer
     TmrApplicationStatusKind.Offer -> metContainer
     else -> neutralContainer
 }
 
 internal fun TmrColors.applicationStatusContent(kind: TmrApplicationStatusKind): Color = when (kind) {
-    TmrApplicationStatusKind.Interview -> onPartialContainer
+    TmrApplicationStatusKind.Interview -> primary
     TmrApplicationStatusKind.Offer -> onMetContainer
     else -> onNeutralContainer
 }

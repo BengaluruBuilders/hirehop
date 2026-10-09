@@ -2,6 +2,7 @@ package com.tailormyresume.feature.applications.impl
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -50,11 +52,13 @@ import com.tailormyresume.core.designsystem.theme.tmrShadow
 import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.ui.component.ApplicationStatusSheet
-import com.tailormyresume.core.ui.component.applicationStatusOptions
+import com.tailormyresume.core.ui.component.applicationStatusOptionsFor
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-private val MENU_WIDTH = 236.dp
+private val MENU_WIDTH = 230.dp
+private val MENU_SHAPE = RoundedCornerShape(16.dp)
+private val HAIRLINE = 1.dp
 
 @Composable
 fun ApplicationDetailRoute(
@@ -184,14 +188,11 @@ private fun WorkspaceStatusSheetHost(
     val labels = ApplicationStatus.entries.associateWith { status -> status.label() }
     ApplicationStatusSheet(
         current = state.current,
-        options = applicationStatusOptions { status -> labels.getValue(status) },
+        options = applicationStatusOptionsFor(state.current) { status -> labels.getValue(status) },
         onConfirm = { chosen -> onAction(ApplicationWorkspaceAction.StatusChosen(chosen)) },
         onDismiss = { onAction(ApplicationWorkspaceAction.StatusSheetDismissed) },
         saveLabel = stringResource(R.string.feature_applications_impl_sheet_save),
-        cancelLabel = stringResource(R.string.feature_applications_impl_sheet_cancel),
-        eyebrow = stringResource(R.string.feature_applications_impl_sheet_eyebrow),
         title = stringResource(R.string.feature_applications_impl_sheet_title),
-        note = stringResource(R.string.feature_applications_impl_sheet_note),
         modifier = modifier,
     )
 }
@@ -215,8 +216,9 @@ private fun WorkspaceOverflowMenu(
         Column(
             modifier = Modifier
                 .width(MENU_WIDTH)
-                .tmrShadow(TmrTheme.elevation.modal, TmrTheme.shapes.banner)
-                .background(TmrTheme.colors.surface, TmrTheme.shapes.banner)
+                .tmrShadow(TmrTheme.elevation.modal, MENU_SHAPE)
+                .background(TmrTheme.colors.primaryContainer, MENU_SHAPE)
+                .border(HAIRLINE, TmrTheme.colors.outlineSoft, MENU_SHAPE)
                 .padding(vertical = TmrTheme.spacing.sm),
         ) {
             Row(
