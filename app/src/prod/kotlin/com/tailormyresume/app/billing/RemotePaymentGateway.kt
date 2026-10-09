@@ -25,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,6 +45,9 @@ class RemotePaymentGateway @Inject constructor(
     private val pending = MutableStateFlow<List<String>>(emptyList())
     private val reposts = mutableMapOf<String, Job>()
     private var generation = 0
+
+    @Volatile
+    private var history: List<PurchaseRecord>? = null
 
     internal fun repostCount() = synchronized(reposts) { reposts.size }
 
@@ -71,10 +75,29 @@ class RemotePaymentGateway @Inject constructor(
                 wallet.refreshOrCached()
             }
 
-    override suspend fun purchaseHistory(): List<PurchaseRecord> =
+    override suspend fun purchaseHistory(): List<PurchaseRecord> {
+        val epoch = currentGeneration()
+        return fetchHistory().also { fresh -> keepHistory(fresh, epoch) }
+    }
+
+    override fun observePurchaseHistory(): Flow<List<PurchaseRecord>> = flow {
+        history?.let { cached -> emit(cached) }
+        val epoch = currentGeneration()
+        val fresh = runCatching { fetchHistory() }.getOrElse { failure ->
+            if (failure is CancellationException || history == null) throw failure
+            return@flow
+        }
+        if (keepHistory(fresh, epoch)) emit(fresh)
+    }
+
+    private suspend fun fetchHistory(): List<PurchaseRecord> =
         apiResult { api.purchases().purchases }.getOrThrow().map { purchase ->
             PurchaseRecord(purchase.productId, purchase.orderId, Instant.parse(purchase.purchasedAt), PurchaseState.COMPLETED)
         }
+
+    private fun keepHistory(fresh: List<PurchaseRecord>, epoch: Int): Boolean = synchronized(reposts) {
+        (epoch == generation).also { current -> if (current) history = fresh }
+    }
 
     override suspend fun purchase(packId: String): PurchaseResult {
         val epoch = currentGeneration()
@@ -114,6 +137,7 @@ class RemotePaymentGateway @Inject constructor(
             reposts.values.forEach(Job::cancel)
             reposts.clear()
             wallet.clear()
+            history = null
             pending.value = emptyList()
         }
         return NO_CREDITS
