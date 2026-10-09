@@ -2,6 +2,8 @@ package com.tailormyresume.core.designsystem.component
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrMotionDefaults
@@ -57,6 +59,22 @@ class TmrHeaderCollapseSettleTest {
         settle(state)
 
         assertEquals(1f, state.fraction)
+    }
+
+    @Test
+    fun aScrollDuringTheSettleStopsItFromMovingTheHeader() {
+        val state = stateAt(0.75f).apply { range = 200f }
+        rule.mainClock.autoAdvance = false
+
+        scope.launch { state.settle() }
+        rule.mainClock.advanceTimeByFrame()
+        rule.mainClock.advanceTimeByFrame()
+        rule.mainClock.advanceTimeByFrame()
+        state.connection.onPreScroll(Offset(0f, 40f), NestedScrollSource.UserInput)
+        val atInterrupt = state.fraction
+        rule.mainClock.advanceTimeBy(1000)
+
+        assertEquals(atInterrupt, state.fraction)
     }
 
     private fun stateAt(fraction: Float): TmrHeaderCollapseState {
