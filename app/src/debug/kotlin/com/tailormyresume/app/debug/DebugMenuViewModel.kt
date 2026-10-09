@@ -57,11 +57,13 @@ class DebugMenuViewModel @Inject constructor(
     fun openPreview(target: DebugScenarioTarget, scenario: DebugScenario = DebugScenario.defaultValue, onReady: () -> Unit) {
         viewModelScope.launch {
             if (target.needsSampleJob) sampleDataController.keepSampleJobDescription()
+            forcedPaymentScenario.scenario = if (target.forcesPayment) scenario else DebugScenario.defaultValue
             onReady()
         }
     }
 
     fun closePreview(target: DebugScenarioTarget) {
+        forcedPaymentScenario.scenario = DebugScenario.defaultValue
         if (target.needsSampleJob) viewModelScope.launch { sampleDataController.clearSampleJobDescription() }
     }
 

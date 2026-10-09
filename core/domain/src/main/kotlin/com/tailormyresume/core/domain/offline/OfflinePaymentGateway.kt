@@ -16,6 +16,7 @@ import com.tailormyresume.core.domain.PurchaseOutcome
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseResult
 import com.tailormyresume.core.model.CreditKind
+import com.tailormyresume.core.model.DebugScenario
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -100,7 +101,7 @@ class OfflinePaymentGateway @Inject constructor(
     }
 
     private suspend fun resolve(state: PaymentState, pack: ApplicationPack): PurchaseResult =
-        when (scriptedOutcomes[pack.id] ?: PurchaseOutcome.Success) {
+        when (scriptedOutcomes[pack.id] ?: forcedOutcome() ?: PurchaseOutcome.Success) {
             PurchaseOutcome.Success -> {
                 val saved = save(state.confirm(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
                 PurchaseResult.Completed(saved.toEntitlement())
@@ -120,8 +121,22 @@ class OfflinePaymentGateway @Inject constructor(
 
     private fun PaymentState.history(): List<PurchaseRecord> = purchases.map { it.toModel() }.reversed()
 
+    private fun forcedOutcome(): PurchaseOutcome? = when (forced.scenario) {
+        DebugScenario.PENDING -> PurchaseOutcome.Pending
+        DebugScenario.CANCELLED -> PurchaseOutcome.Cancelled
+        DebugScenario.FAILED -> PurchaseOutcome.Failed
+        else -> null
+    }
+
+    private fun PaymentState.shownUnder(scenario: DebugScenario): PaymentState = when (scenario) {
+        DebugScenario.PENDING -> copy(freeCredits = 0, confirmedPackIds = emptyList())
+            .hold(MockPackCatalogue.all.first().id, FORCED_ORDER_ID, clock.now().toEpochMilliseconds())
+        else -> this
+    }
+
     private fun observeState(): Flow<PaymentState> =
-        store.observeValue(PAYMENT_STATE_KEY, PaymentState.serializer()).map { it ?: PaymentState(startingFreeCredits) }
+        store.observeValue(PAYMENT_STATE_KEY, PaymentState.serializer())
+            .map { (it ?: PaymentState(startingFreeCredits)).shownUnder(forced.scenario) }
 
     private suspend fun load(): PaymentState =
         store.readValue(PAYMENT_STATE_KEY, PaymentState.serializer()) ?: PaymentState(startingFreeCredits)
@@ -134,5 +149,6 @@ class OfflinePaymentGateway @Inject constructor(
     private companion object {
         const val DEFAULT_FREE_CREDITS = 1
         const val ORDER_PREFIX = "mock-order-"
+        const val FORCED_ORDER_ID = "mock-order-forced-pending"
     }
 }

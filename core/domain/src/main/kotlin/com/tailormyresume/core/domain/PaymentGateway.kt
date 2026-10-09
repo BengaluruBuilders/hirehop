@@ -1,6 +1,8 @@
 package com.tailormyresume.core.domain
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
 interface PaymentGateway {
@@ -22,3 +24,9 @@ interface PaymentGateway {
 
     suspend fun clearCredits(): PurchaseEntitlement
 }
+
+fun PaymentGateway.observePurchaseHistoryOrEmpty(): Flow<List<PurchaseRecord>> =
+    observePurchaseHistory().catch { failure ->
+        if (failure is CancellationException) throw failure
+        emit(emptyList())
+    }

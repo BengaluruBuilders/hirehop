@@ -100,7 +100,7 @@ class DebugScenarioActivity : ComponentActivity() {
 
     private fun openPreview() {
         rootStores.releaseAll()
-        menuViewModel.openPreview(target) { opened = true }
+        menuViewModel.openPreview(target, scenario) { opened = true }
     }
 
     private fun closePreview() {

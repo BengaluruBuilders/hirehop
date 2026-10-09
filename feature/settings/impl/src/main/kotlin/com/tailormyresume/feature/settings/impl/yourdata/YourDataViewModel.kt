@@ -12,6 +12,7 @@ import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseState
 import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
+import com.tailormyresume.core.domain.observePurchaseHistoryOrEmpty
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.JobApplication
@@ -53,7 +54,7 @@ class YourDataViewModel @Inject constructor(
     private val ledger: Flow<Ledger> = combine(
         profileRepository.observeProfile(),
         applicationRepository.observeApplications(),
-        paymentGateway.observePurchaseHistory(),
+        paymentGateway.observePurchaseHistoryOrEmpty(),
         flow {
             emit(emptyList())
             emit(runCatching { paymentGateway.packs() }.getOrDefault(emptyList()))

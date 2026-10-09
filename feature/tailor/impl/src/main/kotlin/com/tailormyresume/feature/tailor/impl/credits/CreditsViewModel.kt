@@ -7,6 +7,7 @@ import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.PaymentGateway
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseState
+import com.tailormyresume.core.domain.observePurchaseHistoryOrEmpty
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.feature.tailor.api.navigation.CreditsNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,7 +70,7 @@ internal class CreditsViewModel @Inject constructor(
             val online: Flow<Boolean> = if (creditsIsOffline(scenario)) flowOf(false) else connectivityMonitor.isOnline
             combine(
                 paymentGateway.observeEntitlement(),
-                paymentGateway.observePurchaseHistory(),
+                paymentGateway.observePurchaseHistoryOrEmpty(),
                 online,
             ) { entitlement, history, isOnline ->
                 CreditsUiState(

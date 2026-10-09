@@ -21,6 +21,7 @@ import com.tailormyresume.feature.tailor.impl.export.docx.ResumeDocxRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -205,8 +206,10 @@ internal class ExportPreviewViewModel @Inject constructor(
         val format = state.format
         val fileName = state.fileName
         mutableState.update { current -> current.copy(stage = ExportPreviewStage.EXPORTING) }
+        val previousJob = exportJob
         exportJob = viewModelScope.launch {
             canCancelExport = true
+            previousJob?.cancelAndJoin()
             val rendered = try {
                 when (format) {
                     ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
