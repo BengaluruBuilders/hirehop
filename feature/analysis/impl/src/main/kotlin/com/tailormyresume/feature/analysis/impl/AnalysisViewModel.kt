@@ -27,6 +27,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.KeptJobDescription
+import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ReportedItemKind
@@ -84,6 +85,7 @@ class AnalysisViewModel @Inject constructor(
     private val scenario = MutableStateFlow(DebugScenario.defaultValue)
     private val destinationChannel = Channel<AnalysisDestination>(Channel.BUFFERED)
     private var undoProfile: CandidateProfile? = null
+    private var undoClosedByEvidence: Set<String> = emptySet()
     private var createdApplicationId: String? = null
     private var countedDraftKey: String? = null
     private var submitting = false
@@ -154,6 +156,7 @@ class AnalysisViewModel @Inject constructor(
         viewModelScope.launch {
             if (currentProfile() != ready.profile) {
                 undoProfile = null
+                undoClosedByEvidence = emptySet()
                 load()
             }
         }
@@ -232,13 +235,17 @@ class AnalysisViewModel @Inject constructor(
             try {
                 attempt {
                     val preview = checkNotNull(addUserStatedFact.preview(requirement, statement)) { "Profile is missing" }
-                    val previewed = refreshed(ready, preview)
+                    val previewed = refreshed(ready, preview, ready.closedByEvidence + requirementId)
                     val closed = previewed.analysis.gap.matches
                         .firstOrNull { it.requirement.id == requirementId }
                         ?.status != MatchStatus.GAP
                     if (closed) {
                         addUserStatedFact(requirement, statement)
-                        refreshed(ready, checkNotNull(currentProfile()) { "Profile is missing" })
+                        refreshed(
+                            ready,
+                            checkNotNull(currentProfile()) { "Profile is missing" },
+                            ready.closedByEvidence + requirementId,
+                        )
                     } else {
                         null
                     }
@@ -368,10 +375,11 @@ class AnalysisViewModel @Inject constructor(
 
     private suspend fun applyEvidence(before: Phase.Ready, fresh: Phase.Ready, requirementId: String) {
         undoProfile = before.profile
+        undoClosedByEvidence = before.closedByEvidence
         dropClosedGapsFromPrepPlan(fresh)
         local.update {
             it.copy(
-                phase = fresh,
+                phase = fresh.copy(closedByEvidence = before.closedByEvidence + requirementId),
                 overlay = AnalysisOverlay.None,
                 closedId = requirementId,
             )
@@ -390,14 +398,16 @@ class AnalysisViewModel @Inject constructor(
         val ready = local.value.phase as? Phase.Ready ?: return
         val snapshot = undoProfile ?: return
         undoProfile = null
+        val previousClosedByEvidence = undoClosedByEvidence
+        undoClosedByEvidence = emptySet()
         viewModelScope.launch {
             attempt {
                 profileRepository.saveProfile(snapshot)
-                refreshed(ready, snapshot)
+                refreshed(ready, snapshot, previousClosedByEvidence)
             }.fold(
                 onSuccess = { fresh ->
                     dropClosedGapsFromPrepPlan(fresh)
-                    local.update { it.copy(phase = fresh) }
+                    local.update { it.copy(phase = fresh.copy(closedByEvidence = previousClosedByEvidence)) }
                     onToastDismiss()
                 },
                 onFailure = { showToast(AnalysisToast.EvidenceFailed) },
@@ -405,13 +415,31 @@ class AnalysisViewModel @Inject constructor(
         }
     }
 
-    private suspend fun refreshed(ready: Phase.Ready, profile: CandidateProfile): Phase.Ready {
+    private suspend fun refreshed(
+        ready: Phase.Ready,
+        profile: CandidateProfile,
+        targetedRequirementIds: Set<String>,
+    ): Phase.Ready {
         val previous = ready.serverAnalysis
-        val local = withContext(computeDispatcher) { gapMatcher.match(profile, previous.job) }
+        val (local, baseline) = withContext(computeDispatcher) {
+            gapMatcher.match(profile, previous.job) to gapMatcher.match(ready.baselineProfile, previous.job)
+        }
         val localById = local.matches.associateBy { it.requirement.id }
-        val coverage = maxOf(previous.gap.keywordCoverage, local.keywordCoverage, compareBy { it.covered })
+        val baselineById = baseline.matches.associateBy { it.requirement.id }
+        val coverage = KeywordCoverage(
+            covered = (
+                previous.gap.keywordCoverage.covered +
+                    maxOf(0, local.keywordCoverage.covered - baseline.keywordCoverage.covered)
+                ).coerceAtMost(previous.gap.keywordCoverage.total),
+            total = previous.gap.keywordCoverage.total,
+        )
         val matches = previous.gap.matches.map { old ->
-            val upgraded = localById[old.requirement.id]?.takeIf { it.status.ordinal < old.status.ordinal }
+            val targeted = old.requirement.id in targetedRequirementIds
+            val upgraded = localById[old.requirement.id]
+                ?.takeIf { candidate ->
+                    candidate.status.ordinal < old.status.ordinal &&
+                        (targeted || candidate.status.ordinal < (baselineById[old.requirement.id]?.status?.ordinal ?: Int.MAX_VALUE))
+                }
                 ?: return@map old
             RequirementMatch(old.requirement, upgraded.status, (old.evidenceIds + upgraded.evidenceIds).distinct())
         }
@@ -458,6 +486,8 @@ class AnalysisViewModel @Inject constructor(
             val profile: CandidateProfile,
             val analysis: JobAnalysisResult,
             val serverAnalysis: JobAnalysisResult = analysis,
+            val baselineProfile: CandidateProfile = profile,
+            val closedByEvidence: Set<String> = emptySet(),
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(
