@@ -37,6 +37,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -79,6 +80,7 @@ private val PASTE_CHIP_HEIGHT = 34.dp
 private val PASTE_CHIP_PADDING = 12.dp
 private val SOURCE_CHIP_ICON = 16.dp
 private val PASTE_WORD_ICON = 18.dp
+private const val STACKED_NOTICE_FONT_SCALE = 1.5f
 
 @Composable
 internal fun PasteJobDescriptionScreen(
@@ -87,6 +89,7 @@ internal fun PasteJobDescriptionScreen(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val isDisclosureStacked = LocalDensity.current.fontScale >= STACKED_NOTICE_FONT_SCALE
     var isDiscardRequested by remember { mutableStateOf(false) }
     val onBackRequest = {
         if (uiState.hasUnanalysedText) {
@@ -111,7 +114,11 @@ internal fun PasteJobDescriptionScreen(
         modifier = modifier,
         sheet = false,
         bottomBar = { PasteJobDescriptionBottomBar(uiState = uiState, actions = focusClearingActions) },
-        bottomBarNotice = { PasteJobDescriptionBarNotice(uiState = uiState) },
+        bottomBarNotice = if (isDisclosureStacked && uiState.barReason() == null) {
+            null
+        } else {
+            { PasteJobDescriptionBarNotice(uiState = uiState, isDisclosureStacked = isDisclosureStacked) }
+        },
     ) { padding ->
         if (uiState.isLoading) {
             PasteJobDescriptionLoading(modifier = Modifier.padding(padding))
@@ -119,6 +126,7 @@ internal fun PasteJobDescriptionScreen(
             PasteJobDescriptionContent(
                 uiState = uiState,
                 actions = focusClearingActions,
+                isDisclosureStacked = isDisclosureStacked,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -158,6 +166,7 @@ private fun PasteJobDescriptionLoading(modifier: Modifier = Modifier) {
 private fun PasteJobDescriptionContent(
     uiState: PasteJobDescriptionUiState,
     actions: PasteJobDescriptionActions,
+    isDisclosureStacked: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var isRoleAndCompanyRevealed by remember { mutableStateOf(false) }
@@ -225,6 +234,9 @@ private fun PasteJobDescriptionContent(
         }
         if (areFieldsShown) {
             RoleAndCompanyFields(actions = contentActions, uiState = uiState, companyFocus = companyFocus)
+        }
+        if (isDisclosureStacked) {
+            PasteJobDescriptionDisclosure(uiState = uiState)
         }
     }
 }
@@ -547,18 +559,32 @@ private fun PasteJobDescriptionBottomBar(
 }
 
 @Composable
-private fun PasteJobDescriptionBarNotice(uiState: PasteJobDescriptionUiState) {
-    val reason = when {
-        uiState.isDailyLimitReached || uiState.canAnalyse || uiState.isOffline -> null
-        uiState.problem == PasteJobDescriptionProblem.TOO_SHORT ||
-            uiState.problem == PasteJobDescriptionProblem.TOO_LONG ->
-            stringResource(R.string.feature_onboarding_impl_paste_jd_reason_incomplete)
-        else -> stringResource(R.string.feature_onboarding_impl_paste_jd_reason_empty)
-    }
+private fun PasteJobDescriptionUiState.barReason(): String? = when {
+    isDailyLimitReached || canAnalyse || isOffline -> null
+    problem == PasteJobDescriptionProblem.TOO_SHORT || problem == PasteJobDescriptionProblem.TOO_LONG ->
+        stringResource(R.string.feature_onboarding_impl_paste_jd_reason_incomplete)
+    else -> stringResource(R.string.feature_onboarding_impl_paste_jd_reason_empty)
+}
+
+@Composable
+private fun PasteJobDescriptionBarNotice(
+    uiState: PasteJobDescriptionUiState,
+    isDisclosureStacked: Boolean,
+) {
+    val reason = uiState.barReason()
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         if (reason != null) {
             ReasonText(text = reason)
         }
+        if (!isDisclosureStacked) {
+            PasteJobDescriptionDisclosure(uiState = uiState)
+        }
+    }
+}
+
+@Composable
+private fun PasteJobDescriptionDisclosure(uiState: PasteJobDescriptionUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
         DisclosureCard(
             text = AnnotatedString(stringResource(R.string.feature_onboarding_impl_paste_jd_disclosure)),
             icon = TmrIcons.Lock,

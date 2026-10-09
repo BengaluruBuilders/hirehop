@@ -33,6 +33,7 @@ import com.tailormyresume.core.designsystem.component.TmrErrorCallout
 import com.tailormyresume.core.designsystem.component.TmrFactId
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrLoadingWheel
+import com.tailormyresume.core.designsystem.component.TmrMonogram
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
@@ -46,7 +47,7 @@ import com.tailormyresume.core.model.CareerStage
 import com.tailormyresume.feature.onboarding.impl.R
 
 private val TOP_ROW_HEIGHT = 48.dp
-private val LOGO_MARK = 32.dp
+private val LOGO_MARK = 36.dp
 private val CHOICE_HEIGHT = 56.dp
 private val CHOICE_DISC = 22.dp
 private val CHOICE_CHECK = 13.dp
@@ -152,17 +153,11 @@ private fun WelcomeTopRow(
 
 @Composable
 private fun WelcomeLogoMark(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.size(LOGO_MARK).background(TmrTheme.colors.brand, TmrTheme.shapes.pill),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = TmrIcons.ArrowForward,
-            contentDescription = null,
-            tint = TmrTheme.colors.onBrand,
-            modifier = Modifier.size(18.dp),
-        )
-    }
+    TmrMonogram(
+        text = stringResource(R.string.feature_onboarding_impl_welcome_brand),
+        modifier = modifier,
+        size = LOGO_MARK,
+    )
 }
 
 @Composable
