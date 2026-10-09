@@ -58,6 +58,8 @@ internal sealed interface ReviewToastState {
     data object RegenerateNoCredit : ReviewToastState
 
     data object RegenerateFailed : ReviewToastState
+
+    data class RegenerateBlocked(val notice: AiNotice) : ReviewToastState
 }
 
 @Stable
@@ -203,11 +205,14 @@ private fun ReviewToastState.messageRes(): Int = when (this) {
     ReviewToastState.Reported -> R.string.feature_tailor_impl_report_thanks
     ReviewToastState.RegenerateNoCredit -> R.string.feature_tailor_impl_regenerate_no_credit
     ReviewToastState.RegenerateFailed -> R.string.feature_tailor_impl_regenerate_failed
+    is ReviewToastState.RegenerateBlocked -> notice.bodyRes(R.string.feature_tailor_impl_regenerate_failed)
 }
 
 private fun ReviewToastState.messageArgs(): Array<Any> = when (this) {
     is ReviewToastState.Accepted -> arrayOf(position)
-    ReviewToastState.Reported, ReviewToastState.RegenerateNoCredit, ReviewToastState.RegenerateFailed -> emptyArray()
+    ReviewToastState.Reported, ReviewToastState.RegenerateNoCredit, ReviewToastState.RegenerateFailed,
+    is ReviewToastState.RegenerateBlocked,
+    -> emptyArray()
 }
 
 @Composable

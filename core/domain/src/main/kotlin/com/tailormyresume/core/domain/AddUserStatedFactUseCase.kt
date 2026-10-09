@@ -29,7 +29,9 @@ class AddUserStatedFactUseCase @Inject constructor(
         if (trimmed.isEmpty()) return null
         val profile = profileRepository.observeProfile().first() ?: return null
         val stated = keywordsStatedIn(requirement, trimmed)
-        return profile.copy(skills = mergedSkills(profile.skills, stated)).withStatement(trimmed)
+        val added = newSkills(profile.skills, stated)
+        return profile.copy(skills = profile.skills + added, userStatedSkills = profile.userStatedSkills + added)
+            .withStatement(trimmed)
     }
 
     fun nextFactId(profile: CandidateProfile): String =
@@ -39,9 +41,9 @@ class AddUserStatedFactUseCase @Inject constructor(
     private fun CandidateProfile.userStatedTarget(): ProfileEntry? =
         entries.lastOrNull { it.isUserStatedCollection() && it.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY }
 
-    private fun mergedSkills(existing: List<String>, stated: List<String>): List<String> {
+    private fun newSkills(existing: List<String>, stated: List<String>): List<String> {
         val known = existing.map { it.lowercase() }.toMutableSet()
-        return existing + stated.filter { known.add(it.lowercase()) }
+        return stated.filter { known.add(it.lowercase()) }
     }
 
     private fun CandidateProfile.withStatement(statement: String): CandidateProfile {

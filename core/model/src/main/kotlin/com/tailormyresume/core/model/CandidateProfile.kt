@@ -7,6 +7,7 @@ data class CandidateProfile(
     val headline: String,
     val skills: List<String>,
     val entries: List<ProfileEntry>,
+    val userStatedSkills: List<String> = emptyList(),
 )
 
 object ProfileLimits {
@@ -40,6 +41,9 @@ fun CandidateProfile.confirmedWithinLimits(): CandidateProfile {
         .take(ProfileLimits.MAX_SKILLS)
     return copy(skills = limitedSkills, entries = limited)
 }
+
+fun CandidateProfile.isSkillUserStated(skill: String): Boolean =
+    userStatedSkills.any { it.equals(skill, ignoreCase = true) }
 
 fun CandidateProfile.evidenceIds(): Set<String> =
     entries.flatMap { entry -> listOf(entry.id) + entry.bullets.map { it.id } }.toSet() +

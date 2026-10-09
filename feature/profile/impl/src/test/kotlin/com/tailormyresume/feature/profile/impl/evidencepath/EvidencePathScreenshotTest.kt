@@ -48,8 +48,8 @@ class EvidencePathScreenshotTest {
         "EvidencePathStamped",
         EvidencePathUiState(
             category = EvidenceCategory.PROJECTS,
-            questionIndex = 1,
             cards = listOf(EvidenceFactCard(EvidenceCategory.PROJECTS, dashboard)),
+            stamped = EvidenceFactCard(EvidenceCategory.PROJECTS, dashboard),
         ),
     )
 
@@ -57,9 +57,9 @@ class EvidencePathScreenshotTest {
     fun skipped() = capture(
         "EvidencePathSkipped",
         EvidencePathUiState(
-            category = EvidenceCategory.WORK,
+            category = EvidenceCategory.PROJECTS,
+            questionIndex = 2,
             skipNote = EvidenceSkipNote(EvidenceCategory.PROJECTS, 2),
-            visited = setOf(EvidenceCategory.PROJECTS),
         ),
     )
 

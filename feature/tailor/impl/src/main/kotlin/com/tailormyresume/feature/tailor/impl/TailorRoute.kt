@@ -37,10 +37,10 @@ internal fun TailorRoute(
     val interaction = remember { ReviewInteraction(initialBulletId) }
     LaunchedEffect(viewModel) {
         viewModel.regenerateFailures.collect { result ->
-            interaction.toast = if (result == RegenerateResult.NoCredit) {
-                ReviewToastState.RegenerateNoCredit
-            } else {
-                ReviewToastState.RegenerateFailed
+            interaction.toast = when (result) {
+                RegenerateResult.NoCredit -> ReviewToastState.RegenerateNoCredit
+                is RegenerateResult.Blocked -> ReviewToastState.RegenerateBlocked(result.notice)
+                else -> ReviewToastState.RegenerateFailed
             }
         }
     }

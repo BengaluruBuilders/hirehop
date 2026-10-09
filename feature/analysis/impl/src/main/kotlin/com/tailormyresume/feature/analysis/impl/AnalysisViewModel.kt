@@ -280,7 +280,7 @@ class AnalysisViewModel @Inject constructor(
                     local.update { it.copy(tailoring = false, tailorLimitHit = true) }
                 } else {
                     local.update { it.copy(tailoring = false) }
-                    showToast(AnalysisToast.TailorFailed)
+                    showToast(failure.tailorToast())
                 }
             }
         }
@@ -568,6 +568,12 @@ private fun Throwable.toFailureCause(): FailureCause {
         else -> FailureCause.Generic
     }
 }
+
+private fun Throwable.tailorToast(): AnalysisToast =
+    when (val cause = toFailureCause()) {
+        FailureCause.Generic -> AnalysisToast.TailorFailed
+        else -> AnalysisToast.TailorBlocked(cause)
+    }
 
 private fun CandidateProfile.confirmedFactCount(): Int = factCounts().confirmed
 
