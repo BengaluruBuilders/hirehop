@@ -245,7 +245,12 @@ private fun TmrProvenanceKind.labelRes(): Int = when (this) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun QuestionSheetContent(item: RequirementItem, actions: AnalysisActions, notClosed: Boolean = false) {
+internal fun QuestionSheetContent(
+    item: RequirementItem,
+    actions: AnalysisActions,
+    notClosed: Boolean = false,
+    nextFactId: String = FIRST_USER_STATED_FACT_ID,
+) {
     var statement by rememberSaveable { mutableStateOf("") }
     val name = item.requirement.text.headline()
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
