@@ -5,7 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.tailormyresume.core.designsystem.component.TmrConfirmDialog
+import com.tailormyresume.core.designsystem.component.TmrIconConfirmDialog
+import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
 @Composable
@@ -17,19 +18,20 @@ internal fun ApplicationDeleteDialog(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TmrConfirmDialog(
-        title = stringResource(
-            id = R.string.feature_applications_impl_delete_title,
+    TmrIconConfirmDialog(
+        icon = TmrIcons.Delete,
+        title = stringResource(R.string.feature_applications_impl_delete_title),
+        message = stringResource(
+            id = R.string.feature_applications_impl_delete_message_with_job,
             jobTitle,
             company,
+            deleteDialogMessage(scope),
         ),
-        message = deleteDialogMessage(scope),
         confirmLabel = stringResource(R.string.feature_applications_impl_delete_confirm),
         cancelLabel = stringResource(R.string.feature_applications_impl_delete_keep),
         onConfirm = onConfirm,
         onCancel = onCancel,
         modifier = modifier,
-        destructive = true,
     )
 }
 

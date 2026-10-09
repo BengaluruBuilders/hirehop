@@ -33,7 +33,7 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 
 enum class TmrButtonSize { Large, Compact }
 
-enum class TmrButtonKind { Primary, Secondary, Outline, Text, Destructive, Ink }
+enum class TmrButtonKind { Primary, Secondary, Outline, Text, Destructive, DestructiveText, Ink }
 
 object TmrButtonDefaults {
     val ContentPadding = PaddingValues(horizontal = 22.dp)
@@ -54,6 +54,7 @@ private fun TmrColors.buttonPalette(
     TmrButtonKind.Ink -> TmrButtonPalette(inverseSurface, inverseOnSurface, null)
     TmrButtonKind.Secondary -> TmrButtonPalette(primaryContainer, onPrimaryContainer, null)
     TmrButtonKind.Destructive -> TmrButtonPalette(error, onError, null)
+    TmrButtonKind.DestructiveText -> TmrButtonPalette(Color.Transparent, error, null)
     TmrButtonKind.Outline -> outlinePalette(surface)
     TmrButtonKind.Text -> textPalette(surface)
 }
@@ -73,7 +74,7 @@ private fun TmrColors.outlinePalette(surface: TmrButtonSurface): TmrButtonPalett
 
 private fun TmrColors.disabledPalette(kind: TmrButtonKind, surface: TmrButtonSurface): TmrButtonPalette {
     val onHeaderSurface = surface == TmrButtonSurface.Header
-    if (kind == TmrButtonKind.Text) {
+    if (kind == TmrButtonKind.Text || kind == TmrButtonKind.DestructiveText) {
         return TmrButtonPalette(Color.Transparent, if (onHeaderSurface) onHeaderVariant else disabledContent, null)
     }
     if (kind == TmrButtonKind.Outline && onHeaderSurface) {
@@ -314,6 +315,9 @@ fun TmrDestructiveButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
+    size: TmrButtonSize = TmrButtonSize.Large,
+    filled: Boolean = true,
 ) {
-    TmrButtonLabeled(TmrButtonKind.Destructive, label, onClick, modifier, enabled, leadingIcon, null)
+    val kind = if (filled) TmrButtonKind.Destructive else TmrButtonKind.DestructiveText
+    TmrButtonLabeled(kind, label, onClick, modifier, enabled, leadingIcon, null, size)
 }
