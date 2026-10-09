@@ -13,5 +13,9 @@ class DebugPreviewMode @Inject constructor(private val trackedJobs: TrackedJobs)
 
     var active: Boolean
         get() = open.get()
-        set(value) = open.set(value)
+        set(value) {
+            val wasOpen = open.getAndSet(value)
+            if (value && !wasOpen) trackedJobs.startTracking()
+            if (!value && wasOpen) trackedJobs.cancelTracked()
+        }
 }
