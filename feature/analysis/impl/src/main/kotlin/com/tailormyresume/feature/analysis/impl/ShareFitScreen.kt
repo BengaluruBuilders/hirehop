@@ -89,7 +89,14 @@ internal fun ShareFitScreen(
                 .padding(horizontal = TmrTheme.spacing.gutter),
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
         ) {
-            ShareFitCard(role = role, coverage = state.keywordCoverage, met = met, partial = partial, gap = gap)
+            ShareFitCard(
+                role = role,
+                company = state.job.company.trim(),
+                coverage = state.keywordCoverage,
+                met = met,
+                partial = partial,
+                gap = gap,
+            )
             NoteCard(icon = TmrIcons.Info) {
                 Text(
                     text = stringResource(R.string.feature_analysis_impl_share_excluded),
@@ -118,6 +125,7 @@ internal fun String.withoutCompany(company: String): String {
 @Composable
 private fun ShareFitCard(
     role: String,
+    company: String,
     coverage: KeywordCoverage,
     met: Int,
     partial: Int,
@@ -158,6 +166,9 @@ private fun ShareFitCard(
         }
         TmrSectionLabel(text = stringResource(R.string.feature_analysis_impl_share_label))
         Text(text = role, style = TmrTheme.typography.titleM, color = colors.onSurface)
+        if (company.isNotBlank()) {
+            Text(text = company, style = TmrTheme.typography.bodyM, color = colors.onSurfaceVariant)
+        }
         Box(modifier = Modifier.clearAndSetSemantics {}) {
             TmrHeadline(
                 text = stringResource(R.string.feature_analysis_impl_share_covers, covered, total),

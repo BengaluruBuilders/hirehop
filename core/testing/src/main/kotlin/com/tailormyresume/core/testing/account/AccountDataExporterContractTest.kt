@@ -9,6 +9,7 @@ import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.data.sampleApplication
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.util.zip.ZipFile
 import kotlin.time.Instant
 
 abstract class AccountDataExporterContractTest {
@@ -32,6 +33,16 @@ abstract class AccountDataExporterContractTest {
 
         assertThat(archive.fileName).isNotEmpty()
         assertThat(archive.file.isFile).isTrue()
+    }
+
+    @Test
+    fun theArchiveHoldsMyDataJsonWithTheJobDescriptionText() = runTest {
+        val archive = createExporter().export(data)
+
+        val myData = ZipFile(archive.file).use { zip ->
+            zip.getInputStream(zip.getEntry("my-data.json")).readBytes().decodeToString()
+        }
+        assertThat(myData).contains(sampleApplication.job.rawText)
     }
 
     @Test
