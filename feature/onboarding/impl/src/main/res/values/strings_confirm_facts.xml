@@ -56,7 +56,10 @@
     <string name="feature_onboarding_impl_confirm_facts_loading">Reading your facts</string>
     <string name="feature_onboarding_impl_confirm_facts_pending">Pending</string>
     <string name="feature_onboarding_impl_confirm_facts_to_review">To review</string>
-    <string name="feature_onboarding_impl_confirm_facts_confirmed_group_title">%1$s facts confirmed</string>
+    <plurals name="feature_onboarding_impl_confirm_facts_confirmed_group_title">
+        <item quantity="one">%1$d facts confirmed</item>
+        <item quantity="other">%1$d facts confirmed</item>
+    </plurals>
     <string name="feature_onboarding_impl_confirm_facts_left_to_review">%1$s left to review</string>
     <string name="feature_onboarding_impl_confirm_facts_review_list">Review the list</string>
     <string name="feature_onboarding_impl_confirm_facts_check_fit">Check my fit</string>
