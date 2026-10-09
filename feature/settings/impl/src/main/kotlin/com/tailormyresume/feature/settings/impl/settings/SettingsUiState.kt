@@ -3,7 +3,7 @@ package com.tailormyresume.feature.settings.impl.settings
 import com.tailormyresume.core.model.SignInAccount
 import kotlin.time.Instant
 
-enum class SettingsDestination { CREDITS_AND_HELP, YOUR_DATA, CONSENT_NOTICE, DELETE_ACCOUNT }
+enum class SettingsDestination { CREDITS_AND_HELP, YOUR_DATA, CONSENT_NOTICE, DELETE_ACCOUNT, SIGN_IN }
 
 sealed interface SettingsUiState {
     data object Loading : SettingsUiState

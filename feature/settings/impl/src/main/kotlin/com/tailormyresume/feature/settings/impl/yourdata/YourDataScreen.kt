@@ -36,8 +36,10 @@ import com.tailormyresume.core.designsystem.component.TmrContentSwitch
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
 import com.tailormyresume.core.designsystem.component.TmrOutlineButton
+import com.tailormyresume.core.designsystem.component.TmrOutlinedButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
+import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrStepProgress
 import com.tailormyresume.core.designsystem.component.TmrTextButton
 import com.tailormyresume.core.designsystem.icon.TmrIcons
@@ -69,7 +71,7 @@ internal fun YourDataScreen(
             )
         },
         bottomBar = if (content != null && !isPreparing) {
-            { DownloadBar(content = content, onDownload = actions.onDownload) }
+            { DataActionsBar(content = content, actions = actions) }
         } else {
             null
         },
@@ -87,6 +89,9 @@ internal fun YourDataScreen(
             }
         }
     }
+    if (content?.deletion == YourDataDeletion.CONFIRMING) {
+        DeleteMyDataDialog(content = content, actions = actions)
+    }
     val target = content?.deleteTarget
     if (target != null) {
         TmrConfirmDialog(
@@ -102,6 +107,31 @@ internal fun YourDataScreen(
             destructive = true,
         )
     }
+}
+
+@Composable
+private fun DeleteMyDataDialog(content: YourDataUiState.Content, actions: YourDataActions) {
+    TmrConfirmDialog(
+        title = stringResource(R.string.feature_settings_impl_your_data_delete_all_title),
+        message = stringResource(
+            R.string.feature_settings_impl_your_data_delete_all_body,
+            pluralStringResource(
+                R.plurals.feature_settings_impl_your_data_delete_all_facts,
+                content.profileFactCount,
+                content.profileFactCount,
+            ),
+            pluralStringResource(
+                R.plurals.feature_settings_impl_your_data_delete_all_applications,
+                content.applications.size,
+                content.applications.size,
+            ),
+        ),
+        confirmLabel = stringResource(R.string.feature_settings_impl_your_data_delete_all_confirm),
+        cancelLabel = stringResource(R.string.feature_settings_impl_your_data_delete_all_cancel),
+        onConfirm = actions.onDeleteMyDataConfirm,
+        onCancel = actions.onDeleteMyDataDismiss,
+        destructive = true,
+    )
 }
 
 @Composable
@@ -169,6 +199,9 @@ private fun LedgerContent(
                     " " + stringResource(R.string.feature_settings_impl_your_data_export_error_body),
             )
         }
+        if (content.deletion == YourDataDeletion.FAILED) {
+            SettingsErrorNotice(text = stringResource(R.string.feature_settings_impl_your_data_delete_all_error))
+        }
         TmrHeadline(
             text = stringResource(R.string.feature_settings_impl_your_data_headline),
             style = TmrTheme.typography.headlineL,
@@ -177,6 +210,7 @@ private fun LedgerContent(
         ApplicationsRow(content = content, actions = actions)
         PurchasesRow(content = content, actions = actions)
         UploadedResumeRow()
+        NoticeLine(icon = TmrIcons.Info, text = stringResource(R.string.feature_settings_impl_your_data_delete_all_note))
     }
 }
 
@@ -412,18 +446,12 @@ private fun LedgerRow(
 
 @Composable
 private fun DownloadNotice(isOffline: Boolean) {
-    Row(
+    Column(
         modifier = Modifier.padding(horizontal = TmrTheme.spacing.gutter),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
     ) {
-        Icon(
-            imageVector = if (isOffline) TmrIcons.Offline else TmrIcons.Info,
-            contentDescription = null,
-            tint = TmrTheme.colors.onSurfaceVariant,
-            modifier = Modifier.size(NOTE_ICON_SIZE),
-        )
-        Text(
+        NoticeLine(
+            icon = if (isOffline) TmrIcons.Offline else TmrIcons.Info,
             text = stringResource(
                 if (isOffline) {
                     R.string.feature_settings_impl_your_data_export_offline_note
@@ -431,22 +459,60 @@ private fun DownloadNotice(isOffline: Boolean) {
                     R.string.feature_settings_impl_your_data_export_note
                 },
             ),
-            style = TmrTheme.typography.bodyS,
-            color = TmrTheme.colors.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun DownloadBar(content: YourDataUiState.Content, onDownload: () -> Unit) {
-    TmrBottomActionBar {
+private fun NoticeLine(icon: ImageVector, text: String) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = TmrTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(NOTE_ICON_SIZE),
+        )
+        Text(text = text, style = TmrTheme.typography.bodyS, color = TmrTheme.colors.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun DataActionsBar(content: YourDataUiState.Content, actions: YourDataActions) {
+    val busy = content.deletion == YourDataDeletion.DELETING
+    TmrBottomActionBar(stacked = true, primaryLast = false) {
         TmrPrimaryButton(
             label = stringResource(R.string.feature_settings_impl_your_data_export_action),
-            onClick = onDownload,
-            modifier = Modifier.weight(1f),
-            enabled = !content.isOffline,
+            onClick = actions.onDownload,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !content.isOffline && !busy,
             leadingIcon = TmrIcons.Download,
         )
+        val canDelete = !content.isOffline && !busy
+        if (canDelete) {
+            TmrOutlinedButton(onClick = actions.onDeleteMyData, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = TmrIcons.Delete,
+                    contentDescription = null,
+                    tint = TmrTheme.colors.error,
+                    modifier = Modifier.size(BUTTON_ICON_SIZE),
+                )
+                Text(
+                    text = stringResource(R.string.feature_settings_impl_your_data_delete_all_action),
+                    color = TmrTheme.colors.error,
+                )
+            }
+        } else {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_settings_impl_your_data_delete_all_action),
+                onClick = actions.onDeleteMyData,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                leadingIcon = TmrIcons.Delete,
+            )
+        }
     }
 }
 
@@ -455,4 +521,5 @@ private val TILE_ICON_SIZE = 22.dp
 private val CHIP_HEIGHT = 26.dp
 private val CHIP_ICON_SIZE = 16.dp
 private val NOTE_ICON_SIZE = 18.dp
+private val BUTTON_ICON_SIZE = 20.dp
 private const val LINE_SEPARATOR = ", "

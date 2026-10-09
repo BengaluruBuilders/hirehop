@@ -62,6 +62,7 @@ class RemoteSignInGateway @Inject constructor(
             firebase.signOut()
             credentials.clearState()
             sessionRepository.observeAccount().first()?.let { sessionRepository.saveLastAccountId(it.id) }
+            sessionRepository.clearConsent()
             sessionRepository.signOut()
             cleaner.clear()
         }
