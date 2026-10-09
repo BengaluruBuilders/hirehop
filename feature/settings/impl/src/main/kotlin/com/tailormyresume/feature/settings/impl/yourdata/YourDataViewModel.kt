@@ -22,6 +22,7 @@ import com.tailormyresume.core.model.factCounts
 import com.tailormyresume.feature.settings.api.navigation.YourDataNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,11 +98,13 @@ class YourDataViewModel @Inject constructor(
         }
     }
 
+    private var exportJob: Job? = null
+
     fun onDownload() {
         val content = uiState.value as? YourDataUiState.Content ?: return
         if (content.isOffline || content.export == YourDataExport.PREPARING || content.deletion == YourDataDeletion.DELETING) return
         local.update { state -> state.copy(export = YourDataExport.PREPARING) }
-        viewModelScope.launch {
+        exportJob = viewModelScope.launch {
             try {
                 val archive = exportAccountData()
                 shareEvents.send(YourDataEvent.ShareArchive(archive.file))
@@ -114,7 +117,11 @@ class YourDataViewModel @Inject constructor(
         }
     }
 
-    fun onCancelExport() {}
+    fun onCancelExport() {
+        exportJob?.cancel()
+        exportJob = null
+        local.update { state -> state.copy(export = YourDataExport.IDLE) }
+    }
 
     fun onDeleteRequested(applicationId: String) {
         val content = uiState.value as? YourDataUiState.Content ?: return
