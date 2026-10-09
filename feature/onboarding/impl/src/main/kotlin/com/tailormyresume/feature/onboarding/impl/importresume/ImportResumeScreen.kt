@@ -34,7 +34,9 @@ import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrCard
@@ -57,6 +59,7 @@ private val CHOOSE_ICON_SIZE = 28.dp
 private val FILE_TILE_SIZE = 44.dp
 private val FILE_TILE_ICON = 22.dp
 private val PROGRESS_HEIGHT = 8.dp
+private const val FILE_NAME_MAX_LINES = 2
 
 data class ImportResumeActions(
     val onBack: () -> Unit,
@@ -235,7 +238,13 @@ private fun FileCard(uiState: ImportResumeUiState, progress: Float? = null) {
                         liveRegion = LiveRegionMode.Polite
                     },
             ) {
-                Text(text = uiState.fileName, style = TmrTheme.typography.titleS, color = TmrTheme.colors.onSurface)
+                Text(
+                    text = uiState.fileName,
+                    style = TmrTheme.typography.titleS.copy(lineBreak = LineBreak.Simple),
+                    color = TmrTheme.colors.onSurface,
+                    maxLines = FILE_NAME_MAX_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Text(
                     text = meta,
                     style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),

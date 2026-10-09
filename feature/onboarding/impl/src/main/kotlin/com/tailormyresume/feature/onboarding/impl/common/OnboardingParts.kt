@@ -23,6 +23,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -76,7 +77,7 @@ internal fun OnboardingNotice(
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(NOTICE_ICON_SIZE))
         Text(
             text = text,
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
             color = colors.onSurface,
             modifier = Modifier.weight(1f),
         )
@@ -103,7 +104,7 @@ internal fun DisclosureCard(
         )
         Text(
             text = text,
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold),
+            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.SemiBold, hyphens = Hyphens.Auto),
             color = colors.onSurfaceVariant,
             modifier = Modifier.weight(1f),
         )
@@ -136,7 +137,7 @@ internal fun ReasonText(
         Text(
             text = styled,
             modifier = Modifier.weight(1f),
-            style = TmrTheme.typography.labelM,
+            style = TmrTheme.typography.labelM.copy(hyphens = Hyphens.Auto),
             color = TmrTheme.colors.onSurfaceVariant,
         )
     }

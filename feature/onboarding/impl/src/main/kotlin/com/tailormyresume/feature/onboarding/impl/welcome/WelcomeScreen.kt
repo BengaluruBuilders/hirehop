@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
@@ -139,7 +140,7 @@ private fun WelcomeTopRow(
             WelcomeLogoMark()
             Text(
                 text = stringResource(R.string.feature_onboarding_impl_welcome_brand),
-                style = TmrTheme.typography.titleL,
+                style = TmrTheme.typography.titleL.copy(hyphens = Hyphens.Auto),
                 color = TmrTheme.colors.onSurface,
             )
         }
@@ -185,12 +186,12 @@ private fun WelcomeHeadline(modifier: Modifier = Modifier) {
     ) {
         TmrHeadline(
             text = stringResource(R.string.feature_onboarding_impl_welcome_headline),
-            style = TmrTheme.typography.displayM,
+            style = TmrTheme.typography.displayM.copy(hyphens = Hyphens.Auto),
             color = TmrTheme.colors.onSurface,
         )
         Text(
             text = stringResource(R.string.feature_onboarding_impl_welcome_subline),
-            style = TmrTheme.typography.titleM,
+            style = TmrTheme.typography.titleM.copy(hyphens = Hyphens.Auto),
             color = TmrTheme.colors.onSurface,
         )
     }

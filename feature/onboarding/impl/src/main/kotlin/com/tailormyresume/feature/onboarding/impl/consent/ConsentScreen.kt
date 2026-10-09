@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +36,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
@@ -146,7 +149,7 @@ private fun ConsentHeading(isReconsent: Boolean) {
                     R.string.feature_onboarding_impl_consent_heading_first_run
                 },
             ),
-            style = TmrTheme.typography.headlineL,
+            style = TmrTheme.typography.headlineL.copy(hyphens = Hyphens.Auto),
             color = TmrTheme.colors.onSurface,
         )
         Text(
@@ -257,6 +260,7 @@ private fun PurposeLine(@StringRes label: Int, @StringRes text: Int) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PurposeControl(
     checked: Boolean,
@@ -291,13 +295,13 @@ private fun PurposeControl(
         }
         return
     }
-    Row(
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = TmrTheme.spacing.touch)
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() }),
         horizontalArrangement = Arrangement.spacedBy(STATUS_WORD_GAP),
-        verticalAlignment = Alignment.CenterVertically,
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         TmrCheckbox(
             checked = checked,

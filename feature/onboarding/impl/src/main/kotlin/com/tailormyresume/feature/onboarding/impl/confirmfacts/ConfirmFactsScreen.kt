@@ -89,11 +89,6 @@ fun ConfirmFactsScreen(
         } else {
             ({ ConfirmFactsBottomBar(uiState = uiState, actions = actions) })
         },
-        bottomBarNotice = if (uiState.isLoading || uiState.isEmpty || uiState.isFullyConfirmed) {
-            null
-        } else {
-            ({ ConfirmFactsNotice(uiState) })
-        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -112,7 +107,10 @@ fun ConfirmFactsScreen(
                 uiState.isLoading -> ConfirmFactsLoading()
                 uiState.isEmpty -> ConfirmFactsEmpty(actions)
                 uiState.isFullyConfirmed -> ConfirmedFactsBody(uiState = uiState, actions = actions)
-                else -> FactsToReviewBody(uiState = uiState, actions = actions)
+                else -> {
+                    FactsToReviewBody(uiState = uiState, actions = actions)
+                    ConfirmFactsNotice(uiState)
+                }
             }
         }
     }
