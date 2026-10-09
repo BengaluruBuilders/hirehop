@@ -77,6 +77,7 @@ internal class CreditsViewModel @Inject constructor(
                     freeCredits = entitlement.freeCredits,
                     purchasedCredits = entitlement.purchasedCredits,
                     purchases = history.mapNotNull { record -> entryFor(record = record, packs = packs) },
+                    hasPurchaseHistory = history.isNotEmpty(),
                     isOffline = !isOnline,
                     creditsNeverExpire = packs.none { pack -> pack.creditsExpire },
                 )

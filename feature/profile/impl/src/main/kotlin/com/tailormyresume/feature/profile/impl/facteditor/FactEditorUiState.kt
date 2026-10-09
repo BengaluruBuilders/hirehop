@@ -41,7 +41,7 @@ data class FactEditorUiState(
             .filter { it.isNotEmpty() }
 
     val isSaveEnabled: Boolean
-        get() = !isLoading && !isSaving && fieldErrors.isEmpty()
+        get() = !isLoading && !isSaving && fieldErrors.isEmpty() && draft.title.isNotBlank()
 
     val canDelete: Boolean
         get() = mode == FactEditorMode.Editing && !isSaving

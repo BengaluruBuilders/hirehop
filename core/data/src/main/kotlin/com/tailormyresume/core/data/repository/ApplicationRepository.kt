@@ -16,4 +16,8 @@ interface ApplicationRepository {
     suspend fun updateNotes(id: String, notes: String)
 
     suspend fun deleteApplication(id: String)
+
+    suspend fun deleteApplicationRow(id: String) = deleteApplication(id)
+
+    suspend fun clearArtefacts(id: String) = Unit
 }

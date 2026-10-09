@@ -105,7 +105,7 @@ private fun TmrMainRootContent(
 ) {
     val navigationState = rememberNavigationState(START_NAV_KEY, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember(navigationState) {
-        Navigator(navigationState).also { it.navigateAll(initialKeys()) }
+        Navigator(navigationState).also { navigator -> initialKeys().forEach(navigator::openInOwnTab) }
     }
     Box(modifier = modifier.fillMaxSize()) {
         TmrNavDisplay(

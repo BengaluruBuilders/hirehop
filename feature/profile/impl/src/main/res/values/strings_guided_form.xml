@@ -50,6 +50,7 @@
     </plurals>
 
     <string name="feature_profile_impl_guided_form_error_required">Add this to save.</string>
+    <string name="feature_profile_impl_guided_form_error_invalid_date">Write the date as a month and year, for example Aug 2024.</string>
     <string name="feature_profile_impl_guided_form_error_end_before_start">This date comes before the start date.</string>
     <string name="feature_profile_impl_guided_form_error_too_long">This is longer than TailorMyResume stores. Keep the main line.</string>
     <string name="feature_profile_impl_guided_form_error_invalid_email">Enter an email like name@example.com.</string>

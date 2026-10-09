@@ -24,7 +24,7 @@ class PurchaseRestorer @Inject constructor(
 
     override fun start() {
         scope.launch {
-            sessionRepository.observeAccount().map { it?.id }.filterNotNull().distinctUntilChanged().collect { restore() }
+            sessionRepository.observeAccount().map { it?.id }.distinctUntilChanged().filterNotNull().collect { restore() }
         }
         scope.launch { billing.get().unsolicitedPurchases.collect { restore() } }
     }

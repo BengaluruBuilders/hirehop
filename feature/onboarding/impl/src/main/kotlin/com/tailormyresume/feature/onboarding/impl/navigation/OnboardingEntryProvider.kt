@@ -54,6 +54,7 @@ fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
         ConsentRoute(
             key = key,
             onBack = { navigator.goBack() },
+            onBackToStart = { navigator.navigateToWelcome() },
             onNavigateToStep = { step -> navigator.replaceWithStep(step) },
         )
     }
