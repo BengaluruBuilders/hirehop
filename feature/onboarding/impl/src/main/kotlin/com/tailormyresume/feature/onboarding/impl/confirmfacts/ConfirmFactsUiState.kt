@@ -27,6 +27,7 @@ data class ConfirmFactUi(
     val source: FactSource,
     val isConfirmed: Boolean,
     val displayId: String = id,
+    val hasTooLongBullet: Boolean = false,
 )
 
 data class ConfirmFactsSectionUi(
