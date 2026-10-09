@@ -51,7 +51,7 @@ class LauncherIconResourcesTest {
 
     @Test
     fun api31_splash_icon_background_is_launcher_lime_in_light_and_night() {
-        listOf("values-v31", "values-night-v31").forEach { dir ->
+        listOf("values", "values-night").forEach { dir ->
             val items = elements("src/main/res/$dir/themes.xml", "item")
             assertThat(
                 items.filter { it.getAttribute("name") == "android:windowSplashScreenIconBackgroundColor" }
