@@ -79,6 +79,7 @@ class AppViewModelTest {
         val gateway = OfflineSignInGateway(sessionRepository, NoMockLatency, TestMockStateStore())
         gateway.signIn()
         sessionRepository.markOnboardingComplete()
+        sessionRepository.recordConsent(consent)
 
         viewModel().rootState.test {
             assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
@@ -98,6 +99,7 @@ class AppViewModelTest {
         val gateway = OfflineSignInGateway(sessionRepository, NoMockLatency, store)
         gateway.signIn()
         sessionRepository.markOnboardingComplete()
+        sessionRepository.recordConsent(consent)
 
         viewModel().rootState.test {
             assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
@@ -117,6 +119,7 @@ class AppViewModelTest {
     fun rootState_whenSessionAccountIsRemovedByAnyGateway_goesToFirstRun() = runTest {
         sessionRepository.saveAccount(SignInAccount.localAccount)
         sessionRepository.markOnboardingComplete()
+        sessionRepository.recordConsent(consent)
 
         viewModel().rootState.test {
             assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
