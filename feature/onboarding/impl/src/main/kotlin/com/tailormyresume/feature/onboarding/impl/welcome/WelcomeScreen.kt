@@ -32,6 +32,7 @@ import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrDivider
 import com.tailormyresume.core.designsystem.component.TmrErrorCallout
 import com.tailormyresume.core.designsystem.component.TmrFactId
+import com.tailormyresume.core.designsystem.component.TmrFitText
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrLoadingWheel
 import com.tailormyresume.core.designsystem.component.TmrMonogram
@@ -137,8 +138,9 @@ private fun WelcomeTopRow(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         ) {
             WelcomeLogoMark()
-            Text(
+            TmrFitText(
                 text = stringResource(R.string.feature_onboarding_impl_welcome_brand),
+                modifier = Modifier.weight(1f, fill = false),
                 style = TmrTheme.typography.titleL,
                 color = TmrTheme.colors.onSurface,
             )

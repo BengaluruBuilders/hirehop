@@ -1,6 +1,5 @@
 package com.tailormyresume.core.designsystem.component
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +21,7 @@ fun TmrHeadline(
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
 ) {
-    Text(
+    TmrFitText(
         text = text.toUpperCase(Locale.current),
         modifier = modifier.semantics {
             heading()

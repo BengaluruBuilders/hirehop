@@ -21,6 +21,7 @@
 
     <string name="feature_onboarding_impl_consent_agreed_on">You agreed on %1$s</string>
     <string name="feature_onboarding_impl_consent_heading">Choose what we may do</string>
+    <string name="feature_onboarding_impl_consent_heading_first_run">Nothing is uploaded yet</string>
     <string name="feature_onboarding_impl_consent_intro">Tick each purpose to continue.</string>
     <string name="feature_onboarding_impl_consent_read_title">Read your resume and JDs</string>
     <string name="feature_onboarding_impl_consent_read_body">Read the text to build your profile and your analyses.</string>
@@ -28,6 +29,9 @@
     <string name="feature_onboarding_impl_consent_keep_body">Store your confirmed facts and analyses in your account.</string>
     <string name="feature_onboarding_impl_consent_ai_title">Use AI on your text</string>
     <string name="feature_onboarding_impl_consent_ai_body">Send your resume text, your confirmed facts, and your job descriptions to TailorMyResume servers and our AI provider. They analyse your text and tailor your application.</string>
+    <string name="feature_onboarding_impl_consent_delete_title">Delete the uploaded file</string>
+    <string name="feature_onboarding_impl_consent_delete_body">Read your file on this phone and send only its text. The servers keep none of it once your facts are read.</string>
+    <string name="feature_onboarding_impl_consent_delete_keep">Only the facts you confirm. Your original file stays where it is on your phone.</string>
     <string name="feature_onboarding_impl_consent_age_title">You are 18 or older</string>
     <string name="feature_onboarding_impl_consent_age_body">Say that you are 18 years old or older.</string>
     <string name="feature_onboarding_impl_consent_upload_failed">We could not save your choice. Check your connection and try again.</string>

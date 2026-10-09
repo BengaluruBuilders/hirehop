@@ -38,7 +38,7 @@ fun TmrStatusChip(
         horizontalPadding = TmrTheme.spacing.md,
     ) {
         TmrStatusMark(kind, color, TmrTheme.colors.primaryContainer, Modifier, TmrSizeChipIcon)
-        Text(text = text, style = TmrTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold), color = color)
+        TmrFitText(text = text, style = TmrTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold), color = color)
     }
 }
 

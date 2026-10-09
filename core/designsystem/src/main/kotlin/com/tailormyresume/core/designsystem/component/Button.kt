@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -159,7 +158,7 @@ internal fun TmrButtonLabeled(
     ) {
         TmrButtonIcon(leadingIcon, size)
         var wrapped by remember { mutableStateOf(false) }
-        Text(
+        TmrFitText(
             text = label,
             style = if (size == TmrButtonSize.Compact) TmrTheme.typography.labelL else TmrTheme.typography.button,
             textAlign = if (wrapped) TextAlign.Center else TextAlign.Unspecified,

@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +39,11 @@ class ConsentViewModel @Inject constructor(
         if (key.readOnly) {
             viewModelScope.launch {
                 sessionRepository.observeConsent().collect { record -> mutableState.update { it.showing(record) } }
+            }
+        } else {
+            viewModelScope.launch {
+                val earlier = sessionRepository.observeConsent().first()
+                mutableState.update { it.copy(isReconsent = earlier != null) }
             }
         }
     }
