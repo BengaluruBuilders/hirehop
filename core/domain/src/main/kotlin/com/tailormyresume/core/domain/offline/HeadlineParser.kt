@@ -1,6 +1,6 @@
 package com.tailormyresume.core.domain.offline
 
-internal data class HeadlineMatch(val index: Int, val title: String, val company: String)
+internal data class HeadlineMatch(val index: Int, val title: String, val company: String, val headlineSentence: String? = null)
 
 internal object HeadlineParser {
     private val ignoreCase = setOf(RegexOption.IGNORE_CASE)
@@ -22,6 +22,18 @@ internal object HeadlineParser {
         scan(lines) { line, _ -> structured(line) }
             ?: scan(lines) { line, _ -> fromPlainTitle(line, requireRoleWord = true) }
             ?: scan(lines) { line, index -> fromPlainTitle(line, requireRoleWord = index != 0) }
+
+    fun parseSentences(lines: List<String>): HeadlineMatch? =
+        lines.indices.firstNotNullOfOrNull { index ->
+            val line = lines[index].trim()
+            if (line.length <= MAX_LINE_LENGTH) return@firstNotNullOfOrNull null
+            if (JdSectionHeaders.classifyExact(line) != null) return@firstNotNullOfOrNull null
+            SentenceSplitter.split(line).firstNotNullOfOrNull { sentence ->
+                val candidate = sentence.trim().trimEnd('.', ':')
+                if (candidate.length > MAX_LINE_LENGTH) return@firstNotNullOfOrNull null
+                structured(candidate)?.let { (title, company) -> HeadlineMatch(index, title, company, headlineSentence = sentence) }
+            }
+        }
 
     private fun scan(lines: List<String>, parser: (String, Int) -> Pair<String, String>?): HeadlineMatch? =
         lines.indices.firstNotNullOfOrNull { index ->

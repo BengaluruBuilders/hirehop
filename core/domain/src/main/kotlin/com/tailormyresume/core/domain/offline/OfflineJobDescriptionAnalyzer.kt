@@ -9,11 +9,19 @@ class OfflineJobDescriptionAnalyzer @Inject constructor() : JobDescriptionAnalyz
         val lines = JdLineReader.nonEmptyLines(rawText)
         val titleCompany = TitleCompanyExtractor.extract(lines)
         val contentLines = JdLineReader.read(lines).filterNot { it.index in titleCompany.consumedIndexes }
+            .mapNotNull { withoutHeadlineSentence(it, titleCompany) }
         return JobDescription(
             title = titleCompany.title,
             company = titleCompany.company,
             rawText = rawText,
             requirements = RequirementExtractor.extract(contentLines),
         )
+    }
+
+    private fun withoutHeadlineSentence(line: JdLine, titleCompany: TitleCompany): JdLine? {
+        val sentence = titleCompany.headlineSentence
+        if (line.index != titleCompany.headlineSentenceIndex || sentence == null) return line
+        val remaining = line.text.replace(sentence, "").trim()
+        return if (remaining.isEmpty()) null else line.copy(text = remaining)
     }
 }
