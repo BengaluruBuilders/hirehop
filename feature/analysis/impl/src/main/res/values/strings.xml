@@ -114,6 +114,7 @@
     <string name="feature_analysis_impl_question_priority">%1$s · %2$s</string>
     <string name="feature_analysis_impl_question_note">Your answer is saved as a User-stated fact.</string>
     <string name="feature_analysis_impl_question_label">Where and how</string>
+    <string name="feature_analysis_impl_question_error_too_long">This is longer than TailorMyResume stores. Keep the main line.</string>
     <string name="feature_analysis_impl_question_write">Save as new fact</string>
     <string name="feature_analysis_impl_question_write_as">Save as %1$s</string>
     <string name="feature_analysis_impl_question_new_fact_id">New fact</string>

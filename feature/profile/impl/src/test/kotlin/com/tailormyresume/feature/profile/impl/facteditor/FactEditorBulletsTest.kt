@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.facteditor
 
+import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.IdGenerator
 import com.tailormyresume.core.domain.fact.FactDraftErrorReason
@@ -46,12 +47,13 @@ class FactEditorBulletsTest {
         repository.sendProfile(sampleProfile.copy(entries = listOf(threeBullets)))
     }
 
-    private fun createViewModel() = FactEditorViewModel(
+    private fun createViewModel(handle: SavedStateHandle = SavedStateHandle()) = FactEditorViewModel(
         profileRepository = repository,
         factIdAllocator = FactIdAllocator(),
         idGenerator = IdGenerator { "new-${nextBulletId++}" },
         connectivityMonitor = TestConnectivityMonitor(),
         key = FactEditorNavKey(entryId = threeBullets.id, entryType = "project", scenario = DebugScenario.DEFAULT),
+        savedState = handle,
     )
 
     private suspend fun savedEntry(): ProfileEntry =
@@ -101,5 +103,29 @@ class FactEditorBulletsTest {
 
         assertThat(viewModel.uiState.value.fieldErrors[FactField.DETAIL]).isEqualTo(FactDraftErrorReason.TOO_LONG)
         assertThat(savedEntry()).isEqualTo(threeBullets)
+    }
+
+    @Test
+    fun editedExtraBulletsSurviveProcessDeath() {
+        val handle = SavedStateHandle()
+        createViewModel(handle).onMoreBulletChange(1, "Cut load time by 60 percent.")
+
+        val restarted = SavedStateHandle(handle.keys().associateWith { handle.get<Any>(it) })
+        val draft = createViewModel(restarted).uiState.value.draft
+
+        assertThat(draft.moreBullets.map { it.id }).containsExactly("answer-2", "answer-3").inOrder()
+        assertThat(draft.moreBullets.map { it.text })
+            .containsExactly("Shipped it to 40 classmates.", "Cut load time by 60 percent.").inOrder()
+    }
+
+    @Test
+    fun aStoredBulletOverTheLimitShowsTheTooLongErrorAndBlocksSaving() {
+        val tooLong = threeBullets.bullets[2].copy(text = "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + 1))
+        repository.sendProfile(sampleProfile.copy(entries = listOf(threeBullets.copy(bullets = threeBullets.bullets.dropLast(1) + tooLong))))
+
+        val state = createViewModel().uiState.value
+
+        assertThat(state.visibleReasonFor(FactField.DETAIL)).isEqualTo(FactDraftErrorReason.TOO_LONG)
+        assertThat(state.isSaveEnabled).isFalse()
     }
 }

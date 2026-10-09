@@ -279,6 +279,7 @@ private fun FactEditorFields(
                 label = stringResource(category.detailLabelRes()),
                 singleLine = false,
                 minLines = DETAIL_MIN_LINES,
+                errorText = uiState.errorTextFor(FactField.DETAIL),
             )
         }
         if (category == EntryCategory.PROJECT) {

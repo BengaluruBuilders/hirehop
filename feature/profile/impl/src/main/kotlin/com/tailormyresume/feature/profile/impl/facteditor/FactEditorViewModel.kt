@@ -197,12 +197,14 @@ class FactEditorViewModel @AssistedInject constructor(
                 nextId = factIdAllocator.nextId(requestedCategory, existingEntries, draft.title),
             )
         }
-        return FactEditorScenarioMapper.withEntry(
+        val withEntry = FactEditorScenarioMapper.withEntry(
             state = this,
             entry = loaded,
             scenario = scenario,
             displayId = FactDisplayIds.of(loaded, profile?.entries.orEmpty()),
         )
+        val loadedErrors = FactDraftValidator.validate(withEntry.draft).toFieldErrorMap()
+        return withEntry.copy(fieldErrors = loadedErrors, touchedFields = loadedErrors.keys)
     }
 
     private fun saveDraft(draft: FactDraft) {
@@ -213,11 +215,25 @@ class FactEditorViewModel @AssistedInject constructor(
             draft.startDate.take(SAVED_SHORT_LIMIT),
             draft.endDate.take(SAVED_SHORT_LIMIT),
         )
+        savedState[MORE_BULLETS_KEY] = ArrayList(draft.moreBullets.map { it.text.take(SAVED_DETAIL_LIMIT) })
     }
 
     private fun FactEditorUiState.withSavedDraft(): FactEditorUiState {
         val (title, detail, organization, startDate, endDate) = savedState.get<ArrayList<String>>(DRAFT_KEY) ?: return this
-        val restoredDraft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate)
+        val moreTexts = savedState.get<ArrayList<String>>(MORE_BULLETS_KEY).orEmpty()
+        val restoredMore = if (moreTexts.size == draft.moreBullets.size) {
+            draft.moreBullets.zip(moreTexts) { bullet, text -> bullet.copy(text = text) }
+        } else {
+            draft.moreBullets
+        }
+        val restoredDraft = draft.copy(
+            title = title,
+            detail = detail,
+            organization = organization,
+            startDate = startDate,
+            endDate = endDate,
+            moreBullets = restoredMore,
+        )
         val restoredErrors = dateFormatErrors(restoredDraft) + FactDraftValidator.validate(restoredDraft).toFieldErrorMap()
         val restored = copy(
             draft = restoredDraft,
@@ -260,6 +276,7 @@ class FactEditorViewModel @AssistedInject constructor(
 
     private companion object {
         const val DRAFT_KEY = "factEditor.draft"
+        const val MORE_BULLETS_KEY = "factEditor.moreBullets"
         const val SAVED_DETAIL_LIMIT = 2 * FactDraftValidator.DETAIL_LIMIT
         const val SAVED_SHORT_LIMIT = 300
     }
