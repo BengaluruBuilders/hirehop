@@ -283,6 +283,25 @@ real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
   grep -q 'leaks found' <<<"$out"
 }
 
+real_gitleaks_still_fails_when_a_token_sits_in_a_file_git_treats_as_binary() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-binary"
+  new_real_repo "$r"
+  printf 'Leak.dat -diff\n' >"$r/.gitattributes"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m attributes
+  printf 'header\0 token = "%s"\n' "$(fake_token)" >"$r/Leak.dat"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+check "real gitleaks still fails when a token sits in a file git treats as binary" real_gitleaks_still_fails_when_a_token_sits_in_a_file_git_treats_as_binary
 check "real gitleaks still fails when a token is added only in a merge commit" real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit
 check "real gitleaks still fails when a pull request adds its own ignore entry" real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry
 check "real gitleaks still fails when a pull request hides the diff with gitattributes" real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes
