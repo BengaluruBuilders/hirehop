@@ -48,4 +48,60 @@ class WordDiffPunctuationTest {
         assertThat(result.original.filter { it.changed }.map { it.text }).containsExactly("--")
         assertThat(result.proposed.filter { it.changed }.map { it.text }).containsExactly("—")
     }
+
+    @Test
+    fun cPlusPlusToCSharp_isMarkedChanged() {
+        val result = WordDiff.diff("C++", "C#")
+
+        assertThat(result.original.any { it.changed }).isTrue()
+        assertThat(result.proposed.any { it.changed }).isTrue()
+    }
+
+    @Test
+    fun cToCPlusPlus_isMarkedChanged() {
+        val result = WordDiff.diff("C", "C++")
+
+        assertThat(result.original.any { it.changed }).isTrue()
+        assertThat(result.proposed.any { it.changed }).isTrue()
+    }
+
+    @Test
+    fun twentyPercentToDollarAmount_isMarkedChanged() {
+        val result = WordDiff.diff("20%", "$20")
+
+        assertThat(result.original.any { it.changed }).isTrue()
+        assertThat(result.proposed.any { it.changed }).isTrue()
+    }
+
+    @Test
+    fun fiveYearsToFivePlusYears_isMarkedChanged() {
+        val result = WordDiff.diff("5 years", "5+ years")
+
+        assertThat(result.proposed.any { it.changed && it.text.contains("5+") }).isTrue()
+        assertThat(result.original.any { it.changed && it.text.contains("5") }).isTrue()
+    }
+
+    @Test
+    fun hindiToHindu_isMarkedChanged() {
+        val result = WordDiff.diff("हिंदी", "हिंदू")
+
+        assertThat(result.original.any { it.changed }).isTrue()
+        assertThat(result.proposed.any { it.changed }).isTrue()
+    }
+
+    @Test
+    fun sqlInParenthesesOnOriginal_isUnchangedOnBothSides() {
+        val result = WordDiff.diff("(SQL)", "SQL")
+
+        assertThat(result.original.none { it.changed }).isTrue()
+        assertThat(result.proposed.none { it.changed }).isTrue()
+    }
+
+    @Test
+    fun quotedExcelOnOriginal_isUnchangedOnBothSides() {
+        val result = WordDiff.diff("“Excel”", "Excel")
+
+        assertThat(result.original.none { it.changed }).isTrue()
+        assertThat(result.proposed.none { it.changed }).isTrue()
+    }
 }

@@ -29,8 +29,31 @@ internal object WordDiff {
 
     private fun String.toWords(): List<String> = trim().split(WHITESPACE).filter { it.isNotEmpty() }
 
+    private val EDGE_PUNCTUATION: Set<Char> =
+        setOf(
+            '.',
+            ',',
+            ';',
+            ':',
+            '!',
+            '?',
+            '(',
+            ')',
+            '[',
+            ']',
+            '{',
+            '}',
+            '"',
+            '\u201C',
+            '\u201D',
+            '\'',
+            '\u2018',
+            '\u2019',
+            '\u2026',
+        )
+
     private fun String.comparisonKey(): String {
-        val trimmed = trim { !it.isLetterOrDigit() }
+        val trimmed = trim { it in EDGE_PUNCTUATION }
         return trimmed.ifEmpty { this }
     }
 
