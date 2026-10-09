@@ -46,6 +46,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.feature.settings.impl.R
 import com.tailormyresume.feature.settings.impl.common.SettingsErrorNotice
+import com.tailormyresume.feature.settings.impl.common.SettingsLoading
 import com.tailormyresume.feature.settings.impl.common.SettingsTopBar
 import com.tailormyresume.feature.settings.impl.common.formatMediumDate
 import com.tailormyresume.feature.settings.impl.common.formatPriceInPaise
@@ -83,7 +84,7 @@ internal fun YourDataScreen(
     ) { padding ->
         TmrContentSwitch(targetState = content, contentKey = { it?.export?.equals(YourDataExport.PREPARING) }) { state ->
             when {
-                state == null -> Unit
+                state == null -> SettingsLoading(padding = padding)
                 state.export == YourDataExport.PREPARING -> PreparingContent(content = state, padding = padding)
                 else -> LedgerContent(content = state, actions = actions, padding = padding)
             }
