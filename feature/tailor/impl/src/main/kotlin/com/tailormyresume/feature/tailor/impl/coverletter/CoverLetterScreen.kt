@@ -165,7 +165,7 @@ private fun LazyListScope.coverLetterItems(
     sourceOrdinal: Int?,
     onSource: (Int) -> Unit,
 ) {
-    if (uiState.isOffline && uiState.stage != CoverLetterStage.GENERATING) {
+    if (uiState.isOffline && uiState.stage != CoverLetterStage.GENERATING && uiState.stage != CoverLetterStage.OFFER) {
         item(key = "offline") {
             NoticeStrip(text = stringResource(R.string.feature_tailor_impl_cover_letter_offline), icon = TmrIcons.Offline)
         }

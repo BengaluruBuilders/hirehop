@@ -130,6 +130,7 @@ internal class ExportedViewModel @Inject constructor(
                 jobCompany = application.job.company,
                 fileName = fileName,
                 fileOnDevice = fileStore.fileFor(fileName) != null,
+                fileSizeBytes = fileStore.fileFor(fileName)?.length(),
                 pageCount = record?.pageCount,
                 templateName = record?.templateName,
                 status = application.status,

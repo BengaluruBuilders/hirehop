@@ -20,6 +20,7 @@ import com.tailormyresume.feature.tailor.impl.export.ResumePdfRenderer
 import com.tailormyresume.feature.tailor.impl.export.docx.ResumeDocxRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,6 +54,10 @@ internal class ExportPreviewViewModel @Inject constructor(
 
     private var document: ResumeDocument? = null
 
+    private var exportJob: Job? = null
+
+    private var canCancelExport = false
+
     val uiState: StateFlow<ExportPreviewUiState> = mutableState.asStateFlow()
 
     fun onEnter(key: ExportPreviewNavKey) {
@@ -81,7 +86,7 @@ internal class ExportPreviewViewModel @Inject constructor(
             ExportPreviewAction.Export -> export()
             ExportPreviewAction.RetryPreview -> onRetry()
             ExportPreviewAction.NavigationHandled -> mutableState.update { state -> state.copy(navigation = null) }
-            ExportPreviewAction.CancelExport -> Unit
+            ExportPreviewAction.CancelExport -> onCancelExport()
         }
     }
 
@@ -151,17 +156,22 @@ internal class ExportPreviewViewModel @Inject constructor(
                 jobTitle = application.job.title,
                 jobCompany = application.job.company,
                 sheet = exportPreviewSheetOf(assembled),
-                fileName = fileNameFor(format = state.format, document = assembled, state = state),
+                fileName = fileNameFor(
+                    format = state.format,
+                    document = assembled,
+                    company = application.job.company,
+                    role = application.job.title,
+                ),
             )
         }
     }
 
-    private fun fileNameFor(format: ExportFormat, document: ResumeDocument, state: ExportPreviewUiState): String =
+    private fun fileNameFor(format: ExportFormat, document: ResumeDocument, company: String, role: String): String =
         ExportFileNames.build(
             format = format,
             name = document.name,
-            company = state.jobCompany,
-            role = state.jobTitle,
+            company = company,
+            role = role,
         )
 
     private fun onSelectFormat(format: ExportFormat) {
@@ -171,8 +181,14 @@ internal class ExportPreviewViewModel @Inject constructor(
         mutableState.update { state ->
             state.copy(
                 format = format,
-                fileName = source?.let { assembled -> fileNameFor(format = format, document = assembled, state = state) }
-                    .orEmpty(),
+                fileName = source?.let { assembled ->
+                    fileNameFor(
+                        format = format,
+                        document = assembled,
+                        company = state.jobCompany,
+                        role = state.jobTitle,
+                    )
+                }.orEmpty(),
             )
         }
     }
@@ -188,7 +204,8 @@ internal class ExportPreviewViewModel @Inject constructor(
         val format = state.format
         val fileName = state.fileName
         mutableState.update { current -> current.copy(stage = ExportPreviewStage.EXPORTING) }
-        viewModelScope.launch {
+        exportJob = viewModelScope.launch {
+            canCancelExport = true
             val rendered = try {
                 when (format) {
                     ExportFormat.PDF -> pdfRenderer.render(document = source, fileName = fileName)
@@ -214,11 +231,19 @@ internal class ExportPreviewViewModel @Inject constructor(
         }
     }
 
+    private fun onCancelExport() {
+        if (mutableState.value.stage != ExportPreviewStage.EXPORTING || !canCancelExport) return
+        exportJob?.cancel()
+        canCancelExport = false
+        mutableState.update { state -> state.copy(stage = ExportPreviewStage.PREVIEW_READY) }
+    }
+
     private suspend fun finishExport(
         format: ExportFormat,
         fileName: String,
         pageCount: Int?,
     ) {
+        canCancelExport = false
         when (val spend = runCatching { paymentGateway.unlock(applicationId) }.getOrNull()) {
             is CreditSpend.Spent -> {
                 exportHistoryRepository.record(

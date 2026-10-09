@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -138,8 +139,8 @@ class CoverLetterBatchTest {
     fun generatingShowsWritingThreeParagraphsAndTheFactCount() {
         show(CoverLetterUiState(stage = CoverLetterStage.GENERATING, factCount = 6))
 
-        composeRule.onNodeWithText("Writing 3 paragraphs").assertIsDisplayed()
-        composeRule.onNodeWithText("6 facts").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Writing 3 paragraphs", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("6 facts", substring = true).assertIsDisplayed()
     }
 }
 
