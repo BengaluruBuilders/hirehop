@@ -63,6 +63,7 @@ class DeleteAccountViewModelTest {
     private val sessionRepository = TestSessionRepository().apply { sendAccount(SignInAccount.localAccount) }
     private var shouldFail = false
     private var waitsForGate = false
+    private var applicationDeleteCalls = 0
 
     @Test
     fun ready_countsTheRealData() = runTest {
@@ -78,15 +79,70 @@ class DeleteAccountViewModelTest {
     }
 
     @Test
+    fun tappingDeleteOnlyAsksToConfirmAndDeletesNothing() = runTest {
+        val viewModel = enteredViewModel()
+
+        viewModel.onDeleteTapped()
+
+        assertThat(viewModel.ready().isConfirmVisible).isTrue()
+        assertThat(applications.value).hasSize(4)
+        assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun cancelClosesTheConfirmAndDeletesNothing() = runTest {
+        val viewModel = enteredViewModel()
+        viewModel.onDeleteTapped()
+
+        viewModel.onDeleteDismissed()
+
+        assertThat(viewModel.ready().isConfirmVisible).isFalse()
+        assertThat(applications.value).hasSize(4)
+        assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun confirmWithoutTheDialogDoesNothing() = runTest {
+        val viewModel = enteredViewModel()
+
+        viewModel.onDeleteConfirmed()
+
+        assertThat(viewModel.ready().isConfirmVisible).isFalse()
+        assertThat(applications.value).hasSize(4)
+        assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun confirmingStartsTheDeletionExactlyOnce() = runTest {
+        waitsForGate = true
+        val viewModel = enteredViewModel()
+        viewModel.onDeleteTapped()
+        assertThat(applicationDeleteCalls).isEqualTo(0)
+
+        viewModel.onDeleteConfirmed()
+        viewModel.onDeleteConfirmed()
+
+        assertThat(viewModel.uiState.value).isInstanceOf(DeleteAccountUiState.Deleting::class.java)
+        assertThat(applicationDeleteCalls).isEqualTo(1)
+        assertThat(PendingNavigation.consume()).containsExactly(AccountDeletedNavKey)
+        gate.complete(Unit)
+    }
+
+    @Test
     fun deleting_namesTheStepsInTheOrderTheUseCaseRunsThem() = runTest {
         waitsForGate = true
         val viewModel = enteredViewModel()
 
         viewModel.onDeleteTapped()
+        viewModel.onDeleteConfirmed()
 
         val deleting = viewModel.uiState.value as DeleteAccountUiState.Deleting
         assertThat(deleting.step).isEqualTo(AccountDeletionStep.DELETING_APPLICATIONS)
         assertThat(deleting.counts.applications).isEqualTo(4)
+        assertThat(profile.value).isNull()
         gate.complete(Unit)
     }
 
@@ -95,6 +151,7 @@ class DeleteAccountViewModelTest {
         val viewModel = enteredViewModel()
 
         viewModel.onDeleteTapped()
+        viewModel.onDeleteConfirmed()
 
         assertThat(PendingNavigation.consume()).containsExactly(AccountDeletedNavKey)
         assertThat(applications.value).isEmpty()
@@ -108,12 +165,16 @@ class DeleteAccountViewModelTest {
         val viewModel = enteredViewModel()
 
         viewModel.onDeleteTapped()
+        viewModel.onDeleteConfirmed()
 
-        assertThat(viewModel.ready().failure).isEqualTo(DeleteAccountFailure.DATA_INTACT)
+        val ready = viewModel.ready()
+        assertThat(ready.failure).isEqualTo(DeleteAccountFailure.DATA_INTACT)
+        assertThat(ready.isConfirmVisible).isFalse()
         assertThat(PendingNavigation.consume()).isEmpty()
         assertThat(applications.value.map { application -> application.id })
             .containsExactlyElementsIn(FOUR_APPLICATIONS.map { application -> application.id })
         assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(sessionRepository.observeAccount().first()).isEqualTo(SignInAccount.localAccount)
     }
 
     @Test
@@ -122,8 +183,11 @@ class DeleteAccountViewModelTest {
         val viewModel = enteredViewModel()
 
         viewModel.onDeleteTapped()
+        viewModel.onDeleteConfirmed()
 
-        assertThat(viewModel.ready().isOffline).isTrue()
+        val ready = viewModel.ready()
+        assertThat(ready.isOffline).isTrue()
+        assertThat(ready.isConfirmVisible).isFalse()
         assertThat(applications.value).isNotEmpty()
         assertThat(PendingNavigation.consume()).isEmpty()
     }
@@ -133,16 +197,21 @@ class DeleteAccountViewModelTest {
         val viewModel = enteredViewModel(DebugScenario.OFFLINE)
 
         viewModel.onDeleteTapped()
+        viewModel.onDeleteConfirmed()
 
-        assertThat(viewModel.ready().isOffline).isTrue()
+        val ready = viewModel.ready()
+        assertThat(ready.isOffline).isTrue()
+        assertThat(ready.isConfirmVisible).isFalse()
         assertThat(applications.value).isNotEmpty()
+        assertThat(PendingNavigation.consume()).isEmpty()
     }
 
     @Test
-    fun onEnter_withTheDeletingScenario_showsTheDeletingState() = runTest {
+    fun onEnter_withTheDeletingScenario_showsFactsDoneAndApplicationsInProgress() = runTest {
         val viewModel = enteredViewModel(DebugScenario.DELETING)
 
-        assertThat(viewModel.uiState.value).isInstanceOf(DeleteAccountUiState.Deleting::class.java)
+        val deleting = viewModel.uiState.value as DeleteAccountUiState.Deleting
+        assertThat(deleting.step).isEqualTo(AccountDeletionStep.DELETING_APPLICATIONS)
         assertThat(applications.value).isNotEmpty()
     }
 
@@ -161,6 +230,35 @@ class DeleteAccountViewModelTest {
         viewModel.onEnter(DeleteAccountNavKey())
 
         assertThat(viewModel.ready().counts.applications).isEqualTo(4)
+    }
+
+    @Test
+    fun goingOfflineWhileTheConfirmIsOpen_deletesNothingAndClosesTheDialog() = runTest {
+        val viewModel = enteredViewModel()
+        viewModel.onDeleteTapped()
+        assertThat(viewModel.ready().isConfirmVisible).isTrue()
+
+        connectivity.setOnline(false)
+        viewModel.onDeleteConfirmed()
+
+        val ready = viewModel.ready()
+        assertThat(ready.isOffline).isTrue()
+        assertThat(ready.isConfirmVisible).isFalse()
+        assertThat(applications.value).hasSize(4)
+        assertThat(applicationDeleteCalls).isEqualTo(0)
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun tappingDeleteRefreshesTheCountsTheConfirmShows() = runTest {
+        val viewModel = enteredViewModel()
+        applications.value = FOUR_APPLICATIONS.drop(1)
+
+        viewModel.onDeleteTapped()
+
+        val ready = viewModel.ready()
+        assertThat(ready.isConfirmVisible).isTrue()
+        assertThat(ready.counts.applications).isEqualTo(3)
     }
 
     private fun TestScope.enteredViewModel(scenario: DebugScenario = DebugScenario.DEFAULT): DeleteAccountViewModel {
@@ -182,6 +280,7 @@ class DeleteAccountViewModelTest {
                 gate = gate,
                 waits = { waitsForGate },
                 shouldFail = { shouldFail },
+                onDelete = { applicationDeleteCalls++ },
             ),
             profileRepository = StaticProfileRepository(profile = profile),
             exportHistoryRepository = TestExportHistoryRepository(),
@@ -200,6 +299,7 @@ class DeleteAccountViewModelTest {
         private val gate: CompletableDeferred<Unit>,
         private val waits: () -> Boolean,
         private val shouldFail: () -> Boolean,
+        private val onDelete: () -> Unit,
     ) : ApplicationRepository {
 
         override fun observeApplications(): Flow<List<JobApplication>> = applications
@@ -221,6 +321,7 @@ class DeleteAccountViewModelTest {
         override suspend fun updateNotes(id: String, notes: String) = Unit
 
         override suspend fun deleteApplication(id: String) {
+            onDelete()
             if (waits()) gate.await()
             if (shouldFail()) throw IllegalStateException("delete failed for $id")
             applications.update { current -> current.filterNot { it.id == id } }

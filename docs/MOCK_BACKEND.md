@@ -475,7 +475,7 @@ class DeleteAccountUseCase {
 }
 ```
 
-It deletes the applications (and their prep plan, reports, and review state), the profile, the export history, and the credits. Each of the three `AccountDeletionStep` values waits for `MockOperation.DELETE_ACCOUNT_STEP` (the constructor takes `MockLatency`), so the steps show on the screen. The last step signs out and clears the session; this part cannot be cancelled. `AccountDeletionCounts.profileFacts` is `CandidateProfile.factCounts().total`. If a step fails before the credits are cleared, it restores the applications, the profile, and the export history. The constructor gained `ExportHistoryRepository`, `SessionRepository`, and `SignInGateway`. Hilt supplies them.
+It deletes the profile and the export history, then the applications (and their prep plan, reports, and review state), then the credits. The screen opens a confirm dialog first; only Confirm calls the use case. Each of the three `AccountDeletionStep` values waits for `MockOperation.DELETE_ACCOUNT_STEP` (the constructor takes `MockLatency`), so the steps show on the screen. The last step signs out and clears the session; this part cannot be cancelled. `AccountDeletionCounts.profileFacts` is `CandidateProfile.factCounts().total`. If a step fails before the credits are cleared, it restores the applications, the profile, and the export history. The constructor gained `ExportHistoryRepository`, `SessionRepository`, and `SignInGateway`. Hilt supplies them.
 
 ### `AccountDataExporter` (export my data)
 
