@@ -72,30 +72,27 @@ class ConfirmFactsSectionChipsTest {
 
     @Test
     fun aFlaggedConfirmedFactIsNotCountedAsConfirmedAndFollowsTheChip() {
-        val flagged = state.facts.first { it.section == ConfirmFactsSection.Projects }
+        val flagged = state.facts.first { it.section == ConfirmFactsSection.Education }
             .copy(isConfirmed = true, hasTooLongBullet = true)
         val flaggedState = state.copy(
             sections = state.sections.map { entry ->
                 entry.copy(facts = entry.facts.map { if (it.id == flagged.id) flagged else it })
             },
         )
-        val withinLimits = flaggedState.facts.count { it.isConfirmedWithinLimits }
-        assertThat(withinLimits).isGreaterThan(0)
+        assertThat(flaggedState.facts.count { it.isConfirmedWithinLimits }).isEqualTo(0)
 
         show(flaggedState)
 
-        chip("Projects").assert(hasText("1"))
-        composeRule.onNodeWithText(confirmedPillTitle(withinLimits)).assertIsDisplayed()
+        chip("Education").assert(hasText("1"))
+        composeRule.onNodeWithText("1 fact confirmed").assertDoesNotExist()
         composeRule.onNodeWithText(flagged.title, substring = true).assertIsDisplayed()
-
-        chip("Education").performClick()
-        composeRule.onNodeWithText(flagged.title, substring = true).assertDoesNotExist()
 
         chip("Projects").performClick()
+        composeRule.onNodeWithText(flagged.title, substring = true).assertDoesNotExist()
+
+        chip("Education").performClick()
         composeRule.onNodeWithText(flagged.title, substring = true).assertIsDisplayed()
     }
-
-    private fun confirmedPillTitle(count: Int) = if (count == 1) "1 fact confirmed" else "$count facts confirmed"
 
     private fun chip(section: String) = composeRule.onNode(isSelectable() and hasText(section))
 

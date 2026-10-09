@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +28,7 @@ class ConsentViewModel @Inject constructor(
     private val clock: Clock,
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(ConsentUiState())
+    private val mutableState = MutableStateFlow(ConsentUiState(isReconsent = true))
 
     private var hasEntered = false
 
@@ -36,13 +37,23 @@ class ConsentViewModel @Inject constructor(
     fun onEnter(key: ConsentNavKey) {
         if (hasEntered) return
         hasEntered = true
-        mutableState.value = consentStateFor(scenario = key.scenario, readOnly = key.readOnly)
+        mutableState.value = consentStateFor(scenario = key.scenario, readOnly = key.readOnly).copy(isReconsent = true)
         if (key.readOnly) {
             viewModelScope.launch {
                 sessionRepository.observeConsent().collect { record -> mutableState.update { it.showing(record) } }
             }
+        } else {
+            viewModelScope.launch {
+                val isFirstRun = isFirstRun()
+                mutableState.update { it.copy(isReconsent = !isFirstRun) }
+            }
         }
     }
+
+    private suspend fun isFirstRun(): Boolean =
+        sessionRepository.observeConsent().first() == null &&
+            profileRepository.observeProfile().first()?.entries.isNullOrEmpty() &&
+            sessionRepository.lastAccountId() == null
 
     fun onAction(action: ConsentAction) {
         when (action) {
