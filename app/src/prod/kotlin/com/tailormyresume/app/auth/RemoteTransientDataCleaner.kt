@@ -11,5 +11,8 @@ class RemoteTransientDataCleaner @Inject constructor(
     private val analysis: RemoteJobAnalysisSource,
     private val reports: PendingReportQueue,
 ) : TransientDataCleaner {
-    override suspend fun clear() = Unit
+    override suspend fun clear() {
+        analysis.clear()
+        reports.clear()
+    }
 }

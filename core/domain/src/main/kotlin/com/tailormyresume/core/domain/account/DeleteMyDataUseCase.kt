@@ -4,6 +4,9 @@ import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class DeleteMyDataUseCase @Inject constructor(
@@ -14,5 +17,19 @@ class DeleteMyDataUseCase @Inject constructor(
     private val exportedFiles: ExportedFiles,
     private val transientData: TransientDataCleaner,
 ) {
-    suspend operator fun invoke(): Result<Unit> = Result.success(Unit)
+    suspend operator fun invoke(): Result<Unit> = withContext(NonCancellable) {
+        try {
+            applicationRepository.observeApplications().first().forEach { application ->
+                applicationRepository.deleteApplication(application.id)
+            }
+            profileRepository.clearProfile()
+            exportHistoryRepository.clear()
+            sessionRepository.clearKeptJobDescription()
+            exportedFiles.deleteAll()
+            transientData.clear()
+            Result.success(Unit)
+        } catch (failure: Exception) {
+            Result.failure(failure)
+        }
+    }
 }

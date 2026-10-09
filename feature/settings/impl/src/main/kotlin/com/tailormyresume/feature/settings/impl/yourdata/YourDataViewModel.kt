@@ -74,6 +74,7 @@ class YourDataViewModel @Inject constructor(
             isOffline = !isOnline || localState.forcedOffline,
             export = localState.export,
             deleteTarget = applications.firstOrNull { item -> item.id == localState.deleteTargetId },
+            deletion = localState.deletion,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -92,7 +93,7 @@ class YourDataViewModel @Inject constructor(
 
     fun onDownload() {
         val content = uiState.value as? YourDataUiState.Content ?: return
-        if (content.isOffline || content.export == YourDataExport.PREPARING) return
+        if (content.isOffline || content.export == YourDataExport.PREPARING || content.deletion == YourDataDeletion.DELETING) return
         local.update { state -> state.copy(export = YourDataExport.PREPARING) }
         viewModelScope.launch {
             try {
@@ -126,11 +127,35 @@ class YourDataViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteMyDataRequested() = Unit
+    fun onDeleteMyDataRequested() {
+        val content = uiState.value as? YourDataUiState.Content ?: return
+        val canStart = content.deletion == YourDataDeletion.IDLE || content.deletion == YourDataDeletion.FAILED
+        if (content.isOffline || !canStart || content.export == YourDataExport.PREPARING) return
+        local.update { state -> state.copy(deletion = YourDataDeletion.CONFIRMING) }
+    }
 
-    fun onDeleteMyDataDismissed() = Unit
+    fun onDeleteMyDataDismissed() {
+        local.update { state ->
+            if (state.deletion == YourDataDeletion.CONFIRMING) state.copy(deletion = YourDataDeletion.IDLE) else state
+        }
+    }
 
-    fun onDeleteMyDataConfirmed() = Unit
+    fun onDeleteMyDataConfirmed() {
+        val content = uiState.value as? YourDataUiState.Content ?: return
+        val confirming = local.value
+        if (confirming.deletion != YourDataDeletion.CONFIRMING) return
+        if (content.isOffline) {
+            onDeleteMyDataDismissed()
+            return
+        }
+        if (!local.compareAndSet(confirming, confirming.copy(deletion = YourDataDeletion.DELETING))) return
+        viewModelScope.launch {
+            val outcome = deleteMyData()
+            local.update { state ->
+                state.copy(deletion = if (outcome.isSuccess) YourDataDeletion.IDLE else YourDataDeletion.FAILED)
+            }
+        }
+    }
 
     private class Ledger(
         val profile: CandidateProfile?,
@@ -143,6 +168,7 @@ class YourDataViewModel @Inject constructor(
         val forcedOffline: Boolean = false,
         val export: YourDataExport = YourDataExport.IDLE,
         val deleteTargetId: String? = null,
+        val deletion: YourDataDeletion = YourDataDeletion.IDLE,
     )
 
     private companion object {
