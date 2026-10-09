@@ -31,6 +31,7 @@ class OfflinePaymentGateway @Inject constructor(
     private val latency: MockLatency,
     private val clock: Clock,
     private val idGenerator: IdGenerator,
+    private val forced: ForcedPaymentScenario = ForcedPaymentScenario(),
 ) : PaymentGateway {
 
     private val mutex = Mutex()

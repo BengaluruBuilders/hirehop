@@ -71,6 +71,7 @@ internal class ExportedViewModel @Inject constructor(
             ExportedAction.RequestShare -> onRequestFile(ExportedFileAction.SHARE)
             ExportedAction.RequestOpen -> onRequestFile(ExportedFileAction.OPEN)
             ExportedAction.FileRequestHandled -> mutableState.update { state -> state.copy(fileRequest = null) }
+            ExportedAction.OpenUnavailable, ExportedAction.DismissOpenUnavailable -> Unit
         }
     }
 
