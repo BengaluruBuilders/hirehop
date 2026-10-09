@@ -50,7 +50,6 @@
     <string name="feature_tailor_impl_bullet_accepted_note">Accepted. This line is now in your resume.</string>
     <string name="feature_tailor_impl_bullet_kept_note">You kept your original line. The rewrite is not used.</string>
     <string name="feature_tailor_impl_bullet_added_words">Added words</string>
-    <string name="feature_tailor_impl_bullet_added_sample">abc</string>
     <plurals name="feature_tailor_impl_bullet_source_label">
         <item quantity="one">Source fact</item>
         <item quantity="other">Source facts</item>

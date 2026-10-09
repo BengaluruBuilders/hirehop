@@ -57,6 +57,7 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.GuardrailViolation
 import com.tailormyresume.feature.tailor.impl.diff.DiffSegment
 import com.tailormyresume.feature.tailor.impl.diff.WordDiff
+import com.tailormyresume.feature.tailor.impl.diff.WordDiffResult
 
 internal data class BulletSheetActions(
     val onPrevious: (() -> Unit)?,
@@ -223,6 +224,7 @@ private fun ChangedBlock(item: TailorBulletUi) {
         WordDiff.diff(bullet.originalText, bullet.proposedText)
     }
     val showsDiff = bullet.originalText.trim() != bullet.proposedText.trim()
+    val addedWords = remember(diff) { diff.addedWords() }
     LabeledText(label = stringResource(R.string.feature_tailor_impl_bullet_new)) {
         if (showsDiff) {
             TmrEvidenceText(
@@ -230,7 +232,7 @@ private fun ChangedBlock(item: TailorBulletUi) {
                 style = TmrTheme.typography.titleM,
                 color = TmrTheme.colors.onSurface,
             )
-            AddedWordsLegend()
+            AddedWordsLegend(addedWords)
         } else {
             Text(
                 text = stringResource(R.string.feature_tailor_impl_bullet_position_only),
@@ -241,18 +243,27 @@ private fun ChangedBlock(item: TailorBulletUi) {
     }
 }
 
+private fun WordDiffResult.addedWords(): List<String> =
+    proposed.filter { it.changed }
+        .flatMap { segment -> segment.text.split(" ") }
+        .filter { word -> word.any(Char::isLetterOrDigit) }
+        .distinct()
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AddedWordsLegend() {
-    Row(
+private fun AddedWordsLegend(words: List<String>) {
+    if (words.isEmpty()) return
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(R.string.feature_tailor_impl_bullet_added_words),
             style = TmrTheme.typography.labelM,
             color = TmrTheme.colors.onSurfaceVariant,
         )
-        TmrEvidenceMark(text = stringResource(R.string.feature_tailor_impl_bullet_added_sample), style = TmrTheme.typography.labelM)
+        words.forEach { word -> TmrEvidenceMark(text = word, style = TmrTheme.typography.labelM) }
     }
 }
 
