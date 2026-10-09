@@ -85,7 +85,7 @@ class AnalysisPreviewJobTest {
         prepPlanRepository = TestPrepPlanRepository(),
         contentReportRepository = TestContentReportRepository(),
         usageAllowance = waitingAllowance,
-        paymentGateway = TestPaymentGateway(),
+        paymentGateway = TestPaymentGateway().withFreeCredits(0),
         signInGateway = TestSignInGateway(session),
         clock = clock,
         idGenerator = { "id" },
