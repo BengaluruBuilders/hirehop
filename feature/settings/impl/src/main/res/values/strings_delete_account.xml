@@ -8,6 +8,8 @@
     <string name="feature_settings_impl_delete_account_error_partial">We couldn\'t finish deleting your account. Some of your applications or facts may already be gone. Try again, or contact help from Settings.</string>
     <string name="feature_settings_impl_delete_account_error_local_wipe_pending">Your account is closed. Some of your data is still on this phone. Tap Finish removal to delete it.</string>
     <string name="feature_settings_impl_delete_account_finish_removal">Finish removal</string>
+    <string name="feature_settings_impl_delete_account_error_close_unconfirmed">We could not confirm that your account is closed. Your data is still on this phone. Connect to the internet and try again.</string>
+    <string name="feature_settings_impl_delete_account_try_again">Try again</string>
 
     <string name="feature_settings_impl_delete_account_list_title">What is deleted</string>
     <plurals name="feature_settings_impl_delete_account_row_facts">

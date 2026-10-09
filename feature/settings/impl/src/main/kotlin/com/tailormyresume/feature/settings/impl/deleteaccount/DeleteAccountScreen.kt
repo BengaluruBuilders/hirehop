@@ -133,7 +133,7 @@ private fun ReadyContent(
         }
         TmrOfflineBanner(
             message = stringResource(R.string.feature_settings_impl_delete_account_offline_message),
-            visible = uiState.isOffline && uiState.failure != DeleteAccountFailure.LOCAL_WIPE_PENDING,
+            visible = uiState.isOffline && !uiState.failure.isWipePending(),
         )
         uiState.failure?.let { failure ->
             SettingsErrorNotice(
@@ -143,11 +143,13 @@ private fun ReadyContent(
                         DeleteAccountFailure.PARTLY_DELETED -> R.string.feature_settings_impl_delete_account_error_partial
                         DeleteAccountFailure.LOCAL_WIPE_PENDING ->
                             R.string.feature_settings_impl_delete_account_error_local_wipe_pending
+                        DeleteAccountFailure.CLOSE_UNCONFIRMED ->
+                            R.string.feature_settings_impl_delete_account_error_close_unconfirmed
                     },
                 ),
             )
         }
-        if (uiState.failure != DeleteAccountFailure.LOCAL_WIPE_PENDING) {
+        if (!uiState.failure.isWipePending()) {
             TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.lg)) {
                 TmrSectionLabel(text = stringResource(R.string.feature_settings_impl_delete_account_list_title))
                 CountsList(counts = uiState.counts)
@@ -207,10 +209,16 @@ private fun CountLine(text: String) {
 
 @Composable
 private fun ReadyBar(uiState: DeleteAccountUiState.Ready, actions: DeleteAccountActions) {
-    if (uiState.failure == DeleteAccountFailure.LOCAL_WIPE_PENDING) {
+    if (uiState.failure.isWipePending()) {
         TmrBottomActionBar(stacked = true) {
             TmrPrimaryButton(
-                label = stringResource(R.string.feature_settings_impl_delete_account_finish_removal),
+                label = stringResource(
+                    if (uiState.failure == DeleteAccountFailure.CLOSE_UNCONFIRMED) {
+                        R.string.feature_settings_impl_delete_account_try_again
+                    } else {
+                        R.string.feature_settings_impl_delete_account_finish_removal
+                    },
+                ),
                 onClick = actions.onFinishRemoval,
                 modifier = Modifier.fillMaxWidth(),
             )

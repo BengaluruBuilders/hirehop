@@ -94,7 +94,7 @@ class DeleteAccountViewModel @Inject constructor(
     }
 
     fun onFinishRemovalTapped() {
-        if (phase.value.failure != DeleteAccountFailure.LOCAL_WIPE_PENDING) return
+        if (!phase.value.failure.isWipePending()) return
         phase.value = Phase(stage = Stage.DELETING, step = AccountDeletionStep.CLOSING_ACCOUNT)
         PendingNavigation.set(listOf(AccountDeletedNavKey))
         viewModelScope.launch {
@@ -106,7 +106,7 @@ class DeleteAccountViewModel @Inject constructor(
                 }
                 PendingWipeOutcome.STILL_PENDING -> {
                     PendingNavigation.consume()
-                    phase.value = Phase(failure = DeleteAccountFailure.LOCAL_WIPE_PENDING)
+                    phase.value = Phase(failure = pendingFailure())
                 }
             }
         }
@@ -134,11 +134,18 @@ class DeleteAccountViewModel @Inject constructor(
                 }
                 AccountDeletionResult.LocalWipePending -> {
                     PendingNavigation.consume()
-                    phase.update { Phase(failure = DeleteAccountFailure.LOCAL_WIPE_PENDING) }
+                    phase.update { Phase(failure = pendingFailure()) }
                 }
             }
         }
     }
+
+    private suspend fun pendingFailure(): DeleteAccountFailure =
+        if (deleteAccount.hasServerClosedPendingWipe()) {
+            DeleteAccountFailure.LOCAL_WIPE_PENDING
+        } else {
+            DeleteAccountFailure.CLOSE_UNCONFIRMED
+        }
 
     private fun AccountDeletionResult.Failed.toFailure(): DeleteAccountFailure =
         if (dataIntact) DeleteAccountFailure.DATA_INTACT else DeleteAccountFailure.PARTLY_DELETED
