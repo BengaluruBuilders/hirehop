@@ -84,7 +84,11 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun openApp() {
-        startActivity(Intent(this, MainActivity::class.java))
+        if (opensRealApp(target, scenario)) {
+            startActivity(Intent(this, MainActivity::class.java))
+        } else {
+            openPreview()
+        }
     }
 }
 
@@ -113,4 +117,5 @@ private fun DebugScenarioPreview(
 internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =
     seenMain && rootState == AppRootState.FirstRun
 
-internal fun opensRealApp(target: DebugScenarioTarget, scenario: DebugScenario): Boolean = true
+internal fun opensRealApp(target: DebugScenarioTarget, scenario: DebugScenario): Boolean =
+    target == DebugScenarioTarget.Applications && scenario == DebugScenario.defaultValue

@@ -12,7 +12,10 @@ class Navigator(val state: NavigationState) {
         }
     }
 
-    fun openInOwnTab(key: NavKey) = Unit
+    fun openInOwnTab(key: NavKey) {
+        state.topLevelKeys.firstOrNull { topLevel -> topLevel::class == key::class }?.let(::navigate)
+        navigate(key)
+    }
 
     fun replace(key: NavKey) {
         val stack = state.currentSubStack

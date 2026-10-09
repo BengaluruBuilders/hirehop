@@ -122,7 +122,7 @@ private fun CreditsReady(
     TmrSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_purchases_title))
     CreditsPurchases(uiState = uiState)
     TmrSectionLabel(text = stringResource(R.string.feature_tailor_impl_credits_help_title))
-    CreditsHelp(actions = actions)
+    CreditsHelp(actions = actions, hasPurchases = uiState.purchases.isNotEmpty())
 }
 
 @Composable
@@ -215,17 +215,23 @@ private fun CreditsPurchaseRow(entry: CreditsPurchaseEntry) {
 }
 
 @Composable
-private fun CreditsHelp(actions: CreditsActions) {
+private fun CreditsHelp(actions: CreditsActions, hasPurchases: Boolean) {
     HelpCard(
         icon = TmrIcons.Info,
         title = R.string.feature_tailor_impl_credits_help_refunds_title,
-        body = R.string.feature_tailor_impl_credits_refund_summary,
+        body = if (hasPurchases) {
+            R.string.feature_tailor_impl_credits_refund_summary
+        } else {
+            R.string.feature_tailor_impl_credits_refund_summary_none
+        },
     ) {
-        TmrOutlineButton(
-            label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
-            onClick = actions.onAskRefund,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (hasPurchases) {
+            TmrOutlineButton(
+                label = stringResource(R.string.feature_tailor_impl_credits_ask_refund),
+                onClick = actions.onAskRefund,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
     HelpCard(
         icon = TmrIcons.Chat,
