@@ -91,6 +91,9 @@ data class CoverLetterUiState(
         get() = paragraphs.firstOrNull { paragraph -> paragraph.ordinal == editingOrdinal }
 
     val isEditing: Boolean get() = editedParagraph != null
+
+    val showsOfflineBanner: Boolean
+        get() = isOffline && (stage == CoverLetterStage.READY || stage == CoverLetterStage.NO_MATCHING_EVIDENCE)
 }
 
 data class CoverLetterInputs(
