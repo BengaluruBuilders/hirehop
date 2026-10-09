@@ -2,6 +2,7 @@ package com.tailormyresume.feature.onboarding.impl.pastejd
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -53,7 +54,7 @@ class PasteJobDescriptionLabelsEntryTest {
                             roleValues += value
                             state.value = state.value.copy(role = value)
                         },
-                        onClear = {},
+                        onClear = { state.value = state.value.copy(text = "", company = "", role = "") },
                         onAnalyse = {},
                         onRetry = {},
                         onBack = {},
@@ -143,6 +144,35 @@ class PasteJobDescriptionLabelsEntryTest {
         companyField().performTextClearance()
 
         assertFieldsShown()
+    }
+
+    @Test
+    fun clearingAPrefilledField_withoutTappingEdit_keepsTheFieldsOnScreen() {
+        show(company = "Northwind")
+
+        companyField().performTextClearance()
+
+        assertFieldsShown()
+    }
+
+    @Test
+    fun clear_afterAddControl_hidesTheFields() {
+        show()
+        tapAddControl()
+
+        composeRule.onNodeWithText("Clear").performClick()
+
+        assertFieldsHidden()
+    }
+
+    @Test
+    fun addControl_afterTap_isGoneAndCompanyFieldIsFocused() {
+        show()
+
+        tapAddControl()
+
+        composeRule.onNodeWithText(ADD_CONTROL).assertDoesNotExist()
+        companyField().assertIsFocused()
     }
 
     private companion object {
