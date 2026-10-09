@@ -10,25 +10,31 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tailormyresume.app.MainActivity
 import com.tailormyresume.app.ui.AppRootState
+import com.tailormyresume.app.ui.AppViewModel
 import com.tailormyresume.app.ui.RootViewModelStores
 import com.tailormyresume.app.ui.TmrFirstRunRoot
 import com.tailormyresume.app.ui.TmrMainRoot
 import com.tailormyresume.core.designsystem.component.TmrBackground
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.DebugScenario
+import com.tailormyresume.feature.onboarding.api.navigation.DefaultWelcomeNavKey
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.StateFlow
 
 @AndroidEntryPoint
 class DebugScenarioActivity : ComponentActivity() {
 
     private val menuViewModel: DebugMenuViewModel by viewModels()
+    private val appViewModel: AppViewModel by viewModels()
     private val rootStores: RootViewModelStores by viewModels { RootViewModelStores.Factory }
 
     private var target by mutableStateOf(DebugScenarioTarget.Applications)
@@ -43,7 +49,7 @@ class DebugScenarioActivity : ComponentActivity() {
                 BackHandler(enabled = opened) { closePreview() }
                 TmrBackground {
                     if (opened) {
-                        DebugScenarioPreview(target = target, scenario = scenario)
+                        DebugScenarioPreview(target = target, scenario = scenario, rootState = appViewModel.rootState)
                     } else {
                         val uiState by menuViewModel.uiState.collectAsStateWithLifecycle()
                         DebugScenarioMenu(
@@ -86,14 +92,23 @@ class DebugScenarioActivity : ComponentActivity() {
 private fun DebugScenarioPreview(
     target: DebugScenarioTarget,
     scenario: DebugScenario,
+    rootState: StateFlow<AppRootState>,
     modifier: Modifier = Modifier,
 ) {
     val key = target.navKey(scenario)
+    val currentRoot by rootState.collectAsStateWithLifecycle()
+    var seenMain by remember { mutableStateOf(false) }
+    LaunchedEffect(currentRoot) {
+        if (currentRoot == AppRootState.Main) seenMain = true
+    }
     if (target.opensFirstRunRoot) {
         TmrFirstRunRoot(modifier = modifier, startKey = key)
+    } else if (previewShowsWelcome(seenMain, currentRoot)) {
+        TmrFirstRunRoot(modifier = modifier, startKey = DefaultWelcomeNavKey)
     } else {
         TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
     }
 }
 
-internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean = false
+internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =
+    seenMain && rootState == AppRootState.FirstRun

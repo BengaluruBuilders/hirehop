@@ -8,6 +8,7 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.ConsentNavKey
+import com.tailormyresume.feature.onboarding.api.navigation.SignInNavKey
 import com.tailormyresume.feature.profile.api.navigation.ProfileNavKey
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
@@ -71,7 +72,7 @@ internal fun settingsDestinationNavKey(destination: SettingsDestination, scenari
         SettingsDestination.YOUR_DATA -> YourDataNavKey()
         SettingsDestination.CONSENT_NOTICE -> ConsentNavKey(readOnly = true)
         SettingsDestination.DELETE_ACCOUNT -> deleteAccountNavKey(scenario)
-        SettingsDestination.SIGN_IN -> CreditsNavKey()
+        SettingsDestination.SIGN_IN -> SignInNavKey()
     }
 
 internal fun deleteAccountNavKey(settingsScenario: DebugScenario): DeleteAccountNavKey =
