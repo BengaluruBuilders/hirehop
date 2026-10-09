@@ -112,13 +112,22 @@ private fun AccountGroup(content: SettingsUiState.Content, actions: SettingsActi
             title = account?.email ?: stringResource(R.string.feature_settings_impl_settings_account_missing),
             summary = account?.let { stringResource(R.string.feature_settings_impl_settings_account_provider) },
         )
-        SettingsRow(
-            icon = TmrIcons.ArrowBack,
-            title = stringResource(R.string.feature_settings_impl_settings_row_sign_out),
-            onClick = actions.onSignOut,
-            enabled = !content.isOffline && account != null,
-            showDivider = false,
-        )
+        if (account == null) {
+            SettingsRow(
+                icon = TmrIcons.ArrowForward,
+                title = stringResource(R.string.feature_settings_impl_settings_row_sign_in),
+                onClick = actions.onSignIn,
+                showDivider = false,
+            )
+        } else {
+            SettingsRow(
+                icon = TmrIcons.ArrowBack,
+                title = stringResource(R.string.feature_settings_impl_settings_row_sign_out),
+                onClick = actions.onSignOut,
+                enabled = !content.isOffline,
+                showDivider = false,
+            )
+        }
     }
 }
 

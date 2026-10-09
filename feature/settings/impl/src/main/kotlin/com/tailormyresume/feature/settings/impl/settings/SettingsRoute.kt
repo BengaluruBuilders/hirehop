@@ -23,6 +23,7 @@ internal fun SettingsRoute(
     val versionName = remember(context) { context.appVersionName() }
     val actions = remember(viewModel, onNavigate) {
         SettingsActions(
+            onSignIn = { onNavigate(SettingsDestination.SIGN_IN) },
             onSignOut = viewModel::onSignOutRequested,
             onSignOutConfirm = viewModel::onSignOutConfirmed,
             onSignOutDismiss = viewModel::onSignOutDismissed,

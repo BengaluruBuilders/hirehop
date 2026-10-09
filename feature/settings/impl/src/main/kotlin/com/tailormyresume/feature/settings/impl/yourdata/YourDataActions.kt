@@ -10,4 +10,7 @@ data class YourDataActions(
     val onDeleteRequest: (String) -> Unit,
     val onDeleteConfirm: () -> Unit,
     val onDeleteDismiss: () -> Unit,
+    val onDeleteMyData: () -> Unit,
+    val onDeleteMyDataConfirm: () -> Unit,
+    val onDeleteMyDataDismiss: () -> Unit,
 )

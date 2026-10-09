@@ -31,6 +31,9 @@ internal fun YourDataRoute(
             onDeleteRequest = viewModel::onDeleteRequested,
             onDeleteConfirm = viewModel::onDeleteConfirmed,
             onDeleteDismiss = viewModel::onDeleteDismissed,
+            onDeleteMyData = viewModel::onDeleteMyDataRequested,
+            onDeleteMyDataConfirm = viewModel::onDeleteMyDataConfirmed,
+            onDeleteMyDataDismiss = viewModel::onDeleteMyDataDismissed,
         )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
