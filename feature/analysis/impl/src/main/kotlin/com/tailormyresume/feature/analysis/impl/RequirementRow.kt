@@ -100,9 +100,10 @@ private fun GapBody(
     actions: AnalysisActions,
     onMenuAnchor: (Rect) -> Unit,
 ) {
+    val name = item.requirement.gapName()
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = item.requirement.text.headline(),
+            text = name,
             style = TmrTheme.typography.titleM,
             color = TmrTheme.colors.onSurface,
             modifier = Modifier.weight(1f),
@@ -110,9 +111,9 @@ private fun GapBody(
         RowMenuButton(item, actions, onMenuAnchor)
     }
     TmrStatusChip(kind = TmrStatusKind.Gap, label = statusLabel)
-    item.requirement.text.splitDetail().second?.let { detail ->
+    (item.requirement.text.splitDetail().second ?: item.requirement.text.trim().takeIf { item.requirement.text.headline() != name })?.let { askedFor ->
         Text(
-            text = stringResource(R.string.feature_analysis_impl_asked_for, detail),
+            text = stringResource(R.string.feature_analysis_impl_asked_for, askedFor),
             style = TmrTheme.typography.bodyS,
             color = TmrTheme.colors.onSurfaceVariant,
         )

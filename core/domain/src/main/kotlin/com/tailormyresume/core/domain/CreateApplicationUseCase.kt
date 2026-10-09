@@ -39,7 +39,7 @@ class CreateApplicationUseCase @Inject constructor(
     }
 
     private fun JobDescription.withKeptLabel(kept: KeptJobDescription) = copy(
-        title = kept.role.trim().ifEmpty { title },
-        company = kept.company.trim().ifEmpty { company },
+        title = kept.resolvedTitle(title).trim(),
+        company = kept.resolvedCompany(company).trim(),
     )
 }

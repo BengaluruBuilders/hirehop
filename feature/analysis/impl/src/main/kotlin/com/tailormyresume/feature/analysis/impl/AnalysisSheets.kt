@@ -253,7 +253,7 @@ internal fun QuestionSheetContent(
     nextFactId: String? = null,
 ) {
     var statement by rememberSaveable { mutableStateOf("") }
-    val name = item.requirement.text.headline()
+    val name = item.requirement.gapName()
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
@@ -278,7 +278,7 @@ internal fun QuestionSheetContent(
             modifier = Modifier.semantics { heading() },
         )
         if (notClosed) {
-            val keywords = displayKeywords(item.requirement)
+            val keywords = item.requirement.skillNames()
             Text(
                 text = if (keywords.isNotEmpty()) {
                     stringResource(R.string.feature_analysis_impl_question_not_closed, keywords.joinToString(" or "))
@@ -330,4 +330,22 @@ private val DETAIL_PATTERN = Regex("""^(.*?)\s*\((.+)\)$""")
 private const val MENU_WIDTH_UNITS = 4
 private const val QUESTION_MIN_LINES = 3
 
-internal fun JobRequirement.gapName(): String = text.headline()
+internal fun JobRequirement.gapName(): String {
+    val headline = text.headline()
+    if (isShortText()) return headline
+    return skillNames().take(MAX_NAME_SKILLS).joinToString(", ").ifEmpty { headline }
+}
+
+internal fun JobRequirement.skillNames(): List<String> {
+    val names = displayKeywords(this)
+    if (isShortText()) return names
+    return names.map { name ->
+        if (name == name.lowercase()) Regex("\\b${Regex.escape(name)}\\b", RegexOption.IGNORE_CASE).find(text)?.value ?: name else name
+    }
+}
+
+private fun JobRequirement.isShortText(): Boolean = text.headline().split(WHITESPACE).size <= MAX_NAME_WORDS
+
+private val WHITESPACE = Regex("\\s+")
+private const val MAX_NAME_WORDS = 5
+private const val MAX_NAME_SKILLS = 3

@@ -182,6 +182,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
                 text = current.text.trim(),
                 company = current.company.trim(),
                 role = current.role.trim(),
+                companyIsPrefill = current.company.isUntouchedPrefill(proposedCompany),
+                roleIsPrefill = current.role.isUntouchedPrefill(proposedRole),
             )
             val previous = sessionRepository.observeKeptJobDescription().first()
             if (previous != null && previous.draftKey != kept.draftKey) discardJobDrafts(previous)
@@ -191,6 +193,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
             mutableState.update { it.copy(nextStep = step, keptText = kept.text) }
         }
     }
+
+    private fun String.isUntouchedPrefill(proposed: String): Boolean = isNotBlank() && trim() == proposed.trim()
 
     private companion object {
         const val PREFILL_DEBOUNCE_MS = 300L
