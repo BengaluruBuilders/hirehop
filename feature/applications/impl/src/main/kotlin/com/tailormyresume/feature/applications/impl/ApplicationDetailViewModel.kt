@@ -13,6 +13,7 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.PaymentGateway
 import com.tailormyresume.core.domain.prep.PrepQuestionGenerator
+import com.tailormyresume.core.domain.prep.RequirementPhrase
 import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
@@ -157,9 +158,9 @@ class ApplicationDetailViewModel @AssistedInject constructor(
             ApplicationWorkspaceAction.ResumeReviewChosen -> Unit
             ApplicationWorkspaceAction.PrepQuestionsChosen -> Unit
             ApplicationWorkspaceAction.CoverLetterChosen -> Unit
-            is ApplicationWorkspaceAction.RequirementChosen -> Unit
-            ApplicationWorkspaceAction.RequirementDismissed -> Unit
-            is ApplicationWorkspaceAction.RequirementPrepAddChosen -> Unit
+            is ApplicationWorkspaceAction.RequirementChosen -> presentation.update { it.copy(requirementId = action.id) }
+            ApplicationWorkspaceAction.RequirementDismissed -> presentation.update { it.copy(requirementId = null) }
+            is ApplicationWorkspaceAction.RequirementPrepAddChosen -> addRequirementToPrepPlan(action.id)
             ApplicationWorkspaceAction.DeleteChosen -> {
                 presentation.update { it.copy(isMoreOpen = false, isDeleteDialogVisible = true) }
             }
@@ -193,6 +194,17 @@ class ApplicationDetailViewModel @AssistedInject constructor(
                 ),
             )
             eventChannel.send(ApplicationDetailEvent.ReportRecorded)
+        }
+    }
+
+    private fun addRequirementToPrepPlan(id: String) {
+        val match = currentApplication.value?.gapAnalysis?.matches
+            ?.firstOrNull { candidate -> candidate.requirement.id == id }
+            ?: return
+        if (match.status == MatchStatus.MET) return
+        val requirement = match.requirement
+        viewModelScope.launch {
+            prepPlanRepository.add(applicationId, PrepPlanItem(id = requirement.id, text = requirement.text))
         }
     }
 
@@ -234,6 +246,7 @@ class ApplicationDetailViewModel @AssistedInject constructor(
         val prepTasks = stored.prepTasks
         val prepQuestionCount = application.prepQuestionCount(stored.profile)
         val hasCoverLetter = gap != null && stored.profile != null
+        val matches = gap?.toWorkspaceMatches().orEmpty()
         return ApplicationDetailUiState.Ready(
             jobTitle = application.job.title,
             company = application.job.company,
@@ -245,7 +258,7 @@ class ApplicationDetailViewModel @AssistedInject constructor(
             isJobDescriptionExpanded = presentation.isJobDescriptionExpanded,
             coverage = gap?.keywordCoverage,
             gapCounts = gap?.toWorkspaceGapCounts(),
-            matches = gap?.toWorkspaceMatches().orEmpty(),
+            matches = matches,
             isGapExpanded = presentation.isGapExpanded,
             resume = application.resumeState(stored.lastExport),
             reviewProgress = application.reviewProgressOrNull(),
@@ -268,6 +281,19 @@ class ApplicationDetailViewModel @AssistedInject constructor(
                 profileFactCount = stored.profile?.factCounts()?.total ?: 0,
                 creditCount = stored.creditCount,
             ),
+            requirementSheet = presentation.requirementId
+                ?.let { requirementId ->
+                    matches.firstOrNull { match -> match.id == requirementId }
+                }?.let { match ->
+                    WorkspaceRequirementSheetState(
+                        id = match.id,
+                        name = RequirementPhrase.of(match.requirementText),
+                        requirementText = match.requirementText,
+                        status = match.status,
+                        evidenceIds = match.evidenceIds,
+                        isInPrepPlan = prepTasks.any { task -> task.id == match.id },
+                    )
+                },
         )
     }
 
@@ -301,6 +327,7 @@ private data class WorkspacePresentation(
     val notesDraft: String? = null,
     val statusSheet: ApplicationStatusSheetState? = null,
     val isDeleteDialogVisible: Boolean = false,
+    val requirementId: String? = null,
 )
 
 private fun String.wordCount(): Int = trim().split(Regex("\\s+")).count { word -> word.isNotEmpty() }
@@ -324,7 +351,12 @@ private fun GapAnalysis.toWorkspaceGapCounts(): WorkspaceGapCounts = WorkspaceGa
 )
 
 private fun GapAnalysis.toWorkspaceMatches(): List<WorkspaceMatch> = matches.map { match ->
-    WorkspaceMatch(id = match.requirement.id, requirementText = match.requirement.text, status = match.status)
+    WorkspaceMatch(
+        id = match.requirement.id,
+        requirementText = match.requirement.text,
+        status = match.status,
+        evidenceIds = match.evidenceIds,
+    )
 }
 
 private fun PrepPlanItem.toWorkspacePrepTask(isReported: Boolean) = WorkspacePrepTask(

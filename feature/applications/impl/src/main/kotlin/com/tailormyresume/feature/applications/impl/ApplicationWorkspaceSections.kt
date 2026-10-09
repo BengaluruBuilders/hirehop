@@ -1,6 +1,7 @@
 package com.tailormyresume.feature.applications.impl
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -261,6 +262,7 @@ internal fun WorkspaceGapSection(
     matches: List<WorkspaceMatch>,
     isExpanded: Boolean,
     onToggle: () -> Unit,
+    onMatchChosen: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     WorkspaceSection(
@@ -316,7 +318,7 @@ internal fun WorkspaceGapSection(
                         label = pluralStringResource(R.plurals.feature_applications_impl_workspace_gap_gap, gapCounts.gap, gapCounts.gap),
                     )
                 }
-                matches.forEach { match -> WorkspaceMatchRow(match = match) }
+                matches.forEach { match -> WorkspaceMatchRow(match = match, onClick = { onMatchChosen(match.id) }) }
             }
         }
         TmrOutlineButton(
@@ -336,6 +338,7 @@ internal fun WorkspaceGapSection(
 @Composable
 private fun WorkspaceMatchRow(
     match: WorkspaceMatch,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val statusLabel = when (match.status) {
@@ -351,6 +354,7 @@ private fun WorkspaceMatchRow(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
     ) {
@@ -600,6 +604,7 @@ private fun WorkspaceGapSectionPreview() {
                 matches = previewMatches(),
                 isExpanded = false,
                 onToggle = {},
+                onMatchChosen = {},
             )
         }
     }
