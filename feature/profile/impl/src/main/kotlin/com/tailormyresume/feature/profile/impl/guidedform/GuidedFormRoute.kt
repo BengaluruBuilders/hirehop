@@ -14,6 +14,7 @@ internal data class GuidedFormNavigation(
     val onBack: () -> Unit,
     val onOpenEvidence: (category: String) -> Unit,
     val onAddJob: () -> Unit,
+    val onEditFact: (entryId: String, entryType: String) -> Unit,
     val onExit: (ProfileExit) -> Unit,
 )
 
@@ -54,4 +55,6 @@ private fun GuidedFormViewModel.toActions(navigation: GuidedFormNavigation): Gui
     onFinishSaved = { onAction(GuidedFormAction.FinishSaved) },
     onGoToProjects = { onAction(GuidedFormAction.GoToProjects) },
     onAddJob = navigation.onAddJob,
+    onChooseExperience = { onAction(GuidedFormAction.ChooseExperience(it)) },
+    onEditFact = navigation.onEditFact,
 )

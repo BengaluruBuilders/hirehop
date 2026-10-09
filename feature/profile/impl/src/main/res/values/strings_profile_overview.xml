@@ -44,7 +44,9 @@
     <string name="feature_profile_impl_section_skills">Skills</string>
     <string name="feature_profile_impl_section_certifications">Certifications</string>
     <string name="feature_profile_impl_section_extras">Extras</string>
-    <string name="feature_profile_impl_section_description">%1$s. %2$s. Open section.</string>
+    <string name="feature_profile_impl_section_description">%1$s. %2$s.</string>
+    <string name="feature_profile_impl_section_state_expanded">Expanded</string>
+    <string name="feature_profile_impl_section_state_collapsed">Collapsed</string>
     <string name="feature_profile_impl_section_subtitle">%1$s · %2$s · %3$s</string>
     <plurals name="feature_profile_impl_section_subtitle_to_confirm">
         <item quantity="one">" · %1$d not confirmed"</item>

@@ -16,7 +16,10 @@ data class GuidedSaved(
     val completedSteps: Int,
     val totalSteps: Int,
     val entryIds: List<String>,
-)
+    val doneSteps: Set<GuidedStep> = emptySet(),
+) {
+    val lastDoneStep: GuidedStep? get() = GUIDED_STEPS.lastOrNull { it in doneSteps }
+}
 
 sealed interface GuidedNavigation {
     data class Evidence(val category: String) : GuidedNavigation

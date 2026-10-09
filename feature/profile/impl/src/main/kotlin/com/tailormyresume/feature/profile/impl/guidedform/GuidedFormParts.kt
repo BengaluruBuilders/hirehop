@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrHeadline
@@ -30,38 +31,80 @@ private val SegmentHeight = 6.dp
 private val StepTile = 44.dp
 
 @Composable
-internal fun StepProgress(stepIndex: Int) {
+internal fun StepProgress(
+    number: Int,
+    stepName: String?,
+    filledBars: Int,
+    doneSteps: Set<GuidedStep>,
+    currentStep: GuidedStep?,
+) {
     val total = GUIDED_STEPS.size
-    val stepName = stringResource(stepTitleRes(guidedStepAt(stepIndex)))
-    val description = stringResource(
-        R.string.feature_profile_impl_guided_form_step_counter_description,
-        stepIndex + 1,
-        total,
-        stepName,
-    )
-    Column(
-        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
-        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm), verticalAlignment = Alignment.Bottom) {
-            Text(
-                text = stringResource(R.string.feature_profile_impl_guided_form_step_of, stepIndex + 1, total),
-                style = TmrTheme.typography.titleM,
-                color = TmrTheme.colors.onSurface,
+    val description =
+        if (stepName != null) {
+            stringResource(
+                R.string.feature_profile_impl_guided_form_step_counter_description,
+                number,
+                total,
+                stepName,
             )
-            Text(text = stepName, style = TmrTheme.typography.labelM, color = TmrTheme.colors.onSurfaceVariant)
+        } else {
+            stringResource(R.string.feature_profile_impl_guided_form_step_of, number, total)
+        }
+    Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
+        Column(
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+            verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm), verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = stringResource(R.string.feature_profile_impl_guided_form_step_of, number, total),
+                    style = TmrTheme.typography.titleM,
+                    color = TmrTheme.colors.onSurface,
+                )
+                if (stepName != null) {
+                    Text(text = stepName, style = TmrTheme.typography.labelM, color = TmrTheme.colors.onSurfaceVariant)
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs)) {
+                repeat(total) { position ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(SegmentHeight)
+                            .background(
+                                if (position < filledBars) TmrTheme.colors.brand else TmrTheme.colors.primaryContainer,
+                                RoundedCornerShape(SegmentHeight / 2),
+                            ),
+                    )
+                }
+            }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs)) {
-            repeat(total) { position ->
-                Box(
+            GUIDED_STEPS.forEach { step ->
+                val name = stringResource(stepTitleRes(step))
+                val done = step in doneSteps
+                val doneDescription =
+                    if (done) stringResource(R.string.feature_profile_impl_guided_form_step_done_description, name) else null
+                Row(
                     modifier = Modifier
                         .weight(1f)
-                        .height(SegmentHeight)
-                        .background(
-                            if (position <= stepIndex) TmrTheme.colors.brand else TmrTheme.colors.primaryContainer,
-                            RoundedCornerShape(SegmentHeight / 2),
-                        ),
-                )
+                        .semantics(mergeDescendants = true) {
+                            if (doneDescription != null) contentDescription = doneDescription
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (done) {
+                        Icon(TmrIcons.Check, contentDescription = null, tint = TmrTheme.colors.met, modifier = Modifier.size(12.dp))
+                    }
+                    Text(
+                        text = name,
+                        style = TmrTheme.typography.bodyS.copy(fontWeight = FontWeight.Bold),
+                        color = if (step == currentStep) TmrTheme.colors.onSurface else TmrTheme.colors.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

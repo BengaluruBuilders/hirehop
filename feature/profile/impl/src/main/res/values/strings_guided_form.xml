@@ -16,6 +16,7 @@
     <string name="feature_profile_impl_guided_form_step_skills">Skills</string>
     <string name="feature_profile_impl_guided_form_step_experience">Experience</string>
     <string name="feature_profile_impl_guided_form_step_of">%1$d of %2$d</string>
+    <string name="feature_profile_impl_guided_form_step_done_description">%1$s, done</string>
     <string name="feature_profile_impl_guided_form_intro_step_item">%1$d. %2$s</string>
     <string name="feature_profile_impl_guided_form_step_counter_description">Step %1$d of %2$d. %3$s.</string>
 
@@ -29,18 +30,19 @@
     <string name="feature_profile_impl_guided_form_field_coursework_optional">Coursework you can talk about (optional)</string>
     <string name="feature_profile_impl_guided_form_field_skill">Add a skill you have used</string>
     <string name="feature_profile_impl_guided_form_skill_placeholder">Type a skill, then tap Add</string>
-    <string name="feature_profile_impl_guided_form_skills_hint">Add tools you actually used. You can add where you used them on the next steps.</string>
+    <string name="feature_profile_impl_guided_form_skills_hint">Each skill becomes a user-stated fact.</string>
 
     <string name="feature_profile_impl_guided_form_filed_caption">%1$s is done, filed into your profile</string>
     <string name="feature_profile_impl_guided_form_experience_question">Have you had a job or an internship?</string>
     <string name="feature_profile_impl_guided_form_skips_reassurance">No work experience yet? That is fine. Next, we’ll ask about your projects.</string>
     <string name="feature_profile_impl_guided_form_add_job">Add a job or internship</string>
-    <string name="feature_profile_impl_guided_form_go_to_projects">Go to my projects</string>
+    <string name="feature_profile_impl_guided_form_choice_yes">Yes</string>
+    <string name="feature_profile_impl_guided_form_choice_no">No, not yet</string>
 
     <string name="feature_profile_impl_guided_form_save_and_finish_later">Save and finish later</string>
     <string name="feature_profile_impl_guided_form_start_with_contact">Start with contact</string>
     <string name="feature_profile_impl_guided_form_next">Next: %1$s</string>
-    <string name="feature_profile_impl_guided_form_next_evidence">Next · Evidence path</string>
+    <string name="feature_profile_impl_guided_form_continue_to_projects">Continue to projects</string>
     <string name="feature_profile_impl_guided_form_back_to_profile">Go to Profile</string>
 
     <string name="feature_profile_impl_guided_form_saved_title">Saved for later</string>

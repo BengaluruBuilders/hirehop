@@ -40,6 +40,8 @@ data class GuidedFormActions(
     val onFinishSaved: () -> Unit,
     val onGoToProjects: () -> Unit,
     val onAddJob: () -> Unit,
+    val onChooseExperience: (ExperienceChoice) -> Unit,
+    val onEditFact: (entryId: String, entryType: String) -> Unit,
 ) {
     companion object {
         val None = GuidedFormActions(
@@ -53,6 +55,8 @@ data class GuidedFormActions(
             onFinishSaved = {},
             onGoToProjects = {},
             onAddJob = {},
+            onChooseExperience = {},
+            onEditFact = { _, _ -> },
         )
     }
 }

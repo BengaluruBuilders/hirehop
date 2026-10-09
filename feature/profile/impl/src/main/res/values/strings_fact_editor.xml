@@ -42,7 +42,7 @@
     <string name="feature_profile_impl_fact_editor_save">Save fact</string>
     <string name="feature_profile_impl_fact_editor_delete">Delete fact</string>
 
-    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s %2$s?</string>
+    <string name="feature_profile_impl_fact_editor_delete_title">Delete %1$s?</string>
     <string name="feature_profile_impl_fact_editor_delete_message">TailorMyResume won’t use it in new tailoring. Resumes you already exported don’t change. You can add it again later.</string>
     <string name="feature_profile_impl_fact_editor_delete_confirm">Delete</string>
     <string name="feature_profile_impl_fact_editor_delete_cancel">Cancel</string>

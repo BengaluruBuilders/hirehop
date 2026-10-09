@@ -58,7 +58,7 @@ class GuidedFormViewModel @Inject internal constructor(
             is GuidedFormAction.ValueChanged -> onValueChanged(action.field, action.value)
             GuidedFormAction.AddSkill -> onAddSkill()
             is GuidedFormAction.RemoveSkill -> onRemoveSkill(action.skill)
-            is GuidedFormAction.ChooseExperience -> Unit
+            is GuidedFormAction.ChooseExperience -> mutableState.update { it.copy(experienceChoice = action.choice) }
             GuidedFormAction.StartForm -> mutableState.update { it.copy(showIntro = false) }
             GuidedFormAction.Next -> onNext()
             GuidedFormAction.Back -> onBack()
@@ -197,6 +197,7 @@ class GuidedFormViewModel @Inject internal constructor(
             completedSteps = completedSteps.size,
             totalSteps = GUIDED_STEPS.size,
             entryIds = createdEntryIds,
+            doneSteps = completedSteps,
         ),
     )
 

@@ -1,6 +1,8 @@
 package com.tailormyresume.feature.profile.impl.guidedform
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,9 +47,13 @@ import com.tailormyresume.feature.profile.impl.common.RemovableChip
 import com.tailormyresume.feature.profile.impl.common.kindRes
 
 private val DiscSize = 88.dp
+private val SelectedWidth = 2.dp
 
 @Composable
-internal fun FiledEntries(uiState: GuidedFormUiState) {
+internal fun FiledEntries(
+    uiState: GuidedFormUiState,
+    onEditFact: (entryId: String, entryType: String) -> Unit,
+) {
     if (uiState.filedEntries.isEmpty()) return
     val previous = guidedStepAt(uiState.stepIndex - 1)
     Note(
@@ -52,18 +61,22 @@ internal fun FiledEntries(uiState: GuidedFormUiState) {
         tone = NoteTone.Positive,
         icon = TmrIcons.CheckCircle,
     )
-    uiState.filedEntries.forEachIndexed { index, entry -> FiledCard(entry = entry, highlighted = index == 0) }
+    uiState.filedEntries.forEachIndexed { index, entry ->
+        FiledCard(entry = entry, highlighted = index == 0, onEdit = { onEditFact(entry.id, entry.category.name) })
+    }
 }
 
 @Composable
-private fun FiledCard(entry: ProfileEntry, highlighted: Boolean) {
+private fun FiledCard(entry: ProfileEntry, highlighted: Boolean, onEdit: () -> Unit) {
     FactCard(
         id = entry.id,
         status = FactStatus.UserStated,
         kind = stringResource(entry.category.kindRes()),
         summary = FactLineRenderer.render(entry),
         highlighted = highlighted,
-    )
+    ) {
+        TmrTextButton(label = stringResource(R.string.feature_profile_impl_fact_edit), onClick = onEdit)
+    }
 }
 
 @Composable
@@ -78,7 +91,7 @@ internal fun StepContent(
 
         GuidedStep.SKILLS -> SkillsContent(uiState = uiState, actions = actions)
 
-        GuidedStep.EXPERIENCE -> ExperienceContent(actions = actions)
+        GuidedStep.EXPERIENCE -> ExperienceContent(choice = uiState.experienceChoice, actions = actions)
     }
 }
 
@@ -136,22 +149,47 @@ private fun SkillsContent(
 }
 
 @Composable
-private fun ExperienceContent(actions: GuidedFormActions) {
+private fun ExperienceContent(
+    choice: ExperienceChoice?,
+    actions: GuidedFormActions,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md)) {
         Text(
             text = stringResource(R.string.feature_profile_impl_guided_form_experience_question),
             style = TmrTheme.typography.titleL,
             color = TmrTheme.colors.onSurface,
         )
-        ChoiceRow(R.string.feature_profile_impl_guided_form_add_job, TmrIcons.Add, actions.onAddJob)
-        ChoiceRow(R.string.feature_profile_impl_guided_form_go_to_projects, TmrIcons.ArrowForward, actions.onGoToProjects)
-        Note(text = stringResource(R.string.feature_profile_impl_guided_form_skips_reassurance), icon = TmrIcons.Info)
+        ChoiceRow(
+            labelRes = R.string.feature_profile_impl_guided_form_choice_yes,
+            selected = choice == ExperienceChoice.YES,
+            onClick = { actions.onChooseExperience(ExperienceChoice.YES) },
+        )
+        ChoiceRow(
+            labelRes = R.string.feature_profile_impl_guided_form_choice_no,
+            selected = choice == ExperienceChoice.NO,
+            onClick = { actions.onChooseExperience(ExperienceChoice.NO) },
+        )
+        if (choice == ExperienceChoice.NO) {
+            Note(text = stringResource(R.string.feature_profile_impl_guided_form_skips_reassurance), icon = TmrIcons.Info)
+        }
     }
 }
 
 @Composable
-private fun ChoiceRow(labelRes: Int, icon: ImageVector, onClick: () -> Unit) {
-    TmrCard(onClick = onClick, contentPadding = PaddingValues(horizontal = TmrTheme.spacing.lg, vertical = TmrTheme.spacing.md)) {
+private fun ChoiceRow(
+    @StringRes labelRes: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val outline = if (selected) Modifier.border(SelectedWidth, TmrTheme.colors.primary, TmrTheme.shapes.card) else Modifier
+    TmrCard(
+        onClick = onClick,
+        modifier = outline.semantics {
+            this.selected = selected
+            role = Role.RadioButton
+        },
+        contentPadding = PaddingValues(horizontal = TmrTheme.spacing.lg, vertical = TmrTheme.spacing.md),
+    ) {
         Row(
             modifier = Modifier.padding(vertical = TmrTheme.spacing.xs),
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
@@ -163,7 +201,7 @@ private fun ChoiceRow(labelRes: Int, icon: ImageVector, onClick: () -> Unit) {
                 style = TmrTheme.typography.titleM,
                 color = TmrTheme.colors.onSurface,
             )
-            Icon(icon, contentDescription = null, tint = TmrTheme.colors.onSurface)
+            if (selected) Icon(TmrIcons.Check, contentDescription = null, tint = TmrTheme.colors.primary)
         }
     }
 }
@@ -204,7 +242,13 @@ internal fun SavedBody(
             color = TmrTheme.colors.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        StepProgress(stepIndex = saved.completedSteps.coerceAtMost(saved.totalSteps - 1))
+        StepProgress(
+            number = saved.completedSteps,
+            stepName = saved.lastDoneStep?.let { stringResource(stepTitleRes(it)) },
+            filledBars = saved.completedSteps,
+            doneSteps = saved.doneSteps,
+            currentStep = null,
+        )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
