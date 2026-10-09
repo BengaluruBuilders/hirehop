@@ -33,13 +33,18 @@ class DeleteAccountScreenshotTest {
     }
 
     @Test
+    fun confirmDialog_readsInLightAndDark() {
+        captureBothThemes(screenName = "DeleteAccountConfirmDialog", uiState = ready(isConfirmVisible = true))
+    }
+
+    @Test
     fun deleting_readsInLightAndDark() {
         captureBothThemes(
             screenName = "DeleteAccountDeleting",
             uiState = DeleteAccountUiState.Deleting(
                 counts = COUNTS,
                 accountEmail = EMAIL,
-                step = AccountDeletionStep.DELETING_PROFILE_FACTS,
+                step = AccountDeletionStep.DELETING_APPLICATIONS,
             ),
         )
     }
@@ -106,17 +111,21 @@ class DeleteAccountScreenshotTest {
     private fun ready(
         isOffline: Boolean = false,
         failure: DeleteAccountFailure? = null,
+        isConfirmVisible: Boolean = false,
     ) = DeleteAccountUiState.Ready(
         counts = COUNTS,
         accountEmail = EMAIL,
         isOffline = isOffline,
         failure = failure,
+        isConfirmVisible = isConfirmVisible,
     )
 
     private val noActions = DeleteAccountActions(
         onBack = {},
         onKeepAccount = {},
         onDeleteAccount = {},
+        onDeleteConfirmed = {},
+        onDeleteDismissed = {},
         onDownloadData = {},
     )
 
