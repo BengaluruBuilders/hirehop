@@ -80,6 +80,7 @@ data class CoverLetterUiState(
     val totalCount: Int = 0,
     val paragraphCount: Int = 0,
     val factCount: Int = 0,
+    val showsFactCount: Boolean = true,
     val reportedIds: Set<String> = emptySet(),
     val generationId: String? = null,
     val citedFactIds: List<String>? = null,

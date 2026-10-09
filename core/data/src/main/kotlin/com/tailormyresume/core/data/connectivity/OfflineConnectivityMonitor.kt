@@ -6,7 +6,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class OfflineConnectivityMonitor @Inject constructor() : ConnectivityMonitor, MockConnectivityControl {
+class OfflineConnectivityMonitor @Inject constructor() : ConnectivityMonitor, MockConnectivityControl {
 
     private val online = MutableStateFlow(true)
 

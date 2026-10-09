@@ -16,7 +16,9 @@ import com.tailormyresume.core.domain.PurchaseOutcome
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseResult
 import com.tailormyresume.core.model.CreditKind
+import com.tailormyresume.core.model.DebugScenario
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -31,6 +33,7 @@ class OfflinePaymentGateway @Inject constructor(
     private val latency: MockLatency,
     private val clock: Clock,
     private val idGenerator: IdGenerator,
+    private val forced: ForcedPaymentScenario = ForcedPaymentScenario(),
 ) : PaymentGateway {
 
     private val mutex = Mutex()
@@ -98,19 +101,26 @@ class OfflinePaymentGateway @Inject constructor(
         save(PaymentState(freeCredits = 0, closed = true)).toEntitlement()
     }
 
-    private suspend fun resolve(state: PaymentState, pack: ApplicationPack): PurchaseResult =
-        when (scriptedOutcomes[pack.id] ?: PurchaseOutcome.Success) {
+    private suspend fun resolve(state: PaymentState, pack: ApplicationPack): PurchaseResult {
+        val scripted = scriptedOutcomes[pack.id]
+        val forcedByDebug = if (scripted == null) forcedOutcome() else null
+        return when (scripted ?: forcedByDebug ?: PurchaseOutcome.Success) {
             PurchaseOutcome.Success -> {
                 val saved = save(state.confirm(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
                 PurchaseResult.Completed(saved.toEntitlement())
             }
             PurchaseOutcome.Pending -> {
-                val saved = save(state.hold(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
-                PurchaseResult.Pending(saved.toEntitlement())
+                val shown = if (forcedByDebug != null) {
+                    state.shownUnder(DebugScenario.PENDING)
+                } else {
+                    save(state.hold(pack.id, newOrderId(), clock.now().toEpochMilliseconds()))
+                }
+                PurchaseResult.Pending(shown.toEntitlement())
             }
             PurchaseOutcome.Cancelled -> PurchaseResult.Cancelled
             PurchaseOutcome.Failed -> PurchaseResult.Failed(failureReason, state.toEntitlement())
         }
+    }
 
     private suspend fun spend(next: PaymentState, kind: CreditKind): CreditSpend =
         CreditSpend.Spent(save(next).toEntitlement(), kind)
@@ -119,8 +129,23 @@ class OfflinePaymentGateway @Inject constructor(
 
     private fun PaymentState.history(): List<PurchaseRecord> = purchases.map { it.toModel() }.reversed()
 
+    private fun forcedOutcome(): PurchaseOutcome? = when (forced.scenario) {
+        DebugScenario.PENDING -> PurchaseOutcome.Pending
+        DebugScenario.CANCELLED -> PurchaseOutcome.Cancelled
+        DebugScenario.FAILED -> PurchaseOutcome.Failed
+        else -> null
+    }
+
+    private fun PaymentState.shownUnder(scenario: DebugScenario): PaymentState = when (scenario) {
+        DebugScenario.PENDING -> copy(freeCredits = 0, confirmedPackIds = emptyList())
+            .hold(MockPackCatalogue.all.first().id, FORCED_ORDER_ID, clock.now().toEpochMilliseconds())
+        else -> this
+    }
+
     private fun observeState(): Flow<PaymentState> =
-        store.observeValue(PAYMENT_STATE_KEY, PaymentState.serializer()).map { it ?: PaymentState(startingFreeCredits) }
+        combine(store.observeValue(PAYMENT_STATE_KEY, PaymentState.serializer()), forced.scenarios) { stored, scenario ->
+            (stored ?: PaymentState(startingFreeCredits)).shownUnder(scenario)
+        }
 
     private suspend fun load(): PaymentState =
         store.readValue(PAYMENT_STATE_KEY, PaymentState.serializer()) ?: PaymentState(startingFreeCredits)
@@ -133,5 +158,6 @@ class OfflinePaymentGateway @Inject constructor(
     private companion object {
         const val DEFAULT_FREE_CREDITS = 1
         const val ORDER_PREFIX = "mock-order-"
+        const val FORCED_ORDER_ID = "mock-order-forced-pending"
     }
 }

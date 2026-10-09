@@ -93,6 +93,17 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (opened) menuViewModel.forcePaymentScenario(target, scenario)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!opened || isChangingConfigurations) return
+        if (isFinishing) closePreview() else menuViewModel.releasePaymentScenario()
+    }
+
     override fun onDestroy() {
         if (isFinishing) previewMode.active = false
         super.onDestroy()
@@ -110,7 +121,7 @@ class DebugScenarioActivity : ComponentActivity() {
     private fun openPreview() {
         previewMode.active = true
         rootStores.releaseAll()
-        menuViewModel.openPreview(target) { opened = true }
+        menuViewModel.openPreview(target, scenario) { opened = true }
     }
 
     private fun closePreview() {

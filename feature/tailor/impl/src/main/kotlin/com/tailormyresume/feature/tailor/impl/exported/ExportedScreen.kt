@@ -72,6 +72,14 @@ internal fun ExportedScreen(
             TmrToastResult.Dismissed -> actions.onDismissUndo()
         }
     }
+    val openUnavailableMessage = stringResource(R.string.feature_tailor_impl_exported_open_unavailable)
+    val shareInsteadLabel = stringResource(R.string.feature_tailor_impl_exported_share_instead)
+    LaunchedEffect(uiState.openUnavailable) {
+        if (!uiState.openUnavailable) return@LaunchedEffect
+        val result = toastState.show(message = openUnavailableMessage, actionLabel = shareInsteadLabel)
+        if (result == TmrToastResult.ActionPerformed) actions.onShare()
+        actions.onDismissOpenUnavailable()
+    }
     TmrScreen(
         modifier = modifier,
         sheet = false,
