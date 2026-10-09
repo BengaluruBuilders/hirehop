@@ -24,6 +24,8 @@ internal fun DeleteAccountRoute(
             onBack = onNavigateBack,
             onKeepAccount = onNavigateBack,
             onDeleteAccount = viewModel::onDeleteTapped,
+            onDeleteConfirmed = viewModel::onDeleteConfirmed,
+            onDeleteDismissed = viewModel::onDeleteDismissed,
             onDownloadData = onNavigateToYourData,
         )
     }

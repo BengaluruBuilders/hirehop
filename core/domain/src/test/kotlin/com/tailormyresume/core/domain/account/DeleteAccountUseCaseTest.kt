@@ -145,8 +145,8 @@ class DeleteAccountUseCaseTest {
         useCase(onStep = { step -> seen += step })
 
         assertThat(seen).containsExactly(
-            AccountDeletionStep.DELETING_APPLICATIONS,
             AccountDeletionStep.DELETING_PROFILE_FACTS,
+            AccountDeletionStep.DELETING_APPLICATIONS,
             AccountDeletionStep.CLOSING_ACCOUNT,
         ).inOrder()
     }
@@ -183,16 +183,16 @@ class DeleteAccountUseCaseTest {
         useCase()
 
         assertThat(calls).containsExactly(
+            "clearProfile",
             "delete:application-1",
             "delete:application-2",
             "delete:application-3",
             "delete:application-4",
-            "clearProfile",
         ).inOrder()
     }
 
     @Test
-    fun aFailureWhileDeletingAnApplicationLeavesTheDataIntact() = runTest {
+    fun aFailureWhileDeletingAnApplicationRestoresTheClearedProfileAndEveryApplication() = runTest {
         applications.value = fourApplications()
         profile.value = canonicalCandidateProfile
         failingApplicationIds = setOf("application-3")
@@ -208,10 +208,12 @@ class DeleteAccountUseCaseTest {
             "application-4",
         )
         assertThat(profile.value).isEqualTo(canonicalCandidateProfile)
+        assertThat(calls.first()).isEqualTo("clearProfile")
+        assertThat(calls).contains("saveProfile")
     }
 
     @Test
-    fun aFailureWhileClearingTheProfileRestoresTheDeletedApplications() = runTest {
+    fun aFailureWhileClearingTheProfileLeavesEveryApplicationInPlace() = runTest {
         applications.value = fourApplications()
         profile.value = canonicalCandidateProfile
         failingProfileClear = true
@@ -220,6 +222,7 @@ class DeleteAccountUseCaseTest {
         val result = useCase()
 
         assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
+        assertThat(calls.filter { it.startsWith("delete:") }).isEmpty()
         assertThat(applications.value.map { it.id }).containsExactly(
             "application-1",
             "application-2",
@@ -315,6 +318,20 @@ class DeleteAccountUseCaseTest {
 
         assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
         assertThat(session.observeAccount().first()).isEqualTo(SignInAccount.localAccount)
+        assertThat(exportHistory.observeExports().first()).containsExactly(exportRecord())
+    }
+
+    @Test
+    fun aFailureWhileDeletingAnApplicationRestoresTheExportHistoryExactly() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        failingApplicationIds = setOf("application-3")
+        exportHistory.record(exportRecord())
+        val useCase = useCase(gateway = gatewayWith(credits = 4))
+
+        val result = useCase()
+
+        assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
         assertThat(exportHistory.observeExports().first()).containsExactly(exportRecord())
     }
 

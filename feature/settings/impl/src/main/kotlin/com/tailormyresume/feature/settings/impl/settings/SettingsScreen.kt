@@ -210,7 +210,6 @@ private fun DeleteAccountGroup(content: SettingsUiState.Content, actions: Settin
                 titleColor = TmrTheme.colors.error,
                 iconTint = TmrTheme.colors.error,
                 onClick = actions.onDeleteAccount,
-                enabled = !content.isOffline,
                 showDivider = false,
             )
         }

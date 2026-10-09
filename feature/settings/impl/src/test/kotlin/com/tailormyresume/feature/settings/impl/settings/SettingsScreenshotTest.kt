@@ -2,7 +2,11 @@ package com.tailormyresume.feature.settings.impl.settings
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.screenshot.TmrTestDevice
@@ -39,6 +43,24 @@ class SettingsScreenshotTest {
     @Test
     fun offline_readsInLightAndDark() {
         captureBothThemes(screenName = "SettingsOffline", uiState = content(isOffline = true))
+    }
+
+    @Test
+    fun offline_deleteAccountRowStillOpensTheScreen() {
+        var opened = 0
+        composeRule.setContent {
+            TmrTheme {
+                SettingsScreen(
+                    uiState = content(isOffline = true),
+                    actions = noActions.copy(onDeleteAccount = { opened++ }),
+                    versionName = VERSION,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Delete account").performScrollTo().performClick()
+
+        assertThat(opened).isEqualTo(1)
     }
 
     @Test
