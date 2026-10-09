@@ -47,6 +47,6 @@
     </plurals>
     <string name="feature_onboarding_impl_consent_read_keep">Only the facts you confirm, and your analyses.</string>
     <string name="feature_onboarding_impl_consent_keep_keep">Until you delete them in Settings.</string>
-    <string name="feature_onboarding_impl_consent_ai_keep">The servers keep nothing after the request ends. Tailored bullets wait 24 hours for the app.</string>
+    <string name="feature_onboarding_impl_consent_ai_keep">TailorMyResume servers keep nothing after the request ends. Tailored bullets wait 24 hours for the app.</string>
     <string name="feature_onboarding_impl_consent_age_keep">We never ask for your date of birth.</string>
 </resources>
