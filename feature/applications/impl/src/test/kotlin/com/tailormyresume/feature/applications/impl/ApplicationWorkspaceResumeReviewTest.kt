@@ -1,13 +1,17 @@
 package com.tailormyresume.feature.applications.impl
 
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
+import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.screenshot.TmrTestDevices
 import org.junit.Rule
 import org.junit.Test
@@ -106,6 +110,85 @@ class ApplicationWorkspaceResumeReviewTest {
         composeRule.onNodeWithText(REVIEW_LABEL).performScrollTo().performClick()
 
         assertThat(recorded.count { action -> action == ApplicationWorkspaceAction.ResumeReviewChosen }).isEqualTo(1)
+    }
+
+    @Test
+    fun reviewDescription_click_firesOnReviewOnce() {
+        var reviewed = 0
+        composeRule.setContent {
+            TmrTheme(darkTheme = false) {
+                WorkspaceResumeSection(
+                    resume = previewExportedResume(),
+                    canReview = true,
+                    onPreview = {},
+                    onShare = {},
+                    onReview = { reviewed++ },
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(REVIEW_DESCRIPTION).performClick()
+
+        assertThat(reviewed).isEqualTo(1)
+    }
+
+    @Test
+    @Config(fontScale = TmrTestDevices.LARGE_FONT_SCALE)
+    fun reviewLabel_fitsAtFont200_exported() {
+        composeRule.setContent {
+            TmrTheme(darkTheme = false) {
+                ApplicationDetailScreen(
+                    uiState = previewWorkspaceReadyState(),
+                    onAction = {},
+                    now = PREVIEW_INSTANT,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(REVIEW_LABEL).performScrollTo().assertIsDisplayed()
+
+        val results = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithText(REVIEW_LABEL)
+            .performScrollTo()
+            .fetchSemanticsNode()
+            .config[SemanticsActions.GetTextLayoutResult]
+            .action
+            ?.invoke(results)
+
+        assertThat(results).hasSize(1)
+        assertThat(results.single().hasVisualOverflow).isFalse()
+        assertThat(results.single().lineCount).isAtMost(3)
+    }
+
+    @Test
+    @Config(fontScale = TmrTestDevices.LARGE_FONT_SCALE)
+    fun reviewLabel_fitsAtFont200_notExported() {
+        composeRule.setContent {
+            TmrTheme(darkTheme = false) {
+                ApplicationDetailScreen(
+                    uiState = previewWorkspaceReadyState(
+                        status = ApplicationStatus.SAVED,
+                        resume = WorkspaceResume.NotExported,
+                    ),
+                    onAction = {},
+                    now = PREVIEW_INSTANT,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(REVIEW_LABEL).performScrollTo().assertIsDisplayed()
+
+        val results = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithText(REVIEW_LABEL)
+            .performScrollTo()
+            .fetchSemanticsNode()
+            .config[SemanticsActions.GetTextLayoutResult]
+            .action
+            ?.invoke(results)
+
+        assertThat(results).hasSize(1)
+        assertThat(results.single().hasVisualOverflow).isFalse()
+        assertThat(results.single().lineCount).isAtMost(3)
     }
 
     private companion object {
