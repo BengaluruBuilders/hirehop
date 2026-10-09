@@ -81,6 +81,7 @@ internal class ExportPreviewViewModel @Inject constructor(
             ExportPreviewAction.Export -> export()
             ExportPreviewAction.RetryPreview -> onRetry()
             ExportPreviewAction.NavigationHandled -> mutableState.update { state -> state.copy(navigation = null) }
+            ExportPreviewAction.CancelExport -> Unit
         }
     }
 

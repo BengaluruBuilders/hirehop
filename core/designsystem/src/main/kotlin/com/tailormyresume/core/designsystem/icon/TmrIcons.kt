@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
@@ -68,6 +69,7 @@ object TmrIcons {
     val Description = Icons.Rounded.Description
     val Download = Icons.Rounded.Download
     val Edit = Icons.Rounded.Edit
+    val Refresh = Icons.Rounded.Refresh
     val Error = Icons.Rounded.ErrorOutline
     val ExpandLess = Icons.Rounded.ExpandLess
     val ExpandMore = Icons.Rounded.ExpandMore

@@ -9,7 +9,7 @@
     <string name="feature_tailor_impl_cover_letter_no_thanks">No thanks</string>
     <string name="feature_tailor_impl_cover_letter_write_one">Write one</string>
     <string name="feature_tailor_impl_cover_letter_step_pick">Picking facts for the letter</string>
-    <string name="feature_tailor_impl_cover_letter_step_write">Writing the paragraphs</string>
+    <string name="feature_tailor_impl_cover_letter_step_write">Writing 3 paragraphs</string>
     <string name="feature_tailor_impl_cover_letter_step_check">Checking every line</string>
     <plurals name="feature_tailor_impl_cover_letter_step_pick_detail">
         <item quantity="one">%1$d fact</item>

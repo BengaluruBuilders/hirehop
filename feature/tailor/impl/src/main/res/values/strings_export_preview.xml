@@ -7,7 +7,7 @@
     <string name="feature_tailor_impl_export_preview_format_docx">DOCX</string>
     <string name="feature_tailor_impl_export_preview_file_label">File name</string>
     <string name="feature_tailor_impl_export_preview_ats_note">Readable by common ATS parsers.</string>
-    <string name="feature_tailor_impl_export_preview_paper_meta">%1$s · Plain · %2$s</string>
+    <string name="feature_tailor_impl_export_preview_paper_meta">%1$s · Plain</string>
     <string name="feature_tailor_impl_export_preview_paper_caption_scroll">Scroll to read the whole page.</string>
     <string name="feature_tailor_impl_export_preview_paper_caption_end">End of resume.</string>
     <string name="feature_tailor_impl_export_preview_step_eyebrow">Preview</string>
@@ -31,6 +31,7 @@
     <string name="feature_tailor_impl_export_preview_rendering_caption">Preparing the page</string>
     <string name="feature_tailor_impl_export_preview_failed_placeholder">Preview didn’t load</string>
     <string name="feature_tailor_impl_export_preview_no_preview">No preview</string>
+    <string name="feature_tailor_impl_export_preview_cancel">Cancel</string>
     <string name="feature_tailor_impl_export_preview_download_pdf">Download PDF</string>
     <string name="feature_tailor_impl_export_preview_download_docx">Download DOCX</string>
     <plurals name="feature_tailor_impl_export_preview_credit_free">
