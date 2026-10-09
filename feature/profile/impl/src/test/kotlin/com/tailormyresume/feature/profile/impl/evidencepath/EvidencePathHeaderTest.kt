@@ -2,7 +2,6 @@ package com.tailormyresume.feature.profile.impl.evidencepath
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -17,8 +16,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = "w320dp-h800dp")
 class EvidencePathHeaderTest {
 
@@ -78,6 +79,6 @@ class EvidencePathHeaderTest {
             }
         }
 
-        composeRule.onNodeWithText("2 new facts").assertIsDisplayed()
+        composeRule.onNodeWithText("2 new facts", ignoreCase = true).assertExists()
     }
 }

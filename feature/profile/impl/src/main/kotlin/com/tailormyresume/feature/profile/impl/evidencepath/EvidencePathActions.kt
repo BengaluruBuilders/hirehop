@@ -26,7 +26,7 @@ data class EvidencePathActions(
     val onCategoryChosen: (EvidenceCategory) -> Unit,
     val onAnswerChanged: (String) -> Unit,
     val onSave: () -> Unit,
-    val onSkip: () -> Unit,
+    val onSkip: (questionIndex: Int) -> Unit,
     val onNextQuestion: () -> Unit,
     val onAddMore: () -> Unit,
     val onFinish: () -> Unit,

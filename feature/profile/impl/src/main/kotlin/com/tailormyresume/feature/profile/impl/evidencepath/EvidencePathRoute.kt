@@ -41,7 +41,7 @@ private fun EvidencePathViewModel.toActions(navigation: EvidencePathNavigation):
         onCategoryChosen = { onAction(EvidencePathAction.CategoryChosen(it)) },
         onAnswerChanged = { onAction(EvidencePathAction.AnswerChanged(it)) },
         onSave = { onAction(EvidencePathAction.Save) },
-        onSkip = { onAction(EvidencePathAction.Skip) },
+        onSkip = { onAction(EvidencePathAction.SkipFrom(it)) },
         onNextQuestion = { onAction(EvidencePathAction.NextQuestion) },
         onAddMore = { onAction(EvidencePathAction.AddMore) },
         onFinish = { onAction(EvidencePathAction.Finish) },
