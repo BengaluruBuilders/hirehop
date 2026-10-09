@@ -160,6 +160,12 @@ internal fun SourceSheetContent(item: RequirementItem, actions: AnalysisActions)
                 style = TmrTheme.typography.bodyM,
                 color = TmrTheme.colors.body,
             )
+            if (item.userStatedSkills.isNotEmpty()) {
+                TmrProvenanceChip(
+                    kind = TmrProvenanceKind.UserStated,
+                    label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
+                )
+            }
         }
         val single = item.factRefs.singleOrNull()
         Row(

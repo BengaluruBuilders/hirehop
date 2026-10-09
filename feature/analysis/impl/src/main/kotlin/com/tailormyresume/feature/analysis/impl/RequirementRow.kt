@@ -35,6 +35,8 @@ import com.tailormyresume.core.designsystem.component.TmrButtonSize
 import com.tailormyresume.core.designsystem.component.TmrFactId
 import com.tailormyresume.core.designsystem.component.TmrIconButton
 import com.tailormyresume.core.designsystem.component.TmrOutlineButton
+import com.tailormyresume.core.designsystem.component.TmrProvenanceChip
+import com.tailormyresume.core.designsystem.component.TmrProvenanceKind
 import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrStatusChip
 import com.tailormyresume.core.designsystem.component.TmrStatusKind
@@ -144,6 +146,12 @@ private fun FoundBody(
                 item.factRefs.forEach { TmrFactId(id = it.displayId) }
                 item.sourceLabel()?.let {
                     Text(text = it, style = TmrTheme.typography.bodyS, color = TmrTheme.colors.onSurfaceVariant)
+                }
+                if (item.userStatedSkills.isNotEmpty()) {
+                    TmrProvenanceChip(
+                        kind = TmrProvenanceKind.UserStated,
+                        label = stringResource(R.string.feature_analysis_impl_provenance_user_stated),
+                    )
                 }
             }
         }
