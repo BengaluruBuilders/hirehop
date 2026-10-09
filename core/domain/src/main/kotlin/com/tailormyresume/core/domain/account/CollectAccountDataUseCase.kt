@@ -1,7 +1,9 @@
 package com.tailormyresume.core.domain.account
 
 import com.tailormyresume.core.data.repository.ApplicationRepository
+import com.tailormyresume.core.data.repository.CoverLetterRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
+import com.tailormyresume.core.data.repository.PrepPlanRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.PaymentGateway
@@ -14,6 +16,8 @@ class CollectAccountDataUseCase @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val applicationRepository: ApplicationRepository,
     private val exportHistoryRepository: ExportHistoryRepository,
+    private val coverLetterRepository: CoverLetterRepository,
+    private val prepPlanRepository: PrepPlanRepository,
     private val paymentGateway: PaymentGateway,
     private val clock: Clock,
 ) {

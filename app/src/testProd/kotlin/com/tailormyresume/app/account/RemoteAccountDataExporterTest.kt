@@ -66,6 +66,7 @@ class RemoteAccountDataExporterTest {
 
         val files = entries(archive.file)
         assertThat(files).containsKey("account.txt")
+        assertThat(files).containsKey("my-data.json")
         assertThat(files.getValue("server.json")).contains("could not be fetched")
     }
 
