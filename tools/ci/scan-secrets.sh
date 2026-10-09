@@ -57,6 +57,7 @@ if ((merge_status != 0)) || grep -Eq '(^| )ERR( |$)|partial scan' <<<"$merge_out
 fi
 
 text_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks-text.XXXXXX")"
+trap 'rm -rf "$text_dir"' EXIT
 python3 - "$text_dir" $merge_scope <<'PY'
 import subprocess, sys
 
@@ -102,7 +103,12 @@ if cat.wait() != 0:
     raise SystemExit("git cat-file failed")
 PY
 if [[ -n "$(ls -A "$text_dir")" ]]; then
-  text_output="$("$GITLEAKS" dir --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" "$text_dir" 2>&1)" && text_status=0 || text_status=$?
+  # gitleaks 8.30.1 dir and stdin skip content that sniffs as application/* (pdf, zip, tar); the git source does not sniff
+  git init -q "$text_dir"
+  printf '* diff\n' >"$text_dir/.git/info/attributes"
+  git -C "$text_dir" add -f -A
+  git -C "$text_dir" -c user.name=scan -c user.email=scan@example.test -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -q -m text-copies
+  text_output="$("$GITLEAKS" git --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" "$text_dir" 2>&1)" && text_status=0 || text_status=$?
   printf '%s\n' "$text_output"
   if ((text_status != 0)) || grep -Eq '(^| )ERR( |$)|partial scan' <<<"$text_output"; then
     exit 1
