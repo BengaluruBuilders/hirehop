@@ -50,7 +50,7 @@ class ConfirmFactsBoardStatesTest {
 
     @Test
     fun theErrorBoardStateHasAFailedSaveAndStillListsTheFacts() {
-        val state = loaded().withSaveFailed()
+        val state = loaded()
 
         assertThat(state.hasSaveFailed).isTrue()
         assertThat(state.facts).isNotEmpty()

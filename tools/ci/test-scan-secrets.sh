@@ -21,6 +21,7 @@ check() {
 cat >"$work/gitleaks" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$@" >"$RECORD"
+[[ -n "${STUB_OUTPUT:-}" ]] && echo "$STUB_OUTPUT"
 exit "${STUB_EXIT:-0}"
 STUB
 chmod +x "$work/gitleaks"
@@ -110,6 +111,20 @@ a_finding_fails_the_step() {
   ! run_scan env STUB_EXIT=1 GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha"
 }
 
+a_bad_merge_scope_fails_the_step() {
+  git -C "$repo" update-ref refs/heads/broken 1111111111111111111111111111111111111111 2>/dev/null ||
+    printf '1111111111111111111111111111111111111111\n' >"$repo/.git/refs/heads/broken"
+  local status=0
+  run_scan env GITHUB_EVENT_NAME=push BASE_REF= BEFORE= AFTER="$head_sha" 2>/dev/null || status=$?
+  rm -f "$repo/.git/refs/heads/broken"
+  [[ $status -ne 0 && ! -e "$work/record" ]]
+}
+
+a_gitleaks_error_with_a_zero_exit_fails_the_step() {
+  ! run_scan env STUB_OUTPUT='9:41PM ERR [git] fatal: bad object' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null &&
+    ! run_scan env STUB_OUTPUT='WRN partial scan completed' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null
+}
+
 policy_job_field() {
   python3 - "$root/.github/workflows/build.yml" "$1" <<'PY'
 import sys, yaml
@@ -135,15 +150,38 @@ policy_job_runs_the_script_and_its_test() {
     grep -q 'tools/ci/test-scan-secrets.sh' "$root/.github/workflows/build.yml"
 }
 
-policy_job_scans_before_running_any_pull_request_script() {
-  python3 - "$root/.github/workflows/build.yml" <<'PY'
-import sys, yaml
+pre_scan_steps_ok() {
+  python3 - "$1" <<'PY'
+import re, sys, yaml
 steps = yaml.safe_load(open(sys.argv[1]))["jobs"]["policy"]["steps"]
-runs = [s.get("run", "") for s in steps]
-scan = next(i for i, r in enumerate(runs) if "tools/ci/scan-secrets.sh" in r)
-constitution = next(i for i, r in enumerate(runs) if "tools/ci/check-constitution.sh" in r)
-sys.exit(0 if scan < constitution else 1)
+scan = next(i for i, s in enumerate(steps) if "tools/ci/scan-secrets.sh" in s.get("run", ""))
+constitution = next(i for i, s in enumerate(steps) if "tools/ci/check-constitution.sh" in s.get("run", ""))
+if scan >= constitution:
+    sys.exit(1)
+for step in steps[:scan]:
+    uses = step.get("uses", "")
+    if uses and not uses.startswith("actions/checkout@"):
+        sys.exit(1)
+    run = step.get("run", "")
+    if re.search(r"(^|[\s;&|(])(\./|tools/|gradlew|\./gradlew|bash\s|sh\s|python3?\s)", run):
+        sys.exit(1)
 PY
+}
+
+policy_job_scans_before_running_any_pull_request_script() {
+  pre_scan_steps_ok "$root/.github/workflows/build.yml"
+}
+
+policy_job_rejects_a_repo_script_before_the_scan() {
+  local mutated="$work/mutated-build.yml"
+  python3 - "$root/.github/workflows/build.yml" "$mutated" <<'PY'
+import sys, yaml
+workflow = yaml.safe_load(open(sys.argv[1]))
+steps = workflow["jobs"]["policy"]["steps"]
+steps.insert(1, {"name": "Setup", "run": "tools/ci/setup.sh"})
+yaml.safe_dump(workflow, open(sys.argv[2], "w"))
+PY
+  ! pre_scan_steps_ok "$mutated"
 }
 
 find_real_gitleaks() {
@@ -256,9 +294,12 @@ check "push with an unknown before falls back to a full scan" push_with_an_unkno
 check "push with a zero before falls back to a full scan" push_with_a_zero_before_falls_back_to_a_full_scan
 check "pull request with an unknown base fails without scanning" pull_request_with_an_unknown_base_fails_without_scanning
 check "a finding fails the step" a_finding_fails_the_step
+check "a bad merge scope fails the step" a_bad_merge_scope_fails_the_step
+check "a gitleaks error with a zero exit fails the step" a_gitleaks_error_with_a_zero_exit_fails_the_step
 check "policy job serialises runs per ref" policy_job_serialises_runs_per_ref
 check "policy job has time for the gitleaks download" policy_job_has_time_for_the_gitleaks_download
 check "policy job scans before running any pull request script" policy_job_scans_before_running_any_pull_request_script
+check "policy job rejects a repo script before the scan" policy_job_rejects_a_repo_script_before_the_scan
 check "policy job runs the script and its test" policy_job_runs_the_script_and_its_test
 
 if ((failures > 0)); then

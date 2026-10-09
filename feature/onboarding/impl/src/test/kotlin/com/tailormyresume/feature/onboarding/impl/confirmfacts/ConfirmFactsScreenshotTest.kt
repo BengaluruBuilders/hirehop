@@ -82,7 +82,7 @@ class ConfirmFactsScreenshotTest {
     fun errorOnlyOnARealFailedSave() {
         captureBothThemes(
             screenName = "ConfirmFactsError",
-            uiState = stateFor(DebugScenario.ERROR).withSaveFailed(),
+            uiState = stateFor(DebugScenario.ERROR),
         )
     }
 

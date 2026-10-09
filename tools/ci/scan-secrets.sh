@@ -44,7 +44,13 @@ else
   merge_scope="--all"
 fi
 # gitleaks 8.30.1 runs git log -p, which prints no diff for merge commits, so an evil merge needs its own pass
-"$GITLEAKS" "${base_args[@]}" "--log-opts=--merges --diff-merges=first-parent $merge_scope" .
+# gitleaks 8.30.1 exits 0 when its git log subprocess fails, so validate the scope and scan the output for errors
+git log --merges --diff-merges=first-parent --format=%H $merge_scope >/dev/null
+merge_output="$("$GITLEAKS" "${base_args[@]}" "--log-opts=--merges --diff-merges=first-parent $merge_scope" . 2>&1)" && merge_status=0 || merge_status=$?
+printf '%s\n' "$merge_output"
+if ((merge_status != 0)) || grep -Eq '(^| )ERR( |$)|partial scan' <<<"$merge_output"; then
+  exit 1
+fi
 
 args=("${base_args[@]}")
 if [[ -n "$range" ]]; then
