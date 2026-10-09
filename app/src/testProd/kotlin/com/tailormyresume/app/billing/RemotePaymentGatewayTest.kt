@@ -9,12 +9,25 @@ import com.tailormyresume.core.network.TailorMyResumeApiConfig
 import com.tailormyresume.core.network.tailormyresumeApi
 import com.tailormyresume.core.network.tailormyresumeJson
 import com.tailormyresume.core.network.tailormyresumeOkHttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Test
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class RemotePaymentGatewayTest {
     private val server = MockWebServer().apply { start() }
@@ -23,7 +36,10 @@ class RemotePaymentGatewayTest {
     private val source = WalletSource(api)
 
     @After
-    fun tearDown() = server.shutdown()
+    fun tearDown() {
+        clock.cancel()
+        server.shutdown()
+    }
 
     private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid), idleScope())
 
@@ -206,5 +222,147 @@ class RemotePaymentGatewayTest {
         assertThat(allowance.consumeAnalysis()).isTrue()
         assertThat(allowance.consumeFreeTailoring()).isTrue()
         assertThat(allowance.consumeFreeTailoring()).isTrue()
+    }
+
+    private class ScriptedPurchases : Dispatcher() {
+        class Step(val response: MockResponse, val gate: CountDownLatch? = null)
+
+        val steps = ConcurrentLinkedQueue<Step>()
+        val bodies = CopyOnWriteArrayList<String>()
+
+        override fun dispatch(request: RecordedRequest): MockResponse {
+            if (request.path.orEmpty().endsWith("/purchases").not()) {
+                return MockResponse().setResponseCode(200).setBody("""{"wallet":${walletJson()}}""")
+            }
+            bodies += request.body.readUtf8()
+            val step = steps.poll()
+            step?.gate?.await(GATE_SECONDS, TimeUnit.SECONDS)
+            return step?.response ?: MockResponse().setResponseCode(502).setBody(errorJson("PLAY_UNAVAILABLE"))
+        }
+    }
+
+    private val scripted = ScriptedPurchases()
+    private val wallet = WalletSource(api)
+    private val clock = TestScope()
+
+    private fun scriptedGateway(): RemotePaymentGateway {
+        server.dispatcher = scripted
+        return RemotePaymentGateway(api, wallet, billing, FakeUid("uid-1"), clock)
+    }
+
+    private fun recordedStep(gate: CountDownLatch? = null) =
+        ScriptedPurchases.Step(MockResponse().setResponseCode(201).setBody(purchaseJson(walletJson(purchased = 5))), gate)
+
+    private suspend fun settleIo() = repeat(IO_ROUNDS) {
+        clock.testScheduler.runCurrent()
+        withContext(Dispatchers.Default) { delay(IO_PAUSE_MILLIS) }
+    }
+
+    private suspend fun elapseSeconds(seconds: Int) = repeat(seconds) {
+        clock.testScheduler.advanceTimeBy(1_000)
+        settleIo()
+    }
+
+    private suspend fun awaitPosts(count: Int) {
+        repeat(IO_ROUNDS * 10) {
+            clock.testScheduler.runCurrent()
+            if (scripted.bodies.size >= count) return
+            withContext(Dispatchers.Default) { delay(IO_PAUSE_MILLIS) }
+        }
+    }
+
+    private suspend fun RemotePaymentGateway.restoreOwned(vararg tokens: String) {
+        billing.owned = tokens.map { PlayPurchase(PACK, it, PlayPurchaseState.PURCHASED) }
+        val restore = clock.launch { restorePurchases() }
+        while (!restore.isCompleted) {
+            clock.testScheduler.runCurrent()
+            withContext(Dispatchers.Default) { delay(IO_PAUSE_MILLIS) }
+        }
+    }
+
+    @Test
+    fun clearCreditsCancelsAnInFlightRepostSoTheWalletAndPendingStayEmpty() = runTest {
+        val gateway = scriptedGateway()
+        val gate = CountDownLatch(1)
+        gateway.restoreOwned("token-A")
+        scripted.steps += recordedStep(gate)
+        clock.testScheduler.advanceTimeBy(2_000)
+        awaitPosts(count = 2)
+
+        gateway.clearCredits()
+        gate.countDown()
+        settleIo()
+        elapseSeconds(60)
+
+        assertThat(wallet.cached).isNull()
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+        assertThat(scripted.bodies).hasSize(2)
+    }
+
+    @Test
+    fun aSignOutThenASamePackPurchaseByAnotherAccountStartsItsOwnRepostAndNeverPostsTheOldToken() = runTest {
+        val gateway = scriptedGateway()
+        gateway.restoreOwned("token-A")
+        gateway.clearCredits()
+        gateway.restoreOwned("token-B")
+        scripted.steps += recordedStep()
+
+        elapseSeconds(60)
+
+        val afterSignOut = scripted.bodies.drop(1)
+        assertThat(afterSignOut.none { "token-A" in it }).isTrue()
+        assertThat(afterSignOut.last()).contains("\"purchaseToken\":\"token-B\"")
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+        assertThat(wallet.cached?.purchasedCredits).isEqualTo(5)
+    }
+
+    @Test
+    fun twoTokensOfOnePackRepostSeparatelyAndARepeatedTokenDoesNot() = runTest {
+        val gateway = scriptedGateway()
+        gateway.restoreOwned("t1", "t2")
+        gateway.restoreOwned("t1", "t2")
+        scripted.steps += listOf(recordedStep(), recordedStep())
+
+        elapseSeconds(60)
+
+        assertThat(scripted.bodies).hasSize(6)
+        assertThat(scripted.bodies.count { "\"purchaseToken\":\"t1\"" in it }).isEqualTo(3)
+        assertThat(scripted.bodies.count { "\"purchaseToken\":\"t2\"" in it }).isEqualTo(3)
+    }
+
+    @Test
+    fun concurrentHoldRecordedAndUnconfirmedLeaveTheExpectedPending() = runTest {
+        val gateway = scriptedGateway()
+        val packs = List(HELD_PACKS) { "pack_$it" }
+        billing.owned = packs.map { PlayPurchase(it, "t-$it", PlayPurchaseState.PENDING) }
+
+        withContext(Dispatchers.Default) {
+            coroutineScope { repeat(WRITERS) { launch { gateway.restorePurchases() } } }
+        }
+
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).containsExactlyElementsIn(packs)
+    }
+
+    @Test
+    fun clearCreditsWithNoRepostJobReturnsNoCredits() = runTest {
+        val gateway = scriptedGateway()
+        billing.owned = listOf(PlayPurchase(PACK, "t1", PlayPurchaseState.PENDING))
+        gateway.restorePurchases()
+
+        val cleared = gateway.clearCredits()
+
+        assertThat(cleared.totalCredits).isEqualTo(0)
+        assertThat(cleared.pendingPackIds).isEmpty()
+        assertThat(wallet.cached).isNull()
+        assertThat(gateway.observeEntitlement().first().pendingPackIds).isEmpty()
+    }
+
+    private companion object {
+        const val PACK = "application_pack_5"
+        const val GATE_SECONDS = 5L
+        const val IO_ROUNDS = 20
+        const val IO_PAUSE_MILLIS = 15L
+        const val HELD_PACKS = 1_500
+        const val WRITERS = 8
     }
 }
