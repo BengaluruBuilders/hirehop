@@ -12,13 +12,14 @@ internal fun ProfileEntry.toFactDraft(): FactDraft = FactDraft(
     organization = organization,
     startDate = startDate,
     endDate = endDate,
-    detail = bullets.joinToString(separator = DETAIL_SEPARATOR) { it.text }.trim(),
+    detail = bullets.firstOrNull()?.text.orEmpty(),
+    moreBullets = bullets.drop(1),
 )
 
 internal fun FactDraft.toEntry(
     id: String,
     source: FactSource,
-    existingBulletId: String?,
+    existingBullet: EvidenceBullet?,
     newBulletId: String,
     isConfirmed: Boolean,
 ): ProfileEntry = ProfileEntry(
@@ -28,22 +29,24 @@ internal fun FactDraft.toEntry(
     organization = organization.trim(),
     startDate = startDate.trim(),
     endDate = endDate.trim(),
-    bullets = detail.toBullets(existingBulletId, newBulletId),
+    bullets = toBullets(existingBullet, newBulletId),
     source = source,
     isConfirmed = isConfirmed,
 )
 
-private fun String.toBullets(
-    existingBulletId: String?,
+private fun FactDraft.toBullets(
+    existingBullet: EvidenceBullet?,
     newBulletId: String,
 ): List<EvidenceBullet> {
-    val text = trim()
-    if (text.isEmpty()) return emptyList()
-    return listOf(EvidenceBullet(id = existingBulletId ?: newBulletId, text = text))
+    val text = detail.trim()
+    val first = when {
+        text.isEmpty() -> null
+        existingBullet != null && existingBullet.text.trim() == text -> existingBullet
+        else -> EvidenceBullet(id = existingBullet?.id ?: newBulletId, text = text)
+    }
+    return listOfNotNull(first) + moreBullets.filter { it.text.isNotBlank() }
 }
 
 internal fun categoryOf(entryType: String?): EntryCategory =
     EntryCategory.entries.firstOrNull { it.name.equals(entryType, ignoreCase = true) }
         ?: EntryCategory.PROJECT
-
-private const val DETAIL_SEPARATOR = " "

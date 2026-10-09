@@ -84,7 +84,9 @@ class FactEditorViewModel @AssistedInject constructor(
 
     fun onDetailChange(value: String) = onFieldChange(FactField.DETAIL) { it.copy(detail = value) }
 
-    fun onMoreBulletChange(index: Int, value: String) = Unit
+    fun onMoreBulletChange(index: Int, value: String) = onFieldChange(FactField.DETAIL) { draft ->
+        draft.copy(moreBullets = draft.moreBullets.mapIndexed { i, bullet -> if (i == index) bullet.copy(text = value) else bullet })
+    }
 
     fun onToolsChange(value: String) = onFieldChange(FactField.ORGANIZATION) { it.copy(organization = value) }
 
@@ -244,13 +246,14 @@ class FactEditorViewModel @AssistedInject constructor(
 
     private fun CandidateProfile.withFact(draft: FactDraft, id: String): CandidateProfile {
         val existing = findEntry(id)
-        val entry = draft.toEntry(
+        val unedited = draft.toEntry(
             id = id,
-            source = if (existing == null) FactSource.USER_STATED else FactSource.USER_EDITED,
-            existingBulletId = existing?.bullets?.firstOrNull()?.id,
+            source = existing?.source ?: FactSource.USER_STATED,
+            existingBullet = existing?.bullets?.firstOrNull(),
             newBulletId = idGenerator.newId(),
             isConfirmed = true,
         )
+        val entry = if (existing == null || unedited == existing) unedited else unedited.copy(source = FactSource.USER_EDITED)
         val updated = if (existing == null) entries + entry else entries.map { if (it.id == id) entry else it }
         return copy(entries = updated)
     }

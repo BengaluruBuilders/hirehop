@@ -83,6 +83,7 @@ data class FactEditorActions(
     val onRequestDelete: () -> Unit,
     val onConfirmDelete: () -> Unit,
     val onDismissDelete: () -> Unit,
+    val onMoreBulletChange: (Int, String) -> Unit = { _, _ -> },
 ) {
     companion object {
         val None = FactEditorActions(
@@ -127,6 +128,7 @@ fun FactEditorRoute(
             onRequestDelete = viewModel::requestDelete,
             onConfirmDelete = viewModel::confirmDelete,
             onDismissDelete = viewModel::dismissDelete,
+            onMoreBulletChange = viewModel::onMoreBulletChange,
         )
     }
     LaunchedEffect(uiState.outcome) {
@@ -270,6 +272,15 @@ private fun FactEditorFields(
             minLines = DETAIL_MIN_LINES,
             errorText = uiState.errorTextFor(FactField.DETAIL),
         )
+        uiState.draft.moreBullets.forEachIndexed { index, bullet ->
+            TmrTextField(
+                value = bullet.text,
+                onValueChange = { actions.onMoreBulletChange(index, it) },
+                label = stringResource(category.detailLabelRes()),
+                singleLine = false,
+                minLines = DETAIL_MIN_LINES,
+            )
+        }
         if (category == EntryCategory.PROJECT) {
             FactEditorToolsField(uiState = uiState, onToolsChange = actions.onToolsChange)
         } else {

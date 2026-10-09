@@ -2,6 +2,7 @@ package com.tailormyresume.core.domain
 
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.fact.FactDisplayIds
+import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
@@ -26,7 +27,7 @@ class AddUserStatedFactUseCase @Inject constructor(
 
     suspend fun preview(requirement: JobRequirement, statement: String): CandidateProfile? {
         val trimmed = statement.trim()
-        if (trimmed.isEmpty()) return null
+        if (trimmed.isEmpty() || trimmed.length > FactDraftValidator.DETAIL_LIMIT) return null
         val profile = profileRepository.observeProfile().first() ?: return null
         val stated = keywordsStatedIn(requirement, trimmed)
         val added = newSkills(profile.skills, stated)
