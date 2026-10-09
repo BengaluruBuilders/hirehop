@@ -66,6 +66,7 @@ fun TmrScreen(
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { collapse.consume(it) },
+                onDragStopped = { collapse.settle() },
             )
             .background(if (sheet) colors.background else colors.ground),
     ) { constraints ->

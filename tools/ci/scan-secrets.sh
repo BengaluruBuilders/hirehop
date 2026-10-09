@@ -56,6 +56,65 @@ if ((merge_status != 0)) || grep -Eq '(^| )ERR( |$)|partial scan' <<<"$merge_out
   exit 1
 fi
 
+text_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks-text.XXXXXX")"
+trap 'rm -rf "$text_dir"' EXIT
+python3 - "$text_dir" $merge_scope <<'PY'
+import subprocess, sys
+
+out_dir, *scope = sys.argv[1:]
+BOMS = ((b"\xff\xfe\x00\x00", "utf-32-le"), (b"\x00\x00\xfe\xff", "utf-32-be"),
+        (b"\xff\xfe", "utf-16-le"), (b"\xfe\xff", "utf-16-be"))
+
+raw = subprocess.run(
+    ["git", "log", "--raw", "-z", "--no-abbrev", "--no-renames", "--diff-merges=first-parent", "--format=", *scope],
+    capture_output=True, check=True).stdout.split(b"\0")
+blobs = {}
+i = 0
+while i < len(raw):
+    if raw[i].startswith(b":"):
+        _, mode, _, sha, status = raw[i].split()[:5]
+        if status[:1] != b"D" and mode != b"160000":
+            blobs.setdefault(sha.decode(), raw[i + 1])
+        i += 2
+    else:
+        i += 1
+
+cat = subprocess.Popen(["git", "cat-file", "--batch"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+for sha, path in blobs.items():
+    cat.stdin.write(sha.encode() + b"\n")
+    cat.stdin.flush()
+    header = cat.stdout.readline().split()
+    if len(header) != 3 or header[1] != b"blob":
+        raise SystemExit(f"cannot read blob {sha}: {b' '.join(header)!r}")
+    data = cat.stdout.read(int(header[2]))
+    cat.stdout.read(1)
+    if b"\0" not in data:
+        continue
+    print(f"text copy of NUL-containing blob {sha} ({path.decode(errors='replace')})", file=sys.stderr)
+    with open(f"{out_dir}/{sha}.nulstripped.txt", "wb") as f:
+        f.write(data.replace(b"\0", b""))
+    for bom, codec in BOMS:
+        if data.startswith(bom):
+            with open(f"{out_dir}/{sha}.{codec}.txt", "w", encoding="utf-8") as f:
+                f.write(data[len(bom):].decode(codec))
+            break
+cat.stdin.close()
+if cat.wait() != 0:
+    raise SystemExit("git cat-file failed")
+PY
+if [[ -n "$(ls -A "$text_dir")" ]]; then
+  # gitleaks 8.30.1 dir and stdin skip content that sniffs as application/* (pdf, zip, tar); the git source does not sniff
+  git init -q "$text_dir"
+  printf '* diff\n' >"$text_dir/.git/info/attributes"
+  git -C "$text_dir" add -f -A
+  git -C "$text_dir" -c user.name=scan -c user.email=scan@example.test -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -q -m text-copies
+  text_output="$("$GITLEAKS" git --redact --exit-code 1 --ignore-gitleaks-allow --config "$config" "$text_dir" 2>&1)" && text_status=0 || text_status=$?
+  printf '%s\n' "$text_output"
+  if ((text_status != 0)) || grep -Eq '(^| )ERR( |$)|partial scan' <<<"$text_output"; then
+    exit 1
+  fi
+fi
+
 args=("${base_args[@]}")
 if [[ -n "$range" ]]; then
   args+=(--log-opts="$range")

@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tailormyresume.core.designsystem.component.TmrButtonSize
 import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrCollapsingHomeHeader
 import com.tailormyresume.core.designsystem.component.TmrContentSwitch
@@ -60,11 +64,12 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.ui.component.ApplicationStatusSheet
-import com.tailormyresume.core.ui.component.applicationStatusOptions
+import com.tailormyresume.core.ui.component.applicationStatusOptionsFor
 import kotlin.time.Clock
 import kotlin.time.Instant
 import com.tailormyresume.feature.applications.api.R as apiR
 
+private val PASTE_JOB_HEIGHT = 56.dp
 private val EMPTY_TILE = 44.dp
 private val EMPTY_TILE_SHAPE = RoundedCornerShape(14.dp)
 
@@ -147,6 +152,7 @@ private fun ApplicationsHeaderBar(
     onAction: (ApplicationsAction) -> Unit,
 ) {
     val name = header.firstName
+    val compact by remember(collapse) { derivedStateOf { collapse.fraction >= COMPACT_FRACTION } }
     TmrCollapsingHomeHeader(
         collapse = collapse,
         title = stringResource(apiR.string.feature_applications_api_title),
@@ -157,16 +163,29 @@ private fun ApplicationsHeaderBar(
         },
         headline = stringResource(R.string.feature_applications_impl_headline),
         trailing = {
-            header.credits?.let { credits ->
-                CreditsAction(credits = credits, onClick = { onAction(ApplicationsAction.CreditsChosen) })
+            if (compact) {
+                TmrPrimaryButton(
+                    label = stringResource(R.string.feature_applications_impl_paste_job),
+                    onClick = { onAction(ApplicationsAction.PasteJobChosen) },
+                    trailingIcon = TmrIcons.ArrowForward,
+                    size = TmrButtonSize.Compact,
+                )
+            } else {
+                header.credits?.let { credits ->
+                    CreditsAction(credits = credits, onClick = { onAction(ApplicationsAction.CreditsChosen) })
+                }
             }
         },
         action = {
-            TmrPrimaryButton(
-                label = stringResource(R.string.feature_applications_impl_paste_job),
-                onClick = { onAction(ApplicationsAction.PasteJobChosen) },
-                trailingIcon = TmrIcons.ArrowForward,
-            )
+            if (compact) {
+                Spacer(Modifier.height(PASTE_JOB_HEIGHT))
+            } else {
+                TmrPrimaryButton(
+                    label = stringResource(R.string.feature_applications_impl_paste_job),
+                    onClick = { onAction(ApplicationsAction.PasteJobChosen) },
+                    trailingIcon = TmrIcons.ArrowForward,
+                )
+            }
         },
     )
 }
@@ -211,14 +230,11 @@ private fun ApplicationStatusSheetHost(
     val labels = ApplicationStatus.entries.associateWith { status -> status.label() }
     ApplicationStatusSheet(
         current = state.current,
-        options = applicationStatusOptions { status -> labels.getValue(status) },
+        options = applicationStatusOptionsFor(state.current) { status -> labels.getValue(status) },
         onConfirm = { chosen -> onAction(ApplicationsAction.StatusChosen(chosen)) },
         onDismiss = { onAction(ApplicationsAction.StatusSheetDismissed) },
         saveLabel = stringResource(R.string.feature_applications_impl_sheet_save),
-        cancelLabel = stringResource(R.string.feature_applications_impl_sheet_cancel),
-        eyebrow = stringResource(R.string.feature_applications_impl_sheet_eyebrow),
         title = stringResource(R.string.feature_applications_impl_sheet_title),
-        note = stringResource(R.string.feature_applications_impl_sheet_note),
         modifier = modifier,
     )
 }
@@ -380,6 +396,7 @@ private fun ApplicationStatusToastEffect(
     }
 }
 
+private const val COMPACT_FRACTION = 0.5f
 private const val OFFLINE_ITEM_KEY = "offline"
 private const val HEADING_ITEM_KEY = "heading"
 
