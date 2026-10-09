@@ -263,6 +263,7 @@ private fun QuestionContent(
             TmrFilterChip(
                 label = stringResource(item.labelRes()),
                 selected = item == category,
+                enabled = !uiState.isSaving,
                 onClick = { actions.onCategoryChosen(item) },
             )
         }

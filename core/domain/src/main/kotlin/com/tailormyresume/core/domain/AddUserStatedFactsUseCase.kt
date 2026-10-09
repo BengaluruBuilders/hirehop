@@ -41,6 +41,9 @@ class AddUserStatedFactsUseCase @Inject constructor(
         return updated
     }
 
+    suspend fun hasEntry(entryId: String): Boolean =
+        profileRepository.observeProfile().first()?.entries?.any { it.id == entryId } == true
+
     private fun newEntry(draft: FactDraft, existing: List<ProfileEntry>): ProfileEntry {
         val detail = draft.detail.trim()
         val bullet = if (detail.isEmpty()) null else EvidenceBullet(id = idGenerator.newId(), text = detail)

@@ -197,4 +197,35 @@ class EvidencePathNextQuestionTest {
         act(EvidencePathAction.Save)
         assertThat(savedEntries()).isEmpty()
     }
+
+    @Test
+    fun followUpAnswerOverTheLimit_showsTheTooLongProblemAndKeepsTheWords() = runTest {
+        enter("projects")
+        saveAnswer("Library database project")
+        act(EvidencePathAction.NextQuestion)
+
+        saveAnswer("a".repeat(601))
+
+        val state = viewModel.uiState.value
+        assertThat(state.problem).isEqualTo(EvidenceFieldProblem.TOO_LONG)
+        assertThat(state.message).isNull()
+        assertThat(state.answer).hasLength(601)
+    }
+
+    @Test
+    fun followUpAfterTheAnchorEntryWasDeleted_clearsTheAnchorAndAsksForQuestionOneFirst() = runTest {
+        enter("projects")
+        saveAnswer("Library database project")
+        act(EvidencePathAction.NextQuestion)
+        repository.sendProfile(checkNotNull(repository.observeProfile().first()).copy(entries = emptyList()))
+
+        saveAnswer("Cut report time by 40%")
+
+        val state = viewModel.uiState.value
+        assertThat(state.anchor).isNull()
+        assertThat(state.needsFirstAnswer).isTrue()
+        assertThat(state.canSave).isFalse()
+        assertThat(state.message).isNull()
+        assertThat(state.answer).isEqualTo("Cut report time by 40%")
+    }
 }

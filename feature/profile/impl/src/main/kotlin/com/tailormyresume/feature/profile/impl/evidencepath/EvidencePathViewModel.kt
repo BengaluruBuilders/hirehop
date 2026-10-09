@@ -131,12 +131,13 @@ class EvidencePathViewModel @Inject internal constructor(
             if (outcome is AddFactsOutcome.Added) {
                 mutableState.update { current ->
                     val filed = outcome.entries.map { EvidenceFactCard(category, it) }
+                    val inSameCategory = current.category == category
                     current.copy(
                         cards = current.cards + filed,
                         isSaving = false,
-                        answer = "",
-                        stamped = filed.lastOrNull(),
-                        anchor = filed.lastOrNull(),
+                        answer = if (inSameCategory) "" else current.answer,
+                        stamped = if (inSameCategory) filed.lastOrNull() else current.stamped,
+                        anchor = if (inSameCategory) filed.lastOrNull() else current.anchor,
                     )
                 }
             } else {
@@ -146,21 +147,33 @@ class EvidencePathViewModel @Inject internal constructor(
     }
 
     private fun attachToAnchor(state: EvidencePathUiState, category: EvidenceCategory, anchor: EvidenceFactCard) {
+        if (state.answer.trim().length > FactDraftValidator.DETAIL_LIMIT) {
+            mutableState.value = state.copy(problem = EvidenceFieldProblem.TOO_LONG)
+            return
+        }
         mutableState.value = state.copy(isSaving = true, message = null)
         viewModelScope.launch {
             val updated = runCatching { addUserStatedFacts.attachBullet(anchor.entry.id, state.answer) }.getOrNull()
             if (updated == null) {
-                mutableState.update { it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED) }
+                val anchorGone = runCatching { !addUserStatedFacts.hasEntry(anchor.entry.id) }.getOrDefault(false)
+                mutableState.update {
+                    if (anchorGone) {
+                        it.copy(isSaving = false, anchor = null, cards = it.cards.filterNot { card -> card.entry.id == anchor.entry.id })
+                    } else {
+                        it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED)
+                    }
+                }
                 return@launch
             }
             val card = EvidenceFactCard(category, updated)
             mutableState.update { current ->
+                val inSameCategory = current.category == category
                 current.copy(
                     cards = current.cards.map { if (it.entry.id == updated.id) card else it },
                     isSaving = false,
-                    answer = "",
-                    stamped = card,
-                    anchor = card,
+                    answer = if (inSameCategory) "" else current.answer,
+                    stamped = if (inSameCategory) card else current.stamped,
+                    anchor = if (inSameCategory) card else current.anchor,
                 )
             }
         }
