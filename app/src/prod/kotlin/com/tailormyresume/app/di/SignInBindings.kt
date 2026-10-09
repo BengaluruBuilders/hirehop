@@ -11,6 +11,8 @@ import com.tailormyresume.app.auth.ForegroundActivity
 import com.tailormyresume.app.auth.ForegroundActivityTracker
 import com.tailormyresume.app.auth.GoogleCredentialSource
 import com.tailormyresume.app.auth.LocalDataWiper
+import com.tailormyresume.app.auth.PendingWipeStartTask
+import com.tailormyresume.app.auth.RemoteAccountWipeFinisher
 import com.tailormyresume.app.auth.RemoteConsentUploader
 import com.tailormyresume.app.auth.RemoteServerAccountDeleter
 import com.tailormyresume.app.auth.RemoteSignInGateway
@@ -19,6 +21,7 @@ import com.tailormyresume.app.auth.SessionExpiryHandler
 import com.tailormyresume.core.domain.ConsentUploader
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.SignInGateway
+import com.tailormyresume.core.domain.account.AccountWipeFinisher
 import com.tailormyresume.core.domain.account.ServerAccountDeleter
 import com.tailormyresume.core.network.ConsentRequiredListener
 import com.tailormyresume.core.network.IdTokenProvider
@@ -66,6 +69,13 @@ interface SignInBindings {
 
     @Binds
     fun bindServerAccountDeleter(impl: RemoteServerAccountDeleter): ServerAccountDeleter
+
+    @Binds
+    fun bindAccountWipeFinisher(impl: RemoteAccountWipeFinisher): AccountWipeFinisher
+
+    @Binds
+    @IntoSet
+    fun bindPendingWipeStartTask(impl: PendingWipeStartTask): AppStartTask
 
     companion object {
         @Provides

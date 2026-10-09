@@ -20,12 +20,14 @@ import com.tailormyresume.core.data.repository.CoverLetterRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.OfflineFirstApplicationRepository
 import com.tailormyresume.core.data.repository.OfflineFirstProfileRepository
+import com.tailormyresume.core.data.repository.PendingAccountWipe
 import com.tailormyresume.core.data.repository.PrepPlanRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.data.repository.StoredApplicationCleanup
 import com.tailormyresume.core.data.repository.StoredCoverLetterRepository
 import com.tailormyresume.core.data.repository.StoredExportHistoryRepository
+import com.tailormyresume.core.data.repository.StoredPendingAccountWipe
 import com.tailormyresume.core.data.repository.StoredPrepPlanRepository
 import com.tailormyresume.core.data.repository.StoredSessionRepository
 import com.tailormyresume.core.data.repository.StoredTailoringReviewStateRepository
@@ -80,6 +82,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindsApplicationCleanup(cleanup: StoredApplicationCleanup): ApplicationCleanup
+
+    @Binds
+    internal abstract fun bindsPendingAccountWipe(wipe: StoredPendingAccountWipe): PendingAccountWipe
 
     @Binds
     internal abstract fun bindsMockLatency(latency: DelayMockLatency): MockLatency

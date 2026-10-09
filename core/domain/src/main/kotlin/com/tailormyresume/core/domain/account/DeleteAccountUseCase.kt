@@ -4,6 +4,8 @@ import com.tailormyresume.core.data.mock.MockLatency
 import com.tailormyresume.core.data.mock.MockOperation
 import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
+import com.tailormyresume.core.data.repository.PendingAccountWipe
+import com.tailormyresume.core.data.repository.PendingWipeState
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.SignInGateway
@@ -27,7 +29,14 @@ class DeleteAccountUseCase @Inject constructor(
     private val creditBalance: AccountCreditBalance,
     private val latency: MockLatency,
     private val exportedFiles: ExportedFiles = ExportedFiles.None,
+    private val pendingWipe: PendingAccountWipe = PendingAccountWipe.None,
+    private val finishPendingWipe: FinishPendingAccountWipeUseCase =
+        FinishPendingAccountWipeUseCase(pendingWipe, AccountWipeFinisher.None, serverAccountDeleter),
 ) {
+
+    suspend fun hasServerClosedPendingWipe(): Boolean = false
+
+    suspend fun finishRemoval(): PendingWipeOutcome = PendingWipeOutcome.NOTHING_PENDING
 
     suspend fun preview(): AccountDeletionCounts {
         val applications = applicationRepository.observeApplications().first()

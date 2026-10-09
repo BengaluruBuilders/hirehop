@@ -140,6 +140,8 @@ private fun ReadyContent(
                     when (failure) {
                         DeleteAccountFailure.DATA_INTACT -> R.string.feature_settings_impl_delete_account_error_intact
                         DeleteAccountFailure.PARTLY_DELETED -> R.string.feature_settings_impl_delete_account_error_partial
+                        DeleteAccountFailure.LOCAL_WIPE_PENDING ->
+                            R.string.feature_settings_impl_delete_account_error_local_wipe_pending
                     },
                 ),
             )

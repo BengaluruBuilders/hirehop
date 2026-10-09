@@ -7,4 +7,5 @@ data class DeleteAccountActions(
     val onDeleteConfirmed: () -> Unit,
     val onDeleteDismissed: () -> Unit,
     val onDownloadData: () -> Unit,
+    val onFinishRemoval: () -> Unit = {},
 )

@@ -88,6 +88,8 @@ class DeleteAccountViewModel @Inject constructor(
         }
     }
 
+    fun onFinishRemovalTapped() = Unit
+
     fun onDeleteDismissed() {
         phase.update { current -> current.copy(isConfirmVisible = false) }
     }
