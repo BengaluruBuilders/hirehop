@@ -31,8 +31,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,7 +70,11 @@ internal fun ReviewContent(
     ) {
         if (state.isOffline) {
             item(key = "offline") {
-                NoticeStrip(text = stringResource(R.string.feature_tailor_impl_offline_message), icon = TmrIcons.Offline)
+                NoticeStrip(
+                    text = stringResource(R.string.feature_tailor_impl_offline_message),
+                    icon = TmrIcons.Offline,
+                    modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+                )
             }
         }
         item(key = "progress") { ReviewProgress(state) }
