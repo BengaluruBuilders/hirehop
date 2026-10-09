@@ -95,7 +95,7 @@ object ConfirmFactsScenarioMapper {
             isLoading = false,
             contact = ContactUi(fullName = profile.fullName, email = profile.email, phone = profile.phone),
             sections = sectionsOf(entries = entries, skills = profile.skills),
-            hasSaveFailed = false,
+            hasSaveFailed = scenario == DebugScenario.ERROR,
         )
     }
 
