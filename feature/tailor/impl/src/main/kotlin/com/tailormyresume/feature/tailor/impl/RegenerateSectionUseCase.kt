@@ -45,7 +45,12 @@ internal class RegenerateSectionUseCase @Inject constructor(
         val fresh = try {
             tailorResume(profile, application.job, gap, applicationId, category).bullets
         } catch (e: AiException) {
-            return if (e.failure == AiFailure.NoCredit) RegenerateResult.NoCredit else RegenerateResult.Failed
+            val notice = e.toAiNotice()
+            return when {
+                e.failure == AiFailure.NoCredit -> RegenerateResult.NoCredit
+                notice == AiNotice.Generic -> RegenerateResult.Failed
+                else -> RegenerateResult.Blocked(notice)
+            }
         }
             .filter { it.entryId in sectionEntryIds }
             .map { it.copy(decision = BulletDecision.PENDING) }

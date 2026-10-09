@@ -91,6 +91,8 @@
     <string name="feature_analysis_impl_toast_reported">Thanks. We will check this.</string>
     <string name="feature_analysis_impl_toast_evidence_failed">We couldn’t save that. Nothing changed in your profile.</string>
     <string name="feature_analysis_impl_toast_tailor_failed">We couldn’t create your application. Try again.</string>
+    <string name="feature_analysis_impl_toast_tailor_busy">The same job is already being processed. Wait a moment, then try again.</string>
+    <string name="feature_analysis_impl_toast_tailor_rate_limited">Too many requests. Please wait a little, then try again.</string>
     <string name="feature_analysis_impl_undo">Undo</string>
 
     <string name="feature_analysis_impl_tailor_limit">You\'ve used today\'s free tailoring. Your analysis is saved. You can tailor again tomorrow.</string>

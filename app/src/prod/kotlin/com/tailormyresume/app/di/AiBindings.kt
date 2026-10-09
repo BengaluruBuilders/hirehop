@@ -1,7 +1,7 @@
 package com.tailormyresume.app.di
 
+import com.tailormyresume.app.ai.GuardedJobAnalysisSource
 import com.tailormyresume.app.ai.RemoteCoverLetterSource
-import com.tailormyresume.app.ai.RemoteJobAnalysisSource
 import com.tailormyresume.app.ai.RemotePrepQuestionSource
 import com.tailormyresume.app.ai.RemoteResumeTailor
 import com.tailormyresume.app.ai.RemoteResumeTextParser
@@ -19,7 +19,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface AiBindings {
     @Binds
-    fun bindJobAnalysisSource(impl: RemoteJobAnalysisSource): JobAnalysisSource
+    fun bindJobAnalysisSource(impl: GuardedJobAnalysisSource): JobAnalysisSource
 
     @Binds
     fun bindResumeTailor(impl: RemoteResumeTailor): ResumeTailor

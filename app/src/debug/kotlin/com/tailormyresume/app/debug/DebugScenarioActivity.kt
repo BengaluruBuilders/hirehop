@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tailormyresume.app.MainActivity
+import com.tailormyresume.app.ai.DebugPreviewMode
 import com.tailormyresume.app.ui.AppRootState
 import com.tailormyresume.app.ui.AppViewModel
 import com.tailormyresume.app.ui.NavigationRoot
@@ -49,6 +50,9 @@ class DebugScenarioActivity : ComponentActivity() {
 
     @Inject
     lateinit var sessionRepository: SessionRepository
+
+    @Inject
+    lateinit var previewMode: DebugPreviewMode
 
     private val hasAccount: Flow<Boolean> by lazy { sessionRepository.observeAccount().map { it != null } }
 
@@ -89,6 +93,11 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        if (isFinishing) previewMode.active = false
+        super.onDestroy()
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         applyEdgeToEdge()
@@ -99,11 +108,13 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun openPreview() {
+        previewMode.active = true
         rootStores.releaseAll()
         menuViewModel.openPreview(target) { opened = true }
     }
 
     private fun closePreview() {
+        previewMode.active = false
         opened = false
         rootStores.releaseAll()
         menuViewModel.closePreview(target)

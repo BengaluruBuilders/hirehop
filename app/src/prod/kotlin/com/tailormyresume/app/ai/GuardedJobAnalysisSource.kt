@@ -12,5 +12,5 @@ class GuardedJobAnalysisSource @Inject constructor(
     private val previewMode: DebugPreviewMode,
 ) : JobAnalysisSource {
     override suspend fun analyse(profile: CandidateProfile, rawJobText: String): JobAnalysisResult =
-        remote.analyse(profile, rawJobText)
+        if (previewMode.active) offline.analyse(profile, rawJobText) else remote.analyse(profile, rawJobText)
 }
