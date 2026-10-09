@@ -9,13 +9,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -83,8 +84,6 @@ class PasteJobDescriptionBatchTest {
         composeRule.onNodeWithContentDescription(BACK).performClick()
     }
 
-    private fun fieldHeightInDp(): Int = fieldNode().getBoundsInRoot().height.value.toInt()
-
     @Test
     fun dailyLimitKeepsAnalyseThisJdLabelDisabled() {
         show(PasteJobDescriptionUiState(text = SHORT_JD, freeAnalysesLeft = 0))
@@ -101,7 +100,10 @@ class PasteJobDescriptionBatchTest {
 
         composeRule.onNodeWithText(CLEAR_LABEL).assertIsDisplayed()
         composeRule.onNode(hasContentDescription(WORD_COUNT_PREFIX, substring = true)).assertIsDisplayed()
-        assertTrue(fieldHeightInDp() <= 230)
+        assertTrue(fieldNode().getUnclippedBoundsInRoot().height >= 120.dp)
+        val top = fieldNode().getUnclippedBoundsInRoot().top
+        val clearBottom = composeRule.onNodeWithText(CLEAR_LABEL).getUnclippedBoundsInRoot().bottom
+        assertTrue(clearBottom - top <= 230.dp)
     }
 
     @Test
@@ -109,14 +111,14 @@ class PasteJobDescriptionBatchTest {
     fun landscapeKeepsFieldHeight() {
         show(PasteJobDescriptionUiState(text = SHORT_JD))
 
-        assertTrue(fieldHeightInDp() >= MIN_FIELD_AREA)
+        assertTrue(fieldNode().getUnclippedBoundsInRoot().height >= 120.dp)
     }
 
     @Test
     fun portraitShortJdKeepsFieldHeight() {
         show(PasteJobDescriptionUiState(text = SHORT_JD))
 
-        assertTrue(fieldHeightInDp() >= MIN_FIELD_AREA)
+        assertTrue(fieldNode().getUnclippedBoundsInRoot().height >= 120.dp)
     }
 
     @Test
@@ -170,6 +172,16 @@ class PasteJobDescriptionBatchTest {
     }
 
     @Test
+    fun backWithAnalysedTextLeavesAtOnce() {
+        show(PasteJobDescriptionUiState(text = SHORT_JD, keptText = SHORT_JD.trim()))
+
+        tapBackControl()
+
+        assertEquals(1, backCount)
+        composeRule.onNodeWithText(DIALOG_TITLE).assertDoesNotExist()
+    }
+
+    @Test
     fun backWithEmptyFieldLeavesAtOnce() {
         show(PasteJobDescriptionUiState())
 
@@ -191,7 +203,6 @@ class PasteJobDescriptionBatchTest {
 
     private companion object {
         const val LANDSCAPE_QUALIFIERS = "w851dp-h393dp-normal-long-notround-land-any-440dpi-keyshidden-nonav"
-        const val MIN_FIELD_AREA = 90
         const val FIELD_LABEL = "Job description"
         const val BACK = "Go back"
         const val PASTE_LABEL = "Paste"

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -87,7 +89,7 @@ internal fun PasteJobDescriptionScreen(
     val focusManager = LocalFocusManager.current
     var isDiscardRequested by remember { mutableStateOf(false) }
     val onBackRequest = {
-        if (uiState.text.isNotBlank()) {
+        if (uiState.hasUnanalysedText) {
             isDiscardRequested = true
         } else {
             actions.onBack()
@@ -104,7 +106,7 @@ internal fun PasteJobDescriptionScreen(
             actions.onAnalyse()
         },
     )
-    BackHandler(enabled = uiState.text.isNotBlank()) { onBackRequest() }
+    BackHandler(enabled = uiState.hasUnanalysedText) { onBackRequest() }
     TmrScreen(
         modifier = modifier,
         sheet = false,
@@ -400,6 +402,7 @@ private fun PasteJobDescriptionTextArea(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SpottedRow(
     uiState: PasteJobDescriptionUiState,
@@ -420,9 +423,10 @@ private fun SpottedRow(
                 style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
                 color = TmrTheme.colors.onSurface,
             )
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 if (uiState.role.isNotBlank()) {
                     SpottedChip(label = uiState.role)
