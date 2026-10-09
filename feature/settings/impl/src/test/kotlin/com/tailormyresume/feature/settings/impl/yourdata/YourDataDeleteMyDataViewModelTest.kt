@@ -2,6 +2,7 @@ package com.tailormyresume.feature.settings.impl.yourdata
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.ApplicationPack
+import com.tailormyresume.core.domain.DiscardJobDraftsUseCase
 import com.tailormyresume.core.domain.account.CollectAccountDataUseCase
 import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
@@ -13,7 +14,9 @@ import com.tailormyresume.core.testing.data.canonicalApplication
 import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
+import com.tailormyresume.core.testing.repository.TestContentReportRepository
 import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
+import com.tailormyresume.core.testing.repository.TestPrepPlanRepository
 import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
@@ -68,6 +71,7 @@ class YourDataDeleteMyDataViewModelTest {
             profileRepository = profileRepository,
             exportHistoryRepository = exportHistory,
             sessionRepository = sessionRepository,
+            discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
             exportedFiles = ExportedFiles {
                 fileDeletionGate?.await()
                 if (fileDeletionFails) throw IllegalStateException("cache locked")

@@ -153,4 +153,39 @@ class OfflineFirstApplicationRepositoryTest {
         assertThat(reviewState.observe(testApplication.id).first()).isEqualTo(TailoringReviewState())
         assertThat(coverLetters.observeLetter(testApplication.id).first()).isNull()
     }
+
+    @Test
+    fun whenTheCleanupFailsTheRowStaysAndARetryClearsRowAndKeys() = runTest {
+        val store = TestMockStateStore()
+        val prepPlan = StoredPrepPlanRepository(store)
+        val storedCleanup = StoredApplicationCleanup(
+            prepPlan,
+            StoredContentReportRepository(store),
+            StoredTailoringReviewStateRepository(store),
+            StoredCoverLetterRepository(store),
+        )
+        var failuresLeft = 1
+        val repository = OfflineFirstApplicationRepository(
+            jobApplicationDao = FakeJobApplicationDao(),
+            clock = fixedClock,
+            cleanup = ApplicationCleanup { id ->
+                if (failuresLeft-- > 0) throw IllegalStateException("disk full")
+                storedCleanup.clearFor(id)
+            },
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+        repository.upsertApplication(testApplication)
+        prepPlan.add(testApplication.id, PrepPlanItem("p1", "Practise Kotlin"))
+
+        val failed = runCatching { repository.deleteApplication(testApplication.id) }
+
+        assertThat(failed.isFailure).isTrue()
+        assertThat(repository.observeApplications().first().map { it.id }).containsExactly(testApplication.id)
+
+        val retry = runCatching { repository.deleteApplication(testApplication.id) }
+
+        assertThat(retry.isSuccess).isTrue()
+        assertThat(repository.observeApplications().first()).isEmpty()
+        assertThat(prepPlan.observeItems(testApplication.id).first()).isEmpty()
+    }
 }

@@ -34,7 +34,7 @@
     <string name="feature_settings_impl_your_data_application_delete_description">Delete %1$s at %2$s</string>
 
     <string name="feature_settings_impl_your_data_export_note">One file with your facts, JD texts, analyses, resumes and purchase records.</string>
-    <string name="feature_settings_impl_your_data_export_offline_note">Downloading needs a connection.</string>
+    <string name="feature_settings_impl_your_data_export_offline_note">Downloading and deleting need a connection.</string>
     <string name="feature_settings_impl_your_data_export_action">Download my data</string>
     <string name="feature_settings_impl_your_data_export_error_title">We couldn\'t prepare your file.</string>
     <string name="feature_settings_impl_your_data_export_error_body">Nothing was sent anywhere. Try again.</string>

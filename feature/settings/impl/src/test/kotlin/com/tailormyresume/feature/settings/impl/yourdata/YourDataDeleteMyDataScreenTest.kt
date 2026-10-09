@@ -9,6 +9,7 @@ import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -69,7 +70,7 @@ class YourDataDeleteMyDataScreenTest {
 
         composeRule.onNodeWithText("Delete my data").assertIsDisplayed().assertIsEnabled()
         composeRule.onNodeWithText("Download my data").assertIsDisplayed()
-        composeRule.onNodeWithText("TailorMyResume keeps no date of birth and no photo.").assertIsDisplayed()
+        composeRule.onNodeWithText("TailorMyResume keeps no date of birth and no photo.").performScrollTo().assertIsDisplayed()
     }
 
     @Test

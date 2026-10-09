@@ -39,6 +39,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrOutlinedButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
+import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrStepProgress
 import com.tailormyresume.core.designsystem.component.TmrTextButton
 import com.tailormyresume.core.designsystem.icon.TmrIcons
@@ -209,6 +210,7 @@ private fun LedgerContent(
         ApplicationsRow(content = content, actions = actions)
         PurchasesRow(content = content, actions = actions)
         UploadedResumeRow()
+        NoticeLine(icon = TmrIcons.Info, text = stringResource(R.string.feature_settings_impl_your_data_delete_all_note))
     }
 }
 
@@ -458,7 +460,6 @@ private fun DownloadNotice(isOffline: Boolean) {
                 },
             ),
         )
-        NoticeLine(icon = TmrIcons.Info, text = stringResource(R.string.feature_settings_impl_your_data_delete_all_note))
     }
 }
 
@@ -489,20 +490,27 @@ private fun DataActionsBar(content: YourDataUiState.Content, actions: YourDataAc
             enabled = !content.isOffline && !busy,
             leadingIcon = TmrIcons.Download,
         )
-        TmrOutlinedButton(
-            onClick = actions.onDeleteMyData,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !content.isOffline && !busy,
-        ) {
-            Icon(
-                imageVector = TmrIcons.Delete,
-                contentDescription = null,
-                tint = TmrTheme.colors.error,
-                modifier = Modifier.size(BUTTON_ICON_SIZE),
-            )
-            Text(
-                text = stringResource(R.string.feature_settings_impl_your_data_delete_all_action),
-                color = TmrTheme.colors.error,
+        val canDelete = !content.isOffline && !busy
+        if (canDelete) {
+            TmrOutlinedButton(onClick = actions.onDeleteMyData, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = TmrIcons.Delete,
+                    contentDescription = null,
+                    tint = TmrTheme.colors.error,
+                    modifier = Modifier.size(BUTTON_ICON_SIZE),
+                )
+                Text(
+                    text = stringResource(R.string.feature_settings_impl_your_data_delete_all_action),
+                    color = TmrTheme.colors.error,
+                )
+            }
+        } else {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_settings_impl_your_data_delete_all_action),
+                onClick = actions.onDeleteMyData,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                leadingIcon = TmrIcons.Delete,
             )
         }
     }
