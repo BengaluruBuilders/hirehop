@@ -112,7 +112,7 @@ class AnalysisViewModelTest {
     ) {
         if (freeCredits != null) paymentGateway = TestPaymentGateway().withFreeCredits(freeCredits)
         sessionRepository.sendAccount(SignInAccount.localAccount)
-        sessionRepository.sendConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), FixedClock.now(), "test"))
+        sessionRepository.sendConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), FixedClock.now(), ConsentRecord.CURRENT_NOTICE_VERSION))
         sessionRepository.sendOnboardingComplete(onboardingComplete)
         profileRepository.sendProfile(profile)
         if (job != null) sessionRepository.keepJobDescription(job)
