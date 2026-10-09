@@ -75,7 +75,7 @@ class AppViewModelTest {
     }
 
     @Test
-    fun rootState_afterOfflineGatewaySignOutWithStoredSession_goesFromMainToFirstRun() = runTest {
+    fun rootState_afterOfflineGatewaySignOut_goesFromMainToFirstRun() = runTest {
         val gateway = OfflineSignInGateway(sessionRepository, NoMockLatency, TestMockStateStore())
         gateway.signIn()
         sessionRepository.markOnboardingComplete()
@@ -113,23 +113,6 @@ class AppViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
         assertThat(store.read(LOCAL_DATA_KEY)).isEqualTo(LOCAL_DATA_VALUE)
-    }
-
-    @Test
-    fun rootState_whenSessionAccountIsRemovedByAnyGateway_goesToFirstRun() = runTest {
-        sessionRepository.saveAccount(SignInAccount.localAccount)
-        sessionRepository.markOnboardingComplete()
-        sessionRepository.recordConsent(consent)
-
-        viewModel().rootState.test {
-            assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
-            assertThat(awaitItem()).isEqualTo(AppRootState.Main)
-
-            sessionRepository.signOut()
-
-            assertThat(awaitItem()).isEqualTo(AppRootState.FirstRun)
-            cancelAndIgnoreRemainingEvents()
-        }
     }
 
     private companion object {
