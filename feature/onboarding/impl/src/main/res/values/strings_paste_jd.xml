@@ -44,4 +44,8 @@
     <string name="feature_onboarding_impl_paste_jd_action_analyse_off">Analyse</string>
     <string name="feature_onboarding_impl_paste_jd_reason_empty">Analyse is off until you paste the JD text.</string>
     <string name="feature_onboarding_impl_paste_jd_reason_incomplete">Analyse is off until the JD text is complete.</string>
+    <string name="feature_onboarding_impl_paste_jd_discard_title">Discard this job description?</string>
+    <string name="feature_onboarding_impl_paste_jd_discard_message">You typed text that is not analysed. If you go back, the text is lost.</string>
+    <string name="feature_onboarding_impl_paste_jd_discard_confirm">Discard</string>
+    <string name="feature_onboarding_impl_paste_jd_discard_cancel">Keep editing</string>
 </resources>

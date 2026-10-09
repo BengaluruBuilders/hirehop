@@ -14,12 +14,13 @@ import com.tailormyresume.feature.onboarding.api.navigation.ConsentNavKey
 internal fun ConsentRoute(
     key: ConsentNavKey,
     onBack: () -> Unit,
+    onBackToStart: () -> Unit,
     onNavigateToStep: (OnboardingStep) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ConsentViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onBack) { viewModel.toActions(onBack) }
+    val actions = remember(viewModel, onBack, onBackToStart) { viewModel.toActions(onBack, onBackToStart) }
     LaunchedEffect(key) { viewModel.onEnter(key) }
     LaunchedEffect(uiState.nextStep) {
         val step = uiState.nextStep
@@ -31,10 +32,11 @@ internal fun ConsentRoute(
     ConsentScreen(uiState = uiState, actions = actions, modifier = modifier)
 }
 
-private fun ConsentViewModel.toActions(onBack: () -> Unit): ConsentActions = ConsentActions(
+private fun ConsentViewModel.toActions(onBack: () -> Unit, onBackToStart: () -> Unit): ConsentActions = ConsentActions(
     onPurposeToggle = { purpose -> onAction(ConsentAction.PurposeToggled(purpose)) },
     onAgree = { onAction(ConsentAction.Agree) },
     onNotNow = { onAction(ConsentAction.NotNow) },
     onReadAgain = { onAction(ConsentAction.ReadAgain) },
     onBack = onBack,
+    onBackToStart = onBackToStart,
 )

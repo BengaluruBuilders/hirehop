@@ -3,6 +3,8 @@ package com.tailormyresume.feature.settings.impl.deleteaccount
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.data.mock.NoMockLatency
 import com.tailormyresume.core.data.repository.PendingWipeState
+import com.tailormyresume.core.domain.PaymentGateway
+import com.tailormyresume.core.domain.PurchaseEntitlement
 import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.domain.account.AccountCreditBalance
 import com.tailormyresume.core.domain.account.AccountWipeFinisher
@@ -23,7 +25,9 @@ import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.feature.settings.api.navigation.AccountDeletedNavKey
 import com.tailormyresume.feature.settings.api.navigation.DeleteAccountNavKey
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -44,6 +48,7 @@ class DeleteAccountPendingWipeViewModelTest {
     private var wipeFailures = 0
     private var wipes = 0
     private var signOutFailures = 0
+    private var walletHangs = false
 
     private val deleter = object : ServerAccountDeleter {
         override val deletesRemoteData = true
@@ -148,6 +153,34 @@ class DeleteAccountPendingWipeViewModelTest {
     }
 
     @Test
+    fun enterWithClosedMarkerNeverOffersDeleteWhileTheWalletHangs() = runTest {
+        marker.current = PendingWipeState.SERVER_CLOSED
+        walletHangs = true
+
+        val viewModel = enteredViewModel()
+
+        assertThat(viewModel.uiState.value).isNotInstanceOf(DeleteAccountUiState.Ready::class.java)
+        viewModel.onDeleteTapped()
+        assertThat(viewModel.uiState.value).isNotInstanceOf(DeleteAccountUiState.Ready::class.java)
+        assertThat(wipes).isEqualTo(1)
+    }
+
+    @Test
+    fun deleteTappedWhileTheMarkerIsBeingReadNeverSkipsTheLocalWipe() = runTest {
+        marker.current = PendingWipeState.SERVER_CLOSED
+        val gate = CompletableDeferred<Unit>()
+        marker.stateGate = gate
+        val viewModel = enteredViewModel()
+
+        viewModel.onDeleteTapped()
+        gate.complete(Unit)
+
+        val state = viewModel.uiState.value
+        assertThat(state is DeleteAccountUiState.Ready && state.isConfirmVisible).isFalse()
+        assertThat(wipes).isEqualTo(1)
+    }
+
+    @Test
     fun enterWithoutMarkerDoesNotWipe() = runTest {
         enteredViewModel()
 
@@ -195,7 +228,14 @@ class DeleteAccountPendingWipeViewModelTest {
                 sessionRepository = session,
                 signInGateway = gateway,
                 serverAccountDeleter = deleter,
-                creditBalance = AccountCreditBalance(TestPaymentGateway().withFreeCredits(2)),
+                creditBalance = AccountCreditBalance(
+                    object : PaymentGateway by TestPaymentGateway().withFreeCredits(2) {
+                        override suspend fun entitlement(): PurchaseEntitlement {
+                            if (walletHangs) awaitCancellation()
+                            return TestPaymentGateway().withFreeCredits(2).entitlement()
+                        }
+                    },
+                ),
                 latency = NoMockLatency,
                 pendingWipe = marker,
                 finishPendingWipe = FinishPendingAccountWipeUseCase(marker, finisher, deleter),

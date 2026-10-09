@@ -37,6 +37,12 @@ sealed interface ApplicationWorkspaceAction {
 
     data object CoverLetterChosen : ApplicationWorkspaceAction
 
+    data class RequirementChosen(val id: String) : ApplicationWorkspaceAction
+
+    data object RequirementDismissed : ApplicationWorkspaceAction
+
+    data class RequirementPrepAddChosen(val id: String) : ApplicationWorkspaceAction
+
     data object DeleteChosen : ApplicationWorkspaceAction
 
     data object DeleteDismissed : ApplicationWorkspaceAction

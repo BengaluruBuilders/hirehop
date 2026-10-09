@@ -7,11 +7,15 @@ interface PendingAccountWipe {
 
     suspend fun markRequested()
 
+    suspend fun markRequested(uid: String)
+
     suspend fun markServerClosed()
 
     suspend fun uid(): String?
 
     suspend fun recordUid(uid: String)
+
+    suspend fun promoteToServerClosed(uid: String): Boolean
 
     suspend fun clear()
 
@@ -21,11 +25,15 @@ interface PendingAccountWipe {
 
             override suspend fun markRequested() = Unit
 
+            override suspend fun markRequested(uid: String) = Unit
+
             override suspend fun markServerClosed() = Unit
 
             override suspend fun uid(): String? = null
 
             override suspend fun recordUid(uid: String) = Unit
+
+            override suspend fun promoteToServerClosed(uid: String) = false
 
             override suspend fun clear() = Unit
         }
