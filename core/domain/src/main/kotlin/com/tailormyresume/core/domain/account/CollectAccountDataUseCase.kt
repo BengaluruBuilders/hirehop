@@ -21,14 +21,21 @@ class CollectAccountDataUseCase @Inject constructor(
     private val paymentGateway: PaymentGateway,
     private val clock: Clock,
 ) {
-    suspend operator fun invoke(): AccountData = AccountData(
-        generatedAt = clock.now(),
-        account = sessionRepository.observeAccount().first(),
-        consent = sessionRepository.observeConsent().first(),
-        profile = profileRepository.observeProfile().first(),
-        applications = applicationRepository.observeApplications().first(),
-        entitlement = paymentGateway.entitlement(),
-        purchases = paymentGateway.purchaseHistory(),
-        exports = exportHistoryRepository.observeExports().first(),
-    )
+    suspend operator fun invoke(): AccountData {
+        val applications = applicationRepository.observeApplications().first()
+        return AccountData(
+            generatedAt = clock.now(),
+            account = sessionRepository.observeAccount().first(),
+            consent = sessionRepository.observeConsent().first(),
+            profile = profileRepository.observeProfile().first(),
+            applications = applications,
+            entitlement = paymentGateway.entitlement(),
+            purchases = paymentGateway.purchaseHistory(),
+            exports = exportHistoryRepository.observeExports().first(),
+            coverLetters = applications.mapNotNull { application ->
+                coverLetterRepository.observeLetter(application.id).first()?.let { application.id to it }
+            }.toMap(),
+            prepPlans = applications.associate { it.id to prepPlanRepository.observeItems(it.id).first() },
+        )
+    }
 }
