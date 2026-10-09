@@ -436,6 +436,7 @@ private fun FactEditorDeleteDialog(
         confirmLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_confirm),
         cancelLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_cancel),
         destructive = true,
+        icon = TmrIcons.Error,
         onConfirm = actions.onConfirmDelete,
         onCancel = actions.onDismissDelete,
     )

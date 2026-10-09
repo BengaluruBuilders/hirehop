@@ -3,7 +3,11 @@ package com.tailormyresume.core.designsystem.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,7 +23,11 @@ fun TmrLoadingWheel(
         arc = TmrTheme.colors.primary,
         size = 40.dp,
         modifier = modifier
-            .semantics { contentDescription = contentDesc }
+            .semantics {
+                contentDescription = contentDesc
+                progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+                liveRegion = LiveRegionMode.Polite
+            }
             .testTag("loadingWheel"),
     )
 }

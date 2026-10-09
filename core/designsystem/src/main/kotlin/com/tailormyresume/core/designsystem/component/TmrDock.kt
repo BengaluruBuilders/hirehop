@@ -55,13 +55,13 @@ fun TmrDock(
             .windowInsetsPadding(WindowInsets.navigationBars)
             .padding(
                 horizontal = TmrTheme.spacing.gutter,
-                vertical = TmrTheme.spacing.sm,
+                vertical = TmrDockDefaults.verticalPadding,
             ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(TmrDockHeight)
+                .height(TmrDockDefaults.height)
                 .tmrShadow(TmrTheme.elevation.dock, TmrDockShape)
                 .clip(TmrDockShape)
                 .background(TmrTheme.colors.tool)
@@ -136,7 +136,6 @@ fun RowScope.TmrDockItem(
     }
 }
 
-private val TmrDockHeight = 68.dp
 private val TmrDockPadding = 6.dp
 private val TmrDockGap = 4.dp
 private val TmrDockItemGap = 3.dp

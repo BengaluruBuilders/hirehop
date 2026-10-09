@@ -29,7 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -169,7 +171,7 @@ private fun FactsProgress(uiState: ConfirmFactsUiState) {
 }
 
 @Composable
-private fun ProgressBar(
+internal fun ProgressBar(
     confirmed: Int,
     total: Int,
 ) {
@@ -178,6 +180,7 @@ private fun ProgressBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(PROGRESS_HEIGHT)
+            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(fraction.coerceIn(0f, 1f), 0f..1f) }
             .clip(TmrTheme.shapes.pill)
             .background(TmrTheme.colors.primaryContainer),
     ) {

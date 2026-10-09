@@ -27,6 +27,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrOutlinedButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
+import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrSectionLabel
 import com.tailormyresume.core.designsystem.component.TmrStepProgress
 import com.tailormyresume.core.designsystem.component.TmrTextButton
@@ -105,6 +106,7 @@ private fun DeleteConfirmDialog(counts: AccountDeletionCounts, actions: DeleteAc
         onConfirm = actions.onDeleteConfirmed,
         onCancel = actions.onDeleteDismissed,
         destructive = true,
+        icon = TmrIcons.Error,
     )
 }
 
@@ -232,21 +234,27 @@ private fun ReadyBar(uiState: DeleteAccountUiState.Ready, actions: DeleteAccount
             onClick = actions.onKeepAccount,
             modifier = Modifier.fillMaxWidth(),
         )
-        TmrOutlinedButton(
-            onClick = actions.onDeleteAccount,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isOffline,
-        ) {
-            Icon(
-                imageVector = TmrIcons.Delete,
-                contentDescription = null,
-                tint = TmrTheme.colors.error,
-                modifier = Modifier.size(BUTTON_ICON_SIZE),
+        if (uiState.isOffline) {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_settings_impl_delete_account_confirm),
+                onClick = actions.onDeleteAccount,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                leadingIcon = TmrIcons.Delete,
             )
-            Text(
-                text = stringResource(R.string.feature_settings_impl_delete_account_confirm),
-                color = TmrTheme.colors.error,
-            )
+        } else {
+            TmrOutlinedButton(onClick = actions.onDeleteAccount, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = TmrIcons.Delete,
+                    contentDescription = null,
+                    tint = TmrTheme.colors.error,
+                    modifier = Modifier.size(BUTTON_ICON_SIZE),
+                )
+                Text(
+                    text = stringResource(R.string.feature_settings_impl_delete_account_confirm),
+                    color = TmrTheme.colors.error,
+                )
+            }
         }
     }
 }
