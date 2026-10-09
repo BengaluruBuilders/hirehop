@@ -5,6 +5,7 @@ import com.tailormyresume.core.domain.prep.PrepQuestionGenerator
 import com.tailormyresume.core.domain.prep.PrepQuestionKind
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.DebugScenario
+import com.tailormyresume.feature.tailor.impl.AiNotice
 import com.tailormyresume.feature.tailor.impl.coverletter.CoverLetterFactRef
 import com.tailormyresume.feature.tailor.impl.coverletter.confirmedFactsOf
 
@@ -43,6 +44,7 @@ data class PrepQuestionsUiState(
     val isOffline: Boolean = false,
     val message: PrepQuestionsMessage? = null,
     val reportedIds: Set<String> = emptySet(),
+    val failure: AiNotice = AiNotice.Generic,
 ) {
     val factCards: List<PrepQuestionCard>
         get() = groups.filter { it.kind != PrepQuestionKind.GAP }.flatMap { it.cards }

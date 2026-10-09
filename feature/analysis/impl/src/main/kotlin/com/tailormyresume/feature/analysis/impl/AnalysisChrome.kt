@@ -347,7 +347,7 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
     AnalysisToast.GapClosed -> stringResource(R.string.feature_analysis_impl_toast_gap_closed)
     AnalysisToast.Reported -> stringResource(R.string.feature_analysis_impl_toast_reported)
     AnalysisToast.EvidenceFailed -> stringResource(R.string.feature_analysis_impl_toast_evidence_failed)
-    AnalysisToast.TailorFailed -> stringResource(R.string.feature_analysis_impl_toast_tailor_failed)
+    AnalysisToast.TailorFailed, is AnalysisToast.TailorBlocked -> stringResource(R.string.feature_analysis_impl_toast_tailor_failed)
 }
 
 private val NOTE_ICON_SIZE = 22.dp

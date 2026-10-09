@@ -13,7 +13,17 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.time.Clock
 
-internal enum class RegenerateResult { Done, Skipped, NoCredit, Failed }
+internal sealed interface RegenerateResult {
+    data object Done : RegenerateResult
+
+    data object Skipped : RegenerateResult
+
+    data object NoCredit : RegenerateResult
+
+    data object Failed : RegenerateResult
+
+    data class Blocked(val notice: AiNotice) : RegenerateResult
+}
 
 internal class RegenerateSectionUseCase @Inject constructor(
     private val applicationRepository: ApplicationRepository,
