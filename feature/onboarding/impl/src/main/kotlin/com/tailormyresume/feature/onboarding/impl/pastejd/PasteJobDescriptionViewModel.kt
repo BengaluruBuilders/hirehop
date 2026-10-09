@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.common.network.Dispatcher
@@ -23,12 +25,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel
 class PasteJobDescriptionViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
@@ -38,6 +45,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
     private val proposeJobLabel: ProposeJobLabelUseCase,
     private val discardJobDrafts: DiscardJobDraftsUseCase,
     @param:Dispatcher(TmrDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(PasteJobDescriptionUiState())
@@ -66,7 +74,19 @@ class PasteJobDescriptionViewModel @Inject constructor(
             scenario = key.scenario,
             sharedText = sharedText,
         )
+        restoreTypedInput()
         schedulePrefill()
+        mutableState
+            .map { listOf(it.text.take(MAX_SAVED_TEXT_CHARACTERS), it.company, it.role, proposedCompany, proposedRole) }
+            .distinctUntilChanged()
+            .onEach { (text, company, role, proposedCompany, proposedRole) ->
+                savedState[TEXT_KEY] = text
+                savedState[COMPANY_KEY] = company
+                savedState[ROLE_KEY] = role
+                savedState[PROPOSED_COMPANY_KEY] = proposedCompany
+                savedState[PROPOSED_ROLE_KEY] = proposedRole
+            }
+            .launchIn(viewModelScope)
         val forcedOffline = key.scenario == DebugScenario.OFFLINE
         viewModelScope.launch {
             connectivityMonitor.observeOffline(forcedOffline).collect { offline ->
@@ -79,6 +99,23 @@ class PasteJobDescriptionViewModel @Inject constructor(
                     mutableState.update { it.copy(freeAnalysesLeft = left) }
                 }
             }
+        }
+    }
+
+    private fun restoreTypedInput() {
+        val text = savedState.get<String>(TEXT_KEY) ?: return
+        proposedCompany = savedState.get<String>(PROPOSED_COMPANY_KEY).orEmpty()
+        proposedRole = savedState.get<String>(PROPOSED_ROLE_KEY).orEmpty()
+        viewModelScope.launch {
+            val kept = sessionRepository.observeKeptJobDescription().first()
+            if (kept != null) mutableState.update { it.copy(keptText = kept.text) }
+        }
+        mutableState.update {
+            it.copy(
+                text = text,
+                company = savedState.get<String>(COMPANY_KEY).orEmpty(),
+                role = savedState.get<String>(ROLE_KEY).orEmpty(),
+            )
         }
     }
 
@@ -194,5 +231,11 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private companion object {
         const val PREFILL_DEBOUNCE_MS = 300L
+        const val TEXT_KEY = "pasteJd.text"
+        const val COMPANY_KEY = "pasteJd.company"
+        const val ROLE_KEY = "pasteJd.role"
+        const val PROPOSED_COMPANY_KEY = "pasteJd.proposedCompany"
+        const val PROPOSED_ROLE_KEY = "pasteJd.proposedRole"
+        const val MAX_SAVED_TEXT_CHARACTERS = 100_000
     }
 }

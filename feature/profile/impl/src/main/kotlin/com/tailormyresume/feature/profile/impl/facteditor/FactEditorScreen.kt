@@ -431,11 +431,7 @@ private fun FactEditorDeleteDialog(
     actions: FactEditorActions,
 ) {
     TmrConfirmDialog(
-        title = stringResource(
-            R.string.feature_profile_impl_fact_editor_delete_title,
-            uiState.displayId,
-            uiState.draft.title,
-        ),
+        title = stringResource(R.string.feature_profile_impl_fact_editor_delete_title, uiState.displayId),
         message = stringResource(R.string.feature_profile_impl_fact_editor_delete_message),
         confirmLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_confirm),
         cancelLabel = stringResource(R.string.feature_profile_impl_fact_editor_delete_cancel),
