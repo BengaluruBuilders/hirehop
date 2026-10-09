@@ -311,12 +311,20 @@ private fun FactRow(fact: ImportedFactUi) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TmrFactId(id = fact.id)
-        Text(
-            text = fact.line,
-            modifier = Modifier.weight(1f),
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
-            color = TmrTheme.colors.onSurface,
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            if (fact.continued) {
+                Text(
+                    text = stringResource(R.string.feature_onboarding_impl_import_resume_continued),
+                    style = TmrTheme.typography.labelM,
+                    color = TmrTheme.colors.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = fact.line,
+                style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+                color = TmrTheme.colors.onSurface,
+            )
+        }
     }
 }
 

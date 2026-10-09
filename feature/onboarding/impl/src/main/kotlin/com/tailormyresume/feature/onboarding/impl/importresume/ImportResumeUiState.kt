@@ -31,6 +31,7 @@ data class ImportedFactUi(
     val id: String,
     val category: EntryCategory,
     val line: String,
+    val continued: Boolean = false,
 )
 
 data class ImportResumeUiState(

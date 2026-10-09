@@ -9,6 +9,7 @@ import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.continues
 import com.tailormyresume.feature.tailor.impl.document.isFreshFor
 import com.tailormyresume.feature.tailor.impl.document.reviewedEntries
 
@@ -66,9 +67,20 @@ private fun buildEntries(
         }
         .toMap()
     val bulletsByEntry = resume.bullets.groupBy { it.entryId }
-    return reviewed.map { entry ->
-        entry.toUi(bulletsByEntry[entry.id].orEmpty(), sourceById, editedBulletIds)
+    val merged = mutableListOf<Pair<ProfileEntry, TailorEntryUi>>()
+    val headByCategory = mutableMapOf<EntryCategory, Int>()
+    reviewed.forEach { entry ->
+        val ui = entry.toUi(bulletsByEntry[entry.id].orEmpty(), sourceById, editedBulletIds)
+        val headIndex = headByCategory[entry.category]
+        val head = headIndex?.let { merged[it] }
+        if (headIndex != null && head != null && entry.continues(head.first)) {
+            merged[headIndex] = head.first to head.second.copy(bullets = head.second.bullets + ui.bullets)
+        } else {
+            headByCategory[entry.category] = merged.size
+            merged += entry to ui
+        }
     }
+    return merged.map { it.second }
 }
 
 private fun ProfileEntry.sourceOf(id: String, displayId: String, text: String): TailoredBulletSource =

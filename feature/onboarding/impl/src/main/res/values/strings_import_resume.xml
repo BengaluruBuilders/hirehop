@@ -12,6 +12,7 @@
     <string name="feature_onboarding_impl_import_resume_progress_description">Reading progress</string>
     <string name="feature_onboarding_impl_import_resume_reading_time">Up to 30 seconds</string>
     <string name="feature_onboarding_impl_import_resume_facts_so_far">Facts found so far · %1$d</string>
+    <string name="feature_onboarding_impl_import_resume_continued">Continued</string>
     <string name="feature_onboarding_impl_import_resume_reading_footnote">You\'ll confirm each fact next.</string>
 
     <string name="feature_onboarding_impl_import_resume_queued_body">You\'re offline. Reading your resume needs a connection.</string>
