@@ -22,7 +22,7 @@ internal class AuthInterceptor(
             tokens.idToken(forceRefresh = false)
         } catch (expired: SessionExpiredException) {
             sessionListener.onSessionExpired()
-            return unauthorised(chain.request())
+            return unauthorised(chain.request(), expired)
         } ?: return chain.proceed(chain.request())
         val first = chain.proceed(chain.request().withBearer(token))
         if (first.code != 401) return first
@@ -30,6 +30,10 @@ internal class AuthInterceptor(
             tokens.idToken(forceRefresh = true)
         } catch (expired: SessionExpiredException) {
             sessionListener.onSessionExpired()
+            if (expired.accountGone) {
+                first.close()
+                return unauthorised(chain.request(), expired)
+            }
             null
         } catch (failure: IOException) {
             first.close()
@@ -41,17 +45,18 @@ internal class AuthInterceptor(
         return second
     }
 
-    private fun unauthorised(request: Request): Response = Response.Builder()
+    private fun unauthorised(request: Request, expired: SessionExpiredException): Response = Response.Builder()
         .request(request)
         .protocol(Protocol.HTTP_1_1)
         .code(401)
         .message("Session expired")
         .header("Content-Type", "application/json")
-        .body(EXPIRED_BODY.toResponseBody("application/json".toMediaType()))
+        .body((if (expired.accountGone) GONE_BODY else EXPIRED_BODY).toResponseBody("application/json".toMediaType()))
         .build()
 
     private companion object {
         const val EXPIRED_BODY = """{"error":{"code":"UNAUTHENTICATED","message":"Session expired"}}"""
+        const val GONE_BODY = """{"error":{"code":"ACCOUNT_DELETED","message":"Session expired"}}"""
     }
 
     private fun Request.withBearer(token: String): Request =

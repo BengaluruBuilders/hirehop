@@ -1,6 +1,7 @@
 package com.tailormyresume.app.auth
 
 import com.tailormyresume.core.data.repository.PendingAccountWipe
+import com.tailormyresume.core.data.repository.PendingWipeState
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.SignInAccount
 import com.tailormyresume.core.domain.SignInGateway
@@ -45,7 +46,12 @@ class RemoteSignInGateway @Inject constructor(
         }
         val account = SignInAccount(id = user.uid, displayName = user.displayName.ifBlank { user.email }, email = user.email)
         val previousAccountId = sessionRepository.lastAccountId()
-        if (previousAccountId != null && previousAccountId != user.uid) wipeKeepingOnboardingInput()
+        val markerOwner = if (pendingWipe.state() == PendingWipeState.NONE) null else pendingWipe.uid()
+        val markerIsForAnotherAccount = markerOwner != null && markerOwner != user.uid
+        if ((previousAccountId != null && previousAccountId != user.uid) || markerIsForAnotherAccount) {
+            wipeKeepingOnboardingInput()
+        }
+        if (markerIsForAnotherAccount) pendingWipe.clear()
         sessionRepository.saveLastAccountId(user.uid)
         sessionRepository.saveAccount(account)
         return SignInResult.SignedIn(account)

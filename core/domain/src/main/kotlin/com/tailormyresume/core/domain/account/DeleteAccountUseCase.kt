@@ -52,8 +52,10 @@ class DeleteAccountUseCase @Inject constructor(
         val exports = exportHistoryRepository.observeExports().first()
         val counts = countsOf(applications, profile)
         val tracksPendingWipe = serverAccountDeleter.deletesRemoteData
-        if (tracksPendingWipe && !markRequested()) return AccountDeletionResult.Failed(dataIntact = true)
+        val earlierAttempt = tracksPendingWipe && hasEarlierRequestedAttempt()
+        if (tracksPendingWipe && !earlierAttempt && !markRequested()) return AccountDeletionResult.Failed(dataIntact = true)
         if (serverAccountDeleter.delete().isFailure) {
+            if (earlierAttempt) return settlePendingWipe(counts, dataIntactIfOpen = true)
             if (tracksPendingWipe) clearMarkerQuietly()
             return AccountDeletionResult.Failed(dataIntact = true)
         }
@@ -81,7 +83,7 @@ class DeleteAccountUseCase @Inject constructor(
             throw cancellation
         } catch (failure: Exception) {
             if (tracksPendingWipe) {
-                finishAfterLocalFailure(counts)
+                settlePendingWipe(counts, dataIntactIfOpen = false)
             } else {
                 val restored = restore(applications, profile, exports, onStep)
                 AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched)
@@ -89,16 +91,27 @@ class DeleteAccountUseCase @Inject constructor(
         }
     }
 
-    private suspend fun finishAfterLocalFailure(counts: AccountDeletionCounts): AccountDeletionResult =
+    private suspend fun settlePendingWipe(counts: AccountDeletionCounts, dataIntactIfOpen: Boolean): AccountDeletionResult =
         when (finishPendingWipe()) {
             PendingWipeOutcome.FINISHED -> AccountDeletionResult.Deleted(counts)
             PendingWipeOutcome.STILL_PENDING -> AccountDeletionResult.LocalWipePending
             PendingWipeOutcome.NOTHING_PENDING, PendingWipeOutcome.ACCOUNT_KEPT ->
-                AccountDeletionResult.Failed(dataIntact = false)
+                AccountDeletionResult.Failed(dataIntact = dataIntactIfOpen)
         }
 
+    private suspend fun hasEarlierRequestedAttempt(): Boolean = try {
+        val markerOwner = pendingWipe.uid()
+        pendingWipe.state() == PendingWipeState.REQUESTED &&
+            (markerOwner == null || markerOwner == signInGateway.currentAccount()?.id)
+    } catch (failure: Exception) {
+        false
+    }
+
     private suspend fun markRequested(): Boolean = try {
-        withContext(NonCancellable) { pendingWipe.markRequested() }
+        withContext(NonCancellable) {
+            pendingWipe.markRequested()
+            signInGateway.currentAccount()?.id?.let { pendingWipe.recordUid(it) }
+        }
         true
     } catch (cancellation: CancellationException) {
         throw cancellation

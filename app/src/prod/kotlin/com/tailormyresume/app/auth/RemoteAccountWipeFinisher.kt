@@ -11,6 +11,12 @@ class RemoteAccountWipeFinisher @Inject constructor(
     private val pendingWipe: PendingAccountWipe = PendingAccountWipe.None,
 ) : AccountWipeFinisher {
     override suspend fun finish() {
+        val currentId = signInGateway.currentAccount()?.id
+        val markerId = pendingWipe.uid()
+        if (currentId != null && markerId != null && currentId != markerId) {
+            pendingWipe.clear()
+            return
+        }
         signInGateway.signOut()
         wiper.wipeAll()
     }

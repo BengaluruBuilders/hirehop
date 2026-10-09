@@ -10,17 +10,24 @@ class StoredPendingAccountWipe @Inject constructor(private val store: MockStateS
     override suspend fun state(): PendingWipeState =
         PendingWipeState.entries.firstOrNull { it.name == store.read(KEY) } ?: PendingWipeState.NONE
 
-    override suspend fun markRequested() = store.write(KEY, PendingWipeState.REQUESTED.name)
+    override suspend fun markRequested() {
+        store.remove(UID_KEY)
+        store.write(KEY, PendingWipeState.REQUESTED.name)
+    }
 
     override suspend fun markServerClosed() = store.write(KEY, PendingWipeState.SERVER_CLOSED.name)
 
-    override suspend fun uid(): String? = null
+    override suspend fun uid(): String? = store.read(UID_KEY)
 
-    override suspend fun recordUid(uid: String) = Unit
+    override suspend fun recordUid(uid: String) = store.write(UID_KEY, uid)
 
-    override suspend fun clear() = store.remove(KEY)
+    override suspend fun clear() {
+        store.remove(KEY)
+        store.remove(UID_KEY)
+    }
 
     private companion object {
         const val KEY = "account.pendingWipe"
+        const val UID_KEY = "account.pendingWipe.uid"
     }
 }
