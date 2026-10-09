@@ -157,6 +157,13 @@ fun ApplicationDetailScreen(
     if (ready.statusSheet != null) {
         WorkspaceStatusSheetHost(state = ready.statusSheet, onAction = onAction)
     }
+    if (ready.requirementSheet != null) {
+        WorkspaceRequirementSheet(
+            state = ready.requirementSheet,
+            onAddToPrepPlan = { onAction(ApplicationWorkspaceAction.RequirementPrepAddChosen(ready.requirementSheet.id)) },
+            onDismiss = { onAction(ApplicationWorkspaceAction.RequirementDismissed) },
+        )
+    }
     if (ready.isDeleteDialogVisible && ready.deleteScope != null) {
         ApplicationDeleteDialog(
             jobTitle = roleOrFallback(ready.jobTitle),
@@ -312,6 +319,7 @@ private fun WorkspaceContent(
             matches = state.matches,
             isExpanded = state.isGapExpanded,
             onToggle = { onAction(ApplicationWorkspaceAction.GapAnalysisToggled) },
+            onMatchChosen = { id -> onAction(ApplicationWorkspaceAction.RequirementChosen(id)) },
         )
         WorkspaceResumeSection(
             resume = state.resume,

@@ -41,6 +41,7 @@ internal fun previewWorkspaceReadyState(
     isMoreOpen: Boolean = false,
     isDeleteDialogVisible: Boolean = false,
     statusSheet: ApplicationStatusSheetState? = null,
+    requirementSheet: WorkspaceRequirementSheetState? = null,
 ) = ApplicationDetailUiState.Ready(
     jobTitle = NORTHWIND_ROLE,
     company = NORTHWIND_COMPANY,
@@ -65,6 +66,7 @@ internal fun previewWorkspaceReadyState(
     isMoreOpen = isMoreOpen,
     statusSheet = statusSheet,
     isDeleteDialogVisible = isDeleteDialogVisible,
+    requirementSheet = requirementSheet,
     deleteScope = WorkspaceDeleteScope(
         hasJobDescription = true,
         hasGapAnalysis = true,

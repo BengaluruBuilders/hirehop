@@ -19,6 +19,17 @@ data class WorkspaceMatch(
     val id: String,
     val requirementText: String,
     val status: MatchStatus,
+    val evidenceIds: List<String> = emptyList(),
+)
+
+@Immutable
+data class WorkspaceRequirementSheetState(
+    val id: String,
+    val name: String,
+    val requirementText: String,
+    val status: MatchStatus,
+    val evidenceIds: List<String>,
+    val isInPrepPlan: Boolean,
 )
 
 @Immutable
@@ -95,6 +106,7 @@ sealed interface ApplicationDetailUiState {
         val statusSheet: ApplicationStatusSheetState?,
         val isDeleteDialogVisible: Boolean,
         val deleteScope: WorkspaceDeleteScope?,
+        val requirementSheet: WorkspaceRequirementSheetState? = null,
     ) : ApplicationDetailUiState
 }
 
