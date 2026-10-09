@@ -21,6 +21,7 @@ class OfflineJobDescriptionAnalyzer @Inject constructor() : JobDescriptionAnalyz
     private fun withoutHeadlineSentence(line: JdLine, titleCompany: TitleCompany): JdLine? {
         val sentence = titleCompany.headlineSentence
         if (line.index != titleCompany.headlineSentenceIndex || sentence == null) return line
+        if (!line.text.contains(sentence)) return line
         val remaining = line.text.replace(sentence, "").trim()
         return if (remaining.isEmpty()) null else line.copy(text = remaining)
     }
