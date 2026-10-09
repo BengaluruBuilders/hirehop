@@ -8,5 +8,8 @@ class RemoteAccountWipeFinisher @Inject constructor(
     private val signInGateway: SignInGateway,
     private val wiper: LocalDataWiper,
 ) : AccountWipeFinisher {
-    override suspend fun finish() = Unit
+    override suspend fun finish() {
+        signInGateway.signOut()
+        wiper.wipeAll()
+    }
 }

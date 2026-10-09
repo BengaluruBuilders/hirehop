@@ -34,9 +34,9 @@ class DeleteAccountUseCase @Inject constructor(
         FinishPendingAccountWipeUseCase(pendingWipe, AccountWipeFinisher.None, serverAccountDeleter),
 ) {
 
-    suspend fun hasServerClosedPendingWipe(): Boolean = false
+    suspend fun hasServerClosedPendingWipe(): Boolean = pendingWipe.state() == PendingWipeState.SERVER_CLOSED
 
-    suspend fun finishRemoval(): PendingWipeOutcome = PendingWipeOutcome.NOTHING_PENDING
+    suspend fun finishRemoval(): PendingWipeOutcome = finishPendingWipe()
 
     suspend fun preview(): AccountDeletionCounts {
         val applications = applicationRepository.observeApplications().first()
@@ -51,9 +51,15 @@ class DeleteAccountUseCase @Inject constructor(
         val profile = profileRepository.observeProfile().first()
         val exports = exportHistoryRepository.observeExports().first()
         val counts = countsOf(applications, profile)
-        if (serverAccountDeleter.delete().isFailure) return AccountDeletionResult.Failed(dataIntact = true)
+        val tracksPendingWipe = serverAccountDeleter.deletesRemoteData
+        if (tracksPendingWipe && !markRequested()) return AccountDeletionResult.Failed(dataIntact = true)
+        if (serverAccountDeleter.delete().isFailure) {
+            if (tracksPendingWipe) clearMarkerQuietly()
+            return AccountDeletionResult.Failed(dataIntact = true)
+        }
         var creditsTouched = false
         return try {
+            if (tracksPendingWipe) withContext(NonCancellable) { pendingWipe.markServerClosed() }
             startStep(AccountDeletionStep.DELETING_PROFILE_FACTS, onStep)
             profileRepository.clearProfile()
             exportHistoryRepository.clear()
@@ -68,14 +74,43 @@ class DeleteAccountUseCase @Inject constructor(
                 signInGateway.signOut()
                 sessionRepository.clear()
                 exportedFiles.deleteAll()
+                if (tracksPendingWipe) pendingWipe.clear()
             }
             AccountDeletionResult.Deleted(counts)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (failure: Exception) {
-            val serverCopyGone = serverAccountDeleter.deletesRemoteData
-            val restored = !serverCopyGone && restore(applications, profile, exports, onStep)
-            AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched)
+            if (tracksPendingWipe) {
+                finishAfterLocalFailure(counts)
+            } else {
+                val restored = restore(applications, profile, exports, onStep)
+                AccountDeletionResult.Failed(dataIntact = restored && !creditsTouched)
+            }
+        }
+    }
+
+    private suspend fun finishAfterLocalFailure(counts: AccountDeletionCounts): AccountDeletionResult =
+        when (finishPendingWipe()) {
+            PendingWipeOutcome.FINISHED -> AccountDeletionResult.Deleted(counts)
+            PendingWipeOutcome.STILL_PENDING -> AccountDeletionResult.LocalWipePending
+            PendingWipeOutcome.NOTHING_PENDING, PendingWipeOutcome.ACCOUNT_KEPT ->
+                AccountDeletionResult.Failed(dataIntact = false)
+        }
+
+    private suspend fun markRequested(): Boolean = try {
+        withContext(NonCancellable) { pendingWipe.markRequested() }
+        true
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: Exception) {
+        false
+    }
+
+    private suspend fun clearMarkerQuietly() {
+        try {
+            withContext(NonCancellable) { pendingWipe.clear() }
+        } catch (failure: Exception) {
+            return
         }
     }
 
