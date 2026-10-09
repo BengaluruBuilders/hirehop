@@ -216,6 +216,14 @@ keywords = ["bedrock-api-key-"]
 description = "the rule's own definition line"
 regexTarget = "line"
 regexes = ['''\A\n?regex = '{3}bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29[t]'{3}\z''']
+# Local addition: commit 3d7e4d5f of PR 218 held the prefix in the test helper that builds a fake key; history cannot be
+# rewritten by merge. Both conditions must hold, so only that one helper line in that file is exempt.
+[[rules.allowlists]]
+description = "the fake key helper line in an earlier commit of the scan test"
+condition = "AND"
+paths = ['''^tools/ci/test-scan-secrets\.sh$''']
+regexTarget = "line"
+regexes = ['''^\s*echo "bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29[t]\$\(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom \| head -c 120\)"$''']
 
 [[rules]]
 id = "azure-ad-client-secret"
