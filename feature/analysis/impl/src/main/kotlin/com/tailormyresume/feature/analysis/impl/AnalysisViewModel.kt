@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers
+import com.tailormyresume.core.common.jobs.TrackedJobs
 import com.tailormyresume.core.common.network.di.ApplicationScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.data.repository.ContentReportRepository
@@ -83,6 +84,7 @@ class AnalysisViewModel @Inject constructor(
     connectivityMonitor: ConnectivityMonitor,
     @param:Dispatcher(TmrDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
+    private val trackedJobs: TrackedJobs = TrackedJobs(),
 ) : ViewModel() {
 
     private val local = MutableStateFlow(Local())
