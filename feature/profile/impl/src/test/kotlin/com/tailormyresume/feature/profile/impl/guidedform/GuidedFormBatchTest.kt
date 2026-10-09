@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -43,9 +44,13 @@ class GuidedFormBatchTest {
 
     @Test
     fun savedForLaterShowsThreeOfFourWithThreeFilledBars() {
-        show(GuidedFormUiState(saved = GuidedSaved(completedSteps = 3, totalSteps = 4, entryIds = listOf("U-01"))))
+        val done = setOf(GuidedStep.CONTACT, GuidedStep.EDUCATION, GuidedStep.SKILLS)
+        show(GuidedFormUiState(saved = GuidedSaved(completedSteps = 3, totalSteps = 4, entryIds = listOf("U-01"), doneSteps = done)))
 
-        composeRule.onNodeWithContentDescription("3 of 4").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Skills, done").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Contact, done").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Education, done").assertIsDisplayed()
+        assertThat(composeRule.onAllNodesWithContentDescription("Experience, done").fetchSemanticsNodes()).isEmpty()
         assertThat(composeRule.onAllNodesWithText("4 of 4").fetchSemanticsNodes()).isEmpty()
     }
 
@@ -76,18 +81,33 @@ class GuidedFormBatchTest {
     }
 
     @Test
-    fun yesChangesThePrimaryToAddAJob() {
-        show(GuidedFormUiState(stepIndex = 3, experienceChoice = ExperienceChoice.YES))
+    fun yesKeepsContinueToProjectsAsThePrimaryAndOpensTheJobEditor() {
+        var jobEditorOpened = false
+        var moved = false
+        composeRule.setContent {
+            TmrTheme {
+                GuidedFormScreen(
+                    uiState = GuidedFormUiState(stepIndex = 3, experienceChoice = ExperienceChoice.YES),
+                    actions = GuidedFormActions.None.copy(onAddJob = { jobEditorOpened = true }, onNext = { moved = true }),
+                    onBack = {},
+                )
+            }
+        }
 
         composeRule.onNodeWithText("Yes").assertIsSelected()
-        composeRule.onNodeWithText("Add a job or internship").assertIsDisplayed()
+        composeRule.onNodeWithText("Yes").performClick()
+        assertThat(jobEditorOpened).isTrue()
+        composeRule.onNodeWithText("Continue to projects").performClick()
+        assertThat(moved).isTrue()
+        assertThat(composeRule.onAllNodesWithText("Add a job or internship").fetchSemanticsNodes()).isEmpty()
     }
 
     @Test
-    fun skillsNoteSaysEachSkillBecomesAUserStatedFact() {
+    fun skillsNoteDoesNotClaimSkillsAreUserStatedFacts() {
         show(GuidedFormUiState(stepIndex = 2))
 
-        composeRule.onNodeWithText("Each skill becomes a user-stated fact.").assertIsDisplayed()
+        assertThat(composeRule.onAllNodesWithText("Each skill becomes a user-stated fact.").fetchSemanticsNodes()).isEmpty()
+        composeRule.onNodeWithText("Add tools you actually used.", substring = true).assertIsDisplayed()
     }
 
     @Test

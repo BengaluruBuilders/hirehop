@@ -162,7 +162,10 @@ private fun ExperienceContent(
         ChoiceRow(
             labelRes = R.string.feature_profile_impl_guided_form_choice_yes,
             selected = choice == ExperienceChoice.YES,
-            onClick = { actions.onChooseExperience(ExperienceChoice.YES) },
+            onClick = {
+                actions.onChooseExperience(ExperienceChoice.YES)
+                actions.onAddJob()
+            },
         )
         ChoiceRow(
             labelRes = R.string.feature_profile_impl_guided_form_choice_no,

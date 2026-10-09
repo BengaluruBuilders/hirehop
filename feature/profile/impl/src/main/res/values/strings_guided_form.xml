@@ -30,12 +30,11 @@
     <string name="feature_profile_impl_guided_form_field_coursework_optional">Coursework you can talk about (optional)</string>
     <string name="feature_profile_impl_guided_form_field_skill">Add a skill you have used</string>
     <string name="feature_profile_impl_guided_form_skill_placeholder">Type a skill, then tap Add</string>
-    <string name="feature_profile_impl_guided_form_skills_hint">Each skill becomes a user-stated fact.</string>
+    <string name="feature_profile_impl_guided_form_skills_hint">Add tools you actually used. You can add where you used them on the next steps.</string>
 
     <string name="feature_profile_impl_guided_form_filed_caption">%1$s is done, filed into your profile</string>
     <string name="feature_profile_impl_guided_form_experience_question">Have you had a job or an internship?</string>
     <string name="feature_profile_impl_guided_form_skips_reassurance">No work experience yet? That is fine. Next, we’ll ask about your projects.</string>
-    <string name="feature_profile_impl_guided_form_add_job">Add a job or internship</string>
     <string name="feature_profile_impl_guided_form_choice_yes">Yes</string>
     <string name="feature_profile_impl_guided_form_choice_no">No, not yet</string>
 

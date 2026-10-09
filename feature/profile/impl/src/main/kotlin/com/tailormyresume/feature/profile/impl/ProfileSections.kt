@@ -2,20 +2,21 @@ package com.tailormyresume.feature.profile.impl
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -77,26 +78,27 @@ internal fun SectionCard(
     expanded: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val title = stringResource(section.kind.titleRes())
     val description = stringResource(R.string.feature_profile_impl_section_description, title, sectionSubtitle(section))
     val stateText = stringResource(
         if (expanded) R.string.feature_profile_impl_section_state_expanded else R.string.feature_profile_impl_section_state_collapsed,
     )
-    TmrCard(
-        onClick = onToggle,
-        contentPadding = PaddingValues(TmrTheme.spacing.md),
-        modifier = modifier.clearAndSetSemantics {
-            contentDescription = description
-            stateDescription = stateText
-            role = Role.Button
-            onClick {
-                onToggle()
-                true
-            }
-        },
-    ) {
+    TmrCard(modifier = modifier, contentPadding = PaddingValues(TmrTheme.spacing.md)) {
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .clearAndSetSemantics {
+                    contentDescription = description
+                    stateDescription = stateText
+                    role = Role.Button
+                    onClick {
+                        onToggle()
+                        true
+                    }
+                },
             horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -130,10 +132,12 @@ internal fun SectionCard(
                 tint = TmrTheme.colors.onSurfaceVariant,
             )
         }
+        if (content != null) content()
     }
 }
 
-internal fun LazyListScope.sectionFactItems(
+@Composable
+internal fun SectionFacts(
     state: ProfileUiState.Success,
     section: ProfileSection,
     actions: ProfileActions,
@@ -142,44 +146,45 @@ internal fun LazyListScope.sectionFactItems(
 ) {
     val category = section.kind.entryCategory()
     if (category != null) {
-        items(
-            items = state.profile.entries.filter { it.category == category },
-            key = { "fact-${section.kind.name}-${it.id}" },
-        ) { entry ->
-            FactCard(
-                entry = entry,
-                displayId = FactDisplayIds.of(entry, state.profile.entries),
-                onEdit = { navigation.onOpenFact(entry.id) },
-                onConfirm = if (entry.isConfirmed) null else ({ actions.onConfirmEntry(entry.id) }),
-            )
-        }
-    } else {
-        items(items = state.profile.skills.withIndex().toList(), key = { "fact-skill-${it.index}" }) { (index, skill) ->
-            FactCard(
-                id = skillId(index),
-                status = FactStatus.Confirmed,
-                kind = stringResource(R.string.feature_profile_impl_kind_skill),
-                summary = skill,
-            ) {
-                TmrOutlineButton(
-                    label = stringResource(R.string.feature_profile_impl_skill_remove),
-                    onClick = { actions.onRemoveSkill(skill) },
-                    trailingIcon = TmrIcons.Delete,
-                    size = TmrButtonSize.Compact,
+        state.profile.entries.filter { it.category == category }.forEach { entry ->
+            key("fact-${section.kind.name}-${entry.id}") {
+                FactCard(
+                    entry = entry,
+                    displayId = FactDisplayIds.of(entry, state.profile.entries),
+                    onEdit = { navigation.onOpenFact(entry.id) },
+                    onConfirm = if (entry.isConfirmed) null else ({ actions.onConfirmEntry(entry.id) }),
+                    embedded = true,
                 )
             }
         }
+    } else {
+        state.profile.skills.forEachIndexed { index, skill ->
+            key("fact-skill-$index") {
+                FactCard(
+                    id = skillId(index),
+                    status = FactStatus.Confirmed,
+                    kind = stringResource(R.string.feature_profile_impl_kind_skill),
+                    summary = skill,
+                    embedded = true,
+                ) {
+                    TmrOutlineButton(
+                        label = stringResource(R.string.feature_profile_impl_skill_remove),
+                        onClick = { actions.onRemoveSkill(skill) },
+                        trailingIcon = TmrIcons.Delete,
+                        size = TmrButtonSize.Compact,
+                    )
+                }
+            }
+        }
     }
-    item(key = "add-${section.kind.name}") {
-        TmrOutlineButton(
-            label = stringResource(section.kind.addLabelRes()),
-            onClick = {
-                if (category == null) onAddSkill() else navigation.onAddFact(category.name)
-            },
-            trailingIcon = TmrIcons.Add,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
+    TmrOutlineButton(
+        label = stringResource(section.kind.addLabelRes()),
+        onClick = {
+            if (category == null) onAddSkill() else navigation.onAddFact(category.name)
+        },
+        trailingIcon = TmrIcons.Add,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

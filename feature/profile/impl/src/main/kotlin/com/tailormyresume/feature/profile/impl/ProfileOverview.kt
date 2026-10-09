@@ -62,19 +62,24 @@ internal fun ProfileOverviewScreen(
         }
         overview.sections.forEach { section ->
             item(key = "section-${section.kind.name}") {
+                val isExpanded = section.kind == expanded
                 SectionCard(
                     section = section,
-                    expanded = section.kind == expanded,
+                    expanded = isExpanded,
                     onToggle = { onToggleSection(section.kind) },
-                )
-            }
-            if (section.kind == expanded) {
-                sectionFactItems(
-                    state = state,
-                    section = section,
-                    actions = actions,
-                    navigation = navigation,
-                    onAddSkill = { sheet = ProfileSheet.AddSkill },
+                    content = if (isExpanded) {
+                        {
+                            SectionFacts(
+                                state = state,
+                                section = section,
+                                actions = actions,
+                                navigation = navigation,
+                                onAddSkill = { sheet = ProfileSheet.AddSkill },
+                            )
+                        }
+                    } else {
+                        null
+                    },
                 )
             }
         }

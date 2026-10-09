@@ -144,15 +144,12 @@ private fun GuidedActionBar(
 
 private fun primaryAction(uiState: GuidedFormUiState, actions: GuidedFormActions): () -> Unit = when {
     uiState.showIntro -> actions.onStartForm
-    uiState.isLastStep && uiState.experienceChoice == ExperienceChoice.YES -> actions.onAddJob
     else -> actions.onNext
 }
 
 @Composable
 private fun primaryLabel(uiState: GuidedFormUiState): String = when {
     uiState.showIntro -> stringResource(R.string.feature_profile_impl_guided_form_start_with_contact)
-    uiState.isLastStep && uiState.experienceChoice == ExperienceChoice.YES ->
-        stringResource(R.string.feature_profile_impl_guided_form_add_job)
     uiState.isLastStep -> stringResource(R.string.feature_profile_impl_guided_form_continue_to_projects)
     else -> stringResource(
         R.string.feature_profile_impl_guided_form_next,

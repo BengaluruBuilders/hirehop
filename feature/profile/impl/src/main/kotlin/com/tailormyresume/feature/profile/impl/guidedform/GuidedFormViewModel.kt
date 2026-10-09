@@ -51,6 +51,9 @@ class GuidedFormViewModel @Inject internal constructor(
         connectivityMonitor.isOnline
             .onEach { online -> mutableState.update { it.copy(isOffline = forcedOffline || !online) } }
             .launchIn(viewModelScope)
+        factWriter.observeEntries()
+            .onEach { entries -> mutableState.update { it.syncedWith(entries) } }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: GuidedFormAction) {
@@ -189,6 +192,14 @@ class GuidedFormViewModel @Inject internal constructor(
         return copy(
             skills = if (known) skills else skills + typed,
             values = values + (GuidedField.SKILL to ""),
+        )
+    }
+
+    private fun GuidedFormUiState.syncedWith(entries: List<ProfileEntry>): GuidedFormUiState {
+        val current = entries.associateBy { it.id }
+        return copy(
+            filedEntries = filedEntries.mapNotNull { current[it.id] },
+            stepEntryIds = stepEntryIds.mapValues { (_, ids) -> ids.filter { it in current } },
         )
     }
 

@@ -4,8 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -15,11 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrHeadline
@@ -29,7 +32,9 @@ import com.tailormyresume.feature.profile.impl.R
 
 private val SegmentHeight = 6.dp
 private val StepTile = 44.dp
+private const val LABEL_WRAP_FONT_SCALE = 1.3f
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun StepProgress(
     number: Int,
@@ -79,33 +84,45 @@ internal fun StepProgress(
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs)) {
+        val wrapLabels = LocalDensity.current.fontScale > LABEL_WRAP_FONT_SCALE
+        val labelModifier: RowScope.() -> Modifier = { if (wrapLabels) Modifier else Modifier.weight(1f) }
+        val labelsContent: @Composable RowScope.() -> Unit = {
             GUIDED_STEPS.forEach { step ->
                 val name = stringResource(stepTitleRes(step))
                 val done = step in doneSteps
                 val doneDescription =
                     if (done) stringResource(R.string.feature_profile_impl_guided_form_step_done_description, name) else null
                 Row(
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = labelModifier()
                         .semantics(mergeDescendants = true) {
                             if (doneDescription != null) contentDescription = doneDescription
                         },
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xxs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (done) {
-                        Icon(TmrIcons.Check, contentDescription = null, tint = TmrTheme.colors.met, modifier = Modifier.size(12.dp))
+                        Icon(TmrIcons.Check, contentDescription = null, tint = TmrTheme.colors.met, modifier = Modifier.size(TmrTheme.spacing.md))
                     }
                     Text(
                         text = name,
                         style = TmrTheme.typography.bodyS.copy(fontWeight = FontWeight.Bold),
                         color = if (step == currentStep) TmrTheme.colors.onSurface else TmrTheme.colors.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
+        }
+        if (wrapLabels) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+            ) { labelsContent() }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+                content = labelsContent,
+            )
         }
     }
 }
