@@ -34,6 +34,7 @@ internal fun YourDataRoute(
             onDeleteMyData = viewModel::onDeleteMyDataRequested,
             onDeleteMyDataConfirm = viewModel::onDeleteMyDataConfirmed,
             onDeleteMyDataDismiss = viewModel::onDeleteMyDataDismissed,
+            onCancelExport = viewModel::onCancelExport,
         )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }

@@ -218,11 +218,23 @@ class PasteJobDescriptionViewModel @Inject constructor(
         labelsEditedSinceText = false
         mutableState.update { state ->
             if (state.canClear) {
-                proposedCompany = ""
-                proposedRole = ""
-                companyEdited = false
-                roleEdited = false
-                state.copy(text = "", company = "", role = "", message = null, nextStep = null)
+                val keepsCompany = companyEdited || state.company != proposedCompany
+                val keepsRole = roleEdited || state.role != proposedRole
+                if (!keepsCompany) {
+                    proposedCompany = ""
+                    companyEdited = false
+                }
+                if (!keepsRole) {
+                    proposedRole = ""
+                    roleEdited = false
+                }
+                state.copy(
+                    text = "",
+                    company = if (keepsCompany) state.company else "",
+                    role = if (keepsRole) state.role else "",
+                    message = null,
+                    nextStep = null,
+                )
             } else {
                 state
             }
