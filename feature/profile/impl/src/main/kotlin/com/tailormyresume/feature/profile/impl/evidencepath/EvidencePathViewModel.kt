@@ -37,6 +37,7 @@ class EvidencePathViewModel @Inject internal constructor(
     private var hasEntered = false
     private var forcedOffline = false
     private var returnsToProfile = false
+    private var finishRequested = false
 
     val uiState: StateFlow<EvidencePathUiState> = mutableState.asStateFlow()
 
@@ -61,6 +62,7 @@ class EvidencePathViewModel @Inject internal constructor(
             is EvidencePathAction.AnswerChanged -> onAnswerChanged(action.value)
             EvidencePathAction.Save -> onSave()
             EvidencePathAction.Skip -> onSkip()
+            is EvidencePathAction.SkipFrom -> onSkipFrom(action.questionIndex)
             EvidencePathAction.NextQuestion -> onNextQuestion()
             EvidencePathAction.AddMore -> onAddMore()
             EvidencePathAction.Finish -> onFinish()
@@ -91,6 +93,10 @@ class EvidencePathViewModel @Inject internal constructor(
 
     private fun onAnswerChanged(value: String) {
         mutableState.update { it.copy(answer = value, problem = null, message = null) }
+    }
+
+    private fun onSkipFrom(questionIndex: Int) {
+        if (mutableState.value.questionIndex == questionIndex) onSkip()
     }
 
     private fun onSkip() {
@@ -180,6 +186,7 @@ class EvidencePathViewModel @Inject internal constructor(
     }
 
     private fun onAddMore() {
+        finishRequested = false
         mutableState.update {
             it.copy(
                 category = null,
@@ -195,6 +202,8 @@ class EvidencePathViewModel @Inject internal constructor(
     }
 
     private fun onFinish() {
+        if (finishRequested) return
+        finishRequested = true
         viewModelScope.launch {
             val exit = if (returnsToProfile) ProfileExit.Profile else exitResolver.resolve()
             mutableState.update { it.copy(navigation = EvidenceNavigation.Exit(exit)) }

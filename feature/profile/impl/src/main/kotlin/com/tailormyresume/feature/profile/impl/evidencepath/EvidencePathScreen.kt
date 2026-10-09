@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrCard
@@ -165,7 +166,7 @@ private fun QuestionActionBar(
             )
             TmrTextButton(
                 label = stringResource(R.string.feature_profile_impl_evidence_path_skip),
-                onClick = actions.onSkip,
+                onClick = { actions.onSkip(uiState.questionIndex) },
                 enabled = !uiState.isSaving,
                 modifier = Modifier.weight(1f),
             )
@@ -338,6 +339,8 @@ private fun QuestionProgress(uiState: EvidencePathUiState) {
             ),
             style = TmrTheme.typography.labelM.copy(fontWeight = FontWeight.ExtraBold),
             color = TmrTheme.colors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         Box(
             modifier = Modifier

@@ -366,7 +366,14 @@ private fun outcomeText(uiState: ImportResumeUiState): String = when {
         ImportStage.NoFactsFound -> stringResource(R.string.feature_onboarding_impl_import_resume_no_facts_body)
         ImportStage.Empty -> stringResource(R.string.feature_onboarding_impl_import_resume_empty_body)
         ImportStage.TooLarge -> stringResource(R.string.feature_onboarding_impl_import_resume_too_large_body)
-        else -> stringResource(R.string.feature_onboarding_impl_import_resume_failed_body)
+        else -> stringResource(
+            when (uiState.failureCause) {
+                ImportFailureCause.RateLimited -> R.string.feature_onboarding_impl_import_resume_rate_limited_body
+                ImportFailureCause.QuotaReached -> R.string.feature_onboarding_impl_import_resume_quota_body
+                ImportFailureCause.SignInRequired -> R.string.feature_onboarding_impl_import_resume_sign_in_body
+                ImportFailureCause.Generic -> R.string.feature_onboarding_impl_import_resume_failed_body
+            },
+        )
     }
 }
 
