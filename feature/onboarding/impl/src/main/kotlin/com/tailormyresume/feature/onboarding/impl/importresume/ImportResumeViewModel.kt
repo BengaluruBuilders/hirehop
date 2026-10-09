@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.data.repository.ProfileRepository
+import com.tailormyresume.core.domain.AiException
+import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.ResumeTextParser
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.domain.fact.FactLineRenderer
@@ -93,6 +95,7 @@ class ImportResumeViewModel @Inject constructor(
                 readStepIndex = 0,
                 facts = emptyList(),
                 isQueued = false,
+                failureCause = ImportFailureCause.Generic,
             )
         }
         viewModelScope.launch { readAndParse(file) }
@@ -138,13 +141,15 @@ class ImportResumeViewModel @Inject constructor(
         }
         mutableUiState.update { it.copy(readStepIndex = 1) }
         retainedText = read.text
-        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty()) }.getOrNull()
+        val parsed = runCatching { resumeTextParser.parse(retainedText.orEmpty()) }
         retainedText = null
-        if (parsed == null) {
+        val profile = parsed.getOrNull()
+        if (profile == null) {
+            mutableUiState.update { it.copy(failureCause = parsed.exceptionOrNull().toFailureCause()) }
             onReadOutcome(ResumeRead.Unreadable(file.displayName))
             return
         }
-        onParsed(profile = parsed)
+        onParsed(profile = profile)
     }
 
     private suspend fun onParsed(profile: CandidateProfile) {
@@ -195,6 +200,13 @@ private fun ProfileEntry.toImportedFact(): ImportedFactUi = ImportedFactUi(
     category = category,
     line = FactLineRenderer.render(this),
 )
+
+private fun Throwable?.toFailureCause(): ImportFailureCause = when ((this as? AiException)?.failure) {
+    AiFailure.RateLimited -> ImportFailureCause.RateLimited
+    AiFailure.QuotaExceeded -> ImportFailureCause.QuotaReached
+    AiFailure.SignInRequired -> ImportFailureCause.SignInRequired
+    else -> ImportFailureCause.Generic
+}
 
 private fun ResumeRead.stage(): ImportStage = when (this) {
     is ResumeRead.Text -> ImportStage.Parsing
