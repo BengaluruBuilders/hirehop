@@ -120,7 +120,7 @@ jobs:
     name: "Build, lint, and unit tests"
     needs: changes
     if: github.event.action != 'edited' && needs.changes.outputs.code == 'true'
-    runs-on: [self-hosted, Linux, bengaluru-vm, android-build, android-sdk-36]
+    runs-on: [self-hosted, Linux, bengaluru-vm, android-build, android-sdk-36, ARM64]
     timeout-minutes: 45
     steps:
       - name: Checkout
