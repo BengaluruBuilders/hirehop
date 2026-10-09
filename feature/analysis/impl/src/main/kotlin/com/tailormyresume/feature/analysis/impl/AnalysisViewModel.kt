@@ -3,6 +3,7 @@ package com.tailormyresume.feature.analysis.impl
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tailormyresume.core.common.jobs.TrackedJobs
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers
 import com.tailormyresume.core.common.network.di.ApplicationScope
@@ -83,6 +84,7 @@ class AnalysisViewModel @Inject constructor(
     connectivityMonitor: ConnectivityMonitor,
     @param:Dispatcher(TmrDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
+    private val trackedJobs: TrackedJobs = TrackedJobs(),
 ) : ViewModel() {
 
     private val local = MutableStateFlow(Local())
@@ -274,7 +276,7 @@ class AnalysisViewModel @Inject constructor(
         val state = uiState.value as? AnalysisUiState.Result ?: return
         if (!state.canTailor) return
         local.update { it.copy(tailoring = true, overlay = AnalysisOverlay.None) }
-        applicationScope.launch {
+        val job = applicationScope.launch {
             attempt { tailor(ready) }.onFailure { failure ->
                 if (failure.isAiFailure(AiFailure.NoCredit)) {
                     local.update { it.copy(tailoring = false, tailorLimitHit = true) }
@@ -284,6 +286,10 @@ class AnalysisViewModel @Inject constructor(
                 }
             }
         }
+        job.invokeOnCompletion { cause ->
+            if (cause is CancellationException) local.update { it.copy(tailoring = false) }
+        }
+        trackedJobs.track(job)
     }
 
     private fun load() {
