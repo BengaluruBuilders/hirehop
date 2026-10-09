@@ -19,7 +19,10 @@ jobs:
   policy:
     name: "Constitution policy"
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    concurrency:
+      group: policy-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     permissions:
       contents: read
       pull-requests: read
@@ -58,20 +61,12 @@ jobs:
           echo "${sha256}  $RUNNER_TEMP/$tarball" | sha256sum -c -
           mkdir "$RUNNER_TEMP/gitleaks"
           tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/gitleaks" gitleaks
-          args=(git --redact --exit-code 1 --ignore-gitleaks-allow)
-          case "$GITHUB_EVENT_NAME" in
-            pull_request)
-              args+=(--log-opts="origin/${BASE_REF}..HEAD")
-              ;;
-            push)
-              if [[ -n "$BEFORE" && ! "$BEFORE" =~ ^0+$ ]]; then
-                args+=(--log-opts="${BEFORE}..${AFTER}")
-              else
-                args+=(--log-opts="-1")
-              fi
-              ;;
-          esac
-          "$RUNNER_TEMP/gitleaks/gitleaks" "${args[@]}" .
+          GITLEAKS="$RUNNER_TEMP/gitleaks/gitleaks" tools/ci/scan-secrets.sh
+
+      - name: Test the secret scan script
+        env:
+          REAL_GITLEAKS: ${{ runner.temp }}/gitleaks/gitleaks
+        run: tools/ci/test-scan-secrets.sh
 
   changes:
     name: "Detect code changes"

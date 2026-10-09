@@ -24,7 +24,7 @@ class NextOnboardingStepUseCaseTest {
 
     private suspend fun signedInWithConsent() {
         session.saveAccount(SignInAccount.localAccount)
-        session.recordConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), Instant.fromEpochSeconds(1), "1"))
+        session.recordConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), Instant.fromEpochSeconds(1), ConsentRecord.CURRENT_NOTICE_VERSION))
     }
 
     private fun unconfirmed(): CandidateProfile = canonicalCandidateProfile.copy(
@@ -109,7 +109,7 @@ class NextOnboardingStepUseCaseTest {
             assertThat(awaitItem()).isEqualTo(OnboardingStep.SignIn)
             session.saveAccount(SignInAccount.localAccount)
             assertThat(awaitItem()).isEqualTo(OnboardingStep.Consent)
-            session.recordConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), Instant.fromEpochSeconds(1), "1"))
+            session.recordConsent(ConsentRecord(setOf(ConsentPurpose.READ_AND_BUILD), Instant.fromEpochSeconds(1), ConsentRecord.CURRENT_NOTICE_VERSION))
             assertThat(awaitItem()).isEqualTo(OnboardingStep.PasteJobDescription)
         }
     }

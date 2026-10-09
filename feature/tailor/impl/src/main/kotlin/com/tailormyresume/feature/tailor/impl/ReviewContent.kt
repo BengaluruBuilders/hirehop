@@ -72,15 +72,6 @@ internal fun ReviewContent(
             }
         }
         item(key = "progress") { ReviewProgress(state) }
-        if (state.regenerationsLeft == 0) {
-            item(key = "regenerations-used") {
-                NoticeStrip(
-                    text = stringResource(R.string.feature_tailor_impl_regenerations_used),
-                    icon = TmrIcons.Info,
-                    tone = BannerTone.Warn,
-                )
-            }
-        }
         item(key = "hint") {
             NoteLine(text = stringResource(R.string.feature_tailor_impl_ready_hint), icon = TmrIcons.Info)
         }
@@ -108,7 +99,7 @@ private fun ReviewProgress(state: TailorUiState.Success) {
             text = stringResource(R.string.feature_tailor_impl_no_changes),
             icon = TmrIcons.Verified,
         )
-        state.isAllReviewed -> NoticeStrip(
+        state.isAllReviewed && !state.isOffline -> NoticeStrip(
             text = pluralStringResource(
                 R.plurals.feature_tailor_impl_all_reviewed_banner,
                 state.totalCount,

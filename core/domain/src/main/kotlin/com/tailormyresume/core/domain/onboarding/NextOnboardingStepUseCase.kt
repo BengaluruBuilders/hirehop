@@ -37,7 +37,7 @@ class NextOnboardingStepUseCase @Inject constructor(
         val entries = profile?.entries.orEmpty()
         return when {
             account == null -> OnboardingStep.SignIn
-            consent == null -> OnboardingStep.Consent
+            consent?.isCurrent != true -> OnboardingStep.Consent
             entries.isEmpty() -> OnboardingStep.ImportResume
             entries.none { it.isConfirmed } -> OnboardingStep.ConfirmFacts
             keptJob != null -> OnboardingStep.GapAnalysis(keptJob)
