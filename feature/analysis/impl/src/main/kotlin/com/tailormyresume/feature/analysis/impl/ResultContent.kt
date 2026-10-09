@@ -36,7 +36,11 @@ import com.tailormyresume.core.designsystem.component.TmrStatusChip
 import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.displayKeywords
-import com.tailormyresume.core.model.MatchStatus
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @Composable
 internal fun ResultContent(
@@ -57,12 +61,44 @@ internal fun ResultContent(
     ) {
         if (state.isOffline) {
             item(key = "offline") {
-                TmrOfflineBanner(message = stringResource(R.string.feature_analysis_impl_offline_banner))
+                TmrOfflineBanner(message = offlineBannerText(state.analysedAt))
             }
+            val coverage = state.keywordCoverage
+            if (coverage.total > 0) {
+                item(key = "coverage-summary") {
+                    Text(
+                        text = stringResource(
+                            R.string.feature_analysis_impl_coverage_title,
+                            coverage.covered.toString(),
+                            coverage.total.toString(),
+                        ),
+                        style = TmrTheme.typography.titleS,
+                        color = TmrTheme.colors.onSurface,
+                    )
+                }
+            }
+            resultSections(state, actions, onMenuAnchor, setOf(RequirementGroup.Met))
+            return@LazyColumn
         }
         item(key = "caption") { JobCaption(state) }
         item(key = "coverage") { CoverageCard(state) }
         resultSections(state, actions, onMenuAnchor)
+    }
+}
+
+@Composable
+private fun offlineBannerText(analysedAt: Instant?): String {
+    if (analysedAt == null) return stringResource(R.string.feature_analysis_impl_offline_banner)
+    val moment = analysedAt.toJavaInstant().atZone(ZoneId.systemDefault())
+    val time = moment.format(DateTimeFormatter.ofPattern("HH:mm"))
+    return if (moment.toLocalDate() == LocalDate.now(moment.zone)) {
+        stringResource(R.string.feature_analysis_impl_offline_banner_today, time)
+    } else {
+        stringResource(
+            R.string.feature_analysis_impl_offline_banner_dated,
+            moment.format(DateTimeFormatter.ofPattern("d MMM")),
+            time,
+        )
     }
 }
 
@@ -131,9 +167,16 @@ private fun SummaryChips(state: AnalysisUiState.Result) {
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
     ) {
         listOf(
-            Triple(TmrStatusKind.Met, state.countOf(MatchStatus.MET), R.string.feature_analysis_impl_summary_met),
-            Triple(TmrStatusKind.Partial, state.countOf(MatchStatus.PARTIAL), R.string.feature_analysis_impl_summary_partial),
-            Triple(TmrStatusKind.Gap, state.gapCount, R.string.feature_analysis_impl_summary_gap),
+            Triple(
+                TmrStatusKind.Met,
+                state.keywordCoverage.covered,
+                R.string.feature_analysis_impl_summary_met,
+            ),
+            Triple(
+                TmrStatusKind.Gap,
+                (state.keywordCoverage.total - state.keywordCoverage.covered).coerceAtLeast(0),
+                R.string.feature_analysis_impl_summary_gap,
+            ),
         ).filter { it.second > 0 }.forEach { (kind, count, label) ->
             TmrStatusChip(kind = kind, label = stringResource(label, count))
         }
@@ -162,11 +205,20 @@ private fun missingTermsText(terms: List<String>): AnnotatedString {
     }
 }
 
-private fun AnalysisUiState.Result.missingKeyTerms(): List<String> =
-    items.filter { it.isGap }
+private val companyWordSeparator = Regex("[^\\p{L}\\p{N}]+")
+
+private fun AnalysisUiState.Result.missingKeyTerms(): List<String> {
+    val companyWords = job.company
+        .split(companyWordSeparator)
+        .filter { it.isNotBlank() }
+        .map { it.lowercase() }
+        .toSet()
+    return items.filter { it.isGap }
         .flatMap { displayKeywords(it.requirement) }
         .filter { it.isNotBlank() }
         .distinct()
+        .filterNot { it.lowercase() in companyWords }
+}
 
 @Composable
 private fun GapNote(gapCount: Int) {
@@ -185,8 +237,9 @@ private fun LazyListScope.resultSections(
     state: AnalysisUiState.Result,
     actions: AnalysisActions,
     onMenuAnchor: (String, Rect) -> Unit,
+    groups: Set<RequirementGroup> = RequirementGroup.entries.toSet(),
 ) {
-    state.sections.forEach { section ->
+    state.sections.filter { it.group in groups }.forEach { section ->
         item(key = "header-${section.group}") { GroupHeader(section.group, section.items.size) }
         items(section.items.size, key = { "requirement-${section.items[it].id}" }) { index ->
             val item = section.items[index]

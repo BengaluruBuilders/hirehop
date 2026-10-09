@@ -22,14 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.data.repository.UsageAllowance
@@ -275,7 +270,8 @@ internal fun analysisBottomBar(uiState: AnalysisUiState, actions: AnalysisAction
     }
 
 internal fun analysisBottomBarNotice(uiState: AnalysisUiState): (@Composable () -> Unit)? =
-    (uiState as? AnalysisUiState.Result)?.takeIf { it.hasKeyTerms }?.let { result -> { BarNote(result) } }
+    (uiState as? AnalysisUiState.Result)?.takeIf { it.hasKeyTerms && it.tailorLimitReached && !it.isOffline }
+        ?.let { { BarNote() } }
 
 @Composable
 private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActions) {
@@ -293,43 +289,21 @@ private fun ResultBottomBar(state: AnalysisUiState.Result, actions: AnalysisActi
 }
 
 @Composable
-private fun BarNote(state: AnalysisUiState.Result) {
-    when {
-        state.isOffline -> Text(
-            text = stringResource(R.string.feature_analysis_impl_offline_caption),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = TmrTheme.spacing.sm),
-            style = TmrTheme.typography.labelM,
+private fun BarNote() {
+    NoteCard(icon = TmrIcons.Clock) {
+        Text(
+            text = stringResource(R.string.feature_analysis_impl_tailor_limit),
+            style = TmrTheme.typography.bodyM,
             color = TmrTheme.colors.onSurface,
         )
-        state.tailorLimitReached -> NoteCard(icon = TmrIcons.Clock) {
-            Text(
-                text = stringResource(R.string.feature_analysis_impl_tailor_limit),
-                style = TmrTheme.typography.bodyM,
-                color = TmrTheme.colors.onSurface,
-            )
-            Text(
-                text = stringResource(
-                    R.string.feature_analysis_impl_tailor_limit_cap,
-                    UsageAllowance.DAILY_FREE_TAILORINGS,
-                ),
-                style = TmrTheme.typography.labelM,
-                color = TmrTheme.colors.onSurfaceVariant,
-            )
-        }
-        else -> NoteCard(icon = TmrIcons.Download) {
-            Text(
-                text = boldNumber(
-                    pluralStringResource(
-                        R.plurals.feature_analysis_impl_credit_note,
-                        state.totalCredits,
-                        state.totalCredits,
-                    ),
-                    state.totalCredits.toString(),
-                ),
-                style = TmrTheme.typography.bodyM,
-                color = TmrTheme.colors.onSurface,
-            )
-        }
+        Text(
+            text = stringResource(
+                R.string.feature_analysis_impl_tailor_limit_cap,
+                UsageAllowance.DAILY_FREE_TAILORINGS,
+            ),
+            style = TmrTheme.typography.labelM,
+            color = TmrTheme.colors.onSurfaceVariant,
+        )
     }
 }
 
@@ -365,9 +339,3 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
 }
 
 private val NOTE_ICON_SIZE = 22.dp
-
-private fun boldNumber(text: String, number: String): AnnotatedString = buildAnnotatedString {
-    append(text)
-    val start = text.lastIndexOf(number)
-    if (start >= 0) addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, start + number.length)
-}

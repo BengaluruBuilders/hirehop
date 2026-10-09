@@ -61,7 +61,7 @@ class RemoteJobAnalysisSource @Inject constructor(
             val effectiveServerStatus =
                 server.status.takeUnless { it != MatchStatus.GAP && evidence.isEmpty() } ?: MatchStatus.GAP
             val effective = RequirementMatch(server.requirement, effectiveServerStatus, evidence)
-            upgradedMatch(effective, currentByRequirement[server.requirement.id], baseline[server.requirement.id], targeted = false)
+            upgradedMatch(effective, currentByRequirement[server.requirement.id], baseline[server.requirement.id])
                 ?: effective
         }
         return JobAnalysisResult(job, GapAnalysis(matches, current.keywordCoverage, entry.result.gap.generationId))

@@ -67,7 +67,7 @@ internal fun ShareFitScreen(
         bottomBar = {
             TmrBottomActionBar(stacked = true, primaryLast = false) {
                 TmrPrimaryButton(
-                    label = stringResource(R.string.feature_analysis_impl_share_whatsapp),
+                    label = stringResource(R.string.feature_analysis_impl_share_image),
                     onClick = { actions.onShareText(shareText) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = TmrIcons.Share,
@@ -93,9 +93,9 @@ internal fun ShareFitScreen(
                 role = role,
                 company = state.job.company.trim(),
                 coverage = state.keywordCoverage,
-                met = met,
-                partial = partial,
-                gap = gap,
+                met = state.keywordCoverage.covered,
+                partial = 0,
+                gap = (state.keywordCoverage.total - state.keywordCoverage.covered).coerceAtLeast(0),
             )
             NoteCard(icon = TmrIcons.Info) {
                 Text(

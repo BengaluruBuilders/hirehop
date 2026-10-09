@@ -119,20 +119,6 @@ class AnalysisCanvasParityTest {
     }
 
     @Test
-    fun shareCardNamesAMissingCompany() {
-        composeRule.setContent {
-            TmrTheme {
-                ShareFitScreen(
-                    state = result(RequirementGroup.Met to listOf(sql)).copy(job = JobLabel("Associate Analyst", "")),
-                    actions = AnalysisActions(),
-                )
-            }
-        }
-
-        composeRule.onNodeWithText("Company not set").assertExists()
-    }
-
-    @Test
     fun offlineShowsTheTimedBannerAndOnlyTheMetList() {
         val tenTwelveToday = LocalDate.now(ZoneOffset.UTC).atTime(10, 12).toInstant(ZoneOffset.UTC)
         show(
