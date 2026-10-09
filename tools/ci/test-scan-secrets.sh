@@ -403,7 +403,8 @@ fake_gcp_key() {
 }
 
 fake_bedrock_key() {
-  echo "bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 120)"
+  local prefix=bedrock-api-key-
+  echo "${prefix}YmVkcm9jay5hbWF6b25hd3MuY29t$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 120)"
 }
 
 real_gitleaks_fails_for_a_key_appended_to_the_config() {
