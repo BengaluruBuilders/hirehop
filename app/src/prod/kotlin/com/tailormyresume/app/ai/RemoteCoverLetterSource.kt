@@ -14,6 +14,8 @@ import com.tailormyresume.core.network.mapper.toFactsDto
 import javax.inject.Inject
 
 class RemoteCoverLetterSource @Inject constructor(private val api: TailorMyResumeApi) : CoverLetterSource {
+    override val choosesEvidence = false
+
     override suspend fun invoke(
         candidate: CandidateProfile,
         job: JobDescription,
