@@ -24,12 +24,16 @@ import com.tailormyresume.app.ui.NavigationRoot
 import com.tailormyresume.app.ui.RootViewModelStores
 import com.tailormyresume.app.ui.TmrFirstRunRoot
 import com.tailormyresume.app.ui.TmrMainRoot
+import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.designsystem.component.TmrBackground
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.feature.onboarding.api.navigation.DefaultWelcomeNavKey
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DebugScenarioActivity : ComponentActivity() {
@@ -42,6 +46,11 @@ class DebugScenarioActivity : ComponentActivity() {
     private var scenario by mutableStateOf(DebugScenario.defaultValue)
     private var opened by mutableStateOf(false)
 
+    @Inject
+    lateinit var sessionRepository: SessionRepository
+
+    private val hasAccount: Flow<Boolean> by lazy { sessionRepository.observeAccount().map { it != null } }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
@@ -50,7 +59,13 @@ class DebugScenarioActivity : ComponentActivity() {
                 BackHandler(enabled = opened) { closePreview() }
                 TmrBackground {
                     if (opened) {
-                        DebugScenarioPreview(target = target, scenario = scenario, rootState = appViewModel.rootState)
+                        DebugScenarioPreview(
+                            target = target,
+                            scenario = scenario,
+                            rootState = appViewModel.rootState,
+                            hasAccount = hasAccount,
+                            rootStores = rootStores,
+                        )
                     } else {
                         val uiState by menuViewModel.uiState.collectAsStateWithLifecycle()
                         DebugScenarioMenu(
@@ -94,20 +109,27 @@ private fun DebugScenarioPreview(
     target: DebugScenarioTarget,
     scenario: DebugScenario,
     rootState: StateFlow<AppRootState>,
+    hasAccount: Flow<Boolean>,
+    rootStores: RootViewModelStores,
     modifier: Modifier = Modifier,
 ) {
     val key = target.navKey(scenario)
     val currentRoot by rootState.collectAsStateWithLifecycle()
+    val accountPresent by hasAccount.collectAsStateWithLifecycle(initialValue = false)
     var seenMain by remember { mutableStateOf(false) }
+    var seenAccount by remember { mutableStateOf(false) }
     LaunchedEffect(currentRoot) {
         if (currentRoot == AppRootState.Main) seenMain = true
     }
-    if (target.opensFirstRunRoot) {
-        TmrFirstRunRoot(modifier = modifier, startKey = key)
-    } else if (previewShowsWelcome(seenMain, currentRoot)) {
-        TmrFirstRunRoot(modifier = modifier, startKey = DefaultWelcomeNavKey)
-    } else {
-        TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
+    LaunchedEffect(accountPresent) {
+        if (accountPresent) seenAccount = true
+    }
+    val shownRoot = previewNavigationRoot(target.opensFirstRunRoot, seenMain, currentRoot, seenAccount, accountPresent)
+    LaunchedEffect(shownRoot) { rootStores.keepOnly(shownRoot) }
+    when {
+        target.opensFirstRunRoot -> TmrFirstRunRoot(modifier = modifier, startKey = key)
+        shownRoot == NavigationRoot.FirstRun -> TmrFirstRunRoot(modifier = modifier, startKey = DefaultWelcomeNavKey)
+        else -> TmrMainRoot(modifier = modifier, initialKeys = { listOf(key) })
     }
 }
 
@@ -120,4 +142,7 @@ internal fun previewNavigationRoot(
     rootState: AppRootState,
     seenAccount: Boolean,
     hasAccount: Boolean,
-): NavigationRoot = NavigationRoot.Main
+): NavigationRoot {
+    val welcome = previewShowsWelcome(seenMain, rootState) || (seenAccount && !hasAccount)
+    return if (opensFirstRunRoot || welcome) NavigationRoot.FirstRun else NavigationRoot.Main
+}

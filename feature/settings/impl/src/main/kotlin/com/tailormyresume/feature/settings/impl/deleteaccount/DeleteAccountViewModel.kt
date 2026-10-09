@@ -37,6 +37,8 @@ class DeleteAccountViewModel @Inject constructor(
 
     private var hasEntered = false
 
+    private var isRefreshing = false
+
     val uiState: StateFlow<DeleteAccountUiState> = combine(
         snapshot,
         phase,
@@ -86,10 +88,18 @@ class DeleteAccountViewModel @Inject constructor(
 
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
-        if (ready.isOffline) return
+        if (ready.isOffline || isRefreshing) return
+        isRefreshing = true
         viewModelScope.launch {
-            snapshot.update { current -> current?.copy(counts = deleteAccount.preview()) }
-            phase.update { current -> current.copy(isConfirmVisible = true) }
+            try {
+                val counts = deleteAccount.preview()
+                val current = uiState.value as? DeleteAccountUiState.Ready
+                if (current == null || current.isConfirmVisible || current.isOffline) return@launch
+                snapshot.update { it?.copy(counts = counts) }
+                phase.update { it.copy(isConfirmVisible = true) }
+            } finally {
+                isRefreshing = false
+            }
         }
     }
 

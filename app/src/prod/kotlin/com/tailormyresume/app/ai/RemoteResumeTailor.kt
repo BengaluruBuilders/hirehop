@@ -60,7 +60,8 @@ class RemoteResumeTailor @Inject constructor(
             val error = (result.exceptionOrNull() as? ApiException)?.error
             if (error !is ApiError.RateLimited || attempt >= START_ATTEMPTS) return result.orAiFailure().tailoring
             attempt++
-            delay((error.retryAfterSeconds ?: DEFAULT_RETRY_AFTER_SECONDS) * MILLIS_PER_SECOND)
+            val waitSeconds = error.retryAfterSeconds?.takeIf { it in MIN_RETRY_AFTER_SECONDS..MAX_RETRY_AFTER_SECONDS }
+            delay((waitSeconds ?: DEFAULT_RETRY_AFTER_SECONDS) * MILLIS_PER_SECOND)
         }
     }
 
@@ -92,6 +93,8 @@ class RemoteResumeTailor @Inject constructor(
         val RESUMABLE = setOf(AiFailure.Network, AiFailure.Timeout, AiFailure.RateLimited, AiFailure.Unavailable)
         const val START_ATTEMPTS = 3
         const val DEFAULT_RETRY_AFTER_SECONDS = 10
+        const val MIN_RETRY_AFTER_SECONDS = 1
+        const val MAX_RETRY_AFTER_SECONDS = 3_600
         const val MILLIS_PER_SECOND = 1_000L
         const val FIRST_POLL_MILLIS = 2_000L
         const val POLL_BACKOFF_MILLIS = 1_000L
