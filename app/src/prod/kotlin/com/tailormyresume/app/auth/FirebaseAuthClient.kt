@@ -7,17 +7,26 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.GetTokenResult
 import com.google.firebase.auth.GoogleAuthProvider
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.network.IdTokenProvider
+import com.tailormyresume.core.network.SessionExpiredException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.io.InterruptedIOException
+import java.net.SocketTimeoutException
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -51,12 +60,9 @@ class FirebaseAuthClient @Inject constructor(
     }
 
     override fun idToken(forceRefresh: Boolean): String? {
-        val user = auth?.currentUser ?: return null
-        return try {
-            Tasks.await(user.getIdToken(forceRefresh), TOKEN_TIMEOUT_SECONDS, TimeUnit.SECONDS).token
-        } catch (failure: Exception) {
-            null
-        }
+        val firebaseAuth = auth ?: return null
+        val user = firebaseAuth.currentUser ?: throw SessionExpiredException()
+        return awaitIdToken(user.getIdToken(forceRefresh))
     }
 
     override fun uid(): String? = auth?.currentUser?.uid
@@ -85,3 +91,22 @@ private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { conti
 }
 
 private const val TOKEN_TIMEOUT_SECONDS = 10L
+
+internal fun awaitIdToken(task: Task<GetTokenResult>, timeoutSeconds: Long = TOKEN_TIMEOUT_SECONDS): String? = try {
+    Tasks.await(task, timeoutSeconds, TimeUnit.SECONDS).token
+} catch (failure: Exception) {
+    when {
+        failure.isSessionExpiry() -> throw SessionExpiredException()
+        failure is TimeoutException -> throw SocketTimeoutException("Token fetch timed out")
+        failure is InterruptedException -> {
+            Thread.currentThread().interrupt()
+            throw InterruptedIOException("Token fetch interrupted")
+        }
+        else -> throw IOException("Token fetch failed: ${failure.javaClass.simpleName}")
+    }
+}
+
+internal fun Throwable.isSessionExpiry(): Boolean = when (if (this is ExecutionException) cause else this) {
+    is FirebaseAuthInvalidUserException, is FirebaseAuthInvalidCredentialsException -> true
+    else -> false
+}

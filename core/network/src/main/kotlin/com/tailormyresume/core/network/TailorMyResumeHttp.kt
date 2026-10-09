@@ -14,13 +14,14 @@ fun tailormyresumeJson(): Json = Json {
 
 fun tailormyresumeOkHttpClient(
     tokens: IdTokenProvider,
+    sessionListener: SessionExpiredListener = SessionExpiredListener {},
     consentListener: ConsentRequiredListener = ConsentRequiredListener {},
 ): OkHttpClient = OkHttpClient.Builder()
     .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     .addInterceptor(AppIdInterceptor())
-    .addInterceptor(AuthInterceptor(tokens))
+    .addInterceptor(AuthInterceptor(tokens, sessionListener))
     .addInterceptor(ConsentRequiredInterceptor(consentListener))
     .build()
 

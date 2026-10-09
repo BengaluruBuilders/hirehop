@@ -7,6 +7,8 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Test
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 class TailorMyResumeApiTest {
@@ -18,9 +20,10 @@ class TailorMyResumeApiTest {
     fun tearDown() = runCatching { server.shutdown() }.let { }
 
     private var consentSignals = 0
+    private var expirySignals = 0
 
     private fun api(readTimeoutMillis: Long? = null): TailorMyResumeApi {
-        val base = tailormyresumeOkHttpClient(tokens) { consentSignals++ }
+        val base = tailormyresumeOkHttpClient(tokens, sessionListener = { expirySignals++ }) { consentSignals++ }
         val client = readTimeoutMillis
             ?.let { base.newBuilder().readTimeout(it, TimeUnit.MILLISECONDS).build() }
             ?: base
@@ -77,6 +80,71 @@ class TailorMyResumeApiTest {
         server.enqueue(error(401, "INVALID_TOKEN"))
         assertThat(failureOf { api().me() }).isEqualTo(ApiError.InvalidToken)
         assertThat(server.requestCount).isEqualTo(2)
+    }
+
+    @Test
+    fun secondUnauthorisedSignalsTheSessionExpiredListenerOnce() {
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.InvalidToken)
+        assertThat(expirySignals).isEqualTo(1)
+    }
+
+    @Test
+    fun aSessionExpiredTokenSignalsTheListener() {
+        tokens.expired = true
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Unauthenticated)
+        assertThat(expirySignals).isEqualTo(1)
+        assertThat(server.requestCount).isEqualTo(0)
+    }
+
+    @Test
+    fun anExpiredSessionSendsNoRequestAndStillSignalsOnce() {
+        tokens.expired = true
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Unauthenticated)
+        assertThat(expirySignals).isEqualTo(1)
+        assertThat(server.requestCount).isEqualTo(0)
+    }
+
+    @Test
+    fun aTokenTimeoutIsATimeoutAndSendsNoRequest() {
+        tokens.failure = SocketTimeoutException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Timeout)
+        assertThat(server.requestCount).isEqualTo(0)
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aTransientTokenFailureIsOffline() {
+        tokens.failure = IOException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Offline)
+        assertThat(server.requestCount).isEqualTo(0)
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aTimeoutDuringTheForcedRefreshIsATimeoutWithoutASecondRequest() {
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        tokens.failureOnRefresh = SocketTimeoutException("token")
+        assertThat(failureOf { api().me() }).isEqualTo(ApiError.Timeout)
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aMissingTokenDoesNotSignalTheListener() {
+        tokens.available = false
+        server.enqueue(error(401, "UNAUTHENTICATED"))
+        failureOf { api().me() }
+        assertThat(expirySignals).isEqualTo(0)
+    }
+
+    @Test
+    fun aRefreshedTokenThatSucceedsDoesNotSignalTheListener() {
+        server.enqueue(error(401, "INVALID_TOKEN"))
+        server.enqueue(jsonResponse(200, """{"user":{"id":"u","createdAt":"t"}}"""))
+        runBlocking { api().me() }
+        assertThat(expirySignals).isEqualTo(0)
     }
 
     @Test
@@ -168,10 +236,16 @@ class TailorMyResumeApiTest {
     private class RecordingTokens : IdTokenProvider {
         val forceRefreshCalls = mutableListOf<Boolean>()
         var available = true
+        var expired = false
+        var failure: IOException? = null
+        var failureOnRefresh: IOException? = null
         private var issued = 0
 
         override fun idToken(forceRefresh: Boolean): String? {
             forceRefreshCalls += forceRefresh
+            if (expired) throw SessionExpiredException()
+            failure?.let { throw it }
+            if (forceRefresh) failureOnRefresh?.let { throw it }
             return if (available) "token-${issued++}" else null
         }
     }
