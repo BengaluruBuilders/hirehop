@@ -21,8 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -38,10 +41,16 @@ import com.tailormyresume.core.designsystem.component.TmrStatusKind
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
+internal const val JOB_CARD_TAG = "analysis-job-card"
+
 private enum class WaitingPillKind { Done, InProgress, UpNext }
 
 @Composable
-internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: PaddingValues) {
+internal fun WaitingContent(
+    state: AnalysisUiState.Analyzing,
+    contentPadding: PaddingValues,
+    jobKnown: Boolean = true,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +59,10 @@ internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: Pa
             .padding(top = contentPadding.calculateTopPadding() + TmrTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
-        JobCard(state)
+        JobCard(
+            state,
+            modifier = Modifier.testTag(JOB_CARD_TAG).then(if (jobKnown) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}),
+        )
         listOf(
             stringResource(R.string.feature_analysis_impl_step_read),
             stringResource(R.string.feature_analysis_impl_step_match),
@@ -77,10 +89,10 @@ internal fun WaitingContent(state: AnalysisUiState.Analyzing, contentPadding: Pa
 }
 
 @Composable
-private fun JobCard(state: AnalysisUiState) {
+private fun JobCard(state: AnalysisUiState, modifier: Modifier = Modifier) {
     val title = state.headerTitle()
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(TmrTheme.colors.card, TmrTheme.shapes.card)
             .padding(horizontal = TmrTheme.spacing.lg, vertical = 14.dp),
