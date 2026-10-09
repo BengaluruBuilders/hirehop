@@ -63,7 +63,7 @@ class PrepQuestionGeneratorTest {
         assertThat(question.kind).isEqualTo(PrepQuestionKind.STRENGTH)
         assertThat(question.requirementText).isEqualTo(canonicalKotlinRequirement.text)
         assertThat(question.backingFactId).isEqualTo("I-01-b1")
-        assertThat(question.prompt).contains("Your record already covers strong Kotlin for Android app development.")
+        assertThat(question.prompt).contains("Walk me through your work on strong Kotlin for Android app development.")
         assertThat(question.prompt).contains("Android developer intern")
     }
 
@@ -88,7 +88,7 @@ class PrepQuestionGeneratorTest {
         val question = only(generate(canonicalKotlinRequirement, MatchStatus.MET, "Z-01-b1", untitled))
 
         assertThat(question.kind).isEqualTo(PrepQuestionKind.STRENGTH)
-        assertThat(question.prompt).endsWith("Be ready to give one example from your record.")
+        assertThat(question.prompt).endsWith("Which example from your record would you use?")
     }
 
     @Test
@@ -97,8 +97,8 @@ class PrepQuestionGeneratorTest {
 
         assertThat(question.kind).isEqualTo(PrepQuestionKind.CLARIFY)
         assertThat(question.backingFactId).isEqualTo("I-02-b2")
-        assertThat(question.prompt).contains("Your record covers part of retrofit or Ktor for network calls.")
-        assertThat(question.prompt).contains("what you did and what you did not")
+        assertThat(question.prompt).contains("Which part of retrofit or Ktor for network calls have you done, and which part is new for you?")
+        assertThat(question.prompt).contains("which part is new for you")
     }
 
     @Test
@@ -229,7 +229,7 @@ class PrepQuestionGeneratorTest {
         val raw = canonicalKotlinRequirement.copy(text = "Must have Kotlin for Android apps.")
         val question = only(generate(raw, MatchStatus.MET, "I-01-b1"))
 
-        assertThat(question.prompt).contains("Your record already covers kotlin for Android apps. Be ready")
+        assertThat(question.prompt).contains("Walk me through your work on kotlin for Android apps. Which example")
         assertThat(question.prompt).doesNotContain("..")
         assertThat(question.requirementText).isEqualTo("Must have Kotlin for Android apps.")
     }
