@@ -13,7 +13,6 @@ import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Test
 
@@ -23,7 +22,7 @@ class RemoteAiRoutesTest {
     private val matcher = object : GapMatcher {
         override fun match(profile: CandidateProfile, job: JobDescription) = GapAnalysis(emptyList(), coverage)
     }
-    private val source = RemoteJobAnalysisSource(backend.api, matcher, Json)
+    private val source = RemoteJobAnalysisSource(backend.api, matcher)
     private val analysis = JobAnalysisResult(job, GapAnalysis(listOf(matchOf(evidence = arrayOf(FACT_ID))), coverage))
 
     @After
@@ -108,13 +107,12 @@ class RemoteAiRoutesTest {
         val first = source.analyse(candidate, "the raw   job text")
         val again = source.analyse(candidate, " the raw job\ntext ")
 
-        assertThat(again).isSameInstanceAs(first)
+        assertThat(again).isEqualTo(first)
         assertThat(backend.server.requestCount).isEqualTo(1)
     }
 
     @Test
-    fun aChangedFactSetCallsTheServerAgain() = runBlocking<Unit> {
-        backend.reply(200, ANALYSIS_RESPONSE)
+    fun aChangedFactSetForTheSameJobSendsOneRequest() = runBlocking<Unit> {
         backend.reply(200, ANALYSIS_RESPONSE)
         source.analyse(candidate, "the raw job text")
 
@@ -122,7 +120,7 @@ class RemoteAiRoutesTest {
         source.analyse(closed, "the raw job text")
         source.analyse(closed, "the raw job text")
 
-        assertThat(backend.server.requestCount).isEqualTo(2)
+        assertThat(backend.server.requestCount).isEqualTo(1)
     }
 
     @Test

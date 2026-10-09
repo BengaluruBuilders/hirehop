@@ -902,4 +902,16 @@ class AnalysisViewModelTest {
     private companion object {
         val KEPT_JOB = KeptJobDescription(text = TEST_JOB_TEXT, company = "Northwind GCC", role = "Associate Analyst")
     }
+
+    @Test
+    fun iHaveThis_anUnrelatedRequirementUpgradesOnlyWhenItsEvidenceCitesTheNewFact() = runTest {
+        serverGapIds = setOf("req-sql", "req-docker", "req-graphql")
+        start()
+
+        viewModel.onSubmitEvidence("req-sql", "I wrote SQL queries and shipped Docker images during my internship.")
+
+        assertThat(result().item("req-sql").status).isEqualTo(MatchStatus.MET)
+        assertThat(result().item("req-docker").status).isEqualTo(MatchStatus.PARTIAL)
+        assertThat(result().item("req-graphql").status).isEqualTo(MatchStatus.GAP)
+    }
 }

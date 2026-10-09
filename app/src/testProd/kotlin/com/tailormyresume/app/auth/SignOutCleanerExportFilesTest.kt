@@ -13,7 +13,6 @@ import com.tailormyresume.core.domain.account.ExportedFiles
 import com.tailormyresume.core.testing.mock.TestMockStateStore
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Test
 
@@ -24,7 +23,7 @@ class SignOutCleanerExportFilesTest {
 
     private val cleaner = SignOutCleaner(
         RemotePaymentGateway(backend.api, WalletSource(backend.api), FakePlayBilling(), FakeUid("uid-1"), idleScope()),
-        RemoteJobAnalysisSource(backend.api, NoMatcher, Json),
+        RemoteJobAnalysisSource(backend.api, NoMatcher),
         PendingReportQueue(store),
         store,
         TestSessionRepository(),
