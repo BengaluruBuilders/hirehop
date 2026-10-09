@@ -11,7 +11,11 @@ import com.tailormyresume.core.model.CreditKind
 import com.tailormyresume.core.model.EditType
 import com.tailormyresume.core.model.ExportFormat
 import com.tailormyresume.core.model.ExportRecord
+import com.tailormyresume.core.model.GuardrailViolation
+import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.PrepPlanItem
+import com.tailormyresume.core.model.RequirementPriority
+import com.tailormyresume.core.model.RequirementType
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
@@ -21,6 +25,7 @@ import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.data.sampleApplication
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
@@ -41,9 +46,22 @@ class AccountDataArchiveWriterTest {
 
     private val now = Instant.fromEpochMilliseconds(1_790_000_000_000)
 
+    private val terraformRequirement = JobRequirement(
+        id = "req-terraform",
+        text = "Terraform pipelines on AWS",
+        type = RequirementType.TOOL,
+        priority = RequirementPriority.NICE_TO_HAVE,
+        keywords = listOf("terraform"),
+    )
+
     private val application = sampleApplication.copy(
-        notes = "Call the recruiter on Tuesday",
+        job = sampleApplication.job.copy(
+            rawText = "Senior Engineer | Bengaluru | Full-time\nResponsibilities:\nShip Kotlin apps",
+            requirements = sampleApplication.job.requirements + terraformRequirement,
+        ),
+        notes = "Call the recruiter on Tuesday\nAsk about the 2nd round",
         tailoredResume = TailoredResume(
+            entryIds = listOf("entry-1", "entry-2"),
             bullets = listOf(
                 TailoredBullet(
                     id = "tailored-1",
@@ -53,7 +71,7 @@ class AccountDataArchiveWriterTest {
                     sourceIds = listOf("bullet-project-1"),
                     editTypes = listOf(EditType.REWORD),
                     keywordsUsed = listOf("kotlin"),
-                    violations = emptyList(),
+                    violations = listOf(GuardrailViolation.UnsupportedTerm("terraform")),
                     decision = BulletDecision.ACCEPTED,
                 ),
             ),
@@ -62,16 +80,35 @@ class AccountDataArchiveWriterTest {
 
     private val data = AccountData(
         generatedAt = now,
-        account = SignInAccount.localAccount,
+        account = SignInAccount.localAccount.copy(id = SECRET_UID),
         consent = ConsentRecord(setOf(ConsentPurpose.AI_PROCESSING), now, ConsentRecord.CURRENT_NOTICE_VERSION),
         profile = canonicalCandidateProfile,
         applications = listOf(application),
-        entitlement = PurchaseEntitlement(freeCredits = 1, purchasedCredits = 4, pendingPackIds = emptyList()),
+        entitlement = PurchaseEntitlement(
+            freeCredits = 1,
+            purchasedCredits = 4,
+            pendingPackIds = listOf("application_pack_10"),
+            unlockedApplicationIds = setOf(application.id),
+        ),
         purchases = listOf(PurchaseRecord("application_pack_5", "order-1", now, PurchaseState.COMPLETED)),
-        exports = listOf(ExportRecord(application.id, ExportFormat.PDF, "resume.pdf", now, CreditKind.FREE)),
-        coverLetters = mapOf(application.id to WrittenCoverLetter(listOf(WrittenParagraph("Dear Example Corp team")), now)),
+        exports = listOf(ExportRecord(application.id, ExportFormat.PDF, "resume.pdf", now, CreditKind.PURCHASED, 2, "Classic")),
+        coverLetters = mapOf(
+            application.id to WrittenCoverLetter(
+                listOf(WrittenParagraph("Dear Example Corp team"), WrittenParagraph("Line one\nLine two")),
+                now,
+                citedFactIds = listOf("bullet-project-1"),
+            ),
+        ),
         prepPlans = mapOf(application.id to listOf(PrepPlanItem("prep-1", "Revise coroutines", done = true))),
     )
+
+    private companion object {
+        const val SECRET_UID = "uid-Zq81Xk-secret-4471"
+        const val OBFUSCATED_ID = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+        const val SECRET_TOKEN = "ya29.a0AfH6-token-5528"
+        val SUSPICIOUS_FRAGMENTS = listOf("token", "uid", "secret", "key")
+        val ALLOWED_NAMES = setOf("keywords", "keywordsUsed", "keywordCoverage")
+    }
 
     private fun archive(extra: Map<String, String> = emptyMap()): Map<String, String> {
         val target = File(folder.root, "archive.zip")
@@ -94,7 +131,7 @@ class AccountDataArchiveWriterTest {
         assertThat(entry.getValue("role").jsonPrimitive.content).isEqualTo(application.job.title)
         assertThat(entry.getValue("company").jsonPrimitive.content).isEqualTo(application.job.company)
         assertThat(entry.getValue("status").jsonPrimitive.content).isEqualTo("SAVED")
-        assertThat(entry.getValue("notes").jsonPrimitive.content).isEqualTo("Call the recruiter on Tuesday")
+        assertThat(entry.getValue("notes").jsonPrimitive.content).isEqualTo("Call the recruiter on Tuesday\nAsk about the 2nd round")
         assertThat(entry.getValue("createdAt").jsonPrimitive.content).isEqualTo(application.createdAt.toString())
         assertThat(entry.getValue("updatedAt").jsonPrimitive.content).isEqualTo(application.updatedAt.toString())
 
@@ -117,11 +154,23 @@ class AccountDataArchiveWriterTest {
         assertThat(bullet.getValue("decision").jsonPrimitive.content).isEqualTo("ACCEPTED")
         assertThat(bullet.array("sourceIds").map { it.jsonPrimitive.content }).containsExactly("bullet-project-1")
 
-        val paragraph = entry.getValue("coverLetter").jsonObject.array("paragraphs").single().jsonObject
+        assertThat(bullet.array("editTypes").map { it.jsonPrimitive.content }).containsExactly("REWORD")
+        assertThat(bullet.array("keywordsUsed").map { it.jsonPrimitive.content }).containsExactly("kotlin")
+        assertThat(bullet.array("violations").single().jsonPrimitive.content).contains("terraform")
+        val resume = entry.getValue("tailoredResume").jsonObject
+        assertThat(resume.array("entryIds").map { it.jsonPrimitive.content }).containsExactly("entry-1", "entry-2").inOrder()
+
+        val letter = entry.getValue("coverLetter").jsonObject
+        assertThat(letter.array("citedFactIds").map { it.jsonPrimitive.content }).containsExactly("bullet-project-1")
+        val paragraph = letter.array("paragraphs").first().jsonObject
         assertThat(paragraph.getValue("text").jsonPrimitive.content).isEqualTo("Dear Example Corp team")
         val prep = entry.array("prepPlan").single().jsonObject
         assertThat(prep.getValue("done").jsonPrimitive.boolean).isTrue()
-        assertThat(entry.array("exports").single().jsonObject.getValue("fileName").jsonPrimitive.content).isEqualTo("resume.pdf")
+        val export = entry.array("exports").single().jsonObject
+        assertThat(export.getValue("fileName").jsonPrimitive.content).isEqualTo("resume.pdf")
+        assertThat(export.getValue("creditKind").jsonPrimitive.content).isEqualTo("PURCHASED")
+        assertThat(export.getValue("pageCount").jsonPrimitive.int).isEqualTo(2)
+        assertThat(export.getValue("templateName").jsonPrimitive.content).isEqualTo("Classic")
     }
 
     @Test
@@ -146,6 +195,8 @@ class AccountDataArchiveWriterTest {
         val entitlement = root.getValue("entitlement").jsonObject
         assertThat(entitlement.getValue("freeCredits").jsonPrimitive.int).isEqualTo(1)
         assertThat(entitlement.getValue("purchasedCredits").jsonPrimitive.int).isEqualTo(4)
+        assertThat(entitlement.array("unlockedApplicationIds").map { it.jsonPrimitive.content }).containsExactly(application.id)
+        assertThat(entitlement.array("pendingPackIds").map { it.jsonPrimitive.content }).containsExactly("application_pack_10")
         val purchase = root.array("purchases").single().jsonObject
         assertThat(purchase.getValue("orderId").jsonPrimitive.content).isEqualTo("order-1")
         assertThat(purchase.getValue("packId").jsonPrimitive.content).isEqualTo("application_pack_5")
@@ -154,26 +205,51 @@ class AccountDataArchiveWriterTest {
 
     @Test
     fun noEntryHoldsATokenOrKey() {
-        val everything = archive().values.joinToString("\n").lowercase()
+        val files = archive()
+        val everything = files.values.joinToString("\n").lowercase()
 
-        listOf("token", "obfuscatedaccountid", "apikey", "api_key").forEach { forbidden ->
-            assertThat(everything).doesNotContain(forbidden)
+        listOf(SECRET_UID, OBFUSCATED_ID, SECRET_TOKEN).forEach { secret ->
+            assertThat(everything).doesNotContain(secret.lowercase())
         }
-        assertThat(AccountData::class.java.declaredFields.map { it.name.lowercase() })
-            .containsNoneOf("token", "purchasetoken", "obfuscatedaccountid", "apikey")
+        val names = jsonKeys(Json.parseToJsonElement(files.getValue("my-data.json"))) +
+            AccountData::class.java.declaredFields.map { it.name } +
+            SignInAccount::class.java.declaredFields.map { it.name }
+        val suspicious = names.filter { name ->
+            name !in ALLOWED_NAMES && SUSPICIOUS_FRAGMENTS.any { name.lowercase().contains(it) }
+        }
+        assertThat(suspicious).isEmpty()
+    }
+
+    private fun jsonKeys(element: JsonElement): List<String> = when (element) {
+        is JsonObject -> element.keys.toList() + element.values.flatMap(::jsonKeys)
+        is JsonArray -> element.flatMap(::jsonKeys)
+        else -> emptyList()
     }
 
     @Test
     fun applicationsTextShowsJdAnalysisResumeAndNotes() {
         val text = archive().getValue("applications.txt")
 
-        assertThat(text).contains(application.job.rawText)
-        assertThat(text).contains("Experience with Kotlin")
+        assertThat(text).contains("jobDescription: Senior Engineer | Bengaluru | Full-time")
+        assertThat(text).contains("requirement NICE_TO_HAVE TOOL: Terraform pipelines on AWS")
         assertThat(text).contains("MET")
         assertThat(text).contains("Built a Kotlin Android app")
         assertThat(text).contains("Call the recruiter on Tuesday")
         assertThat(text).contains("Dear Example Corp team")
         assertThat(text).contains("Revise coroutines")
+    }
+
+    @Test
+    fun everyLineOfAMultiLineValueIsIndented() {
+        val lines = archive().getValue("applications.txt").lines().filter { it.isNotEmpty() }
+
+        val atColumnZero = lines.filter { !it.startsWith(" ") }
+        assertThat(atColumnZero).hasSize(1)
+        assertThat(atColumnZero.single()).startsWith(application.id)
+        assertThat(lines).contains("  jobDescription: Senior Engineer | Bengaluru | Full-time")
+        assertThat(lines).contains("    Responsibilities:")
+        assertThat(lines).contains("    Ask about the 2nd round")
+        assertThat(lines).contains("    Line two")
     }
 
     @Test

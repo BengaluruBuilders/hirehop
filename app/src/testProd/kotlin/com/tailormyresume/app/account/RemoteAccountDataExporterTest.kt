@@ -3,10 +3,14 @@ package com.tailormyresume.app.account
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.PurchaseEntitlement
 import com.tailormyresume.core.domain.account.AccountData
+import com.tailormyresume.core.domain.account.AccountDataExporter
 import com.tailormyresume.core.network.tailormyresumeJson
+import com.tailormyresume.core.testing.account.AccountDataExporterContractTest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Rule
@@ -15,11 +19,17 @@ import org.junit.rules.TemporaryFolder
 import java.util.zip.ZipFile
 import kotlin.time.Instant
 
-class RemoteAccountDataExporterTest {
+class RemoteAccountDataExporterTest : AccountDataExporterContractTest() {
     @get:Rule
     val folder = TemporaryFolder()
 
-    private val server = MockWebServer().apply { start() }
+    private val server = MockWebServer().apply {
+        dispatcher = QueueDispatcher().apply { setFailFast(errorResponse(500, "INTERNAL_ERROR")) }
+        start()
+    }
+
+    override fun createExporter(): AccountDataExporter =
+        RemoteAccountDataExporter({ folder.root }, server.api(), tailormyresumeJson(), Dispatchers.Unconfined)
 
     private val data = AccountData(
         generatedAt = Instant.fromEpochMilliseconds(1_790_000_000_000),

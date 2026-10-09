@@ -502,7 +502,7 @@ data class AccountDataArchive(val fileName: String, val file: java.io.File)
 
 Use cases: `CollectAccountDataUseCase()` returns the `AccountData`. `ExportAccountDataUseCase()` collects the data and calls the exporter. It returns the `AccountDataArchive`.
 
-- Mock: `OfflineAccountDataExporter`. It writes `tailormyresume-my-data.zip` to `cacheDir/data-exports` with `account.txt`, `profile.txt`, `applications.txt`, and `purchases.txt`.
+- Mock: `OfflineAccountDataExporter`. It writes `tailormyresume-my-data.zip` to `cacheDir/data-exports` with five entries: `account.txt`, `profile.txt`, `applications.txt`, `purchases.txt`, and `my-data.json`. `my-data.json` holds a faithful copy of the account email and name (never the account id or any token), consent, the profile, the credit counts with `unlockedApplicationIds` and `pendingPackIds`, the purchases, and every application with its job description text, requirements, gap analysis, tailored resume, cover letter, prep plan and exports (`creditKind`, `pageCount`, `templateName`). `applications.txt` indents every line of a multi-line value.
 - Binding: `DomainModule.bindAccountDataExporter`.
 - Test fake: `TestAccountDataExporter` (records each `AccountData` in `exported`). Contract: `AccountDataExporterContractTest`.
 - Real implementation: ask the server for the archive and save it to a file.

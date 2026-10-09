@@ -1,8 +1,20 @@
 package com.tailormyresume.core.domain.account
 
+import com.tailormyresume.core.domain.PurchaseEntitlement
+import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.ConsentRecord
+import com.tailormyresume.core.model.ExportRecord
+import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobApplication
+import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.PrepPlanItem
+import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.SignInAccount
+import com.tailormyresume.core.model.TailoredBullet
+import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.WrittenCoverLetter
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -62,7 +74,7 @@ class AccountDataArchiveWriter {
     private fun applicationsText(data: AccountData): String = buildString {
         data.applications.forEach { application ->
             appendLine("${application.id} | ${application.job.title} | ${application.job.company} | ${application.status}")
-            appendLine("  jobDescription: ${application.job.rawText}")
+            appendIndented("jobDescription", application.job.rawText)
             application.job.requirements.forEach { appendLine("  requirement ${it.priority} ${it.type}: ${it.text}") }
             application.gapAnalysis?.let { analysis ->
                 analysis.matches.forEach { appendLine("  analysis ${it.status}: ${it.requirement.text}") }
@@ -71,12 +83,18 @@ class AccountDataArchiveWriter {
             application.tailoredResume?.bullets?.forEach { bullet ->
                 appendLine("  resume ${bullet.decision}: ${bullet.proposedText} (was: ${bullet.originalText})")
             }
-            if (application.notes.isNotBlank()) appendLine("  notes: ${application.notes}")
-            data.coverLetters[application.id]?.paragraphs?.forEach { appendLine("  coverLetter: ${it.text}") }
+            if (application.notes.isNotBlank()) appendIndented("notes", application.notes)
+            data.coverLetters[application.id]?.paragraphs?.forEach { appendIndented("coverLetter", it.text) }
             data.prepPlans[application.id].orEmpty().forEach { appendLine("  prep done=${it.done}: ${it.text}") }
             val exports = data.exports.filter { it.applicationId == application.id }
             exports.forEach { export -> appendLine("  export ${export.format} ${export.fileName} ${export.exportedAt}") }
         }
+    }
+
+    private fun StringBuilder.appendIndented(label: String, value: String) {
+        val lines = value.lines()
+        appendLine("  $label: ${lines.first()}")
+        lines.drop(1).forEach { appendLine("    $it") }
     }
 
     private fun purchasesText(data: AccountData): String = buildString {
@@ -91,51 +109,39 @@ class AccountDataArchiveWriter {
         JsonObject.serializer(),
         buildJsonObject {
             put("generatedAt", data.generatedAt.toString())
-            data.account?.let { account ->
-                put(
-                    "account",
-                    buildJsonObject {
-                        put("email", account.email)
-                        put("displayName", account.displayName)
-                    },
-                )
-            }
-            data.consent?.let { consent ->
-                put(
-                    "consent",
-                    buildJsonObject {
-                        put("purposes", strings(consent.purposes.map { it.name }))
-                        put("acceptedAt", consent.acceptedAt.toString())
-                        put("noticeVersion", consent.noticeVersion)
-                    },
-                )
-            }
+            data.account?.let { put("account", accountJson(it)) }
+            data.consent?.let { put("consent", consentJson(it)) }
             data.profile?.let { put("profile", profileJson(it)) }
-            put(
-                "entitlement",
-                buildJsonObject {
-                    put("freeCredits", data.entitlement.freeCredits)
-                    put("purchasedCredits", data.entitlement.purchasedCredits)
-                },
-            )
-            put(
-                "purchases",
-                buildJsonArray {
-                    data.purchases.forEach { purchase ->
-                        add(
-                            buildJsonObject {
-                                put("packId", purchase.packId)
-                                put("orderId", purchase.orderId)
-                                put("state", purchase.state.name)
-                                put("purchasedAt", purchase.purchasedAt.toString())
-                            },
-                        )
-                    }
-                },
-            )
-            put("applications", buildJsonArray { data.applications.forEach { add(applicationJson(it, data)) } })
+            put("entitlement", entitlementJson(data.entitlement))
+            put("purchases", objects(data.purchases, ::purchaseJson))
+            put("applications", objects(data.applications) { applicationJson(it, data) })
         },
     )
+
+    private fun accountJson(account: SignInAccount): JsonObject = buildJsonObject {
+        put("email", account.email)
+        put("displayName", account.displayName)
+    }
+
+    private fun consentJson(consent: ConsentRecord): JsonObject = buildJsonObject {
+        put("purposes", strings(consent.purposes.map { it.name }))
+        put("acceptedAt", consent.acceptedAt.toString())
+        put("noticeVersion", consent.noticeVersion)
+    }
+
+    private fun entitlementJson(entitlement: PurchaseEntitlement): JsonObject = buildJsonObject {
+        put("freeCredits", entitlement.freeCredits)
+        put("purchasedCredits", entitlement.purchasedCredits)
+        put("unlockedApplicationIds", strings(entitlement.unlockedApplicationIds.sorted()))
+        put("pendingPackIds", strings(entitlement.pendingPackIds))
+    }
+
+    private fun purchaseJson(purchase: PurchaseRecord): JsonObject = buildJsonObject {
+        put("packId", purchase.packId)
+        put("orderId", purchase.orderId)
+        put("state", purchase.state.name)
+        put("purchasedAt", purchase.purchasedAt.toString())
+    }
 
     private fun profileJson(profile: CandidateProfile): JsonObject = buildJsonObject {
         put("fullName", profile.fullName)
@@ -143,35 +149,24 @@ class AccountDataArchiveWriter {
         put("phone", profile.phone)
         put("headline", profile.headline)
         put("skills", strings(profile.skills))
+        put("entries", objects(profile.entries, ::profileEntryJson))
+    }
+
+    private fun profileEntryJson(entry: ProfileEntry): JsonObject = buildJsonObject {
+        put("id", entry.id)
+        put("category", entry.category.name)
+        put("title", entry.title)
+        put("organization", entry.organization)
+        put("startDate", entry.startDate)
+        put("endDate", entry.endDate)
+        put("source", entry.source.name)
+        put("isConfirmed", entry.isConfirmed)
         put(
-            "entries",
-            buildJsonArray {
-                profile.entries.forEach { entry ->
-                    add(
-                        buildJsonObject {
-                            put("id", entry.id)
-                            put("category", entry.category.name)
-                            put("title", entry.title)
-                            put("organization", entry.organization)
-                            put("startDate", entry.startDate)
-                            put("endDate", entry.endDate)
-                            put("source", entry.source.name)
-                            put("isConfirmed", entry.isConfirmed)
-                            put(
-                                "bullets",
-                                buildJsonArray {
-                                    entry.bullets.forEach { bullet ->
-                                        add(
-                                            buildJsonObject {
-                                                put("id", bullet.id)
-                                                put("text", bullet.text)
-                                            },
-                                        )
-                                    }
-                                },
-                            )
-                        },
-                    )
+            "bullets",
+            objects(entry.bullets) { bullet ->
+                buildJsonObject {
+                    put("id", bullet.id)
+                    put("text", bullet.text)
                 }
             },
         )
@@ -185,120 +180,84 @@ class AccountDataArchiveWriter {
         put("notes", application.notes)
         put("createdAt", application.createdAt.toString())
         put("updatedAt", application.updatedAt.toString())
+        put("job", jobJson(application.job))
+        application.gapAnalysis?.let { put("gapAnalysis", gapAnalysisJson(it)) }
+        application.tailoredResume?.let { put("tailoredResume", tailoredResumeJson(it)) }
+        data.coverLetters[application.id]?.let { put("coverLetter", coverLetterJson(it)) }
+        put("prepPlan", objects(data.prepPlans[application.id].orEmpty(), ::prepItemJson))
+        put("exports", objects(data.exports.filter { it.applicationId == application.id }, ::exportJson))
+    }
+
+    private fun jobJson(job: JobDescription): JsonObject = buildJsonObject {
+        put("rawText", job.rawText)
+        put("requirements", objects(job.requirements, ::requirementJson))
+    }
+
+    private fun gapAnalysisJson(analysis: GapAnalysis): JsonObject = buildJsonObject {
         put(
-            "job",
+            "matches",
+            objects(analysis.matches) { match ->
+                buildJsonObject {
+                    put("requirementId", match.requirement.id)
+                    put("status", match.status.name)
+                    put("evidenceIds", strings(match.evidenceIds))
+                }
+            },
+        )
+        put(
+            "keywordCoverage",
             buildJsonObject {
-                put("rawText", application.job.rawText)
-                put(
-                    "requirements",
-                    buildJsonArray {
-                        application.job.requirements.forEach { add(requirementJson(it)) }
-                    },
-                )
+                put("covered", analysis.keywordCoverage.covered)
+                put("total", analysis.keywordCoverage.total)
             },
         )
-        application.gapAnalysis?.let { analysis ->
-            put(
-                "gapAnalysis",
-                buildJsonObject {
-                    put(
-                        "matches",
-                        buildJsonArray {
-                            analysis.matches.forEach { match ->
-                                add(
-                                    buildJsonObject {
-                                        put("requirementId", match.requirement.id)
-                                        put("status", match.status.name)
-                                        put("evidenceIds", strings(match.evidenceIds))
-                                    },
-                                )
-                            }
-                        },
-                    )
-                    put(
-                        "keywordCoverage",
-                        buildJsonObject {
-                            put("covered", analysis.keywordCoverage.covered)
-                            put("total", analysis.keywordCoverage.total)
-                        },
-                    )
-                },
-            )
-        }
-        application.tailoredResume?.let { resume ->
-            put(
-                "tailoredResume",
-                buildJsonObject {
-                    put(
-                        "bullets",
-                        buildJsonArray {
-                            resume.bullets.forEach { bullet ->
-                                add(
-                                    buildJsonObject {
-                                        put("id", bullet.id)
-                                        put("entryId", bullet.entryId)
-                                        put("original", bullet.originalText)
-                                        put("proposed", bullet.proposedText)
-                                        put("sourceIds", strings(bullet.sourceIds))
-                                        put("decision", bullet.decision.name)
-                                    },
-                                )
-                            }
-                        },
-                    )
-                },
-            )
-        }
-        data.coverLetters[application.id]?.let { letter ->
-            put(
-                "coverLetter",
-                buildJsonObject {
-                    put("writtenAt", letter.writtenAt.toString())
-                    put(
-                        "paragraphs",
-                        buildJsonArray {
-                            letter.paragraphs.forEach { paragraph ->
-                                add(
-                                    buildJsonObject {
-                                        put("text", paragraph.text)
-                                        put("isGreeting", paragraph.isGreeting)
-                                        put("isUserEdited", paragraph.isUserEdited)
-                                    },
-                                )
-                            }
-                        },
-                    )
-                },
-            )
-        }
+    }
+
+    private fun tailoredResumeJson(resume: TailoredResume): JsonObject = buildJsonObject {
+        resume.entryIds?.let { put("entryIds", strings(it)) }
+        put("bullets", objects(resume.bullets, ::tailoredBulletJson))
+    }
+
+    private fun tailoredBulletJson(bullet: TailoredBullet): JsonObject = buildJsonObject {
+        put("id", bullet.id)
+        put("entryId", bullet.entryId)
+        put("original", bullet.originalText)
+        put("proposed", bullet.proposedText)
+        put("sourceIds", strings(bullet.sourceIds))
+        put("editTypes", strings(bullet.editTypes.map { it.name }))
+        put("keywordsUsed", strings(bullet.keywordsUsed))
+        put("violations", strings(bullet.violations.map { it.toString() }))
+        put("decision", bullet.decision.name)
+    }
+
+    private fun coverLetterJson(letter: WrittenCoverLetter): JsonObject = buildJsonObject {
+        put("writtenAt", letter.writtenAt.toString())
+        letter.citedFactIds?.let { put("citedFactIds", strings(it)) }
         put(
-            "prepPlan",
-            buildJsonArray {
-                data.prepPlans[application.id].orEmpty().forEach { item ->
-                    add(
-                        buildJsonObject {
-                            put("id", item.id)
-                            put("text", item.text)
-                            put("done", item.done)
-                        },
-                    )
+            "paragraphs",
+            objects(letter.paragraphs) { paragraph ->
+                buildJsonObject {
+                    put("text", paragraph.text)
+                    put("isGreeting", paragraph.isGreeting)
+                    put("isUserEdited", paragraph.isUserEdited)
                 }
             },
         )
-        put(
-            "exports",
-            buildJsonArray {
-                data.exports.filter { it.applicationId == application.id }.forEach { export ->
-                    add(
-                        buildJsonObject {
-                            put("format", export.format.name)
-                            put("fileName", export.fileName)
-                            put("exportedAt", export.exportedAt.toString())
-                        },
-                    )
-                }
-            },
-        )
+    }
+
+    private fun prepItemJson(item: PrepPlanItem): JsonObject = buildJsonObject {
+        put("id", item.id)
+        put("text", item.text)
+        put("done", item.done)
+    }
+
+    private fun exportJson(export: ExportRecord): JsonObject = buildJsonObject {
+        put("format", export.format.name)
+        put("fileName", export.fileName)
+        put("exportedAt", export.exportedAt.toString())
+        put("creditKind", export.creditKind?.name)
+        put("pageCount", export.pageCount)
+        put("templateName", export.templateName)
     }
 
     private fun requirementJson(requirement: JobRequirement): JsonObject = buildJsonObject {
@@ -310,6 +269,9 @@ class AccountDataArchiveWriter {
     }
 
     private fun strings(values: List<String>): JsonArray = buildJsonArray { values.forEach { add(it) } }
+
+    private fun <T> objects(values: List<T>, toJson: (T) -> JsonObject): JsonArray =
+        buildJsonArray { values.forEach { add(toJson(it)) } }
 
     private companion object {
         const val ACCOUNT_ENTRY = "account.txt"
