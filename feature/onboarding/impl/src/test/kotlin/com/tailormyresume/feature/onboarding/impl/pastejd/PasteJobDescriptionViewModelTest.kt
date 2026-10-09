@@ -230,8 +230,8 @@ class PasteJobDescriptionViewModelTest {
 
         val state = viewModel.uiState.value
         assertThat(state.text).isEmpty()
-        assertThat(state.company).isEmpty()
-        assertThat(state.role).isEmpty()
+        assertThat(state.company).isEqualTo("Northwind GCC")
+        assertThat(state.role).isEqualTo("Associate Analyst")
         assertThat(state.wordCount).isEqualTo(0)
         assertThat(state.canClear).isFalse()
         assertThat(state.canAnalyse).isFalse()
