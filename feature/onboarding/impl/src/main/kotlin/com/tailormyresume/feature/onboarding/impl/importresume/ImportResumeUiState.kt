@@ -20,6 +20,13 @@ enum class ImportStage {
     Failed,
 }
 
+enum class ImportFailureCause {
+    Generic,
+    RateLimited,
+    QuotaReached,
+    SignInRequired,
+}
+
 data class ImportedFactUi(
     val id: String,
     val category: EntryCategory,
@@ -35,6 +42,7 @@ data class ImportResumeUiState(
     val facts: List<ImportedFactUi> = emptyList(),
     val skillCount: Int = 0,
     val isQueued: Boolean = false,
+    val failureCause: ImportFailureCause = ImportFailureCause.Generic,
 ) {
     val isPicking: Boolean get() = stage == ImportStage.Picking
     val isParsing: Boolean get() = stage == ImportStage.Parsing

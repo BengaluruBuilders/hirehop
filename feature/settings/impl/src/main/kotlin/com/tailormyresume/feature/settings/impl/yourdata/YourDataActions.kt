@@ -13,4 +13,5 @@ data class YourDataActions(
     val onDeleteMyData: () -> Unit,
     val onDeleteMyDataConfirm: () -> Unit,
     val onDeleteMyDataDismiss: () -> Unit,
+    val onCancelExport: () -> Unit = {},
 )

@@ -22,6 +22,7 @@ cat >"$work/gitleaks" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$@" >"$RECORD"
 [[ -n "${STUB_OUTPUT:-}" ]] && echo "$STUB_OUTPUT"
+[[ -n "${STUB_TEXT_PASS_OUTPUT:-}" && "${*: -1}" == *gitleaks-text* ]] && echo "$STUB_TEXT_PASS_OUTPUT"
 exit "${STUB_EXIT:-0}"
 STUB
 chmod +x "$work/gitleaks"
@@ -137,6 +138,23 @@ a_bad_merge_scope_fails_the_step() {
 a_gitleaks_error_with_a_zero_exit_fails_the_step() {
   ! run_scan env STUB_OUTPUT='9:41PM ERR [git] fatal: bad object' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null &&
     ! run_scan env STUB_OUTPUT='WRN partial scan completed' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null
+}
+
+a_gitleaks_error_with_a_zero_exit_in_the_text_pass_fails_the_step() {
+  local nul_repo="$work/repo-nul"
+  rm -rf "$nul_repo"
+  cp -R "$repo" "$nul_repo"
+  printf 'a\0b\n' >"$nul_repo/blob.bin"
+  git -C "$nul_repo" add -A
+  git -C "$nul_repo" commit -q -m nul
+  local status=0
+  (
+    cd "$nul_repo"
+    RECORD="$work/record-nul" RUNNER_TEMP="$work/temp" GITLEAKS="$work/gitleaks" \
+      GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER=HEAD \
+      STUB_TEXT_PASS_OUTPUT='9:41PM ERR [git] fatal: bad object' "$script"
+  ) >/dev/null 2>&1 || status=$?
+  [[ $status -ne 0 ]]
 }
 
 policy_job_field() {
@@ -596,6 +614,7 @@ check "pull request with an unknown base fails without scanning" pull_request_wi
 check "a finding fails the step" a_finding_fails_the_step
 check "a bad merge scope fails the step" a_bad_merge_scope_fails_the_step
 check "a gitleaks error with a zero exit fails the step" a_gitleaks_error_with_a_zero_exit_fails_the_step
+check "a gitleaks error with a zero exit in the text pass fails the step" a_gitleaks_error_with_a_zero_exit_in_the_text_pass_fails_the_step
 check "policy job serialises runs per ref" policy_job_serialises_runs_per_ref
 check "policy job has time for the gitleaks download" policy_job_has_time_for_the_gitleaks_download
 check "policy job scans before running any pull request script" policy_job_scans_before_running_any_pull_request_script
