@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
@@ -47,6 +50,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
 import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
+import com.tailormyresume.core.designsystem.component.TmrTextButton
 import com.tailormyresume.core.designsystem.component.TmrTextField
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -110,8 +114,24 @@ private fun PasteJobDescriptionContent(
     actions: PasteJobDescriptionActions,
     modifier: Modifier = Modifier,
 ) {
-    var revealsRoleAndCompany by remember(uiState.role, uiState.company) {
-        mutableStateOf(uiState.role.isNotBlank() || uiState.company.isNotBlank())
+    var isRoleAndCompanyRevealed by remember { mutableStateOf(false) }
+    var focusCompanyRequested by remember { mutableStateOf(false) }
+    val companyFocus = remember { FocusRequester() }
+    val areFieldsShown = isRoleAndCompanyRevealed || uiState.role.isNotBlank() || uiState.company.isNotBlank()
+    val contentActions = actions.copy(
+        onClear = {
+            isRoleAndCompanyRevealed = false
+            actions.onClear()
+        },
+    )
+    LaunchedEffect(areFieldsShown) {
+        if (areFieldsShown) isRoleAndCompanyRevealed = true
+    }
+    LaunchedEffect(focusCompanyRequested) {
+        if (focusCompanyRequested) {
+            companyFocus.requestFocus()
+            focusCompanyRequested = false
+        }
     }
     Column(
         modifier = modifier
@@ -121,14 +141,14 @@ private fun PasteJobDescriptionContent(
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
         OnboardingStepBar(
-            onBack = actions.onBack,
+            onBack = contentActions.onBack,
             backContentDescription = stringResource(
                 R.string.feature_onboarding_impl_paste_jd_navigation_back_description,
             ),
         )
         PasteJobDescriptionIntro()
-        PasteJobDescriptionNotices(uiState = uiState, actions = actions)
-        PasteJobDescriptionField(uiState = uiState, actions = actions)
+        PasteJobDescriptionNotices(uiState = uiState, actions = contentActions)
+        PasteJobDescriptionField(uiState = uiState, actions = contentActions)
         val problem = uiState.problem
         if (problem != null) {
             OnboardingNotice(
@@ -137,7 +157,14 @@ private fun PasteJobDescriptionContent(
                 tone = if (problem == PasteJobDescriptionProblem.TOO_SHORT) NoticeTone.Warning else NoticeTone.Error,
             )
         } else if (uiState.text.isNotEmpty()) {
-            SpottedRow(uiState = uiState, onEdit = { revealsRoleAndCompany = true })
+            SpottedRow(
+                uiState = uiState,
+                isRevealed = isRoleAndCompanyRevealed,
+                onEdit = {
+                    isRoleAndCompanyRevealed = true
+                    focusCompanyRequested = true
+                },
+            )
         }
         if (uiState.isDailyLimitReached) {
             OnboardingNotice(
@@ -150,8 +177,8 @@ private fun PasteJobDescriptionContent(
                 tone = NoticeTone.Warning,
             )
         }
-        if (revealsRoleAndCompany) {
-            RoleAndCompanyFields(actions = actions, uiState = uiState)
+        if (areFieldsShown) {
+            RoleAndCompanyFields(actions = contentActions, uiState = uiState, companyFocus = companyFocus)
         }
     }
 }
@@ -321,32 +348,44 @@ private fun PasteJobDescriptionTextArea(
 }
 
 @Composable
-private fun SpottedRow(uiState: PasteJobDescriptionUiState, onEdit: () -> Unit) {
-    if (uiState.role.isBlank() && uiState.company.isBlank()) return
-    Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-        Text(
-            text = stringResource(R.string.feature_onboarding_impl_paste_jd_spotted),
-            style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
-            color = TmrTheme.colors.onSurface,
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (uiState.role.isNotBlank()) {
-                SpottedChip(label = uiState.role)
-            }
-            if (uiState.company.isNotBlank()) {
-                SpottedChip(label = uiState.company)
-            }
-            TmrIconButton(
-                icon = TmrIcons.Edit,
-                contentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_edit_description),
+private fun SpottedRow(
+    uiState: PasteJobDescriptionUiState,
+    isRevealed: Boolean,
+    onEdit: () -> Unit,
+) {
+    if (uiState.role.isBlank() && uiState.company.isBlank()) {
+        if (!isRevealed) {
+            TmrTextButton(
+                label = stringResource(R.string.feature_onboarding_impl_paste_jd_add_labels),
                 onClick = onEdit,
-                tint = TmrTheme.colors.primary,
-                containerColor = Color.Transparent,
-                borderColor = Color.Transparent,
             )
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_paste_jd_spotted),
+                style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
+                color = TmrTheme.colors.onSurface,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs + TmrTheme.spacing.xxs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (uiState.role.isNotBlank()) {
+                    SpottedChip(label = uiState.role)
+                }
+                if (uiState.company.isNotBlank()) {
+                    SpottedChip(label = uiState.company)
+                }
+                TmrIconButton(
+                    icon = TmrIcons.Edit,
+                    contentDescription = stringResource(R.string.feature_onboarding_impl_paste_jd_edit_description),
+                    onClick = onEdit,
+                    tint = TmrTheme.colors.primary,
+                    containerColor = Color.Transparent,
+                    borderColor = Color.Transparent,
+                )
+            }
         }
     }
 }
@@ -372,10 +411,12 @@ private fun SpottedChip(label: String) {
 private fun RoleAndCompanyFields(
     uiState: PasteJobDescriptionUiState,
     actions: PasteJobDescriptionActions,
+    companyFocus: FocusRequester,
 ) {
     TmrTextField(
         value = uiState.company,
         onValueChange = actions.onCompanyChange,
+        modifier = Modifier.focusRequester(companyFocus),
         label = stringResource(R.string.feature_onboarding_impl_paste_jd_company_label),
         placeholder = stringResource(R.string.feature_onboarding_impl_paste_jd_company_placeholder),
     )

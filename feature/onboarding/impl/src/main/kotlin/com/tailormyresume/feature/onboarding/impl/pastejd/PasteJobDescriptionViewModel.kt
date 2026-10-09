@@ -50,6 +50,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private var proposedRole = ""
 
+    private var labelsEditedSinceText = false
+
     private var prefillJob: Job? = null
 
     val uiState: StateFlow<PasteJobDescriptionUiState> = mutableState.asStateFlow()
@@ -84,8 +86,8 @@ class PasteJobDescriptionViewModel @Inject constructor(
         when (action) {
             is PasteJobDescriptionAction.TextChanged -> onTextChanged(action.value)
             is PasteJobDescriptionAction.Pasted -> onPasted(action.value)
-            is PasteJobDescriptionAction.CompanyChanged -> mutableState.update { it.copy(company = action.value) }
-            is PasteJobDescriptionAction.RoleChanged -> mutableState.update { it.copy(role = action.value) }
+            is PasteJobDescriptionAction.CompanyChanged -> onCompanyChanged(action.value)
+            is PasteJobDescriptionAction.RoleChanged -> onRoleChanged(action.value)
             PasteJobDescriptionAction.ClearTapped -> onClear()
             PasteJobDescriptionAction.AnalyseTapped -> onAnalyse()
             PasteJobDescriptionAction.RetryTapped -> mutableState.update { it.copy(message = null) }
@@ -96,7 +98,18 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private fun onTextChanged(value: String) {
         mutableState.update { state -> state.copy(text = value, message = null, nextStep = null) }
+        labelsEditedSinceText = false
         schedulePrefill()
+    }
+
+    private fun onCompanyChanged(value: String) {
+        labelsEditedSinceText = true
+        mutableState.update { it.copy(company = value) }
+    }
+
+    private fun onRoleChanged(value: String) {
+        labelsEditedSinceText = true
+        mutableState.update { it.copy(role = value) }
     }
 
     private fun schedulePrefill() {
@@ -105,13 +118,17 @@ class PasteJobDescriptionViewModel @Inject constructor(
         if (text.isBlank()) return
         prefillJob = viewModelScope.launch {
             delay(PREFILL_DEBOUNCE_MS)
-            val proposal = try {
-                withContext(computeDispatcher) { proposeJobLabel(text) }
-            } catch (_: AiException) {
-                return@launch
-            }
-            mutableState.update { it.withProposedLabels(proposal) }
+            proposeAndApplyLabels(text)
         }
+    }
+
+    private suspend fun proposeAndApplyLabels(text: String) {
+        val proposal = try {
+            withContext(computeDispatcher) { proposeJobLabel(text) }
+        } catch (_: AiException) {
+            return
+        }
+        mutableState.update { it.withProposedLabels(proposal) }
     }
 
     private fun PasteJobDescriptionUiState.withProposedLabels(proposal: JobLabelProposal): PasteJobDescriptionUiState {
@@ -135,6 +152,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
 
     private fun onClear() {
         prefillJob?.cancel()
+        labelsEditedSinceText = false
         mutableState.update { state ->
             if (state.canClear) {
                 proposedCompany = ""
@@ -151,14 +169,19 @@ class PasteJobDescriptionViewModel @Inject constructor(
         if (!state.canAnalyse || isSubmitting) return
         isSubmitting = true
         viewModelScope.launch {
+            if (prefillJob?.isActive == true && !labelsEditedSinceText) {
+                prefillJob?.cancel()
+                proposeAndApplyLabels(mutableState.value.text)
+            }
             if (usageAllowance.observeAnalysesLeft().first() <= 0) {
                 isSubmitting = false
                 return@launch
             }
+            val current = mutableState.value
             val kept = KeptJobDescription(
-                text = state.text.trim(),
-                company = state.company.trim(),
-                role = state.role.trim(),
+                text = current.text.trim(),
+                company = current.company.trim(),
+                role = current.role.trim(),
             )
             val previous = sessionRepository.observeKeptJobDescription().first()
             if (previous != null && previous.draftKey != kept.draftKey) discardJobDrafts(previous)

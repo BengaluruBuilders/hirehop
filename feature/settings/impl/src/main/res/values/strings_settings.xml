@@ -10,6 +10,7 @@
 
     <string name="feature_settings_impl_settings_account_provider">Google account</string>
     <string name="feature_settings_impl_settings_account_missing">No account is signed in on this device.</string>
+    <string name="feature_settings_impl_settings_row_sign_in">Sign in</string>
     <string name="feature_settings_impl_settings_row_sign_out">Sign out</string>
 
     <string name="feature_settings_impl_settings_row_credits">Credits and help</string>
