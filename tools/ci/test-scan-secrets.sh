@@ -237,6 +237,97 @@ real_scan() {
   (cd "$r" && RUNNER_TEMP="$work/real-temp" GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER=HEAD GITLEAKS="$real" "$script" 2>&1)
 }
 
+write_encoded_file() {
+  python3 - "$@" <<'PY'
+import sys
+path, codec, bom, text = sys.argv[1:5]
+body = text.encode(codec)
+open(path, "wb").write((bytes.fromhex(bom) if bom else b"") + body)
+PY
+}
+
+real_scan_of_an_encoded_file() {
+  local codec="$1" bom="$2" text="$3" tail_hex="${4:-}" r="$work/real-enc-$RANDOM"
+  new_real_repo "$r"
+  write_encoded_file "$r/Notes.txt" "$codec" "$bom" "$text"
+  [[ -n "$tail_hex" ]] && printf "$tail_hex" >>"$r/Notes.txt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m encoded
+  real_scan "$r" "$REAL_FOR_ENCODED"
+}
+
+real_gitleaks_fails_for_an_encoded_token() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  REAL_FOR_ENCODED="$real"
+  local out
+  out="$(real_scan_of_an_encoded_file "$1" "$2" "token = \"$(fake_token)\"
+")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_fails_for_a_token_in_utf16le_with_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token utf-16-le fffe
+}
+
+real_gitleaks_fails_for_a_token_in_utf16be_with_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token utf-16-be feff
+}
+
+real_gitleaks_fails_for_a_token_in_utf16le_without_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token utf-16-le ""
+}
+
+real_gitleaks_fails_for_an_encoded_token_after() {
+  local lead="$1" codec="$2" bom="$3" real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  REAL_FOR_ENCODED="$real"
+  local out
+  out="$(real_scan_of_an_encoded_file "$codec" "$bom" "${lead}token = \"$(fake_token)\"
+")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_fails_for_a_pdf_prefixed_utf16le_file_without_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token_after $'%PDF-1.4\n' utf-16-le ""
+}
+
+real_gitleaks_fails_for_a_zip_prefixed_utf16le_file_without_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token_after $'PK\x03\x04' utf-16-le ""
+}
+
+real_gitleaks_fails_for_a_tar_signature_at_offset_257_of_a_utf16le_file() {
+  local pad
+  pad="$(printf 'a%.0s' $(seq 1 253))"
+  real_gitleaks_fails_for_an_encoded_token_after $'\xc3\xa9\xc3\xa9'"${pad}"$'ustar\n' utf-16-le fffe
+}
+
+real_gitleaks_fails_for_a_token_in_utf32le_with_a_bom() {
+  real_gitleaks_fails_for_an_encoded_token utf-32-le fffe0000
+}
+
+real_gitleaks_passes_a_clean_utf16_file() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  REAL_FOR_ENCODED="$real"
+  real_scan_of_an_encoded_file utf-16-le fffe $'greeting = "hello"\n' >/dev/null
+}
+
+real_gitleaks_fails_for_a_malformed_utf16_file() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  REAL_FOR_ENCODED="$real"
+  ! real_scan_of_an_encoded_file utf-16-le fffe $'greeting = "hello"\n' '\x41' >/dev/null
+}
+
 real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry() {
   local real status=0
   real="$(find_real_gitleaks)" || status=$?
@@ -294,6 +385,32 @@ real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
   git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
   git -C "$r" merge -q --no-ff --no-commit side
   printf 'token = "%s"\n' "$(fake_token)" >"$r/Leak.kt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m "merge side"
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_fails_for_a_utf16_token_added_only_in_a_merge_commit() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-merge-utf16"
+  new_real_repo "$r"
+  git -C "$r" checkout -q -b side
+  printf 'side\n' >"$r/Side"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m side
+  git -C "$r" checkout -q main
+  printf 'main\n' >"$r/Main"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m main
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
+  git -C "$r" merge -q --no-ff --no-commit side
+  write_encoded_file "$r/Notes.txt" utf-16-le fffe "token = \"$(fake_token)\"
+"
   git -C "$r" add -A
   git -C "$r" commit -q -m "merge side"
   local out
@@ -454,6 +571,16 @@ check "real gitleaks fails for a token in a .png file" real_gitleaks_fails_for_a
 check "real gitleaks fails for a token in an uppercase .PDF file" real_gitleaks_fails_for_a_token_in_an_uppercase_pdf_file
 check "real gitleaks fails for a token in a .svg file" real_gitleaks_fails_for_a_token_in_an_svg_file
 check "real gitleaks ignores a pull request config that allows every path" real_gitleaks_ignores_a_pull_request_config_that_allows_every_path
+check "real gitleaks fails for a token in utf-16le with a bom" real_gitleaks_fails_for_a_token_in_utf16le_with_a_bom
+check "real gitleaks fails for a token in utf-16be with a bom" real_gitleaks_fails_for_a_token_in_utf16be_with_a_bom
+check "real gitleaks fails for a token in utf-16le without a bom" real_gitleaks_fails_for_a_token_in_utf16le_without_a_bom
+check "real gitleaks fails for a token in utf-32le with a bom" real_gitleaks_fails_for_a_token_in_utf32le_with_a_bom
+check "real gitleaks fails for a pdf-prefixed utf-16le file without a bom" real_gitleaks_fails_for_a_pdf_prefixed_utf16le_file_without_a_bom
+check "real gitleaks fails for a zip-prefixed utf-16le file without a bom" real_gitleaks_fails_for_a_zip_prefixed_utf16le_file_without_a_bom
+check "real gitleaks fails for a tar signature at offset 257 of a utf-16le file" real_gitleaks_fails_for_a_tar_signature_at_offset_257_of_a_utf16le_file
+check "real gitleaks fails for a token added only in a merge commit as utf-16" real_gitleaks_fails_for_a_utf16_token_added_only_in_a_merge_commit
+check "real gitleaks passes a clean utf-16 file" real_gitleaks_passes_a_clean_utf16_file
+check "real gitleaks fails for a malformed utf-16 file" real_gitleaks_fails_for_a_malformed_utf16_file
 check "the pinned config drops the path allowlist entries that hide binary files" the_pinned_config_drops_the_path_allowlist_entries_that_hide_binary_files
 check "push uses the checked-out config" push_uses_the_checked_out_config
 check "real gitleaks still fails when a token is added only in a merge commit" real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit
