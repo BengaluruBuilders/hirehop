@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.guidedform
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -30,6 +31,7 @@ class GuidedFormViewModel @Inject internal constructor(
     private val factWriter: UserFactWriter,
     private val exitResolver: ProfileExitResolver,
     private val connectivityMonitor: ConnectivityMonitor,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(GuidedFormUiState())

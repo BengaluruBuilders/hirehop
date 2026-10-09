@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.pastejd
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.common.network.Dispatcher
@@ -38,6 +39,7 @@ class PasteJobDescriptionViewModel @Inject constructor(
     private val proposeJobLabel: ProposeJobLabelUseCase,
     private val discardJobDrafts: DiscardJobDraftsUseCase,
     @param:Dispatcher(TmrDispatchers.Default) private val computeDispatcher: CoroutineDispatcher,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(PasteJobDescriptionUiState())

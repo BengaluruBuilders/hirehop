@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.facteditor
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -40,6 +41,7 @@ class FactEditorViewModel @AssistedInject constructor(
     private val idGenerator: IdGenerator,
     private val connectivityMonitor: ConnectivityMonitor,
     @Assisted key: FactEditorNavKey,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val profileMutex = Mutex()
