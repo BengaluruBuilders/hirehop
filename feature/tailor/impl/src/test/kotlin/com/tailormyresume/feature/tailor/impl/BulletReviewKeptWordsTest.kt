@@ -38,7 +38,7 @@ class BulletReviewKeptWordsTest {
 
         composeRule.onNode(hasText("Added words")).assertExists()
         composeRule.onNode(hasText("Cleaned")).assertExists()
-        assertThat(composeRule.onAllNodes(hasText("SQL", substring = false)).fetchSemanticsNodes()).isEmpty()
+        assertThat(composeRule.onAllNodes(hasText("SQL", substring = false)).fetchSemanticsNodes()).hasSize(KEYWORD_CHIP_ONLY)
     }
 
     @Test
@@ -58,7 +58,11 @@ class BulletReviewKeptWordsTest {
         }
 
         composeRule.onNode(hasText("Added words")).assertExists()
-        assertThat(composeRule.onAllNodes(hasText("Excel", substring = false)).fetchSemanticsNodes()).isEmpty()
+        assertThat(composeRule.onAllNodes(hasText("Excel", substring = false)).fetchSemanticsNodes()).hasSize(KEYWORD_CHIP_ONLY)
+    }
+
+    private companion object {
+        const val KEYWORD_CHIP_ONLY = 1
     }
 
     private fun emptyActions() = BulletSheetActions(
