@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -68,14 +69,18 @@ internal fun RowMenuOverlay(state: AnalysisUiState.Result, anchor: Rect, actions
     val colors = TmrTheme.colors
     val density = LocalDensity.current
     val menuWidth = TmrTheme.spacing.d64 * MENU_WIDTH_UNITS
+    val dismissLabel = stringResource(R.string.feature_analysis_impl_menu_dismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
+                role = Role.Button,
+                onClickLabel = dismissLabel,
                 onClick = actions.onDismissOverlay,
-            ),
+            )
+            .semantics { contentDescription = dismissLabel },
     ) {
         Column(
             modifier = Modifier

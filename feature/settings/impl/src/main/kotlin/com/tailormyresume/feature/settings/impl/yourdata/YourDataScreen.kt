@@ -24,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -106,6 +108,7 @@ internal fun YourDataScreen(
             onConfirm = actions.onDeleteConfirm,
             onCancel = actions.onDeleteDismiss,
             destructive = true,
+            icon = TmrIcons.Error,
         )
     }
 }
@@ -132,6 +135,7 @@ private fun DeleteMyDataDialog(content: YourDataUiState.Content, actions: YourDa
         onConfirm = actions.onDeleteMyDataConfirm,
         onCancel = actions.onDeleteMyDataDismiss,
         destructive = true,
+        icon = TmrIcons.Error,
     )
 }
 
@@ -452,9 +456,11 @@ private fun LedgerRow(
 }
 
 @Composable
-private fun DownloadNotice(isOffline: Boolean) {
+internal fun DownloadNotice(isOffline: Boolean) {
     Column(
-        modifier = Modifier.padding(horizontal = TmrTheme.spacing.gutter),
+        modifier = Modifier
+            .padding(horizontal = TmrTheme.spacing.gutter)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
     ) {
         NoticeLine(

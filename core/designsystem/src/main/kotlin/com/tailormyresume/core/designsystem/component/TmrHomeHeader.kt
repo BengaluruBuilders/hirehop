@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
@@ -70,7 +72,12 @@ fun TmrCollapsingHomeHeader(
     Layout(
         content = {
             Text(text = greeting, style = TmrTheme.typography.titleM, color = colors.onHeader)
-            Text(text = title, style = TmrTheme.typography.titleL, color = colors.onHeader)
+            Text(
+                text = title,
+                modifier = Modifier.semantics { heading() },
+                style = TmrTheme.typography.titleL,
+                color = colors.onHeader,
+            )
             TmrHomeHeaderHeadline(headline, action, illustration != null)
             Box(if (illustration == null) Modifier.size(0.dp) else Modifier.size(ILLUSTRATION_WIDTH, ILLUSTRATION_HEIGHT)) {
                 illustration?.invoke(this)
