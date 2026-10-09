@@ -104,4 +104,13 @@ class PendingMarkerAccountSwitchTest {
         assertThat(wipes).isEqualTo(0)
         assertThat(marker.current).isEqualTo(PendingWipeState.SERVER_CLOSED)
     }
+
+    @Test
+    fun signingInReadsTheAccountWithoutANetworkCall() = runTest {
+        server.enqueue(jsonResponse(200, ME_BODY))
+
+        gateway().signIn()
+
+        assertThat(server.requestCount).isEqualTo(0)
+    }
 }
