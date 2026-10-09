@@ -25,6 +25,7 @@ import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
 import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.component.TmrOutlinedButton
+import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
 import com.tailormyresume.core.designsystem.component.TmrSectionLabel
 import com.tailormyresume.core.designsystem.component.TmrStepProgress
@@ -132,7 +133,7 @@ private fun ReadyContent(
         }
         TmrOfflineBanner(
             message = stringResource(R.string.feature_settings_impl_delete_account_offline_message),
-            visible = uiState.isOffline,
+            visible = uiState.isOffline && !uiState.failure.isWipePending(),
         )
         uiState.failure?.let { failure ->
             SettingsErrorNotice(
@@ -140,28 +141,34 @@ private fun ReadyContent(
                     when (failure) {
                         DeleteAccountFailure.DATA_INTACT -> R.string.feature_settings_impl_delete_account_error_intact
                         DeleteAccountFailure.PARTLY_DELETED -> R.string.feature_settings_impl_delete_account_error_partial
+                        DeleteAccountFailure.LOCAL_WIPE_PENDING ->
+                            R.string.feature_settings_impl_delete_account_error_local_wipe_pending
+                        DeleteAccountFailure.CLOSE_UNCONFIRMED ->
+                            R.string.feature_settings_impl_delete_account_error_close_unconfirmed
                     },
                 ),
             )
         }
-        TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.lg)) {
-            TmrSectionLabel(text = stringResource(R.string.feature_settings_impl_delete_account_list_title))
-            CountsList(counts = uiState.counts)
+        if (!uiState.failure.isWipePending()) {
+            TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.lg)) {
+                TmrSectionLabel(text = stringResource(R.string.feature_settings_impl_delete_account_list_title))
+                CountsList(counts = uiState.counts)
+            }
+            TmrTextButton(
+                label = stringResource(R.string.feature_settings_impl_delete_account_download_first),
+                onClick = actions.onDownloadData,
+                leadingIcon = TmrIcons.Download,
+            )
+            Text(
+                text = stringResource(R.string.feature_settings_impl_delete_account_web_lead),
+                style = TmrTheme.typography.bodyS,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+            SettingsAddressSlot(
+                address = stringResource(R.string.feature_settings_impl_delete_account_web_address),
+                pendingLabel = stringResource(R.string.feature_settings_impl_delete_account_web_pending),
+            )
         }
-        TmrTextButton(
-            label = stringResource(R.string.feature_settings_impl_delete_account_download_first),
-            onClick = actions.onDownloadData,
-            leadingIcon = TmrIcons.Download,
-        )
-        Text(
-            text = stringResource(R.string.feature_settings_impl_delete_account_web_lead),
-            style = TmrTheme.typography.bodyS,
-            color = TmrTheme.colors.onSurfaceVariant,
-        )
-        SettingsAddressSlot(
-            address = stringResource(R.string.feature_settings_impl_delete_account_web_address),
-            pendingLabel = stringResource(R.string.feature_settings_impl_delete_account_web_pending),
-        )
     }
 }
 
@@ -202,6 +209,22 @@ private fun CountLine(text: String) {
 
 @Composable
 private fun ReadyBar(uiState: DeleteAccountUiState.Ready, actions: DeleteAccountActions) {
+    if (uiState.failure.isWipePending()) {
+        TmrBottomActionBar(stacked = true) {
+            TmrPrimaryButton(
+                label = stringResource(
+                    if (uiState.failure == DeleteAccountFailure.CLOSE_UNCONFIRMED) {
+                        R.string.feature_settings_impl_delete_account_try_again
+                    } else {
+                        R.string.feature_settings_impl_delete_account_finish_removal
+                    },
+                ),
+                onClick = actions.onFinishRemoval,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        return
+    }
     TmrBottomActionBar(stacked = true, primaryLast = false) {
         TmrOutlineButton(
             label = stringResource(R.string.feature_settings_impl_delete_account_keep),
