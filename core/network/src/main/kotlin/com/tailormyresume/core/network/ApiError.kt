@@ -65,5 +65,14 @@ internal fun apiErrorOf(httpStatus: Int, code: String?, retryAfterSeconds: Int?)
     "ALLOWANCE_EXHAUSTED" -> ApiError.AllowanceExhausted
     "ANALYSIS_IN_PROGRESS" -> ApiError.AnalysisInProgress
     "PLAY_UNAVAILABLE" -> ApiError.PlayUnavailable
-    else -> ApiError.Unknown(httpStatus)
+    else -> when (httpStatus) {
+        HTTP_PAYMENT_REQUIRED -> ApiError.NoCredit
+        HTTP_TOO_MANY_REQUESTS -> ApiError.RateLimited(retryAfterSeconds)
+        HTTP_UNAUTHORIZED -> ApiError.Unauthenticated
+        else -> ApiError.Unknown(httpStatus)
+    }
 }
+
+private const val HTTP_UNAUTHORIZED = 401
+private const val HTTP_PAYMENT_REQUIRED = 402
+private const val HTTP_TOO_MANY_REQUESTS = 429

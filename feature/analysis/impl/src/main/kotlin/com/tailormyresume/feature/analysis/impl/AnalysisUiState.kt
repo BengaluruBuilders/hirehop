@@ -28,7 +28,7 @@ sealed interface AnalysisUiState {
         val stepIndex: Int get() = if (keyTermCount == null) 0 else 1
     }
 
-    data class Failed(override val job: JobLabel) : AnalysisUiState
+    data class Failed(override val job: JobLabel, val cause: FailureCause = FailureCause.Generic) : AnalysisUiState
 
     data class DailyLimit(override val job: JobLabel) : AnalysisUiState
 
@@ -51,6 +51,18 @@ sealed interface AnalysisUiState {
 
         fun itemOrNull(requirementId: String): RequirementItem? = items.firstOrNull { it.id == requirementId }
     }
+}
+
+sealed interface FailureCause {
+    data object Generic : FailureCause
+
+    data object InProgress : FailureCause
+
+    data class RateLimited(val retryAfterSeconds: Int?) : FailureCause
+
+    data object QuotaReached : FailureCause
+
+    data object SignInRequired : FailureCause
 }
 
 sealed interface AnalysisOverlay {

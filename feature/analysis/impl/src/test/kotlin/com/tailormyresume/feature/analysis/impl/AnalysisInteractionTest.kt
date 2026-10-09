@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -180,6 +181,38 @@ class AnalysisInteractionTest {
         composeRule.onNodeWithText("Back to my JD").performClick()
 
         assertThat(calls).containsExactly("backToJob")
+    }
+
+    @Test
+    fun quotaReached_returnsToTheJobInsteadOfRetrying() {
+        show(AnalysisUiState.Failed(JobLabel("Associate Analyst", "Northwind GCC"), FailureCause.QuotaReached))
+
+        composeRule.onAllNodesWithText("Try again").assertCountEquals(0)
+        composeRule.onNodeWithText("Back to my JD").performClick()
+
+        assertThat(calls).containsExactly("backToJob")
+    }
+
+    @Test
+    fun rateLimited_showsAWaitInsideTheBounds() {
+        show(AnalysisUiState.Failed(JobLabel("Associate Analyst", "Northwind GCC"), FailureCause.RateLimited(30)))
+
+        composeRule.onNodeWithText("Please wait 30 seconds, then tap Try again.").assertExists()
+    }
+
+    @Test
+    fun rateLimited_dropsAWaitOutsideTheBounds() {
+        val state = androidx.compose.runtime.mutableStateOf<AnalysisUiState>(
+            AnalysisUiState.Failed(JobLabel("Associate Analyst", "Northwind GCC"), FailureCause.RateLimited(0)),
+        )
+        composeRule.setContent { TmrTheme { AnalysisScreen(uiState = state.value, actions = actions) } }
+
+        listOf(0, -5, 3601, Int.MAX_VALUE).forEach { seconds ->
+            state.value = AnalysisUiState.Failed(JobLabel("Associate Analyst", "Northwind GCC"), FailureCause.RateLimited(seconds))
+            composeRule.waitForIdle()
+
+            composeRule.onNodeWithText("Please wait a little, then tap Try again.").assertExists()
+        }
     }
 
     @Test

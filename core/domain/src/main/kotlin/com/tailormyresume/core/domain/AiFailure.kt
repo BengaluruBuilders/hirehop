@@ -8,9 +8,13 @@ enum class AiFailure {
     AllowanceExhausted,
     InvalidInput,
     AccountDeleted,
+    RateLimited,
+    AnalysisInProgress,
+    QuotaExceeded,
+    SignInRequired,
     Unavailable,
 }
 
-class AiException(val failure: AiFailure) : Exception(failure.name)
+class AiException(val failure: AiFailure, val retryAfterSeconds: Int? = null) : Exception(failure.name)
 
 fun Throwable.isAiFailure(failure: AiFailure): Boolean = (this as? AiException)?.failure == failure
