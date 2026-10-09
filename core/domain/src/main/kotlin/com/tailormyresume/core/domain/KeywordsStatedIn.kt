@@ -3,6 +3,7 @@ package com.tailormyresume.core.domain
 import com.tailormyresume.core.domain.offline.SkillLexicon
 import com.tailormyresume.core.domain.offline.TextTokens
 import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.RequirementType
 
 fun keywordsStatedIn(requirement: JobRequirement, statement: String): List<String> {
     val statedTerms = SkillLexicon.canonicalsIn(statement).toSet()
@@ -14,6 +15,11 @@ fun keywordsStatedIn(requirement: JobRequirement, statement: String): List<Strin
 
 private fun isStated(keyword: String, statedTerms: Set<String>, statedStems: Set<String>): Boolean =
     if (SkillLexicon.isKnown(keyword)) keyword in statedTerms else TextTokens.stem(keyword) in statedStems
+
+fun isNamedSkillKeyword(requirement: JobRequirement, keyword: String): Boolean =
+    requirement.type == RequirementType.SKILL ||
+        requirement.type == RequirementType.TOOL ||
+        SkillLexicon.normalise(keyword)?.let { it in SkillLexicon.canonicalsIn(requirement.text) } == true
 
 fun isKnownSkill(term: String): Boolean = SkillLexicon.normalise(term) != null
 

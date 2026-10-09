@@ -484,8 +484,8 @@ class AnalysisViewModel @Inject constructor(
         ) : Phase {
             override val label: JobLabel
                 get() = JobLabel(
-                    title = kept.role.ifBlank { analysis.job.title },
-                    company = kept.company.ifBlank { analysis.job.company },
+                    title = kept.resolvedTitle(analysis.job.title),
+                    company = kept.resolvedCompany(analysis.job.company),
                 )
             override val facts: Int get() = profile.confirmedFactCount()
 
