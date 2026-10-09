@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -69,6 +70,8 @@ fun TmrCollapsingHomeHeader(
     val titleGap = TmrTheme.spacing.sm
     val largeText = LocalDensity.current.fontScale >= 1.5f
     val parallax = if (TmrTheme.motion.reduced) 0f else COLLAPSE_PARALLAX
+    val motion = TmrTheme.motion
+    SideEffect { collapse.motion = motion }
     Layout(
         content = {
             Text(text = greeting, style = TmrTheme.typography.titleM, color = colors.onHeader)
