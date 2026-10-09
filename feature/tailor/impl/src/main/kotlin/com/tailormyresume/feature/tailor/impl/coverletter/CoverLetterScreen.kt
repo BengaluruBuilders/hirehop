@@ -250,11 +250,15 @@ private fun GeneratingCard(uiState: CoverLetterUiState) {
     val steps = listOf(
         GenerationStep(
             title = stringResource(R.string.feature_tailor_impl_cover_letter_step_pick),
-            detail = pluralStringResource(
-                R.plurals.feature_tailor_impl_cover_letter_step_pick_detail,
-                uiState.factCount,
-                uiState.factCount,
-            ),
+            detail = if (uiState.showsFactCount) {
+                pluralStringResource(
+                    R.plurals.feature_tailor_impl_cover_letter_step_pick_detail,
+                    uiState.factCount,
+                    uiState.factCount,
+                )
+            } else {
+                null
+            },
             status = stringResource(R.string.feature_tailor_impl_status_done),
             mark = StepMark.Done,
         ),

@@ -32,6 +32,7 @@ sealed interface YourDataUiState {
         val userStatedFactCount: Int,
         val applications: List<YourDataApplication>,
         val purchases: List<YourDataPurchase>,
+        val purchasesKnown: Boolean = true,
         val isOffline: Boolean,
         val export: YourDataExport,
         val deleteTarget: YourDataApplication?,

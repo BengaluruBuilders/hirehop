@@ -5,6 +5,8 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.JobDescription
 
 interface CoverLetterSource {
+    val choosesEvidence: Boolean get() = true
+
     suspend operator fun invoke(
         candidate: CandidateProfile,
         job: JobDescription,
