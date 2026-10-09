@@ -38,8 +38,8 @@
     <string name="feature_settings_impl_settings_delete_web_address">Address not set in this build</string>
 
     <string name="feature_settings_impl_settings_sign_out_title">Sign out?</string>
-    <string name="feature_settings_impl_settings_sign_out_body">Your facts and applications stay in your account. Sign in with %1$s to see them again.</string>
-    <string name="feature_settings_impl_settings_sign_out_body_no_email">Your facts and applications stay in your account. Sign in again to see them.</string>
+    <string name="feature_settings_impl_settings_sign_out_body">Your facts and applications stay on this phone. Sign in with %1$s to see them again. If you sign in with a different Google account, the app removes them.</string>
+    <string name="feature_settings_impl_settings_sign_out_body_no_email">Your facts and applications stay on this phone. Sign in again to see them. If you sign in with a different Google account, the app removes them.</string>
     <string name="feature_settings_impl_settings_sign_out_confirm">Sign out</string>
     <string name="feature_settings_impl_settings_sign_out_cancel">Cancel</string>
 </resources>

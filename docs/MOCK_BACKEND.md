@@ -71,6 +71,7 @@ A feature must change these things. Each item names the API.
 | State | Store | Key |
 |---|---|---|
 | Signed-in account | `MockStateStore` | `session.account` |
+| Uid of the last signed-in account (kept on sign-out; a different uid at sign-in wipes local data) | `MockStateStore` | `session.lastAccountId` |
 | Consent record | `MockStateStore` | `session.consent` |
 | Onboarding complete flag | `MockStateStore` | `session.onboardingComplete` |
 | Kept job description | `MockStateStore` | `session.keptJobDescription` |

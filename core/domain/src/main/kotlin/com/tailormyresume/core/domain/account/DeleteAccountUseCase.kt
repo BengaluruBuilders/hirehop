@@ -26,6 +26,7 @@ class DeleteAccountUseCase @Inject constructor(
     private val serverAccountDeleter: ServerAccountDeleter,
     private val creditBalance: AccountCreditBalance,
     private val latency: MockLatency,
+    private val exportedFiles: ExportedFiles = ExportedFiles.None,
 ) {
 
     suspend fun preview(): AccountDeletionCounts {
@@ -57,6 +58,7 @@ class DeleteAccountUseCase @Inject constructor(
             withContext(NonCancellable) {
                 signInGateway.signOut()
                 sessionRepository.clear()
+                exportedFiles.deleteAll()
             }
             AccountDeletionResult.Deleted(counts)
         } catch (cancellation: CancellationException) {

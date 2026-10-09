@@ -23,6 +23,10 @@ interface SessionRepository {
 
     suspend fun saveAccount(account: SignInAccount)
 
+    suspend fun lastAccountId(): String?
+
+    suspend fun saveLastAccountId(id: String)
+
     suspend fun recordConsent(record: ConsentRecord)
 
     suspend fun markOnboardingComplete()

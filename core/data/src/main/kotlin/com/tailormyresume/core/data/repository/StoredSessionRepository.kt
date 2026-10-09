@@ -49,6 +49,12 @@ internal class StoredSessionRepository @Inject constructor(
         store.writeValue(ACCOUNT_KEY, AccountDto.serializer(), AccountDto(account.id, account.displayName, account.email))
     }
 
+    override suspend fun lastAccountId(): String? = store.read(LAST_ACCOUNT_KEY)
+
+    override suspend fun saveLastAccountId(id: String) {
+        store.write(LAST_ACCOUNT_KEY, id)
+    }
+
     override suspend fun recordConsent(record: ConsentRecord) {
         val dto = ConsentDto(
             purposes = record.purposes.map(ConsentPurpose::name).sorted(),
@@ -74,7 +80,7 @@ internal class StoredSessionRepository @Inject constructor(
 
     override suspend fun signOut() = removeAll(ACCOUNT_KEY, KEPT_JOB_KEY)
 
-    override suspend fun clear() = removeAll(ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
+    override suspend fun clear() = removeAll(ACCOUNT_KEY, LAST_ACCOUNT_KEY, CONSENT_KEY, ONBOARDING_KEY, KEPT_JOB_KEY, CAREER_STAGE_KEY)
 
     private suspend fun removeAll(vararg keys: String) = withContext(NonCancellable) {
         keys.forEach { key -> store.remove(key) }
@@ -82,6 +88,7 @@ internal class StoredSessionRepository @Inject constructor(
 
     private companion object {
         const val ACCOUNT_KEY = "session.account"
+        const val LAST_ACCOUNT_KEY = "session.lastAccountId"
         const val CONSENT_KEY = "session.consent"
         const val ONBOARDING_KEY = "session.onboardingComplete"
         const val KEPT_JOB_KEY = "session.keptJobDescription"
