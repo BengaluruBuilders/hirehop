@@ -1,6 +1,7 @@
 package com.tailormyresume.app.debug
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -52,7 +53,7 @@ class DebugScenarioActivity : ComponentActivity() {
     private val hasAccount: Flow<Boolean> by lazy { sessionRepository.observeAccount().map { it != null } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+        applyEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             TmrTheme {
@@ -88,6 +89,15 @@ class DebugScenarioActivity : ComponentActivity() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyEdgeToEdge()
+    }
+
+    private fun applyEdgeToEdge() {
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+    }
+
     private fun openPreview() {
         rootStores.releaseAll()
         menuViewModel.openPreview(target) { opened = true }
@@ -100,7 +110,11 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun openApp() {
-        startActivity(Intent(this, MainActivity::class.java))
+        if (opensRealApp(target, scenario)) {
+            startActivity(Intent(this, MainActivity::class.java))
+        } else {
+            openPreview()
+        }
     }
 }
 
@@ -157,3 +171,6 @@ internal fun previewNavigationRoot(
     val welcome = previewShowsWelcome(seenMain, rootState) || (seenAccount && !hasAccount)
     return if (opensFirstRunRoot || welcome) NavigationRoot.FirstRun else NavigationRoot.Main
 }
+
+internal fun opensRealApp(target: DebugScenarioTarget, scenario: DebugScenario): Boolean =
+    target == DebugScenarioTarget.Applications && scenario == DebugScenario.defaultValue

@@ -178,13 +178,13 @@ class FactEditorViewModelTest {
     }
 
     @Test
-    fun validation_aFreshFormShowsNoFieldErrorAndLetsTheUserTapSave() {
+    fun validation_aFreshFormShowsNoFieldErrorAndDisablesSave() {
         val state = createViewModel().uiState.value
 
         assertThat(state.fieldErrors).isEmpty()
         assertThat(state.visibleReasonFor(FactField.TITLE)).isNull()
         assertThat(state.saveBlockReason).isEqualTo(FactDraftErrorReason.REQUIRED)
-        assertThat(state.isSaveEnabled).isTrue()
+        assertThat(state.isSaveEnabled).isFalse()
     }
 
     @Test

@@ -54,7 +54,10 @@ class YourDataViewModel @Inject constructor(
         profileRepository.observeProfile(),
         applicationRepository.observeApplications(),
         paymentGateway.observePurchaseHistory(),
-        flow { emit(runCatching { paymentGateway.packs() }.getOrDefault(emptyList())) },
+        flow {
+            emit(emptyList())
+            emit(runCatching { paymentGateway.packs() }.getOrDefault(emptyList()))
+        },
         ::Ledger,
     )
 

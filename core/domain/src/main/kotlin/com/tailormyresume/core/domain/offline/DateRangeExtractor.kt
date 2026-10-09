@@ -11,6 +11,13 @@ internal object DateRangeExtractor {
     private val range = Regex("\\(?($POINT)\\s*(?:-|–|—|\\bto\\b)\\s*($END_POINT)\\)?", options)
     private val single = Regex("\\(?(?:expected(?:\\s+in)?\\s+|graduating\\s+)?($POINT)\\)?", options)
 
+    private val anchoredPoint = Regex("^$END_POINT$", options)
+    private val anchoredStartPoint = Regex("^$POINT$", options)
+
+    fun isPoint(text: String): Boolean = anchoredPoint.matches(text.trim())
+
+    fun isStartPoint(text: String): Boolean = anchoredStartPoint.matches(text.trim())
+
     fun find(text: String): DateSpan? {
         range.find(text)?.let {
             return DateSpan(it.groupValues[1].trim(), it.groupValues[2].trim(), it.range)

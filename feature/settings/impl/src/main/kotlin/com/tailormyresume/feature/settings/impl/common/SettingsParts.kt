@@ -2,7 +2,10 @@ package com.tailormyresume.feature.settings.impl.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -19,6 +22,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBackButton
+import com.tailormyresume.core.designsystem.component.TmrLoadingWheel
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.feature.settings.impl.R
@@ -86,6 +90,13 @@ internal fun stepStatusWords(stepCount: Int, currentStepIndex: Int): List<String
             else -> R.string.feature_settings_impl_step_waiting
         },
     )
+}
+
+@Composable
+internal fun SettingsLoading(padding: PaddingValues, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+        TmrLoadingWheel(contentDesc = stringResource(R.string.feature_settings_impl_loading))
+    }
 }
 
 private val TOP_BAR_HEIGHT = 64.dp
