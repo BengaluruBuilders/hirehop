@@ -75,9 +75,9 @@ object PrepQuestionGenerator {
     private fun supportedPrompt(kind: PrepQuestionKind, text: String, entryTitle: String): String {
         val subject = inSentence(text)
         return when (kind) {
-            PrepQuestionKind.STRENGTH -> "Your record already covers $subject." + exampleFrom(entryTitle)
+            PrepQuestionKind.STRENGTH -> "Walk me through your work on $subject." + exampleFrom(entryTitle)
             PrepQuestionKind.CLARIFY ->
-                "Your record covers part of $subject. Be ready to say what you did and what you did not."
+                "Which part of $subject have you done, and which part is new for you?"
             PrepQuestionKind.GAP ->
                 "This posting asks for $subject. You have no record of it yet. " +
                     "Prepare the work you did do that comes closest, and say plainly that this part is new for you."
@@ -86,9 +86,9 @@ object PrepQuestionGenerator {
 
     private fun exampleFrom(entryTitle: String): String =
         if (entryTitle.isEmpty()) {
-            " Be ready to give one example from your record."
+            " Which example from your record would you use?"
         } else {
-            " Be ready to give one example from $entryTitle."
+            " Which example from $entryTitle would you use?"
         }
 
     private fun inSentence(text: String): String {

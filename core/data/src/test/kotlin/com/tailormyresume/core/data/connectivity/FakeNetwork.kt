@@ -4,11 +4,13 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkInfo
 import androidx.test.core.app.ApplicationProvider
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowConnectivityManager
 import org.robolectric.shadows.ShadowNetwork
 import org.robolectric.shadows.ShadowNetworkCapabilities
+import org.robolectric.shadows.ShadowNetworkInfo
 
 internal class FakeNetwork {
     val context: Context = ApplicationProvider.getApplicationContext()
@@ -17,9 +19,8 @@ internal class FakeNetwork {
     private val network: Network = ShadowNetwork.newInstance(NETWORK_ID)
 
     fun connect() {
-        shadow.addNetwork(network, null)
-        shadow.setNetworkCapabilities(network, capabilitiesWithInternet())
-        shadow.setDefaultNetworkActive(true)
+        shadow.setActiveNetworkInfo(connectedWifi())
+        shadow.setNetworkCapabilities(manager.activeNetwork, capabilitiesWithInternet())
     }
 
     fun disconnect() {
@@ -31,6 +32,14 @@ internal class FakeNetwork {
             callback.onCapabilitiesChanged(network, capabilitiesWithInternet())
         }
     }
+
+    private fun connectedWifi(): NetworkInfo = ShadowNetworkInfo.newInstance(
+        NetworkInfo.DetailedState.CONNECTED,
+        ConnectivityManager.TYPE_WIFI,
+        0,
+        true,
+        NetworkInfo.State.CONNECTED,
+    )
 
     private fun capabilitiesWithInternet(): NetworkCapabilities {
         val capabilities = ShadowNetworkCapabilities.newInstance()
