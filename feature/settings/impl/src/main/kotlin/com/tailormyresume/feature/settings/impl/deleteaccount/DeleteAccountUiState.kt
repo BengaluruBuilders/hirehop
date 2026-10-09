@@ -13,6 +13,7 @@ sealed interface DeleteAccountUiState {
         val accountEmail: String?,
         val isOffline: Boolean,
         val failure: DeleteAccountFailure?,
+        val isConfirmVisible: Boolean,
     ) : DeleteAccountUiState
 
     data class Deleting(

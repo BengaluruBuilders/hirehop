@@ -28,6 +28,23 @@
     <string name="feature_settings_impl_delete_account_keep">Keep my account</string>
     <string name="feature_settings_impl_delete_account_confirm">Delete account</string>
 
+    <string name="feature_settings_impl_delete_account_dialog_title">Delete your account?</string>
+    <string name="feature_settings_impl_delete_account_dialog_body">Your %1$s, %2$s and %3$s are deleted. You cannot undo this.</string>
+    <plurals name="feature_settings_impl_delete_account_dialog_facts">
+        <item quantity="one">%1$d fact</item>
+        <item quantity="other">%1$d facts</item>
+    </plurals>
+    <plurals name="feature_settings_impl_delete_account_dialog_applications">
+        <item quantity="one">%1$d application</item>
+        <item quantity="other">%1$d applications</item>
+    </plurals>
+    <plurals name="feature_settings_impl_delete_account_dialog_credits">
+        <item quantity="one">%1$d unused credit</item>
+        <item quantity="other">%1$d unused credits</item>
+    </plurals>
+    <string name="feature_settings_impl_delete_account_dialog_confirm">Delete</string>
+    <string name="feature_settings_impl_delete_account_dialog_cancel">Cancel</string>
+
     <string name="feature_settings_impl_delete_account_deleting_title">Deleting your account</string>
     <plurals name="feature_settings_impl_delete_account_step_facts">
         <item quantity="one">Deleting your %1$d fact</item>

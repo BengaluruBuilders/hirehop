@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrCard
+import com.tailormyresume.core.designsystem.component.TmrConfirmDialog
 import com.tailormyresume.core.designsystem.component.TmrContentSwitch
 import com.tailormyresume.core.designsystem.component.TmrHeadline
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
@@ -70,6 +71,39 @@ internal fun DeleteAccountScreen(
             }
         }
     }
+    if (uiState is DeleteAccountUiState.Ready && uiState.isConfirmVisible) {
+        DeleteConfirmDialog(counts = uiState.counts, actions = actions)
+    }
+}
+
+@Composable
+private fun DeleteConfirmDialog(counts: AccountDeletionCounts, actions: DeleteAccountActions) {
+    TmrConfirmDialog(
+        title = stringResource(R.string.feature_settings_impl_delete_account_dialog_title),
+        message = stringResource(
+            R.string.feature_settings_impl_delete_account_dialog_body,
+            pluralStringResource(
+                R.plurals.feature_settings_impl_delete_account_dialog_facts,
+                counts.profileFacts,
+                counts.profileFacts,
+            ),
+            pluralStringResource(
+                R.plurals.feature_settings_impl_delete_account_dialog_applications,
+                counts.applications,
+                counts.applications,
+            ),
+            pluralStringResource(
+                R.plurals.feature_settings_impl_delete_account_dialog_credits,
+                counts.unusedCredits,
+                counts.unusedCredits,
+            ),
+        ),
+        confirmLabel = stringResource(R.string.feature_settings_impl_delete_account_dialog_confirm),
+        cancelLabel = stringResource(R.string.feature_settings_impl_delete_account_dialog_cancel),
+        onConfirm = actions.onDeleteConfirmed,
+        onCancel = actions.onDeleteDismissed,
+        destructive = true,
+    )
 }
 
 @Composable
