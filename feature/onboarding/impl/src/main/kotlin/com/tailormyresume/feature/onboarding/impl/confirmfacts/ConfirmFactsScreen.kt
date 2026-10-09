@@ -363,10 +363,10 @@ private fun FactCard(
     actions: ConfirmFactsActions,
 ) {
     val state = stringResource(
-        if (fact.isConfirmed) {
-            R.string.feature_onboarding_impl_confirm_facts_state_confirmed
-        } else {
-            R.string.feature_onboarding_impl_confirm_facts_state_open
+        when {
+            fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+            fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_state_confirmed
+            else -> R.string.feature_onboarding_impl_confirm_facts_state_open
         },
     )
     val description = stringResource(

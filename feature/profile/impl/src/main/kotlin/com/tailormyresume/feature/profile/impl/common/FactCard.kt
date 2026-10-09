@@ -84,7 +84,11 @@ internal fun FactCard(
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val statusLabel = stringResource(status.labelRes())
-    val description = stringResource(R.string.feature_profile_impl_fact_card_description, kind, summary, statusLabel, id)
+    val description = if (note == null) {
+        stringResource(R.string.feature_profile_impl_fact_card_description, kind, summary, statusLabel, id)
+    } else {
+        stringResource(R.string.feature_profile_impl_fact_card_description_with_note, kind, summary, statusLabel, id, note)
+    }
     val outline = if (highlighted) Modifier.border(HighlightWidth, TmrTheme.colors.primary, TmrTheme.shapes.card) else Modifier
     val semanticModifier = modifier.semantics(mergeDescendants = true) { contentDescription = description }.then(outline)
     if (embedded) {

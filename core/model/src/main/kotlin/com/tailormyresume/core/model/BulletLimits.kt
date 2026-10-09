@@ -10,14 +10,18 @@ private const val SENTENCE_ENDINGS = ".!?।"
 private val abbreviations = setOf(
     "rs", "mr", "mrs", "ms", "dr", "prof", "no", "vs", "pvt", "ltd", "inc", "co", "corp", "st", "approx", "etc",
     "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec",
+    "sr", "jr", "asst", "assoc", "dy", "addl", "govt", "engg", "dept", "univ", "inst", "mgr", "mgmt", "exec",
+    "admin", "tech", "intl", "natl", "est", "ref", "fig", "vol", "ed", "hons", "sec", "div", "bros",
 )
 
 fun fitBulletsToLimit(texts: List<String>): List<String> {
     var roomForExtra = ProfileLimits.MAX_BULLETS_PER_ENTRY - texts.size
     return texts.flatMap { text ->
-        val pieces = if (text.length > ProfileLimits.MAX_BULLET_LENGTH) packSentences(text) else listOf(text)
+        val pieces = if (text.length > ProfileLimits.MAX_BULLET_LENGTH) packSentences(text) else emptyList()
         val extra = pieces.size - 1
-        if (extra in 1..roomForExtra) {
+        val fits = pieces.isNotEmpty() && extra <= roomForExtra &&
+            (extra > 0 || pieces.single().length <= ProfileLimits.MAX_BULLET_LENGTH)
+        if (fits) {
             roomForExtra -= extra
             pieces
         } else {
@@ -39,10 +43,10 @@ private fun sentencesOf(text: String): List<String> {
         val end = gap.range.last + 1
         if (gap.range.first == 0 || end >= text.length) return@forEach
         val previous = text[gap.range.first - 1]
-        val atNewline = gap.value.contains('\n')
+        val atParagraphBreak = gap.value.count { it == '\n' } >= 2
         val atSentenceEnd = previous in SENTENCE_ENDINGS && !text[end].isLowerCase() &&
             !(previous == '.' && endsWithAbbreviation(text, gap.range.first - 1))
-        if (atNewline || atSentenceEnd) {
+        if (atParagraphBreak || atSentenceEnd) {
             sentences += text.substring(start, gap.range.first)
             start = end
         }
@@ -61,5 +65,5 @@ private fun packSentences(text: String): List<String> {
             packed += sentence
         }
     }
-    return packed
+    return packed.map { it.replace(whitespaceRun, " ") }
 }

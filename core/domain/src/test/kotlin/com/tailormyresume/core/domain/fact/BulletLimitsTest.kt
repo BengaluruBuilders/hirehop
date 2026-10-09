@@ -94,13 +94,106 @@ class BulletLimitsTest {
     }
 
     @Test
-    fun newlineIsASentenceBoundary() {
-        val first = unpunctuated(250, "Led")
-        val second = unpunctuated(250, "Built")
+    fun newlineAfterASentenceEndingIsABoundary() {
+        val first = sentence(250)
+        val second = "B" + "a".repeat(248) + "."
 
-        val fitted = fitBulletsToLimit(listOf("$first\n$second"))
+        assertThat(fitBulletsToLimit(listOf("$first\n$second"))).containsExactly(first, second).inOrder()
+    }
 
-        assertThat(fitted).containsExactly(first, second).inOrder()
+    @Test
+    fun newlineAfterAFullStopSplitsWhenTheTextIsTooLong() {
+        val first = unpunctuated(385) + " the team."
+        val second = "Built X in 2023 too."
+
+        assertThat(fitBulletsToLimit(listOf("$first\n$second"))).containsExactly(first, second).inOrder()
+    }
+
+    @Test
+    fun blankLineIsAParagraphBreak() {
+        val first = unpunctuated(250, "Para")
+        val second = unpunctuated(250, "Next")
+
+        assertThat(fitBulletsToLimit(listOf("$first\n\n$second"))).containsExactly(first, second).inOrder()
+        assertThat(fitBulletsToLimit(listOf("$first\n \n$second"))).containsExactly(first, second).inOrder()
+    }
+
+    @Test
+    fun hardWrappedLineIsNotSplitMidSentence() {
+        val original = unpunctuated(380, "Led") + " engineers to build\nthe payments platform that cut costs by thirty percent."
+
+        val fitted = fitBulletsToLimit(listOf(original))
+
+        assertThat(fitted).containsExactly(original)
+    }
+
+    @Test
+    fun newlineAfterAnUnpunctuatedLineIsAddedAsASpace() {
+        val first = unpunctuated(200, "Led")
+        val second = unpunctuated(190, "Built")
+
+        assertThat(fitBulletsToLimit(listOf("$first\n" + " ".repeat(20) + second))).containsExactly("$first $second")
+    }
+
+    @Test
+    fun newlineAfterAnAbbreviationIsNotABoundary() {
+        val original = unpunctuated(392) + " Asst.\nProfessor of CSE at the institute."
+
+        assertThat(fitBulletsToLimit(listOf(original))).containsExactly(original)
+    }
+
+    @Test
+    fun seniorityAndInstitutionAbbreviationsAreNotBoundaries() {
+        val words = listOf(
+            "Sr.", "Jr.", "Asst.", "Assoc.", "Dy.", "Addl.", "Govt.", "Engg.", "Dept.", "Univ.", "Inst.", "Mgr.", "Mgmt.",
+            "Exec.", "Admin.", "Tech.", "Intl.", "Natl.", "Est.", "Ref.", "Fig.", "Vol.", "Ed.", "Hons.", "Sec.", "Div.",
+            "Corp.", "Bros.", "asst.", "ASST.",
+        )
+        words.forEach { word ->
+            val original = unpunctuated(380) + " as $word Professor of CSE at the institute."
+
+            assertThat(fitBulletsToLimit(listOf(original))).containsExactly(original)
+        }
+    }
+
+    @Test
+    fun professorTitleStaysInOnePiece() {
+        val original = unpunctuated(380) + " as Asst. Professor of CSE at the institute."
+
+        assertThat(fitBulletsToLimit(listOf(original))).containsExactly(original)
+    }
+
+    @Test
+    fun bulletThatFitsAfterTrimmingIsNotFlagged() {
+        val body = sentence(398)
+        val original = "$body   \n  "
+        assertThat(original.length).isEqualTo(404)
+
+        val fitted = fitBulletsToLimit(listOf(original))
+
+        assertThat(fitted).containsExactly(body)
+        assertThat(fitted.single().isTooLong()).isFalse()
+    }
+
+    @Test
+    fun bulletThatFitsAfterCollapsingWhitespaceIsNotFlagged() {
+        val original = sentence(380) + "   " + sentence(18) + "     "
+        assertThat(original.length).isGreaterThan(400)
+
+        val fitted = fitBulletsToLimit(listOf(original))
+
+        assertThat(fitted).containsExactly(sentence(380) + " " + sentence(18))
+    }
+
+    @Test
+    fun fourHundredAndFiveCharactersWithTrailingWhitespaceIsSentTrimmed() {
+        val body = sentence(398)
+        val original = "$body       "
+        assertThat(original.length).isEqualTo(405)
+
+        val fitted = fitBulletsToLimit(listOf(original))
+
+        assertThat(fitted).containsExactly(body)
     }
 
     @Test

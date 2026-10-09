@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.confirmfacts
 
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -35,7 +36,22 @@ class ConfirmFactsConfirmedTooLongTest {
     )
 
     @Test
+    fun confirmedEntryWithATooLongBulletIsAnnouncedAsTooLongNotConfirmed() {
+        showConfirmedWithLongBullet()
+
+        composeRule.onNode(hasContentDescription("Too long.", substring = true)).assertExists()
+        composeRule.onNode(hasContentDescription("Confirmed", substring = true)).assertDoesNotExist()
+    }
+
+    @Test
     fun confirmedEntryWithATooLongBulletStillShowsTheStatusAndTheEditFirstNote() {
+        showConfirmedWithLongBullet()
+
+        composeRule.onNodeWithText("Too long").assertExists()
+        composeRule.onNodeWithText("A line here is over 400 characters", substring = true).assertExists()
+    }
+
+    private fun showConfirmedWithLongBullet() {
         val scenario = DebugScenario.FULLY_CONFIRMED
         val state = ConfirmFactsScenarioMapper.withProfile(
             state = ConfirmFactsScenarioMapper.seed(scenario),
@@ -59,8 +75,5 @@ class ConfirmFactsConfirmedTooLongTest {
             }
         }
         composeRule.waitForIdle()
-
-        composeRule.onNodeWithText("Too long").assertExists()
-        composeRule.onNodeWithText("A line here is over 400 characters", substring = true).assertExists()
     }
 }

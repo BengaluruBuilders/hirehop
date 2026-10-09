@@ -5,6 +5,7 @@ import com.tailormyresume.core.domain.keywordsStatedIn
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.MatchStatus
+import com.tailormyresume.core.model.confirmedWithinLimits
 
 internal object EvidencePicker {
     fun pick(candidate: CandidateProfile, analysis: JobAnalysisResult, maxEvidence: Int): List<String> {
@@ -28,8 +29,7 @@ internal object EvidencePicker {
         requirement.keywords.isNotEmpty() && keywordsStatedIn(requirement, text).isNotEmpty()
 
     private fun confirmedBullets(candidate: CandidateProfile): Map<String, String> =
-        candidate.entries
-            .filter { it.isConfirmed }
+        candidate.confirmedWithinLimits().entries
             .flatMap { entry -> entry.bullets.map { bullet -> bullet.id to bullet.text } }
             .toMap()
 }

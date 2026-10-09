@@ -7,6 +7,7 @@ import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.confirmedWithinLimits
 import javax.inject.Inject
 
 class TailorResumeUseCase @Inject constructor(
@@ -20,8 +21,7 @@ class TailorResumeUseCase @Inject constructor(
         applicationId: String,
         section: EntryCategory? = null,
     ): TailoredResume {
-        val confirmedSources = profile.entries
-            .filter { it.isConfirmed }
+        val confirmedSources = profile.confirmedWithinLimits().entries
             .flatMap { it.bullets }
             .associateBy { it.id }
         val proposed = tailor.tailor(profile, job, gap, applicationId, section)

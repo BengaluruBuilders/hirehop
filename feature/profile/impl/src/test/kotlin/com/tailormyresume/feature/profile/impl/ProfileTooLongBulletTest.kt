@@ -59,6 +59,13 @@ class ProfileTooLongBulletTest {
     }
 
     @Test
+    fun tooLongNoteIsPartOfTheCardDescription() {
+        show(isConfirmed = true)
+
+        composeRule.onNode(hasContentDescription("Edit it to use it.", substring = true)).assertExists()
+    }
+
+    @Test
     fun unconfirmedEntryShowsTooLongTheNoteAndNoConfirmButton() {
         show(isConfirmed = false)
 

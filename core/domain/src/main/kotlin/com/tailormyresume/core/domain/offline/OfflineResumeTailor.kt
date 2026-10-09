@@ -13,6 +13,7 @@ import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.confirmedWithinLimits
 import javax.inject.Inject
 
 class OfflineResumeTailor @Inject constructor() : ResumeTailor {
@@ -26,8 +27,7 @@ class OfflineResumeTailor @Inject constructor() : ResumeTailor {
         val weights = keywordWeights(gap)
         val rewriter = BulletRewriter(weights.keys)
         val jobKeywords = job.requirements.flatMap { it.keywords }.distinct()
-        val bullets = profile.entries
-            .filter { it.isConfirmed }
+        val bullets = profile.confirmedWithinLimits().entries
             .flatMap { tailorEntry(it, weights, rewriter, jobKeywords) }
         return TailoredResume(bullets)
     }
