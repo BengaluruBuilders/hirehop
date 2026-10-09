@@ -52,7 +52,8 @@ class MappersTest {
 
     @Test
     fun factsNeverExceedTheContractLimits() {
-        val bullets = List(ProfileLimits.MAX_BULLETS_PER_ENTRY + 3) { EvidenceBullet("B$it", "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + 50)) }
+        val tooLong = EvidenceBullet("B-long", "x".repeat(ProfileLimits.MAX_BULLET_LENGTH + 50))
+        val bullets = listOf(tooLong) + List(ProfileLimits.MAX_BULLETS_PER_ENTRY + 3) { EvidenceBullet("B$it", "x".repeat(ProfileLimits.MAX_BULLET_LENGTH)) }
         val big = entry("E1", true).copy(title = "t".repeat(ProfileLimits.MAX_TEXT_LENGTH + 5), bullets = bullets + EvidenceBullet("B-blank", " "))
         val skills = List(ProfileLimits.MAX_SKILLS + 5) { "S$it" } + "s".repeat(ProfileLimits.MAX_SKILL_LENGTH + 1) + " "
         val profile = CandidateProfile("Priya", "p@example.com", "+91", "Headline", skills, listOf(big))
@@ -62,7 +63,9 @@ class MappersTest {
         assertThat(facts.skills).hasSize(ProfileLimits.MAX_SKILLS)
         assertThat(facts.entries.single().title).hasLength(ProfileLimits.MAX_TEXT_LENGTH)
         assertThat(facts.entries.single().bullets).hasSize(ProfileLimits.MAX_BULLETS_PER_ENTRY)
-        assertThat(facts.entries.single().bullets.all { it.text.length == ProfileLimits.MAX_BULLET_LENGTH }).isTrue()
+        assertThat(facts.entries.single().bullets.all { it.text.length <= ProfileLimits.MAX_BULLET_LENGTH }).isTrue()
+        assertThat(facts.entries.single().bullets.map { it.id }).doesNotContain("B-long")
+        assertThat(facts.entries.single().bullets.first().id).isEqualTo("B0")
     }
 
     @Test
