@@ -2,6 +2,7 @@ package com.tailormyresume.app.auth
 
 import com.tailormyresume.app.AppStartTask
 import com.tailormyresume.core.common.network.di.ApplicationScope
+import com.tailormyresume.core.data.repository.PendingAccountWipe
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.FirebaseUidProvider
 import com.tailormyresume.core.domain.SignInGateway
@@ -21,10 +22,13 @@ class SessionExpiryHandler @Inject constructor(
     private val uidProvider: FirebaseUidProvider,
     private val config: FirebaseConfig,
     @ApplicationScope private val scope: CoroutineScope,
+    private val pendingWipe: PendingAccountWipe = PendingAccountWipe.None,
 ) : SessionExpiredListener, AppStartTask {
     private val signingOut = AtomicBoolean(false)
 
-    override fun onSessionExpired() {
+    fun onSessionExpired() = onSessionExpired(accountGone = false)
+
+    override fun onSessionExpired(accountGone: Boolean) {
         if (!signingOut.compareAndSet(false, true)) return
         scope.launch {
             try {

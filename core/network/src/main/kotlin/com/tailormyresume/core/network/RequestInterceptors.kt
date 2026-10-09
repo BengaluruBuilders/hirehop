@@ -21,7 +21,7 @@ internal class AuthInterceptor(
         val token = try {
             tokens.idToken(forceRefresh = false)
         } catch (expired: SessionExpiredException) {
-            sessionListener.onSessionExpired()
+            sessionListener.onSessionExpired(false)
             return unauthorised(chain.request(), expired)
         } ?: return chain.proceed(chain.request())
         val first = chain.proceed(chain.request().withBearer(token))
@@ -29,7 +29,7 @@ internal class AuthInterceptor(
         val fresh = try {
             tokens.idToken(forceRefresh = true)
         } catch (expired: SessionExpiredException) {
-            sessionListener.onSessionExpired()
+            sessionListener.onSessionExpired(false)
             if (expired.accountGone) {
                 first.close()
                 return unauthorised(chain.request(), expired)
@@ -41,7 +41,7 @@ internal class AuthInterceptor(
         } ?: return first
         first.close()
         val second = chain.proceed(chain.request().withBearer(fresh))
-        if (second.code == 401) sessionListener.onSessionExpired()
+        if (second.code == 401) sessionListener.onSessionExpired(false)
         return second
     }
 
@@ -64,7 +64,7 @@ internal class AuthInterceptor(
 }
 
 fun interface SessionExpiredListener {
-    fun onSessionExpired()
+    fun onSessionExpired(accountGone: Boolean)
 }
 
 fun interface ConsentRequiredListener {

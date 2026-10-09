@@ -15,11 +15,15 @@ class StoredPendingAccountWipe @Inject constructor(private val store: MockStateS
         store.write(KEY, PendingWipeState.REQUESTED.name)
     }
 
+    override suspend fun markRequested(uid: String) = markRequested()
+
     override suspend fun markServerClosed() = store.write(KEY, PendingWipeState.SERVER_CLOSED.name)
 
     override suspend fun uid(): String? = store.read(UID_KEY)
 
     override suspend fun recordUid(uid: String) = store.write(UID_KEY, uid)
+
+    override suspend fun promoteToServerClosed(uid: String): Boolean = false
 
     override suspend fun clear() {
         store.remove(KEY)
