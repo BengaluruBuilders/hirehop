@@ -96,7 +96,7 @@ internal fun awaitIdToken(task: Task<GetTokenResult>, timeoutSeconds: Long = TOK
     Tasks.await(task, timeoutSeconds, TimeUnit.SECONDS).token
 } catch (failure: Exception) {
     when {
-        failure.isSessionExpiry() -> throw SessionExpiredException()
+        failure.isSessionExpiry() -> throw SessionExpiredException(accountGone = failure.isUserNotFound())
         failure is TimeoutException -> throw SocketTimeoutException("Token fetch timed out")
         failure is InterruptedException -> {
             Thread.currentThread().interrupt()
@@ -105,6 +105,11 @@ internal fun awaitIdToken(task: Task<GetTokenResult>, timeoutSeconds: Long = TOK
         else -> throw IOException("Token fetch failed: ${failure.javaClass.simpleName}")
     }
 }
+
+internal fun Throwable.isUserNotFound(): Boolean =
+    (if (this is ExecutionException) cause else this).let { it is FirebaseAuthInvalidUserException && it.errorCode == USER_NOT_FOUND }
+
+private const val USER_NOT_FOUND = "ERROR_USER_NOT_FOUND"
 
 internal fun Throwable.isSessionExpiry(): Boolean = when (if (this is ExecutionException) cause else this) {
     is FirebaseAuthInvalidUserException, is FirebaseAuthInvalidCredentialsException -> true

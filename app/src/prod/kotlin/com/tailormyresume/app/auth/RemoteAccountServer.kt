@@ -33,4 +33,11 @@ class RemoteServerAccountDeleter @Inject constructor(private val api: TailorMyRe
         .recoverCatching { failure ->
             if ((failure as? ApiException)?.error == ApiError.AccountDeleted) Unit else throw failure
         }
+
+    override suspend fun isClosed(): Result<Boolean> = apiResult { api.me() }.fold(
+        onSuccess = { Result.success(false) },
+        onFailure = { failure ->
+            if ((failure as? ApiException)?.error == ApiError.AccountDeleted) Result.success(true) else Result.failure(failure)
+        },
+    )
 }
