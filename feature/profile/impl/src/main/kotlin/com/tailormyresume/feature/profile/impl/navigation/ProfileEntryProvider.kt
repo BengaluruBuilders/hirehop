@@ -44,6 +44,7 @@ fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
                 onBack = { navigator.goBack() },
                 onOpenEvidence = { category -> navigator.navigateToFactEvidence(category) },
                 onAddJob = { navigator.navigateToFactEditor(entryId = null, entryType = EXPERIENCE_TYPE) },
+                onEditFact = { entryId, entryType -> navigator.navigateToFactEditor(entryId, entryType) },
                 onExit = { exit -> navigator.leave(exit) },
             ),
         )
