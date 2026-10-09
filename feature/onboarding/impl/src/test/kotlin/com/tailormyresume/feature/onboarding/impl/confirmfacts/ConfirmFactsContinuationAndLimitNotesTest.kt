@@ -82,6 +82,22 @@ class ConfirmFactsContinuationAndLimitNotesTest {
     fun entryThatIsTooLongAndOverFifteenShowsTheCombinedNote() {
         show(entry("W-01", "Data intern", lines(20, longAt = 3)))
 
-        composeRule.onNodeWithText("One line is too long and lines past 15", substring = true).assertExists()
+        composeRule.onNodeWithText("only the first 15 of the other lines are used", substring = true).assertExists()
+    }
+
+    @Test
+    fun sixteenLinesWithOneLongLineInTheFirstFifteenDoNotClaimLineSixteenIsLeftOut() {
+        show(entry("W-01", "Data intern", lines(16, longAt = 3)))
+
+        composeRule.onNodeWithText("only the first 15 of the other lines are used", substring = true).assertExists()
+        composeRule.onNodeWithText("past 15", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun twoLongLinesAreReportedByTheSameCombinedNote() {
+        show(entry("W-01", "Data intern", lines(20, longAt = 3).mapIndexed { i, t -> if (i == 6) "y".repeat(450) else t }))
+
+        composeRule.onNodeWithText("Lines over 400 characters are left out", substring = true).assertExists()
+        composeRule.onNodeWithText("One line", substring = true).assertDoesNotExist()
     }
 }

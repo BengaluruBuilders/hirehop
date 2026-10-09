@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrErrorCallout
 import com.tailormyresume.core.designsystem.component.TmrExpandable
 import com.tailormyresume.core.designsystem.component.TmrFactId
+import com.tailormyresume.core.designsystem.component.TmrFilterChip
 import com.tailormyresume.core.designsystem.component.TmrIconActionBar
 import com.tailormyresume.core.designsystem.component.TmrLoadingWheel
 import com.tailormyresume.core.designsystem.component.TmrOfflineBanner
@@ -121,15 +123,22 @@ private fun FactsToReviewBody(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
 ) {
+    var selectedSection by rememberSaveable { mutableStateOf<ConfirmFactsSection?>(null) }
+    val shown = uiState.facts.filter { selectedSection == null || it.section == selectedSection }
     FactsProgress(uiState = uiState)
     ConfirmFactsStatus(uiState)
-    FlaggedConfirmedFacts(uiState = uiState, actions = actions)
-    if (uiState.facts.any(ConfirmFactUi::isConfirmedWithinLimits)) {
-        ConfirmedFactsGroup(uiState = uiState, actions = actions)
+    SectionChips(
+        sections = uiState.sections.filter { it.facts.isNotEmpty() },
+        selected = selectedSection,
+        onSelect = { section -> selectedSection = section.takeIf { it != selectedSection } },
+    )
+    FlaggedConfirmedFacts(uiState = uiState, flagged = shown.filter { it.isConfirmed && it.isOverLimits }, actions = actions)
+    if (shown.any(ConfirmFactUi::isConfirmedWithinLimits)) {
+        ConfirmedFactsGroup(uiState = uiState, confirmed = shown.filter(ConfirmFactUi::isConfirmedWithinLimits), actions = actions)
     }
-    val pending = uiState.facts.filterNot(ConfirmFactUi::isConfirmed)
+    val pending = shown.filterNot(ConfirmFactUi::isConfirmed)
     if (pending.isNotEmpty()) {
-        ToReviewHeading(openCount = uiState.openCount)
+        ToReviewHeading(openCount = pending.size)
         pending.forEach { fact ->
             FactCard(
                 fact = fact,
@@ -139,7 +148,7 @@ private fun FactsToReviewBody(
             )
         }
     }
-    uiState.visibleSections.forEach { section ->
+    uiState.visibleSections.filter { selectedSection == null }.forEach { section ->
         if (section.section == ConfirmFactsSection.Skills && section.skills.isNotEmpty()) {
             SectionHeading(section.section)
             SkillsCard(section.skills)
@@ -216,8 +225,9 @@ private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
 private fun FlaggedConfirmedFacts(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
+    flagged: List<ConfirmFactUi> = uiState.facts.filter { it.isConfirmed && it.isOverLimits },
 ) {
-    uiState.facts.filter { it.isConfirmed && it.isOverLimits }.forEach { fact ->
+    flagged.forEach { fact ->
         FactCard(
             fact = fact,
             category = fact.section.categoryOf(),
@@ -230,9 +240,9 @@ private fun FlaggedConfirmedFacts(
 @Composable
 private fun ConfirmedFactsGroup(
     uiState: ConfirmFactsUiState,
+    confirmed: List<ConfirmFactUi>,
     actions: ConfirmFactsActions,
 ) {
-    val confirmed = uiState.facts.filter(ConfirmFactUi::isConfirmedWithinLimits)
     var expanded by remember { mutableStateOf(false) }
     TmrPillRow(
         title = pluralStringResource(
@@ -256,6 +266,29 @@ private fun ConfirmedFactsGroup(
                     actions = actions,
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SectionChips(
+    sections: List<ConfirmFactsSectionUi>,
+    selected: ConfirmFactsSection?,
+    onSelect: (ConfirmFactsSection) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+    ) {
+        sections.forEach { entry ->
+            TmrFilterChip(
+                label = stringResource(sectionTitle(entry.section)),
+                selected = entry.section == selected,
+                onClick = { onSelect(entry.section) },
+                count = entry.count,
+                singleSelect = true,
+            )
         }
     }
 }
@@ -392,10 +425,17 @@ private fun FactCard(
         ) {
             FactHeader(fact = fact, page = page)
             Text(
-                text = factLine(fact),
-                style = TmrTheme.typography.bodyL.copy(fontWeight = FontWeight.SemiBold),
+                text = fact.title,
+                style = TmrTheme.typography.bodyL.copy(fontWeight = FontWeight.ExtraBold),
                 color = TmrTheme.colors.onSurface,
             )
+            if (fact.detail.isNotBlank()) {
+                Text(
+                    text = fact.detail,
+                    style = TmrTheme.typography.bodyS,
+                    color = TmrTheme.colors.onSurfaceVariant,
+                )
+            }
         }
         FactActions(fact = fact, category = category, actions = actions)
     }
@@ -632,9 +672,6 @@ private fun pageOf(
     fact: ConfirmFactUi,
 ): Int = uiState.facts.indexOf(fact) / FACTS_PER_PAGE + 1
 
-private fun factLine(fact: ConfirmFactUi): String =
-    if (fact.detail.isBlank()) fact.title else fact.title + DETAIL_SEPARATOR + fact.detail
-
 private fun sectionTitle(section: ConfirmFactsSection): Int = when (section) {
     ConfirmFactsSection.Education -> R.string.feature_onboarding_impl_confirm_facts_section_education
     ConfirmFactsSection.Experience -> R.string.feature_onboarding_impl_confirm_facts_section_experience
@@ -657,5 +694,4 @@ private const val FACTS_PER_PAGE = 4
 private const val CONFIRMED_IDS_SHOWN = 6
 private val PROGRESS_HEIGHT = 8.dp
 private val BADGE_SIZE = 26.dp
-private const val DETAIL_SEPARATOR = " · "
 private const val LIST_SEPARATOR = " · "
