@@ -1,5 +1,6 @@
 package com.tailormyresume.app.auth
 
+import com.tailormyresume.core.data.repository.PendingAccountWipe
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.SignInAccount
 import com.tailormyresume.core.domain.SignInGateway
@@ -23,6 +24,7 @@ class RemoteSignInGateway @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val cleaner: SignOutCleaner,
     private val wiper: LocalDataWiper = LocalDataWiper.None,
+    private val pendingWipe: PendingAccountWipe = PendingAccountWipe.None,
 ) : SignInGateway {
 
     override suspend fun currentAccount(): SignInAccount? = sessionRepository.observeAccount().first()

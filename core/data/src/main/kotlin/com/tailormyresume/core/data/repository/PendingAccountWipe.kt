@@ -9,6 +9,10 @@ interface PendingAccountWipe {
 
     suspend fun markServerClosed()
 
+    suspend fun uid(): String?
+
+    suspend fun recordUid(uid: String)
+
     suspend fun clear()
 
     companion object {
@@ -18,6 +22,10 @@ interface PendingAccountWipe {
             override suspend fun markRequested() = Unit
 
             override suspend fun markServerClosed() = Unit
+
+            override suspend fun uid(): String? = null
+
+            override suspend fun recordUid(uid: String) = Unit
 
             override suspend fun clear() = Unit
         }
