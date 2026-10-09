@@ -72,11 +72,11 @@ class DeleteAccountUseCase @Inject constructor(
             applications.forEach { application ->
                 applicationRepository.deleteApplicationRow(application.id)
             }
+            artefactsTouched = true
+            applications.forEach { application -> applicationRepository.clearArtefacts(application.id) }
             startStep(AccountDeletionStep.CLOSING_ACCOUNT, onStep)
             creditsTouched = true
             creditBalance.clearUnusedCredits()
-            artefactsTouched = true
-            applications.forEach { application -> applicationRepository.clearArtefacts(application.id) }
             withContext(NonCancellable) {
                 signInGateway.signOut()
                 sessionRepository.clear()

@@ -39,12 +39,6 @@ class TestApplicationRepository : ApplicationRepository {
         applicationsFlow.update { applications -> applications.filterNot { it.id == id } }
     }
 
-    val clearedArtefacts = mutableListOf<String>()
-
-    override suspend fun clearArtefacts(id: String) {
-        clearedArtefacts += id
-    }
-
     fun sendApplications(applications: List<JobApplication>) {
         applicationsFlow.value = applications
     }

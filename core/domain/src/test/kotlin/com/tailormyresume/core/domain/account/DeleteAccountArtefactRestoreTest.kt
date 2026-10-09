@@ -70,6 +70,14 @@ class DeleteAccountArtefactRestoreTest {
     }
 
     @Test
+    fun artefactsClearedBeforeTheClosingAccountStep() = runTest {
+        useCase()(onStep = { repository.log += "step:$it" })
+
+        val log = repository.log
+        assertThat(log.indexOf("clear:a3")).isLessThan(log.indexOf("step:CLOSING_ACCOUNT"))
+    }
+
+    @Test
     fun artefactCleanupFailureReportsDataNotIntact() = runTest {
         repository.failClearFor = "a2"
 
