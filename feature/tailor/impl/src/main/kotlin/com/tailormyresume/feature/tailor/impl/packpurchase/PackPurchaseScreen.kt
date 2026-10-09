@@ -315,6 +315,8 @@ private fun failureBodyRes(reason: PurchaseFailureReason?): Int = when (reason) 
     PurchaseFailureReason.PurchaseUnavailable ->
         R.string.feature_tailor_impl_pack_purchase_failed_body_pack_unavailable
 
+    PurchaseFailureReason.PaymentUnconfirmed -> R.string.feature_tailor_impl_pack_purchase_failed_body_unconfirmed
+
     else -> R.string.feature_tailor_impl_pack_purchase_failed_body
 }
 
