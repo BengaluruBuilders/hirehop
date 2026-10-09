@@ -1,13 +1,18 @@
 package com.tailormyresume.feature.profile.impl.common
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,6 +44,7 @@ internal fun FactCard(
     modifier: Modifier = Modifier,
     displayId: String = entry.id,
     highlighted: Boolean = false,
+    embedded: Boolean = false,
     onConfirm: (() -> Unit)? = null,
 ) {
     FactCard(
@@ -48,6 +54,7 @@ internal fun FactCard(
         summary = FactLineRenderer.render(entry),
         modifier = modifier,
         highlighted = highlighted,
+        embedded = embedded,
     ) {
         if (onConfirm != null) {
             TmrSecondaryButton(
@@ -70,39 +77,62 @@ internal fun FactCard(
     summary: String,
     modifier: Modifier = Modifier,
     highlighted: Boolean = false,
+    embedded: Boolean = false,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val statusLabel = stringResource(status.labelRes())
     val description = stringResource(R.string.feature_profile_impl_fact_card_description, kind, summary, statusLabel, id)
     val outline = if (highlighted) Modifier.border(HighlightWidth, TmrTheme.colors.primary, TmrTheme.shapes.card) else Modifier
-    TmrCard(
-        contentPadding = PaddingValues(TmrTheme.spacing.cardPadding),
-        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description }.then(outline),
-    ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+    val semanticModifier = modifier.semantics(mergeDescendants = true) { contentDescription = description }.then(outline)
+    if (embedded) {
+        Column(
+            modifier = semanticModifier
+                .fillMaxWidth()
+                .background(TmrTheme.colors.background, RoundedCornerShape(TmrTheme.spacing.lg))
+                .padding(TmrTheme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
         ) {
-            TmrFactId(id = id)
-            val provenance = status.provenanceKind()
-            if (provenance != null) {
-                TmrProvenanceChip(kind = provenance, label = statusLabel)
-            } else {
-                ToConfirmChip(label = statusLabel)
-            }
+            FactCardContent(id, status, statusLabel, summary, actions)
         }
-        Text(
-            text = summary,
-            style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
-            color = TmrTheme.colors.onSurface,
+    } else {
+        TmrCard(contentPadding = PaddingValues(TmrTheme.spacing.cardPadding), modifier = semanticModifier) {
+            FactCardContent(id, status, statusLabel, summary, actions)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FactCardContent(
+    id: String,
+    status: FactStatus,
+    statusLabel: String,
+    summary: String,
+    actions: (@Composable RowScope.() -> Unit)?,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xs),
+    ) {
+        TmrFactId(id = id)
+        val provenance = status.provenanceKind()
+        if (provenance != null) {
+            TmrProvenanceChip(kind = provenance, label = statusLabel)
+        } else {
+            ToConfirmChip(label = statusLabel)
+        }
+    }
+    Text(
+        text = summary,
+        style = TmrTheme.typography.bodyM.copy(fontWeight = FontWeight.Bold),
+        color = TmrTheme.colors.onSurface,
+    )
+    if (actions != null) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions,
         )
-        if (actions != null) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-                content = actions,
-            )
-        }
     }
 }
 

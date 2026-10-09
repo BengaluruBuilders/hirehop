@@ -48,12 +48,14 @@ class RemoteSignInGateway @Inject constructor(
         val previousAccountId = sessionRepository.lastAccountId()
         val markerOwner = if (pendingWipe.state() == PendingWipeState.NONE) null else pendingWipe.uid()
         val markerIsForAnotherAccount = markerOwner != null && markerOwner != user.uid
-        if ((previousAccountId != null && previousAccountId != user.uid) || markerIsForAnotherAccount) {
-            wipeKeepingOnboardingInput()
+        withContext(NonCancellable) {
+            if ((previousAccountId != null && previousAccountId != user.uid) || markerIsForAnotherAccount) {
+                wipeKeepingOnboardingInput()
+            }
+            if (markerIsForAnotherAccount) pendingWipe.clear()
+            sessionRepository.saveLastAccountId(user.uid)
+            sessionRepository.saveAccount(account)
         }
-        if (markerIsForAnotherAccount) pendingWipe.clear()
-        sessionRepository.saveLastAccountId(user.uid)
-        sessionRepository.saveAccount(account)
         return SignInResult.SignedIn(account)
     }
 

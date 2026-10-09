@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.profile.impl.facteditor
 
+import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+@SuppressLint("VisibleForTests")
 @HiltViewModel(assistedFactory = FactEditorViewModel.Factory::class)
 class FactEditorViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
@@ -41,6 +44,7 @@ class FactEditorViewModel @AssistedInject constructor(
     private val idGenerator: IdGenerator,
     private val connectivityMonitor: ConnectivityMonitor,
     @Assisted key: FactEditorNavKey,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val profileMutex = Mutex()
@@ -66,7 +70,7 @@ class FactEditorViewModel @AssistedInject constructor(
         if (scenario != DebugScenario.LOADING) {
             viewModelScope.launch {
                 val profile = profileRepository.observeProfile().first()
-                mutableUiState.update { it.withLoadedProfile(profile) }
+                mutableUiState.update { it.withLoadedProfile(profile).withSavedDraft() }
             }
         }
     }
@@ -151,6 +155,7 @@ class FactEditorViewModel @AssistedInject constructor(
     ) {
         mutableUiState.update { current ->
             val draft = transform(current.draft)
+            saveDraft(draft)
             val dateErrors = dateFormatErrors(draft)
             current.copy(
                 draft = draft,
@@ -196,6 +201,28 @@ class FactEditorViewModel @AssistedInject constructor(
         )
     }
 
+    private fun saveDraft(draft: FactDraft) {
+        savedState[DRAFT_KEY] = arrayListOf(
+            draft.title.take(SAVED_SHORT_LIMIT),
+            draft.detail.take(SAVED_DETAIL_LIMIT),
+            draft.organization.take(SAVED_SHORT_LIMIT),
+            draft.startDate.take(SAVED_SHORT_LIMIT),
+            draft.endDate.take(SAVED_SHORT_LIMIT),
+        )
+    }
+
+    private fun FactEditorUiState.withSavedDraft(): FactEditorUiState {
+        val (title, detail, organization, startDate, endDate) = savedState.get<ArrayList<String>>(DRAFT_KEY) ?: return this
+        val restoredDraft = draft.copy(title = title, detail = detail, organization = organization, startDate = startDate, endDate = endDate)
+        val restoredErrors = dateFormatErrors(restoredDraft) + FactDraftValidator.validate(restoredDraft).toFieldErrorMap()
+        val restored = copy(
+            draft = restoredDraft,
+            fieldErrors = restoredErrors,
+            touchedFields = touchedFields + restoredErrors.keys,
+        )
+        return if (mode == FactEditorMode.New) restored.withNewId(title) else restored
+    }
+
     private fun FactEditorUiState.withNewId(title: String): FactEditorUiState {
         val nextId = factIdAllocator.nextId(requestedCategory, existingEntries, title)
         return copy(factId = nextId, displayId = nextId)
@@ -224,6 +251,12 @@ class FactEditorViewModel @AssistedInject constructor(
         )
         val updated = if (existing == null) entries + entry else entries.map { if (it.id == id) entry else it }
         return copy(entries = updated)
+    }
+
+    private companion object {
+        const val DRAFT_KEY = "factEditor.draft"
+        const val SAVED_DETAIL_LIMIT = 2 * FactDraftValidator.DETAIL_LIMIT
+        const val SAVED_SHORT_LIMIT = 300
     }
 
     @AssistedFactory
