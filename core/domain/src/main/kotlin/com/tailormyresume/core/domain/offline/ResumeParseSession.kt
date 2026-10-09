@@ -30,7 +30,13 @@ internal class ResumeParseSession {
 
     fun buildEntries(): List<ProfileEntry> {
         var counter = 0
-        return entryParsers.values.flatMap { parser -> parser.build { "entry-${++counter}" } }
+        var draftsAfter = entryParsers.values.sumOf { it.entryCount }
+        val built = mutableListOf<ProfileEntry>()
+        entryParsers.values.forEach { parser ->
+            draftsAfter -= parser.entryCount
+            built += parser.build({ "entry-${++counter}" }, built.size, draftsAfter)
+        }
+        return built
     }
 
     private fun route(line: String) {

@@ -5,6 +5,7 @@ import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.fitBulletsToLimit
+import com.tailormyresume.core.model.splitBulletsForEntries
 
 internal class EntryDraft(
     var title: String,
@@ -33,22 +34,33 @@ internal class EntrySectionParser(private val category: EntryCategory) {
         }
     }
 
-    fun build(nextEntryId: () -> String): List<ProfileEntry> = drafts
-        .filter { it.title.isNotBlank() || it.bullets.isNotEmpty() }
-        .map { draft ->
-            val id = nextEntryId()
-            ProfileEntry(
-                id = id,
-                category = category,
-                title = draft.title.ifBlank { defaultTitle },
-                organization = draft.organization,
-                startDate = draft.startDate,
-                endDate = draft.endDate,
-                bullets = fitBulletsToLimit(draft.bullets).mapIndexed { index, text -> EvidenceBullet("$id-b${index + 1}", text) },
-                source = FactSource.IMPORTED,
-                isConfirmed = false,
-            )
+    val entryCount: Int get() = keptDrafts().size
+
+    fun build(nextEntryId: () -> String, entriesBefore: Int = 0, draftsAfter: Int = 0): List<ProfileEntry> {
+        val kept = keptDrafts()
+        val built = mutableListOf<ProfileEntry>()
+        kept.forEachIndexed { index, draft ->
+            val after = draftsAfter + kept.size - index - 1
+            splitBulletsForEntries(draft.bullets, entriesBefore + built.size, after).forEach { chunk ->
+                built += draft.toEntry(nextEntryId(), chunk)
+            }
         }
+        return built
+    }
+
+    private fun keptDrafts(): List<EntryDraft> = drafts.filter { it.title.isNotBlank() || it.bullets.isNotEmpty() }
+
+    private fun EntryDraft.toEntry(id: String, chunk: List<String>) = ProfileEntry(
+        id = id,
+        category = category,
+        title = title.ifBlank { defaultTitle },
+        organization = organization,
+        startDate = startDate,
+        endDate = endDate,
+        bullets = fitBulletsToLimit(chunk).mapIndexed { index, text -> EvidenceBullet("$id-b${index + 1}", text) },
+        source = FactSource.IMPORTED,
+        isConfirmed = false,
+    )
 
     private val defaultTitle: String = category.name.lowercase().replaceFirstChar { it.uppercase() }
 

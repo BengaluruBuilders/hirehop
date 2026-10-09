@@ -33,7 +33,9 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactLineRenderer
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.exceedsLimits
 import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.hasTooManyBullets
 import com.tailormyresume.feature.profile.impl.R
 
 private val HighlightWidth = 2.dp
@@ -56,9 +58,13 @@ internal fun FactCard(
         modifier = modifier,
         highlighted = highlighted,
         embedded = embedded,
-        note = if (entry.hasTooLongBullet) stringResource(R.string.feature_profile_impl_fact_too_long_note) else null,
+        note = when {
+            entry.hasTooLongBullet -> stringResource(R.string.feature_profile_impl_fact_too_long_note)
+            entry.hasTooManyBullets -> stringResource(R.string.feature_profile_impl_fact_too_many_lines_note)
+            else -> null
+        },
     ) {
-        if (onConfirm != null && !entry.hasTooLongBullet) {
+        if (onConfirm != null && !entry.exceedsLimits) {
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_profile_impl_fact_confirm),
                 onClick = onConfirm,

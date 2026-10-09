@@ -37,7 +37,7 @@ import com.tailormyresume.core.designsystem.component.TmrOutlineButton
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.fact.FactDisplayIds
-import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.exceedsLimits
 import com.tailormyresume.feature.profile.impl.common.FactCard
 import com.tailormyresume.feature.profile.impl.common.ToConfirmChip
 
@@ -154,7 +154,7 @@ internal fun SectionFacts(
                     entry = entry,
                     displayId = FactDisplayIds.of(entry, state.profile.entries),
                     onEdit = { navigation.onOpenFact(entry.id) },
-                    onConfirm = if (entry.isConfirmed || entry.hasTooLongBullet) null else ({ actions.onConfirmEntry(entry.id) }),
+                    onConfirm = if (entry.isConfirmed || entry.exceedsLimits) null else ({ actions.onConfirmEntry(entry.id) }),
                     embedded = true,
                 )
             }

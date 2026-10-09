@@ -4,10 +4,15 @@ val EvidenceBullet.isTooLong: Boolean get() = text.length > ProfileLimits.MAX_BU
 
 val ProfileEntry.hasTooLongBullet: Boolean get() = bullets.any { it.isTooLong }
 
-val ProfileEntry.hasTooManyBullets: Boolean get() = false
+val ProfileEntry.hasTooManyBullets: Boolean get() = bullets.size > ProfileLimits.MAX_BULLETS_PER_ENTRY
 
-fun splitBulletsForEntries(bullets: List<String>, entriesBefore: Int, entriesAfter: Int): List<List<String>> =
-    listOf(bullets)
+val ProfileEntry.exceedsLimits: Boolean get() = hasTooLongBullet || hasTooManyBullets
+
+fun splitBulletsForEntries(bullets: List<String>, entriesBefore: Int, entriesAfter: Int): List<List<String>> {
+    val chunks = bullets.chunked(ProfileLimits.MAX_BULLETS_PER_ENTRY)
+    val fits = entriesBefore + chunks.size + entriesAfter <= ProfileLimits.MAX_ENTRIES
+    return if (chunks.size > 1 && fits) chunks else listOf(bullets)
+}
 
 private val whitespaceRun = Regex("\\s+")
 private const val SENTENCE_ENDINGS = ".!?।"

@@ -9,6 +9,7 @@ import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.hasTooManyBullets
 
 enum class ConfirmFactsSection { Education, Experience, Projects, Skills, Certifications, Extras }
 
@@ -31,7 +32,8 @@ data class ConfirmFactUi(
     val hasTooLongBullet: Boolean = false,
     val hasTooManyBullets: Boolean = false,
 ) {
-    val isConfirmedWithinLimits: Boolean get() = isConfirmed && !hasTooLongBullet
+    val isOverLimits: Boolean get() = hasTooLongBullet || hasTooManyBullets
+    val isConfirmedWithinLimits: Boolean get() = isConfirmed && !isOverLimits
 }
 
 data class ConfirmFactsSectionUi(
@@ -139,6 +141,7 @@ object ConfirmFactsScenarioMapper {
         isConfirmed = isConfirmed,
         displayId = displayId,
         hasTooLongBullet = hasTooLongBullet,
+        hasTooManyBullets = hasTooManyBullets,
     )
 }
 

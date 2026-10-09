@@ -1,12 +1,12 @@
 package com.tailormyresume.feature.profile.impl
 
 import com.tailormyresume.core.model.CandidateProfile
-import com.tailormyresume.core.model.hasTooLongBullet
+import com.tailormyresume.core.model.exceedsLimits
 
 internal fun CandidateProfile.unconfirmedCount(): Int = entries.count { !it.isConfirmed }
 
 internal fun CandidateProfile.confirmEntry(entryId: String): CandidateProfile = copy(
-    entries = entries.map { if (it.id == entryId && !it.hasTooLongBullet) it.copy(isConfirmed = true) else it },
+    entries = entries.map { if (it.id == entryId && !it.exceedsLimits) it.copy(isConfirmed = true) else it },
 )
 
 internal fun CandidateProfile.withContact(contact: ContactDraft): CandidateProfile = copy(

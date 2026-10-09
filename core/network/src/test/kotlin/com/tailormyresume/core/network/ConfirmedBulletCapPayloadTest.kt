@@ -23,7 +23,12 @@ class ConfirmedBulletCapPayloadTest {
     )
 
     private val entries = listOf(
-        entry("A", 1), entry("B", 15), entry("C", 16), entry("D", 18), entry("F", 30), entry("G", 3, withLong = true),
+        entry("A", 1),
+        entry("B", 15),
+        entry("C", 16),
+        entry("D", 18),
+        entry("F", 30),
+        entry("G", 3, withLong = true),
     )
 
     private val profile = CandidateProfile("P", "", "", "", emptyList(), entries)
