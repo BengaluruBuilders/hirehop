@@ -19,6 +19,7 @@ import com.tailormyresume.core.network.dto.PurchaseRequest
 import com.tailormyresume.core.network.dto.PurchaseResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,9 @@ class RemotePaymentGateway @Inject constructor(
 ) : PaymentGateway {
     private val pending = MutableStateFlow<List<String>>(emptyList())
     private val reposts = mutableMapOf<String, Job>()
+    private var generation = 0
+
+    internal fun repostCount() = synchronized(reposts) { reposts.size }
 
     override suspend fun packs(): List<ApplicationPack> = apiResult { api.packs().packs }.getOrThrow().mapNotNull { pack ->
         billing.productDetails(pack.productId)?.let { product ->
@@ -73,17 +77,19 @@ class RemotePaymentGateway @Inject constructor(
         }
 
     override suspend fun purchase(packId: String): PurchaseResult {
+        val epoch = currentGeneration()
         val uid = uids.uid() ?: return failed(PurchaseFailureReason.PurchaseUnavailable)
         return when (val outcome = billing.launchPurchase(packId, obfuscatedAccountId(uid))) {
             PlayPurchaseResult.Cancelled -> PurchaseResult.Cancelled
             PlayPurchaseResult.Failed -> failed(PurchaseFailureReason.PaymentUnavailable)
-            PlayPurchaseResult.AlreadyOwned -> settleOwned(packId)
-            is PlayPurchaseResult.Done -> settle(outcome.purchase, SETTLE_RETRIES)
+            PlayPurchaseResult.AlreadyOwned -> settleOwned(packId, epoch)
+            is PlayPurchaseResult.Done -> settle(outcome.purchase, SETTLE_RETRIES, epoch)
         }
     }
 
     override suspend fun restorePurchases(): PurchaseEntitlement {
-        billing.ownedPurchases().forEach { owned -> settle(owned, retries = 0) }
+        val epoch = currentGeneration()
+        billing.ownedPurchases().forEach { owned -> settle(owned, retries = 0, epoch = epoch) }
         return entitlement()
     }
 
@@ -103,81 +109,95 @@ class RemotePaymentGateway @Inject constructor(
 
     override suspend fun clearCredits(): PurchaseEntitlement {
         synchronized(reposts) {
+            generation++
             reposts.values.forEach(Job::cancel)
             reposts.clear()
+            wallet.clear()
+            pending.value = emptyList()
         }
-        wallet.clear()
-        pending.value = emptyList()
         return NO_CREDITS
     }
 
-    private suspend fun settleOwned(packId: String): PurchaseResult {
+    private fun currentGeneration() = synchronized(reposts) { generation }
+
+    private suspend fun settleOwned(packId: String, epoch: Int): PurchaseResult {
         val owned = billing.ownedPurchases().firstOrNull { it.productId == packId }
             ?: return failed(PurchaseFailureReason.PaymentUnconfirmed)
-        return settle(owned, SETTLE_RETRIES)
+        return settle(owned, SETTLE_RETRIES, epoch)
     }
 
-    private suspend fun settle(purchase: PlayPurchase, retries: Int): PurchaseResult {
-        if (purchase.state == PlayPurchaseState.PENDING) return hold(purchase.productId)
+    private suspend fun settle(purchase: PlayPurchase, retries: Int, epoch: Int): PurchaseResult {
+        if (purchase.state == PlayPurchaseState.PENDING) return hold(purchase.productId, epoch)
         return try {
-            post(purchase, retries)
+            post(purchase, retries, epoch)
         } catch (cancellation: CancellationException) {
-            hold(purchase.productId)
-            repostInBackground(purchase)
+            hold(purchase.productId, epoch)
+            repostInBackground(purchase, epoch)
             throw cancellation
         }
     }
 
-    private suspend fun post(purchase: PlayPurchase, retries: Int): PurchaseResult {
+    private suspend fun post(purchase: PlayPurchase, retries: Int, epoch: Int): PurchaseResult {
         val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
         val response = result.getOrElse { failure ->
-            if (failure.isRejection()) return unconfirmed(purchase.productId)
-            val held = hold(purchase.productId)
+            if (failure.isRejection()) return unconfirmed(purchase.productId, epoch)
+            val held = hold(purchase.productId, epoch)
             if (retries == 0 || (failure as? ApiException)?.error == ApiError.PurchasePending) {
-                repostInBackground(purchase)
+                repostInBackground(purchase, epoch)
                 return held
             }
             delay(RETRY_DELAY_MILLIS * (SETTLE_RETRIES - retries + 1))
-            return post(purchase, retries - 1)
+            return post(purchase, retries - 1, epoch)
         }
-        return recorded(purchase.productId, response)
+        return recorded(purchase.productId, response, epoch)
     }
 
-    private fun repostInBackground(purchase: PlayPurchase) = synchronized(reposts) {
-        if (reposts[purchase.token]?.isActive != true) reposts[purchase.token] = scope.launch { repost(purchase) }
+    private fun repostInBackground(purchase: PlayPurchase, epoch: Int) = synchronized(reposts) {
+        if (epoch != generation || reposts[purchase.token]?.isActive == true) return@synchronized
+        val job = scope.launch(start = CoroutineStart.LAZY) { repost(purchase, epoch) }
+        reposts[purchase.token] = job
+        job.invokeOnCompletion { synchronized(reposts) { reposts.remove(purchase.token, job) } }
+        job.start()
     }
 
-    private suspend fun repost(purchase: PlayPurchase) {
+    private suspend fun repost(purchase: PlayPurchase, epoch: Int) {
         for (wait in REPOST_BACKOFF_MILLIS) {
             delay(wait)
             if (purchase.productId !in pending.value) return
             val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
             result.onSuccess {
-                recorded(purchase.productId, it)
+                recorded(purchase.productId, it, epoch)
                 return
             }
             if (result.exceptionOrNull()?.isRejection() == true) {
-                unconfirmed(purchase.productId)
+                unconfirmed(purchase.productId, epoch)
                 return
             }
         }
     }
 
-    private fun recorded(productId: String, response: PurchaseResponse): PurchaseResult {
-        wallet.update(response.wallet)
-        pending.update { it - productId }
-        return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
+    private fun recorded(productId: String, response: PurchaseResponse, epoch: Int): PurchaseResult {
+        synchronized(reposts) {
+            if (epoch != generation) return failed(PurchaseFailureReason.PaymentUnconfirmed)
+            wallet.update(response.wallet)
+            pending.update { it - productId }
+            return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
+        }
     }
 
-    private fun unconfirmed(productId: String): PurchaseResult {
-        pending.update { it - productId }
+    private fun unconfirmed(productId: String, epoch: Int): PurchaseResult {
+        synchronized(reposts) {
+            if (epoch == generation) pending.update { it - productId }
+        }
         return failed(PurchaseFailureReason.PaymentUnconfirmed)
     }
 
     private fun Throwable.isRejection() = (this as? ApiException)?.error in REJECTIONS
 
-    private fun hold(productId: String): PurchaseResult {
-        pending.update { if (productId in it) it else it + productId }
+    private fun hold(productId: String, epoch: Int): PurchaseResult {
+        synchronized(reposts) {
+            if (epoch == generation) pending.update { if (productId in it) it else it + productId }
+        }
         return PurchaseResult.Pending(current())
     }
 
