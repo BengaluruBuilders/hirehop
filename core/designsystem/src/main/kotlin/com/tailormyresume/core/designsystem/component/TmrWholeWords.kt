@@ -1,22 +1,26 @@
 package com.tailormyresume.core.designsystem.component
 
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.text.modifiers.TextAutoSizeLayoutScope
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.sp
 
-private const val SHRINK_STEP = 0.92f
+private const val SEARCH_STEP_SP = 0.25f
 
 fun TextLayoutResult.splitsAWord(): Boolean {
     val text = layoutInput.text.text
@@ -38,8 +42,15 @@ fun TmrFitText(
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val density = LocalDensity.current
-    val minScale = (1f / density.fontScale).coerceAtMost(1f)
-    var scale by remember(text, style, density.fontScale, density.density) { mutableFloatStateOf(1f) }
+    val autoSize = remember(style.fontSize, density) {
+        if (style.fontSize.isSpecified) {
+            val base = style.fontSize
+            val sameDpAsAtDefaultScale = with(density) { base.value.dp.toSp() }
+            WholeWordsAutoSize(maxFontSize = base, minFontSize = sameDpAsAtDefaultScale.value.coerceAtMost(base.value).sp)
+        } else {
+            null
+        }
+    }
     Text(
         text = text,
         modifier = modifier,
@@ -47,20 +58,22 @@ fun TmrFitText(
         textAlign = textAlign,
         maxLines = maxLines,
         overflow = overflow,
-        style = style.scaledBy(scale),
-        onTextLayout = { layout ->
-            if (layout.splitsAWord() && scale > minScale) scale = maxOf(minScale, scale * SHRINK_STEP)
-            onTextLayout(layout)
-        },
+        style = style,
+        autoSize = autoSize,
+        onTextLayout = onTextLayout,
     )
 }
 
-private fun TextStyle.scaledBy(scale: Float): TextStyle =
-    if (scale == 1f) {
-        this
-    } else {
-        copy(
-            fontSize = if (fontSize.isSpecified) fontSize * scale else fontSize,
-            lineHeight = if (lineHeight.isSpecified) lineHeight * scale else lineHeight,
-        )
+private data class WholeWordsAutoSize(val maxFontSize: TextUnit, val minFontSize: TextUnit) : TextAutoSize {
+    override fun TextAutoSizeLayoutScope.getFontSize(constraints: Constraints, text: AnnotatedString): TextUnit {
+        if (!performLayout(constraints, text, maxFontSize).splitsAWord()) return maxFontSize
+        if (performLayout(constraints, text, minFontSize).splitsAWord()) return minFontSize
+        var fits = minFontSize.value
+        var splits = maxFontSize.value
+        while (splits - fits > SEARCH_STEP_SP) {
+            val middle = (fits + splits) / 2
+            if (performLayout(constraints, text, middle.sp).splitsAWord()) splits = middle else fits = middle
+        }
+        return fits.sp
     }
+}

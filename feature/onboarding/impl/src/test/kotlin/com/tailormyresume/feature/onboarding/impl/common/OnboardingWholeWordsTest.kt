@@ -1,12 +1,16 @@
 package com.tailormyresume.feature.onboarding.impl.common
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertWithMessage
 import com.tailormyresume.core.designsystem.component.splitsAWord
@@ -62,19 +66,21 @@ class OnboardingWholeWordsTest {
     fun pasteJobDescription_titleAndClearKeepWholeWords() {
         composeRule.setContent {
             TmrTheme {
-                PasteJobDescriptionScreen(
-                    uiState = PasteJobDescriptionUiState(text = JD),
-                    actions = PasteJobDescriptionActions(
-                        onTextChange = {},
-                        onPaste = {},
-                        onCompanyChange = {},
-                        onRoleChange = {},
-                        onClear = {},
-                        onAnalyse = {},
-                        onRetry = {},
-                        onBack = {},
-                    ),
-                )
+                Box(Modifier.width(NARROW_PHONE_WIDTH)) {
+                    PasteJobDescriptionScreen(
+                        uiState = PasteJobDescriptionUiState(text = JD),
+                        actions = PasteJobDescriptionActions(
+                            onTextChange = {},
+                            onPaste = {},
+                            onCompanyChange = {},
+                            onRoleChange = {},
+                            onClear = {},
+                            onAnalyse = {},
+                            onRetry = {},
+                            onBack = {},
+                        ),
+                    )
+                }
             }
         }
 
@@ -96,6 +102,8 @@ class OnboardingWholeWordsTest {
     }
 
     private companion object {
+        val NARROW_PHONE_WIDTH = 290.dp
+
         const val WELCOME_HEADLINE = "YOUR RESUME, REWRITTEN FROM YOUR FACTS"
 
         val JD: String = "Associate Analyst, Business Intelligence at Northwind Global " +

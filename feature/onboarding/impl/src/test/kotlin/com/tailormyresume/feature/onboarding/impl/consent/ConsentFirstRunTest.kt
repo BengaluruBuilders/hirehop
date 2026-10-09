@@ -7,16 +7,21 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.onboarding.NextOnboardingStepUseCase
+import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ConsentPurpose
 import com.tailormyresume.core.model.ConsentRecord
 import com.tailormyresume.core.model.DebugScenario
+import com.tailormyresume.core.testing.data.sampleEducationEntry
 import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestClock
 import com.tailormyresume.feature.onboarding.api.navigation.ConsentNavKey
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -67,6 +72,15 @@ class ConsentFirstRunTest {
     }
 
     @Test
+    fun theDeleteCardOnlyClaimsWhatTailorMyResumeServersDo() {
+        show(ConsentUiState())
+
+        composeRule.onNodeWithText("TailorMyResume servers keep none of it", substring = true)
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
     fun anOlderStoredNoticeMarksTheViewModelAsReconsent() = runTest {
         val session = TestSessionRepository()
         session.recordConsent(
@@ -92,10 +106,73 @@ class ConsentFirstRunTest {
         assertThat(viewModel.uiState.value.isReconsent).isFalse()
     }
 
-    private fun viewModelOver(session: TestSessionRepository) = ConsentViewModel(
+    @Test
+    fun aReturningUserWithStoredFactsAfterSignOutSeesTheReConsentHeading() = runTest {
+        val session = TestSessionRepository()
+        val profile = TestProfileRepository()
+        profile.saveProfile(profileWithOneEntry())
+        val viewModel = viewModelOver(session, profile)
+
+        viewModel.onEnter(ConsentNavKey(DebugScenario.DEFAULT))
+        show(viewModel.uiState.value)
+
+        assertThat(viewModel.uiState.value.isReconsent).isTrue()
+        composeRule.onNodeWithContentDescription("Choose what we may do").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Nothing is uploaded yet").assertDoesNotExist()
+    }
+
+    @Test
+    fun anEarlierSignedInAccountWithoutAStoredRecordIsNotFirstRun() = runTest {
+        val session = TestSessionRepository()
+        session.saveLastAccountId("uid-1")
+        val viewModel = viewModelOver(session)
+
+        viewModel.onEnter(ConsentNavKey(DebugScenario.DEFAULT))
+
+        assertThat(viewModel.uiState.value.isReconsent).isTrue()
+    }
+
+    @Test
+    fun theFirstRunHeadingWaitsUntilTheHistoryCheckResolves() = runTest {
+        val profile = GatedProfileRepository()
+        val viewModel = viewModelOver(TestSessionRepository(), profile)
+
+        viewModel.onEnter(ConsentNavKey(DebugScenario.DEFAULT))
+        assertThat(viewModel.uiState.value.isReconsent).isTrue()
+
+        profile.resolve(null)
+        assertThat(viewModel.uiState.value.isReconsent).isFalse()
+    }
+
+    private class GatedProfileRepository : ProfileRepository {
+        private val gate = MutableSharedFlow<CandidateProfile?>(replay = 1)
+
+        suspend fun resolve(profile: CandidateProfile?) = gate.emit(profile)
+
+        override fun observeProfile(): Flow<CandidateProfile?> = gate
+
+        override suspend fun saveProfile(profile: CandidateProfile) = Unit
+
+        override suspend fun clearProfile() = Unit
+    }
+
+    private fun profileWithOneEntry() = CandidateProfile(
+        fullName = "Asha Rao",
+        email = "asha@example.com",
+        phone = "",
+        headline = "",
+        skills = emptyList(),
+        entries = listOf(sampleEducationEntry),
+    )
+
+    private fun viewModelOver(
+        session: TestSessionRepository,
+        profile: ProfileRepository = TestProfileRepository(),
+    ) = ConsentViewModel(
         sessionRepository = session,
+        profileRepository = profile,
         consentUploader = { Result.success(Unit) },
-        nextOnboardingStep = NextOnboardingStepUseCase(session, TestProfileRepository()),
+        nextOnboardingStep = NextOnboardingStepUseCase(session, profile),
         clock = TestClock(),
     )
 
