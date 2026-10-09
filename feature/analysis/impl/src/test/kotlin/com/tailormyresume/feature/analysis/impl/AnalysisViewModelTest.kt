@@ -27,6 +27,7 @@ import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.PrepPlanItem
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.ProfileLimits
 import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.navigation.PendingNavigation
@@ -485,6 +486,19 @@ class AnalysisViewModelTest {
         val entry = requireNotNull(profileRepository.observeProfile().first()).entries.first { it.id == "U-01" }
         assertThat(entry.source).isEqualTo(FactSource.USER_STATED)
         assertThat(entry.bullets.map { it.text }).containsExactly("I wrote SQL queries during my internship.")
+    }
+
+    @Test
+    fun iHaveThis_withAStatementOverTheBulletLimit_savesNothingAndKeepsTheSheetOpen() = runTest {
+        start()
+        viewModel.onIHaveThis("req-sql")
+        val before = profileRepository.observeProfile().first()
+
+        viewModel.onSubmitEvidence("req-sql", "SQL " + "x".repeat(ProfileLimits.MAX_BULLET_LENGTH))
+
+        assertThat(profileRepository.observeProfile().first()).isEqualTo(before)
+        assertThat(result().toast).isNotEqualTo(AnalysisToast.EvidenceFailed)
+        assertThat(result().overlay).isEqualTo(AnalysisOverlay.Question("req-sql"))
     }
 
     @Test

@@ -122,7 +122,8 @@ class FactEditorViewModelTest {
         assertThat(state.draft.organization).isEqualTo("Power BI, Excel")
         assertThat(state.draft.startDate).isEqualTo("Jan 2024")
         assertThat(state.draft.endDate).isEqualTo("Apr 2024")
-        assertThat(state.draft.detail).isEqualTo(editedEntry.bullets.joinToString(" ") { it.text })
+        assertThat(state.draft.detail).isEqualTo(editedEntry.bullets.first().text)
+        assertThat(state.draft.moreBullets).isEqualTo(editedEntry.bullets.drop(1))
         assertThat(state.provenance).isEqualTo(FactSource.IMPORTED)
         assertThat(state.canDelete).isTrue()
     }
@@ -250,7 +251,7 @@ class FactEditorViewModelTest {
     fun save_editedFact_marksTheEntryUserEditedAndKeepsItsBulletId() = runTest {
         val viewModel = createViewModel(entryId = editedEntry.id)
 
-        viewModel.onTitleChange("Placement Stats Dashboard")
+        viewModel.onTitleChange("Placement Stats Dashboard 2024")
         viewModel.save()
 
         val saved = savedProfile().entries.first { it.id == editedEntry.id }
@@ -259,7 +260,7 @@ class FactEditorViewModelTest {
         assertThat(state.provenance).isEqualTo(FactSource.USER_EDITED)
         assertThat(saved.source).isEqualTo(FactSource.USER_EDITED)
         assertThat(saved.isConfirmed).isTrue()
-        assertThat(saved.bullets.single().id).isEqualTo(editedEntry.bullets.first().id)
+        assertThat(saved.bullets.map { it.id }).containsExactlyElementsIn(editedEntry.bullets.map { it.id }).inOrder()
         assertThat(savedProfile().entries).hasSize(2)
     }
 
