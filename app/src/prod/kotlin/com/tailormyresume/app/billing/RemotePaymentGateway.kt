@@ -94,6 +94,7 @@ class RemotePaymentGateway @Inject constructor(
     }
 
     override suspend fun unlock(applicationId: String): CreditSpend {
+        val started = wallet.generation()
         val result = apiResult {
             api.unlock(applicationId).also { response -> if (!response.isSuccessful) throw HttpException(response) }
         }
@@ -102,7 +103,7 @@ class RemotePaymentGateway @Inject constructor(
             throw failure
         }
         val body = checkNotNull(response.body())
-        wallet.update(body.wallet)
+        wallet.update(body.wallet, started)
         val kind = if (response.code() == HTTP_CREATED) CreditKind.valueOf(body.unlock.creditKind.name) else null
         return CreditSpend.Spent(body.wallet.toEntitlement(pending.value), kind)
     }
