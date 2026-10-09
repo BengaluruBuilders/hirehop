@@ -91,7 +91,7 @@ internal class TailorViewModel @AssistedInject constructor(
     fun onRegenerate(category: EntryCategory) {
         viewModelScope.launch {
             val result = decisionMutex.withLock { regenerateSection(applicationId, category) }
-            if (result == RegenerateResult.NoCredit || result == RegenerateResult.Failed) regenerateFailureChannel.send(result)
+            if (result != RegenerateResult.Done && result != RegenerateResult.Skipped) regenerateFailureChannel.send(result)
         }
     }
 

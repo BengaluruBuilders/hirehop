@@ -450,6 +450,29 @@ class TailorViewModelTest {
     }
 
     @Test
+    fun onRegenerate_whenTheServerBlocksTheRoute_reportsTheMatchingNotice() = runTest {
+        val expected = mapOf(
+            AiFailure.RateLimited to AiNotice.RateLimited,
+            AiFailure.AnalysisInProgress to AiNotice.InProgress,
+            AiFailure.QuotaExceeded to AiNotice.QuotaReached,
+            AiFailure.SignInRequired to AiNotice.SignInRequired,
+        )
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+        sendData(listOf(reviewable))
+        val failures = mutableListOf<RegenerateResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.regenerateFailures.toList(failures) }
+
+        expected.forEach { (failure, _) ->
+            tailor.failure = failure
+            viewModel.onRegenerate(EntryCategory.EXPERIENCE)
+        }
+
+        assertThat(failures).containsExactlyElementsIn(expected.values.map { RegenerateResult.Blocked(it) }).inOrder()
+        assertThat(viewModel.success().regenerationsLeft).isEqualTo(2)
+    }
+
+    @Test
     fun onRegenerate_stopsAfterTheIncludedRegenerationsAreUsed() = runTest {
         val viewModel = viewModel()
         collectUiState(viewModel)

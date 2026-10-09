@@ -63,7 +63,9 @@ import com.tailormyresume.feature.tailor.impl.StatusCard
 import com.tailormyresume.feature.tailor.impl.StatusPill
 import com.tailormyresume.feature.tailor.impl.StepMark
 import com.tailormyresume.feature.tailor.impl.TailoredBulletSource
+import com.tailormyresume.feature.tailor.impl.bodyRes
 import com.tailormyresume.feature.tailor.impl.coverletter.CoverLetterFactRef
+import com.tailormyresume.feature.tailor.impl.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -230,8 +232,8 @@ private fun LazyListScope.prepItems(
         PrepQuestionsStage.ERROR -> item(key = "error") {
             StatusCard(
                 kind = TmrSpotKind.Error,
-                title = stringResource(R.string.feature_tailor_impl_prep_questions_error_title),
-                body = stringResource(R.string.feature_tailor_impl_prep_questions_error_body),
+                title = stringResource(uiState.failure.titleRes(R.string.feature_tailor_impl_prep_questions_error_title)),
+                body = stringResource(uiState.failure.bodyRes(R.string.feature_tailor_impl_prep_questions_error_body)),
             )
         }
     }

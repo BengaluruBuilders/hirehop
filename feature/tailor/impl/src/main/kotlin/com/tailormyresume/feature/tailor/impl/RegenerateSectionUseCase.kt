@@ -13,7 +13,17 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.time.Clock
 
-internal enum class RegenerateResult { Done, Skipped, NoCredit, Failed }
+internal sealed interface RegenerateResult {
+    data object Done : RegenerateResult
+
+    data object Skipped : RegenerateResult
+
+    data object NoCredit : RegenerateResult
+
+    data object Failed : RegenerateResult
+
+    data class Blocked(val notice: AiNotice) : RegenerateResult
+}
 
 internal class RegenerateSectionUseCase @Inject constructor(
     private val applicationRepository: ApplicationRepository,
@@ -35,7 +45,12 @@ internal class RegenerateSectionUseCase @Inject constructor(
         val fresh = try {
             tailorResume(profile, application.job, gap, applicationId, category).bullets
         } catch (e: AiException) {
-            return if (e.failure == AiFailure.NoCredit) RegenerateResult.NoCredit else RegenerateResult.Failed
+            val notice = e.toAiNotice()
+            return when {
+                e.failure == AiFailure.NoCredit -> RegenerateResult.NoCredit
+                notice == AiNotice.Generic -> RegenerateResult.Failed
+                else -> RegenerateResult.Blocked(notice)
+            }
         }
             .filter { it.entryId in sectionEntryIds }
             .map { it.copy(decision = BulletDecision.PENDING) }

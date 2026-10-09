@@ -348,6 +348,15 @@ internal fun toastText(toast: AnalysisToast): String = when (toast) {
     AnalysisToast.Reported -> stringResource(R.string.feature_analysis_impl_toast_reported)
     AnalysisToast.EvidenceFailed -> stringResource(R.string.feature_analysis_impl_toast_evidence_failed)
     AnalysisToast.TailorFailed -> stringResource(R.string.feature_analysis_impl_toast_tailor_failed)
+    is AnalysisToast.TailorBlocked -> stringResource(
+        when (toast.cause) {
+            FailureCause.Generic -> R.string.feature_analysis_impl_toast_tailor_failed
+            FailureCause.InProgress -> R.string.feature_analysis_impl_toast_tailor_busy
+            is FailureCause.RateLimited -> R.string.feature_analysis_impl_toast_tailor_rate_limited
+            FailureCause.QuotaReached -> R.string.feature_analysis_impl_quota_body
+            FailureCause.SignInRequired -> R.string.feature_analysis_impl_sign_in_body
+        },
+    )
 }
 
 private val NOTE_ICON_SIZE = 22.dp
