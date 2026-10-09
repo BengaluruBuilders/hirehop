@@ -33,11 +33,11 @@ import com.tailormyresume.core.designsystem.component.TmrInnerHeader
 import com.tailormyresume.core.designsystem.component.TmrPaperColors
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.TmrScreen
+import com.tailormyresume.core.designsystem.component.TmrSecondaryButton
 import com.tailormyresume.core.designsystem.component.TmrStepProgress
 import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.model.ExportFormat
-import com.tailormyresume.feature.tailor.impl.NoteLine
 import com.tailormyresume.feature.tailor.impl.R
 
 @Composable
@@ -87,7 +87,7 @@ private fun exportPreviewBottomBar(
     }
 
     ExportPreviewStage.EXPORTING -> {
-        { ExportingSheet(uiState = uiState) }
+        { ExportingSheet(uiState = uiState, onCancel = actions.onCancel) }
     }
 
     ExportPreviewStage.PREVIEW_FAILED,
@@ -182,7 +182,7 @@ private fun ExportPreviewPage(uiState: ExportPreviewUiState, compact: Boolean) {
             }
         }
         Text(
-            text = pageCaption(uiState, paperScroll.canScrollForward),
+            text = pageCaption(uiState),
             style = TmrTheme.typography.labelM,
             color = TmrTheme.colors.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -191,23 +191,13 @@ private fun ExportPreviewPage(uiState: ExportPreviewUiState, compact: Boolean) {
 }
 
 @Composable
-private fun pageCaption(uiState: ExportPreviewUiState, canScrollForward: Boolean): String = when {
+private fun pageCaption(uiState: ExportPreviewUiState): String = when {
     uiState.sheet == null && uiState.stage == ExportPreviewStage.RENDERING ->
         stringResource(R.string.feature_tailor_impl_export_preview_rendering_caption)
 
     uiState.sheet == null -> stringResource(R.string.feature_tailor_impl_export_preview_no_preview)
 
-    else -> stringResource(
-        R.string.feature_tailor_impl_export_preview_paper_meta,
-        uiState.format.label(),
-        stringResource(
-            if (canScrollForward) {
-                R.string.feature_tailor_impl_export_preview_paper_caption_scroll
-            } else {
-                R.string.feature_tailor_impl_export_preview_paper_caption_end
-            },
-        ),
-    )
+    else -> stringResource(R.string.feature_tailor_impl_export_preview_paper_meta, uiState.format.label())
 }
 
 @Composable
@@ -277,12 +267,6 @@ private fun ExportPreviewFileDetails(uiState: ExportPreviewUiState, actions: Exp
             Text(text = uiState.fileName, style = TmrTheme.typography.labelL, color = TmrTheme.colors.onSurface)
         }
     }
-    if (uiState.stage == ExportPreviewStage.PREVIEW_READY) {
-        NoteLine(
-            text = stringResource(R.string.feature_tailor_impl_export_preview_ats_note),
-            icon = TmrIcons.Check,
-        )
-    }
 }
 
 @Composable
@@ -333,7 +317,7 @@ private fun ExportPreviewRetryBar(onRetry: () -> Unit) {
 }
 
 @Composable
-private fun ExportingSheet(uiState: ExportPreviewUiState) {
+private fun ExportingSheet(uiState: ExportPreviewUiState, onCancel: () -> Unit) {
     val colors = TmrTheme.colors
     Column(
         modifier = Modifier
@@ -366,19 +350,20 @@ private fun ExportingSheet(uiState: ExportPreviewUiState) {
                 stringResource(R.string.feature_tailor_impl_export_preview_step_saving),
             ),
             currentStepIndex = 0,
-            ordinalLabel = stringResource(
-                if (uiState.isFreeBeta) {
-                    R.string.feature_tailor_impl_export_preview_exporting_eyebrow
-                } else {
-                    R.string.feature_tailor_impl_export_preview_exporting_eyebrow_credit
-                },
-            ),
+            ordinalLabel = "",
             stepStatuses = listOf(
                 stringResource(R.string.feature_tailor_impl_export_preview_step_status_active),
                 stringResource(R.string.feature_tailor_impl_export_preview_step_status_waiting),
             ),
             footnote = stringResource(R.string.feature_tailor_impl_export_preview_exporting_footnote),
         )
+        if (!uiState.isSpending) {
+            TmrSecondaryButton(
+                label = stringResource(R.string.feature_tailor_impl_export_preview_cancel),
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

@@ -32,6 +32,7 @@ internal data class ExportedUiState(
     val fileName: String = "",
     val fileOnDevice: Boolean = false,
     val pageCount: Int? = null,
+    val fileSizeBytes: Long? = null,
     val templateName: String? = null,
     val creditsKnown: Boolean = false,
     val creditSource: ExportedCreditSource = ExportedCreditSource.FREE,
