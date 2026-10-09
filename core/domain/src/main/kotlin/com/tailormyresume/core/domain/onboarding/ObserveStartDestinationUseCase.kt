@@ -15,7 +15,8 @@ class ObserveStartDestinationUseCase @Inject constructor(
         combine(
             sessionRepository.observeAccount(),
             sessionRepository.observeOnboardingComplete(),
-        ) { account, complete ->
-            if (account != null && complete) StartDestination.Applications else StartDestination.Welcome
+            sessionRepository.observeConsent(),
+        ) { account, complete, consent ->
+            if (account != null && complete && consent != null) StartDestination.Applications else StartDestination.Welcome
         }.distinctUntilChanged()
 }

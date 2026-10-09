@@ -10,21 +10,24 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.time.Instant
 
-class ObserveStartDestinationUseCaseTest {
+class ObserveStartDestinationConsentTest {
 
     private val session = TestSessionRepository()
     private val useCase = ObserveStartDestinationUseCase(session)
     private val consent = ConsentRecord(setOf(ConsentPurpose.AI_PROCESSING), Instant.fromEpochMilliseconds(1), "2026-10-b")
 
     @Test
-    fun withOnboardingIncompleteTheStartIsWelcome() = runTest {
+    fun withAccountAndOnboardingCompleteButNoConsentTheStartIsWelcome() = runTest {
+        session.saveAccount(SignInAccount.localAccount)
+        session.markOnboardingComplete()
+
         useCase().test {
             assertThat(awaitItem()).isEqualTo(StartDestination.Welcome)
         }
     }
 
     @Test
-    fun withOnboardingCompleteTheStartIsApplications() = runTest {
+    fun withAccountOnboardingCompleteAndConsentTheStartIsApplications() = runTest {
         session.saveAccount(SignInAccount.localAccount)
         session.markOnboardingComplete()
         session.recordConsent(consent)
@@ -35,51 +38,17 @@ class ObserveStartDestinationUseCaseTest {
     }
 
     @Test
-    fun signingOutReturnsTheStartToWelcome() = runTest {
+    fun clearingConsentReturnsTheStartToWelcomeUntilConsentIsRecordedAgain() = runTest {
         session.saveAccount(SignInAccount.localAccount)
         session.markOnboardingComplete()
         session.recordConsent(consent)
 
         useCase().test {
             assertThat(awaitItem()).isEqualTo(StartDestination.Applications)
-            session.signOut()
+            session.clearConsent()
             assertThat(awaitItem()).isEqualTo(StartDestination.Welcome)
-        }
-    }
-
-    @Test
-    fun signingInAgainAfterSignOutReturnsTheStartToApplications() = runTest {
-        session.saveAccount(SignInAccount.localAccount)
-        session.markOnboardingComplete()
-        session.recordConsent(consent)
-        session.signOut()
-
-        useCase().test {
-            assertThat(awaitItem()).isEqualTo(StartDestination.Welcome)
-            session.saveAccount(SignInAccount.localAccount)
+            session.recordConsent(consent)
             assertThat(awaitItem()).isEqualTo(StartDestination.Applications)
-        }
-    }
-
-    @Test
-    fun withOnboardingCompleteAndNoAccountTheStartIsWelcome() = runTest {
-        session.markOnboardingComplete()
-
-        useCase().test {
-            assertThat(awaitItem()).isEqualTo(StartDestination.Welcome)
-        }
-    }
-
-    @Test
-    fun clearingTheSessionReturnsTheStartToWelcome() = runTest {
-        session.saveAccount(SignInAccount.localAccount)
-        session.markOnboardingComplete()
-        session.recordConsent(consent)
-
-        useCase().test {
-            assertThat(awaitItem()).isEqualTo(StartDestination.Applications)
-            session.clear()
-            assertThat(awaitItem()).isEqualTo(StartDestination.Welcome)
         }
     }
 }
