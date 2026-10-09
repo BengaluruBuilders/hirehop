@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
@@ -60,8 +59,9 @@ fun TmrTextField(
     val borderColor = when {
         isError -> colors.error
         focused -> colors.primary
-        else -> Color.Transparent
+        else -> colors.boundary
     }
+    val borderWidth = if (isError || focused) TmrWidthStrokeFocus else TmrWidthHairline
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         BasicTextField(
             value = value,
@@ -71,7 +71,7 @@ fun TmrTextField(
                 .defaultMinSize(minHeight = TmrHeightField)
                 .onFocusChanged { focused = it.isFocused }
                 .background(colors.card, shape)
-                .border(TmrWidthStrokeFocus, borderColor, shape),
+                .border(borderWidth, borderColor, shape),
             enabled = enabled,
             textStyle = TmrTheme.typography.bodyL.copy(
                 fontWeight = FontWeight.Bold,

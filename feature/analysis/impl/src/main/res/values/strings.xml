@@ -84,6 +84,7 @@
 
 
     <string name="feature_analysis_impl_toast_prep_added">%1$s added to your prep plan</string>
+    <string name="feature_analysis_impl_menu_dismiss">Close menu</string>
     <string name="feature_analysis_impl_toast_gap_closed">Saved as your own words. Gap closed.</string>
     <string name="feature_analysis_impl_question_not_closed">Your words do not mention %1$s, so this gap stays open and nothing was saved. Say where you used it, in your own words.</string>
     <string name="feature_analysis_impl_question_not_closed_generic">Your words do not close this gap, so it stays open and nothing was saved. Say where you used it, in your own words.</string>

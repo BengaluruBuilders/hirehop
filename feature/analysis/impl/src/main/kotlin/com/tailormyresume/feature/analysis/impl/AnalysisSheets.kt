@@ -71,6 +71,8 @@ internal fun RowMenuOverlay(state: AnalysisUiState.Result, anchor: Rect, actions
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.feature_analysis_impl_menu_dismiss),
                 onClick = actions.onDismissOverlay,
             ),
     ) {

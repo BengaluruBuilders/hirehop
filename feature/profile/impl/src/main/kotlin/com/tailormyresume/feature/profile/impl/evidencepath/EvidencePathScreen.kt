@@ -245,6 +245,7 @@ private fun QuestionContent(
                 label = stringResource(item.labelRes()),
                 selected = item == category,
                 onClick = { actions.onCategoryChosen(item) },
+                singleSelect = true,
             )
         }
     }

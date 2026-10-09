@@ -72,6 +72,8 @@ internal fun SettingsScreen(
             cancelLabel = stringResource(R.string.feature_settings_impl_settings_sign_out_cancel),
             onConfirm = actions.onSignOutConfirm,
             onCancel = actions.onSignOutDismiss,
+            destructive = true,
+            icon = TmrIcons.Error,
         )
     }
 }

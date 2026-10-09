@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -203,7 +204,12 @@ internal fun OnboardingStepBar(
             TmrBackButton(contentDescription = backContentDescription, onClick = onBack)
         }
         if (title != null) {
-            Text(text = title, style = TmrTheme.typography.titleL, color = TmrTheme.colors.onSurface)
+            Text(
+                text = title,
+                modifier = Modifier.semantics { heading() },
+                style = TmrTheme.typography.titleL,
+                color = TmrTheme.colors.onSurface,
+            )
         }
     }
 }

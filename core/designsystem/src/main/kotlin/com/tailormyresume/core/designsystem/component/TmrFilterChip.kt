@@ -65,7 +65,7 @@ fun TmrFilterChip(
             .selectable(
                 selected = selected,
                 enabled = true,
-                role = Role.Checkbox,
+                role = if (singleSelect) Role.RadioButton else Role.Checkbox,
                 interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick,
@@ -100,7 +100,7 @@ fun TmrFilterChip(
                 text = label,
                 style = TmrTheme.typography.labelL.copy(fontWeight = FontWeight.Bold),
                 color = contentColor,
-                maxLines = 1,
+                modifier = Modifier.weight(1f, fill = false),
             )
             if (count != null) {
                 Text(

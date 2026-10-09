@@ -104,6 +104,7 @@ private fun DeleteConfirmDialog(counts: AccountDeletionCounts, actions: DeleteAc
         onConfirm = actions.onDeleteConfirmed,
         onCancel = actions.onDeleteDismissed,
         destructive = true,
+        icon = TmrIcons.Error,
     )
 }
 
