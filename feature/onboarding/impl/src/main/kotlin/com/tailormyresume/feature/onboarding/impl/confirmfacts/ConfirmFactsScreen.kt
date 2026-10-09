@@ -401,10 +401,10 @@ private fun FactHeader(
         TmrStatusChip(
             kind = if (fact.isConfirmed) TmrStatusKind.Met else TmrStatusKind.Gap,
             label = stringResource(
-                if (fact.isConfirmed) {
-                    R.string.feature_onboarding_impl_confirm_facts_status_confirmed
-                } else {
-                    R.string.feature_onboarding_impl_confirm_facts_pending
+                when {
+                    fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_status_confirmed
+                    fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+                    else -> R.string.feature_onboarding_impl_confirm_facts_pending
                 },
             ),
         )
@@ -418,7 +418,14 @@ private fun FactActions(
     actions: ConfirmFactsActions,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-        if (!fact.isConfirmed) {
+        if (!fact.isConfirmed && fact.hasTooLongBullet) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_too_long_note),
+                modifier = Modifier.weight(1f),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        } else if (!fact.isConfirmed) {
             Box(
                 modifier = Modifier.weight(1f).heightIn(min = TmrTheme.spacing.touch),
                 contentAlignment = Alignment.Center,

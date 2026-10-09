@@ -8,6 +8,7 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.hasTooLongBullet
 
 enum class ConfirmFactsSection { Education, Experience, Projects, Skills, Certifications, Extras }
 
@@ -134,6 +135,7 @@ object ConfirmFactsScenarioMapper {
         source = if (scenario == DebugScenario.USER_STATED) FactSource.USER_STATED else source,
         isConfirmed = isConfirmed,
         displayId = displayId,
+        hasTooLongBullet = hasTooLongBullet,
     )
 }
 

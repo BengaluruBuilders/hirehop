@@ -16,7 +16,11 @@ class ProfileLongBulletConfirmTest {
     )
 
     private val profile = CandidateProfile(
-        "P", "", "", "", emptyList(),
+        "P",
+        "",
+        "",
+        "",
+        emptyList(),
         listOf(entry("LONG", "S" + "a".repeat(448) + "."), entry("OK", "Short.")),
     )
 
