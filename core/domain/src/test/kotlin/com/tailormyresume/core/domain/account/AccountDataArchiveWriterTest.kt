@@ -91,7 +91,7 @@ class AccountDataArchiveWriterTest {
 
     private val data = AccountData(
         generatedAt = now,
-        account = SignInAccount.localAccount.copy(id = SECRET_UID),
+        account = SignInAccount.localAccount.copy(id = PLANTED_UID),
         consent = ConsentRecord(setOf(ConsentPurpose.AI_PROCESSING), now, ConsentRecord.CURRENT_NOTICE_VERSION),
         profile = canonicalCandidateProfile,
         applications = listOf(application),
@@ -114,7 +114,7 @@ class AccountDataArchiveWriterTest {
     )
 
     private companion object {
-        const val SECRET_UID = "uid-Zq81Xk-secret-4471"
+        const val PLANTED_UID = "planted-account-id-4471"
         val SUSPICIOUS_FRAGMENTS = listOf("token", "uid", "secret", "key")
         val ALLOWED_NAMES = setOf("keywords", "keywordsUsed", "keywordCoverage")
     }
@@ -217,7 +217,7 @@ class AccountDataArchiveWriterTest {
         val files = archive()
         val everything = files.values.joinToString("\n").lowercase()
 
-        assertThat(everything).doesNotContain(SECRET_UID.lowercase())
+        assertThat(everything).doesNotContain(PLANTED_UID.lowercase())
         listOf("token", "obfuscatedaccountid", "apikey").forEach { forbidden ->
             assertThat(everything).doesNotContain(forbidden)
         }
