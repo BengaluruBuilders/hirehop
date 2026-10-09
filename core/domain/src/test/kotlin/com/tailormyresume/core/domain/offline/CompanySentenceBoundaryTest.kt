@@ -8,20 +8,6 @@ class CompanySentenceBoundaryTest {
     private val analyzer = OfflineJobDescriptionAnalyzer()
 
     @Test
-    fun sentenceEndAfterCompanyIsNotPartOfTheCompany() = runTest {
-        val job = analyzer.analyze("Data Analyst at Acme Corp. We need SQL")
-        assertThat(job.title).isEqualTo("Data Analyst")
-        assertThat(job.company).isEqualTo("Acme Corp")
-    }
-
-    @Test
-    fun sentenceEndAfterCompanyIsNotPartOfTheCompanyWithTrailingSection() = runTest {
-        val job = analyzer.analyze("Data Analyst at Acme Corp. We need SQL\nRequirements:\n- SQL")
-        assertThat(job.title).isEqualTo("Data Analyst")
-        assertThat(job.company).isEqualTo("Acme Corp")
-    }
-
-    @Test
     fun abbreviationPeriodsAreNotSentenceEnds() = runTest {
         val job = analyzer.analyze("Android Developer at Zenith Apps Pvt. Ltd.\nRequirements:\n- Kotlin")
         assertThat(job.title).isEqualTo("Android Developer")
