@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.app.R
 import com.tailormyresume.core.data.connectivity.ConnectivityMonitor
 import com.tailormyresume.core.data.connectivity.MockConnectivityControl
+import com.tailormyresume.core.domain.offline.ForcedPaymentScenario
 import com.tailormyresume.core.domain.sample.SampleDataController
+import com.tailormyresume.core.model.DebugScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,7 @@ class DebugMenuViewModel @Inject constructor(
     private val sampleDataController: SampleDataController,
     private val connectivityControl: MockConnectivityControl,
     connectivityMonitor: ConnectivityMonitor,
+    private val forcedPaymentScenario: ForcedPaymentScenario = ForcedPaymentScenario(),
 ) : ViewModel() {
 
     private val work = MutableStateFlow(DebugMenuUiState())
@@ -51,14 +54,24 @@ class DebugMenuViewModel @Inject constructor(
 
     fun resetAppData() = run(DebugDataMessage.DataReset) { sampleDataController.reset() }
 
-    fun openPreview(target: DebugScenarioTarget, onReady: () -> Unit) {
+    fun openPreview(target: DebugScenarioTarget, scenario: DebugScenario = DebugScenario.defaultValue, onReady: () -> Unit) {
         viewModelScope.launch {
             if (target.needsSampleJob) sampleDataController.keepSampleJobDescription()
+            forcePaymentScenario(target, scenario)
             onReady()
         }
     }
 
+    fun forcePaymentScenario(target: DebugScenarioTarget, scenario: DebugScenario) {
+        forcedPaymentScenario.scenario = if (target.forcesPayment) scenario else DebugScenario.defaultValue
+    }
+
+    fun releasePaymentScenario() {
+        forcedPaymentScenario.scenario = DebugScenario.defaultValue
+    }
+
     fun closePreview(target: DebugScenarioTarget) {
+        releasePaymentScenario()
         if (target.needsSampleJob) viewModelScope.launch { sampleDataController.clearSampleJobDescription() }
     }
 

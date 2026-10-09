@@ -25,6 +25,7 @@
     <string name="feature_tailor_impl_credits_get_pack">Get an application pack</string>
     <string name="feature_tailor_impl_credits_purchases_title">Purchase history</string>
     <string name="feature_tailor_impl_credits_no_purchases">No purchases yet.</string>
+    <string name="feature_tailor_impl_credits_purchases_unavailable">We could not load your purchases.</string>
     <plurals name="feature_tailor_impl_credits_purchase_title">
         <item quantity="one">%1$d application</item>
         <item quantity="other">%1$d applications</item>
