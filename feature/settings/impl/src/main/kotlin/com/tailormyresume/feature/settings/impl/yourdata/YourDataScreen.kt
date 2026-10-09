@@ -87,7 +87,7 @@ internal fun YourDataScreen(
         TmrContentSwitch(targetState = content, contentKey = { it?.export?.equals(YourDataExport.PREPARING) }) { state ->
             when {
                 state == null -> SettingsLoading(padding = padding)
-                state.export == YourDataExport.PREPARING -> PreparingContent(content = state, padding = padding)
+                state.export == YourDataExport.PREPARING -> PreparingContent(content = state, actions = actions, padding = padding)
                 else -> LedgerContent(content = state, actions = actions, padding = padding)
             }
         }
@@ -140,7 +140,7 @@ private fun DeleteMyDataDialog(content: YourDataUiState.Content, actions: YourDa
 }
 
 @Composable
-private fun PreparingContent(content: YourDataUiState.Content, padding: PaddingValues) {
+private fun PreparingContent(content: YourDataUiState.Content, actions: YourDataActions, padding: PaddingValues) {
     val stepNames = listOf(
         pluralStringResource(
             R.plurals.feature_settings_impl_your_data_preparing_facts,
@@ -180,6 +180,11 @@ private fun PreparingContent(content: YourDataUiState.Content, padding: PaddingV
             ordinalLabel = "",
             stepStatuses = stepStatusWords(stepNames.size, 0),
             footnote = stringResource(R.string.feature_settings_impl_your_data_preparing_note),
+        )
+        TmrOutlineButton(
+            label = stringResource(R.string.feature_settings_impl_your_data_preparing_cancel),
+            onClick = actions.onCancelExport,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
