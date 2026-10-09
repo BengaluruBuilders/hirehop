@@ -58,7 +58,7 @@ class ConfirmFactsScreenshotTest {
     fun emptySectionOffersTwoEqualChoices() {
         captureBothThemes(
             screenName = "ConfirmFactsEmptySection",
-            uiState = stateFor(DebugScenario.FULLY_CONFIRMED),
+            uiState = emptySectionState(sampleImportedProfile.copy(entries = sampleImportedProfile.entries.take(1), skills = emptyList())),
         )
     }
 
@@ -82,7 +82,7 @@ class ConfirmFactsScreenshotTest {
     fun errorOnlyOnARealFailedSave() {
         captureBothThemes(
             screenName = "ConfirmFactsError",
-            uiState = stateFor(DebugScenario.ERROR),
+            uiState = stateFor(DebugScenario.ERROR).withSaveFailed(),
         )
     }
 

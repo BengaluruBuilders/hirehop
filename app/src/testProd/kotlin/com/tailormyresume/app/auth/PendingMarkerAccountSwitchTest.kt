@@ -110,7 +110,6 @@ class PendingMarkerAccountSwitchTest {
 
     @Test
     fun signingInReadsTheAccountWithoutANetworkCall() = runTest {
-
         gateway().signIn()
 
         assertThat(server.requestCount).isEqualTo(0)
