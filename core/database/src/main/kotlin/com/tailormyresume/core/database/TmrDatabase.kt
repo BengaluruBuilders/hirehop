@@ -17,7 +17,7 @@ import com.tailormyresume.core.database.util.JsonConverters
         ProfileEntryEntity::class,
         JobApplicationEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(

@@ -31,10 +31,11 @@ data class EvidencePathUiState(
     val answer: String = "",
     val problem: EvidenceFieldProblem? = null,
     val cards: List<EvidenceFactCard> = emptyList(),
-    val visited: Set<EvidenceCategory> = emptySet(),
     val categoryOrder: List<EvidenceCategory> = EVIDENCE_CATEGORIES,
     val skipNote: EvidenceSkipNote? = null,
     val isDone: Boolean = false,
+    val stamped: EvidenceFactCard? = null,
+    val anchor: EvidenceFactCard? = null,
     val message: EvidenceMessage? = null,
     val navigation: EvidenceNavigation? = null,
 ) {
@@ -42,7 +43,9 @@ data class EvidencePathUiState(
     val questionNumber: Int get() = questionIndex + 1
     val questionTotal: Int get() = category?.questionCount ?: 0
     val categoryCards: List<EvidenceFactCard> get() = cards.filter { it.category == category }
-    val canSave: Boolean get() = answer.isNotBlank() && !isSaving
+    val projectName: String? get() = (anchor ?: stamped)?.entry?.title
+    val needsFirstAnswer: Boolean get() = questionIndex > 0 && anchor == null
+    val canSave: Boolean get() = answer.isNotBlank() && !isSaving && stamped == null && !needsFirstAnswer
 }
 
 fun evidencePathStateFor(

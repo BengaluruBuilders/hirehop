@@ -11,6 +11,7 @@ import com.tailormyresume.core.domain.fact.FactDraftValidator
 import com.tailormyresume.core.domain.fact.FactField
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.feature.profile.api.navigation.FactEvidenceNavKey
+import com.tailormyresume.feature.profile.impl.ProfileExit
 import com.tailormyresume.feature.profile.impl.ProfileExitResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,7 @@ class EvidencePathViewModel @Inject internal constructor(
 
     private var hasEntered = false
     private var forcedOffline = false
+    private var returnsToProfile = false
 
     val uiState: StateFlow<EvidencePathUiState> = mutableState.asStateFlow()
 
@@ -42,6 +44,7 @@ class EvidencePathViewModel @Inject internal constructor(
         if (hasEntered) return
         hasEntered = true
         forcedOffline = key.scenario == DebugScenario.OFFLINE
+        returnsToProfile = key.returnsToProfile
         mutableState.value = evidencePathStateFor(scenario = key.scenario, category = key.category)
         viewModelScope.launch {
             val order = evidenceCategoriesFor(sessionRepository.observeCareerStage().first())
@@ -58,6 +61,7 @@ class EvidencePathViewModel @Inject internal constructor(
             is EvidencePathAction.AnswerChanged -> onAnswerChanged(action.value)
             EvidencePathAction.Save -> onSave()
             EvidencePathAction.Skip -> onSkip()
+            EvidencePathAction.NextQuestion -> onNextQuestion()
             EvidencePathAction.AddMore -> onAddMore()
             EvidencePathAction.Finish -> onFinish()
             EvidencePathAction.NavigationConsumed -> mutableState.update { it.copy(navigation = null) }
@@ -73,10 +77,16 @@ class EvidencePathViewModel @Inject internal constructor(
                 answer = "",
                 problem = null,
                 skipNote = null,
+                stamped = null,
+                anchor = null,
                 isDone = false,
                 message = null,
             )
         }
+    }
+
+    private fun onNextQuestion() {
+        mutableState.update { state -> if (state.stamped == null) state else state.advanced(skipNote = null) }
     }
 
     private fun onAnswerChanged(value: String) {
@@ -86,7 +96,7 @@ class EvidencePathViewModel @Inject internal constructor(
     private fun onSkip() {
         mutableState.update { state ->
             val category = state.category ?: return@update state
-            state.advanced(skipNote = EvidenceSkipNote(category, state.questionNumber))
+            if (state.stamped != null) state else state.advanced(skipNote = EvidenceSkipNote(category, state.questionNumber))
         }
     }
 
@@ -94,6 +104,11 @@ class EvidencePathViewModel @Inject internal constructor(
         val state = mutableState.value
         val category = state.category ?: return
         if (!state.canSave) return
+        val anchor = state.anchor
+        if (anchor != null) {
+            attachToAnchor(state, category, anchor)
+            return
+        }
         val parts = splitAnswer(state.answer)
         val draft = FactDraft(
             category = category.entryCategory,
@@ -115,11 +130,51 @@ class EvidencePathViewModel @Inject internal constructor(
             val outcome = runCatching { addUserStatedFacts(listOf(draft)) }.getOrNull()
             if (outcome is AddFactsOutcome.Added) {
                 mutableState.update { current ->
-                    val cards = current.cards + outcome.entries.map { EvidenceFactCard(category, it) }
-                    current.copy(cards = cards, isSaving = false).advanced(skipNote = null)
+                    val filed = outcome.entries.map { EvidenceFactCard(category, it) }
+                    val inSameCategory = current.category == category
+                    current.copy(
+                        cards = current.cards + filed,
+                        isSaving = false,
+                        answer = if (inSameCategory) "" else current.answer,
+                        stamped = if (inSameCategory) filed.lastOrNull() else current.stamped,
+                        anchor = if (inSameCategory) filed.lastOrNull() else current.anchor,
+                    )
                 }
             } else {
                 mutableState.update { it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED) }
+            }
+        }
+    }
+
+    private fun attachToAnchor(state: EvidencePathUiState, category: EvidenceCategory, anchor: EvidenceFactCard) {
+        if (state.answer.trim().length > FactDraftValidator.DETAIL_LIMIT) {
+            mutableState.value = state.copy(problem = EvidenceFieldProblem.TOO_LONG)
+            return
+        }
+        mutableState.value = state.copy(isSaving = true, message = null)
+        viewModelScope.launch {
+            val updated = runCatching { addUserStatedFacts.attachBullet(anchor.entry.id, state.answer) }.getOrNull()
+            if (updated == null) {
+                val anchorGone = runCatching { !addUserStatedFacts.hasEntry(anchor.entry.id) }.getOrDefault(false)
+                mutableState.update {
+                    if (anchorGone) {
+                        it.copy(isSaving = false, anchor = null, cards = it.cards.filterNot { card -> card.entry.id == anchor.entry.id })
+                    } else {
+                        it.copy(isSaving = false, message = EvidenceMessage.SAVE_FAILED)
+                    }
+                }
+                return@launch
+            }
+            val card = EvidenceFactCard(category, updated)
+            mutableState.update { current ->
+                val inSameCategory = current.category == category
+                current.copy(
+                    cards = current.cards.map { if (it.entry.id == updated.id) card else it },
+                    isSaving = false,
+                    answer = if (inSameCategory) "" else current.answer,
+                    stamped = if (inSameCategory) card else current.stamped,
+                    anchor = if (inSameCategory) card else current.anchor,
+                )
             }
         }
     }
@@ -132,7 +187,8 @@ class EvidencePathViewModel @Inject internal constructor(
                 answer = "",
                 problem = null,
                 skipNote = null,
-                visited = emptySet(),
+                stamped = null,
+                anchor = null,
                 isDone = false,
             )
         }
@@ -140,7 +196,7 @@ class EvidencePathViewModel @Inject internal constructor(
 
     private fun onFinish() {
         viewModelScope.launch {
-            val exit = exitResolver.resolve()
+            val exit = if (returnsToProfile) ProfileExit.Profile else exitResolver.resolve()
             mutableState.update { it.copy(navigation = EvidenceNavigation.Exit(exit)) }
         }
     }
@@ -148,29 +204,8 @@ class EvidencePathViewModel @Inject internal constructor(
     private fun EvidencePathUiState.advanced(skipNote: EvidenceSkipNote?): EvidencePathUiState {
         val current = category ?: return this
         if (questionIndex < current.questionCount - 1) {
-            return copy(questionIndex = questionIndex + 1, answer = "", problem = null, skipNote = skipNote)
+            return copy(questionIndex = questionIndex + 1, answer = "", problem = null, skipNote = skipNote, stamped = null)
         }
-        val seen = visited + current
-        val next = categoryOrder.firstOrNull { it !in seen }
-        return if (next == null) {
-            copy(
-                category = null,
-                questionIndex = 0,
-                answer = "",
-                problem = null,
-                visited = seen,
-                skipNote = null,
-                isDone = true,
-            )
-        } else {
-            copy(
-                category = next,
-                questionIndex = 0,
-                answer = "",
-                problem = null,
-                visited = seen,
-                skipNote = skipNote,
-            )
-        }
+        return copy(category = null, questionIndex = 0, answer = "", problem = null, skipNote = null, stamped = null, isDone = true)
     }
 }

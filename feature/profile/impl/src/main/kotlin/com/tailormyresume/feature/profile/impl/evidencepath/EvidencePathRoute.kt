@@ -42,6 +42,7 @@ private fun EvidencePathViewModel.toActions(navigation: EvidencePathNavigation):
         onAnswerChanged = { onAction(EvidencePathAction.AnswerChanged(it)) },
         onSave = { onAction(EvidencePathAction.Save) },
         onSkip = { onAction(EvidencePathAction.Skip) },
+        onNextQuestion = { onAction(EvidencePathAction.NextQuestion) },
         onAddMore = { onAction(EvidencePathAction.AddMore) },
         onFinish = { onAction(EvidencePathAction.Finish) },
         onEditFact = navigation.onEditFact,
