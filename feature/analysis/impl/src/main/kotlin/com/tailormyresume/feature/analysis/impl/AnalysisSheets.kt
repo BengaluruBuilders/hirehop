@@ -54,7 +54,7 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.designsystem.theme.tmrShadow
 import com.tailormyresume.core.domain.displayKeywords
-import com.tailormyresume.core.domain.isKnownSkill
+import com.tailormyresume.core.domain.isNamedSkillKeyword
 import com.tailormyresume.core.domain.prep.RequirementPhrase
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.ui.FactSourceProvenance
@@ -334,7 +334,7 @@ private const val QUESTION_MIN_LINES = 3
 internal fun JobRequirement.gapName(): String {
     val headline = text.headline()
     if (isShortText()) return headline
-    return copy(keywords = keywords.filter(::isKnownSkill)).skillNames().take(MAX_NAME_SKILLS).joinToString(", ").ifEmpty { headline }
+    return copy(keywords = keywords.filter { isNamedSkillKeyword(this, it) }).skillNames().take(MAX_NAME_SKILLS).joinToString(", ").ifEmpty { headline }
 }
 
 internal fun JobRequirement.skillNames(): List<String> {

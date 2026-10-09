@@ -8,10 +8,14 @@ import org.junit.Test
 
 class GapNameTest {
 
-    private fun requirement(text: String, vararg keywords: String) = JobRequirement(
+    private fun requirement(
+        text: String,
+        vararg keywords: String,
+        type: RequirementType = RequirementType.SKILL,
+    ) = JobRequirement(
         id = "req",
         text = text,
-        type = RequirementType.SKILL,
+        type = type,
         priority = RequirementPriority.MUST_HAVE,
         keywords = keywords.toList(),
     )
@@ -58,7 +62,31 @@ class GapNameTest {
     fun fallbackWordsThatAreNotSkillsKeepTheHeadline() {
         val text = "Proven track record of shipping consumer apps to millions of users."
 
-        assertThat(requirement(text, "shipping", "consumer", "apps").gapName())
+        assertThat(requirement(text, "shipping", "consumer", "apps", type = RequirementType.EXPERIENCE).gapName())
             .isEqualTo("Proven track record of shipping consumer apps to millions of users")
+    }
+
+    @Test
+    fun excelAsAVerbKeepsTheHeadline() {
+        val text = "Proven ability to excel in fast-paced, high-growth environments."
+
+        assertThat(requirement(text, "excel", "fast", "paced", type = RequirementType.EXPERIENCE).gapName())
+            .isEqualTo("Proven ability to excel in fast-paced, high-growth environments")
+    }
+
+    @Test
+    fun lowercaseLexiconWordsInAnExperienceSentenceAreNotNamed() {
+        val text = "Comfortable working in a fast moving team where you spring into action and swift decisions matter."
+
+        assertThat(requirement(text, "swift", "spring", type = RequirementType.EXPERIENCE).gapName())
+            .isEqualTo("Comfortable working in a fast moving team where you spring into action and swift decisions matter")
+    }
+
+    @Test
+    fun toolRequirementIsNamedByItsBackendKeywords() {
+        val text = "Build and maintain the analytics warehouse using dbt, Snowflake and SQL every day."
+
+        assertThat(requirement(text, "dbt", "Snowflake", "SQL", type = RequirementType.TOOL).gapName())
+            .isEqualTo("dbt, Snowflake, SQL")
     }
 }
