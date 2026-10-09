@@ -12,6 +12,8 @@ class Navigator(val state: NavigationState) {
         }
     }
 
+    fun openInOwnTab(key: NavKey) = Unit
+
     fun replace(key: NavKey) {
         val stack = state.currentSubStack
         if (key in state.topLevelKeys || stack.size <= 1) {

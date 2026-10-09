@@ -112,3 +112,5 @@ private fun DebugScenarioPreview(
 
 internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =
     seenMain && rootState == AppRootState.FirstRun
+
+internal fun opensRealApp(target: DebugScenarioTarget, scenario: DebugScenario): Boolean = true
