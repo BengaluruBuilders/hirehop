@@ -2,11 +2,15 @@ package com.tailormyresume.feature.settings.impl.yourdata
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.ApplicationPack
+import com.tailormyresume.core.domain.DiscardJobDraftsUseCase
 import com.tailormyresume.core.domain.account.AccountData
 import com.tailormyresume.core.domain.account.AccountDataArchive
 import com.tailormyresume.core.domain.account.AccountDataExporter
 import com.tailormyresume.core.domain.account.CollectAccountDataUseCase
+import com.tailormyresume.core.domain.account.DeleteMyDataUseCase
 import com.tailormyresume.core.domain.account.ExportAccountDataUseCase
+import com.tailormyresume.core.domain.account.ExportedFiles
+import com.tailormyresume.core.domain.account.TransientDataCleaner
 import com.tailormyresume.core.model.CreditKind
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.ExportFormat
@@ -17,6 +21,7 @@ import com.tailormyresume.core.testing.data.canonicalApplication
 import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
+import com.tailormyresume.core.testing.repository.TestContentReportRepository
 import com.tailormyresume.core.testing.repository.TestCoverLetterRepository
 import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
 import com.tailormyresume.core.testing.repository.TestPrepPlanRepository
@@ -275,6 +280,15 @@ class YourDataViewModelTest {
                     clock = TestClock(),
                 ),
                 exporter = accountDataExporter,
+            ),
+            deleteMyData = DeleteMyDataUseCase(
+                applicationRepository = applicationRepository,
+                profileRepository = profileRepository,
+                exportHistoryRepository = exportHistory,
+                sessionRepository = sessionRepository,
+                discardJobDrafts = DiscardJobDraftsUseCase(TestPrepPlanRepository(), TestContentReportRepository()),
+                exportedFiles = ExportedFiles.None,
+                transientData = TransientDataCleaner { },
             ),
         )
     }

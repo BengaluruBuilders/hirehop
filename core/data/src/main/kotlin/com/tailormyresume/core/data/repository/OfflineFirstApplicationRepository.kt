@@ -42,7 +42,7 @@ internal class OfflineFirstApplicationRepository @Inject constructor(
         jobApplicationDao.updateNotes(id = id, notes = notes, updatedAt = clock.now())
 
     override suspend fun deleteApplication(id: String) {
-        jobApplicationDao.deleteApplication(id)
         cleanup.clearFor(id)
+        jobApplicationDao.deleteApplication(id)
     }
 }
