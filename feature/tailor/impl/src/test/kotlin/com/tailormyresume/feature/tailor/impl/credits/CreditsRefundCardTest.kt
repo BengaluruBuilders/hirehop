@@ -80,8 +80,27 @@ class CreditsRefundCardTest {
             composeRule.onAllNodesWithText(NOT_BOUGHT_COPY, substring = true).fetchSemanticsNodes(),
         ).isEmpty()
     }
+
+    @Test
+    fun unknownHistoryKeepsRefundRouteAndSaysPurchasesCouldNotLoad() {
+        composeRule.setContent {
+            Host(CreditsUiState(stage = CreditsStage.READY, purchasedCredits = 5, purchasesKnown = false))
+        }
+
+        assertThat(
+            composeRule.onAllNodesWithText(GOOGLE_PLAY_CLAIM, substring = true).fetchSemanticsNodes(),
+        ).isNotEmpty()
+        assertThat(composeRule.onAllNodesWithText(REFUND_BUTTON).fetchSemanticsNodes()).isNotEmpty()
+        assertThat(composeRule.onAllNodesWithText(PURCHASES_UNAVAILABLE).fetchSemanticsNodes()).isNotEmpty()
+        assertThat(composeRule.onAllNodesWithText(NO_PURCHASES).fetchSemanticsNodes()).isEmpty()
+        assertThat(
+            composeRule.onAllNodesWithText(NOT_BOUGHT_COPY, substring = true).fetchSemanticsNodes(),
+        ).isEmpty()
+    }
 }
 
+private const val PURCHASES_UNAVAILABLE = "We could not load your purchases."
+private const val NO_PURCHASES = "No purchases yet."
 private const val GOOGLE_PLAY_CLAIM = "You paid through Google Play"
 private const val REFUND_BUTTON = "Ask for a refund"
 private const val NOT_BOUGHT_COPY = "You have not bought credits yet"

@@ -11,6 +11,8 @@ internal sealed interface ExportedAction {
     data object RequestShare : ExportedAction
     data object RequestOpen : ExportedAction
     data object FileRequestHandled : ExportedAction
+    data object OpenUnavailable : ExportedAction
+    data object DismissOpenUnavailable : ExportedAction
 }
 
 internal data class ExportedActions(
@@ -25,4 +27,5 @@ internal data class ExportedActions(
     val onWriteCoverLetter: () -> Unit,
     val onDone: () -> Unit,
     val onNavigateBack: () -> Unit,
+    val onDismissOpenUnavailable: () -> Unit = {},
 )
