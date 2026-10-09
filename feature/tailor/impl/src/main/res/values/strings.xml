@@ -106,6 +106,9 @@
         <item quantity="other">%1$d flagged</item>
     </plurals>
     <string name="feature_tailor_impl_regen_limit_title">No regenerations left</string>
-    <string name="feature_tailor_impl_regen_limit_chip">0 of %1$d left</string>
+    <plurals name="feature_tailor_impl_regen_limit_chip">
+        <item quantity="one">0 of %1$d left</item>
+        <item quantity="other">0 of %1$d left</item>
+    </plurals>
     <string name="feature_tailor_impl_regen_limit_got_it">Got it</string>
 </resources>

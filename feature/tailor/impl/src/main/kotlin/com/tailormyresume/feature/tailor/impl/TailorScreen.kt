@@ -443,7 +443,7 @@ private fun RegenerateDialog(
 private fun RegenerateLimitSheet(interaction: ReviewInteraction) {
     TmrBottomSheet(onDismissRequest = { interaction.limitSheetOpen = false }) {
         StatusPill(
-            label = stringResource(R.string.feature_tailor_impl_regen_limit_chip, MAX_REGENERATIONS),
+            label = pluralStringResource(R.plurals.feature_tailor_impl_regen_limit_chip, MAX_REGENERATIONS, MAX_REGENERATIONS),
             icon = TmrIcons.Refresh,
             color = TmrTheme.colors.onSurface,
         )
