@@ -207,4 +207,15 @@ class OfflineGapMatcherTest {
         val (_, gap) = analyse("Requirements\n- Excel", profile)
         assertThat(gap.matches.single().status).isEqualTo(MatchStatus.GAP)
     }
+
+    @Test
+    fun bulletOverTheLimitIsNeverCitedAsEvidence() = runTest {
+        val longBullet = "Built Kubernetes clusters " + "a".repeat(400) + "."
+        val profile = profileOf(
+            emptyList(),
+            entry("lab", EntryCategory.EXPERIENCE, "Cloud lab", longBullet, "Ran Kubernetes drills."),
+        )
+        val (_, gap) = analyse("Requirements\n- Experience with Kubernetes", profile)
+        assertThat(gap.matches.single().evidenceIds).containsExactly("lab-b2")
+    }
 }

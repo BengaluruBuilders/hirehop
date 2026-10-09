@@ -4,6 +4,7 @@ import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.fitBulletsToLimit
 
 internal class EntryDraft(
     var title: String,
@@ -43,7 +44,7 @@ internal class EntrySectionParser(private val category: EntryCategory) {
                 organization = draft.organization,
                 startDate = draft.startDate,
                 endDate = draft.endDate,
-                bullets = draft.bullets.mapIndexed { index, text -> EvidenceBullet("$id-b${index + 1}", text) },
+                bullets = fitBulletsToLimit(draft.bullets).mapIndexed { index, text -> EvidenceBullet("$id-b${index + 1}", text) },
                 source = FactSource.IMPORTED,
                 isConfirmed = false,
             )

@@ -7,6 +7,7 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.fitBulletsToLimit
 import com.tailormyresume.core.network.TailorMyResumeApi
 import com.tailormyresume.core.network.dto.ParsedEntryDto
 import com.tailormyresume.core.network.dto.ResumeParseRequest
@@ -43,8 +44,8 @@ class RemoteResumeTextParser @Inject constructor(
                 organization = entry.organization.orEmpty(),
                 startDate = entry.startDate.orEmpty(),
                 endDate = entry.endDate.orEmpty(),
-                bullets = entry.bullets.filter { it.text.isNotBlank() }
-                    .mapIndexed { index, bullet -> EvidenceBullet("$id-b${index + 1}", bullet.text) },
+                bullets = fitBulletsToLimit(entry.bullets.map { it.text }.filter { it.isNotBlank() })
+                    .mapIndexed { index, text -> EvidenceBullet("$id-b${index + 1}", text) },
                 source = FactSource.IMPORTED,
                 isConfirmed = false,
             )

@@ -25,9 +25,8 @@ fun CandidateProfile.confirmedWithinLimits(): CandidateProfile {
     var bulletsLeft = ProfileLimits.MAX_BULLETS_IN_TOTAL
     val limited = entries.filter { it.isConfirmed }.take(ProfileLimits.MAX_ENTRIES).map { entry ->
         val bullets = entry.bullets
-            .filter { it.text.isNotBlank() }
+            .filter { it.text.isNotBlank() && !it.isTooLong }
             .take(minOf(ProfileLimits.MAX_BULLETS_PER_ENTRY, bulletsLeft))
-            .map { it.copy(text = it.text.take(ProfileLimits.MAX_BULLET_LENGTH)) }
         bulletsLeft -= bullets.size
         entry.copy(
             title = entry.title.take(ProfileLimits.MAX_TEXT_LENGTH),

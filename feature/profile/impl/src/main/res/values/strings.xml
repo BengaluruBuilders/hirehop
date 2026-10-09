@@ -11,8 +11,11 @@
     <string name="feature_profile_impl_status_user_edited">Edited by you</string>
     <string name="feature_profile_impl_status_scanned">Scanned</string>
     <string name="feature_profile_impl_status_to_confirm">To confirm</string>
+    <string name="feature_profile_impl_status_too_long">Too long</string>
+    <string name="feature_profile_impl_fact_too_long_note">A line here is over 400 characters, so it is left out of your applications. Edit it to use it.</string>
     <string name="feature_profile_impl_fact_chip_description">Fact %1$s. %2$s.</string>
     <string name="feature_profile_impl_fact_card_description">%1$s. %2$s. %3$s. Fact %4$s.</string>
+    <string name="feature_profile_impl_fact_card_description_with_note">%1$s. %2$s. %3$s. %5$s Fact %4$s.</string>
     <string name="feature_profile_impl_fact_edit">Edit</string>
     <string name="feature_profile_impl_fact_confirm">Confirm</string>
     <string name="feature_profile_impl_remove_chip">Remove %1$s</string>

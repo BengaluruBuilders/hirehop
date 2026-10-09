@@ -123,7 +123,8 @@ private fun FactsToReviewBody(
 ) {
     FactsProgress(uiState = uiState)
     ConfirmFactsStatus(uiState)
-    if (uiState.facts.any(ConfirmFactUi::isConfirmed)) {
+    FlaggedConfirmedFacts(uiState = uiState, actions = actions)
+    if (uiState.facts.any(ConfirmFactUi::isConfirmedWithinLimits)) {
         ConfirmedFactsGroup(uiState = uiState, actions = actions)
     }
     val pending = uiState.facts.filterNot(ConfirmFactUi::isConfirmed)
@@ -212,11 +213,26 @@ private fun ConfirmFactsStatus(uiState: ConfirmFactsUiState) {
 }
 
 @Composable
+private fun FlaggedConfirmedFacts(
+    uiState: ConfirmFactsUiState,
+    actions: ConfirmFactsActions,
+) {
+    uiState.facts.filter { it.isConfirmed && it.hasTooLongBullet }.forEach { fact ->
+        FactCard(
+            fact = fact,
+            category = fact.section.categoryOf(),
+            page = pageOf(uiState = uiState, fact = fact),
+            actions = actions,
+        )
+    }
+}
+
+@Composable
 private fun ConfirmedFactsGroup(
     uiState: ConfirmFactsUiState,
     actions: ConfirmFactsActions,
 ) {
-    val confirmed = uiState.facts.filter(ConfirmFactUi::isConfirmed)
+    val confirmed = uiState.facts.filter(ConfirmFactUi::isConfirmedWithinLimits)
     var expanded by remember { mutableStateOf(false) }
     TmrPillRow(
         title = pluralStringResource(
@@ -293,6 +309,7 @@ private fun ConfirmedFactsBody(
         icon = TmrIcons.CheckCircle,
         tone = NoticeTone.Success,
     )
+    FlaggedConfirmedFacts(uiState = uiState, actions = actions)
     ReviewTheList(uiState = uiState, actions = actions)
 }
 
@@ -313,7 +330,7 @@ private fun ReviewTheList(
     )
     TmrExpandable(expanded = expanded) {
         Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-            uiState.facts.forEach { fact ->
+            uiState.facts.filterNot { it.isConfirmed && it.hasTooLongBullet }.forEach { fact ->
                 FactCard(
                     fact = fact,
                     category = fact.section.categoryOf(),
@@ -346,10 +363,10 @@ private fun FactCard(
     actions: ConfirmFactsActions,
 ) {
     val state = stringResource(
-        if (fact.isConfirmed) {
-            R.string.feature_onboarding_impl_confirm_facts_state_confirmed
-        } else {
-            R.string.feature_onboarding_impl_confirm_facts_state_open
+        when {
+            fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+            fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_state_confirmed
+            else -> R.string.feature_onboarding_impl_confirm_facts_state_open
         },
     )
     val description = stringResource(
@@ -399,12 +416,12 @@ private fun FactHeader(
             color = TmrTheme.colors.onSurfaceVariant,
         )
         TmrStatusChip(
-            kind = if (fact.isConfirmed) TmrStatusKind.Met else TmrStatusKind.Gap,
+            kind = if (fact.isConfirmed && !fact.hasTooLongBullet) TmrStatusKind.Met else TmrStatusKind.Gap,
             label = stringResource(
-                if (fact.isConfirmed) {
-                    R.string.feature_onboarding_impl_confirm_facts_status_confirmed
-                } else {
-                    R.string.feature_onboarding_impl_confirm_facts_pending
+                when {
+                    fact.hasTooLongBullet -> R.string.feature_onboarding_impl_confirm_facts_too_long_status
+                    fact.isConfirmed -> R.string.feature_onboarding_impl_confirm_facts_status_confirmed
+                    else -> R.string.feature_onboarding_impl_confirm_facts_pending
                 },
             ),
         )
@@ -418,7 +435,14 @@ private fun FactActions(
     actions: ConfirmFactsActions,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm)) {
-        if (!fact.isConfirmed) {
+        if (fact.hasTooLongBullet) {
+            Text(
+                text = stringResource(R.string.feature_onboarding_impl_confirm_facts_too_long_note),
+                modifier = Modifier.weight(1f),
+                style = TmrTheme.typography.labelM,
+                color = TmrTheme.colors.onSurfaceVariant,
+            )
+        } else if (!fact.isConfirmed) {
             Box(
                 modifier = Modifier.weight(1f).heightIn(min = TmrTheme.spacing.touch),
                 contentAlignment = Alignment.Center,

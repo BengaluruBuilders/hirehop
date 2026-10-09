@@ -9,6 +9,7 @@ import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.model.RequirementMatch
+import com.tailormyresume.core.model.confirmedWithinLimits
 
 object PrepQuestionGenerator {
     const val MAX_QUESTIONS = 6
@@ -122,14 +123,12 @@ object PrepQuestionGenerator {
     }
 
     private fun confirmedBullets(candidate: CandidateProfile): Map<String, EvidenceBullet> =
-        candidate.entries
-            .filter { it.isConfirmed }
+        candidate.confirmedWithinLimits().entries
             .flatMap { entry -> entry.bullets }
             .associateBy { it.id }
 
     private fun entryTitlesByFactId(candidate: CandidateProfile): Map<String, String> =
-        candidate.entries
-            .filter { it.isConfirmed }
+        candidate.confirmedWithinLimits().entries
             .flatMap { entry -> entry.bullets.map { bullet -> bullet.id to exampleSourceTitle(entry) } }
             .toMap()
 
