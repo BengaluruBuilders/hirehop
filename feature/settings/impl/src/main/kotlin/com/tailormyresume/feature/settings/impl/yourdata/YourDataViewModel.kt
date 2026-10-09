@@ -114,6 +114,8 @@ class YourDataViewModel @Inject constructor(
         }
     }
 
+    fun onCancelExport() {}
+
     fun onDeleteRequested(applicationId: String) {
         val content = uiState.value as? YourDataUiState.Content ?: return
         if (content.isOffline || content.applications.none { item -> item.id == applicationId }) return
