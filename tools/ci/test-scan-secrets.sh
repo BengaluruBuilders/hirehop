@@ -32,11 +32,14 @@ git -C "$repo" config user.email test@example.test
 git -C "$repo" config user.name test
 printf 'base-entry\n' >"$repo/.gitleaksignore"
 printf '[allowlist]\npaths = [".*"]\n' >"$repo/.gitleaks.toml"
+mkdir -p "$repo/tools/ci"
+printf 'title = "base config"\n' >"$repo/tools/ci/gitleaks.toml"
 git -C "$repo" add -A
 git -C "$repo" commit -q -m base
 base_sha="$(git -C "$repo" rev-parse HEAD)"
 git -C "$repo" update-ref refs/remotes/origin/main "$base_sha"
 printf 'base-entry\npr-added-entry\n' >"$repo/.gitleaksignore"
+printf 'title = "pr config"\n[allowlist]\npaths = [".*"]\n' >"$repo/tools/ci/gitleaks.toml"
 git -C "$repo" commit -q -am change
 head_sha="$(git -C "$repo" rev-parse HEAD)"
 
@@ -66,12 +69,23 @@ has_log_opts() {
   grep -q -- '^--log-opts' "$work/record"
 }
 
-pull_request_uses_a_temp_config_that_extends_the_defaults() {
+pull_request_uses_a_temp_copy_of_the_base_branch_config() {
   pull_request || return 1
   local config
   config="$(argument_after --config)"
   [[ "$config" == "$work/temp/"* && "$config" != "$repo/"* ]] || return 1
-  grep -q 'useDefault = true' "$config" && ! grep -q allowlist "$config"
+  grep -q 'base config' "$config" && ! grep -q allowlist "$config"
+}
+
+push_uses_the_checked_out_config() {
+  push_with_before "$base_sha" || return 1
+  grep -q 'pr config' "$(argument_after --config)"
+}
+
+the_pinned_config_drops_the_path_allowlist_entries_that_hide_binary_files() {
+  local config="$root/tools/ci/gitleaks.toml"
+  ! grep -Eq "^    '''.*(png|woff2|xlsx|gitleaks)" "$config" &&
+    grep -q 'v8.30.1' "$config" && grep -q '^\[\[rules\]\]' "$config" && ! grep -q useDefault "$config"
 }
 
 pull_request_takes_the_ignore_file_from_the_base_branch() {
@@ -142,7 +156,7 @@ policy_job_serialises_runs_per_ref() {
 }
 
 policy_job_has_time_for_the_gitleaks_download() {
-  [[ "$(policy_job_field timeout-minutes)" == 10 ]]
+  [[ "$(policy_job_field timeout-minutes)" == 20 ]]
 }
 
 policy_job_runs_the_script_and_its_test() {
@@ -206,6 +220,10 @@ new_real_repo() {
   printf 'base\n' >"$r/README"
   git -C "$r" add -A
   git -C "$r" commit -q -m base
+  mkdir -p "$r/tools/ci"
+  cp "$root/tools/ci/gitleaks.toml" "$r/tools/ci/gitleaks.toml"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m config
   git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD)"
 }
 
@@ -283,10 +301,165 @@ real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
   grep -q 'leaks found' <<<"$out"
 }
 
+real_gitleaks_fails_for_a_token_in() {
+  local file="$1" prefix="$2" lead="${3-token = }" real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-${file//\//_}"
+  new_real_repo "$r"
+  printf "Leak.dat -diff\n" >"$r/.gitattributes"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m attributes
+  mkdir -p "$(dirname "$r/$file")"
+  printf "${prefix}${lead}\"%s\"\n" "$(fake_token)" >>"$r/$file"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_still_fails_when_a_token_sits_in_a_file_git_treats_as_binary() {
+  real_gitleaks_fails_for_a_token_in Leak.dat 'header\0 '
+}
+
+real_gitleaks_fails_for_a_token_in_a_bin_file() {
+  real_gitleaks_fails_for_a_token_in Leak.bin 'header\0 '
+}
+
+real_gitleaks_fails_for_a_token_in_a_png_file() {
+  real_gitleaks_fails_for_a_token_in Leak.png ''
+}
+
+real_gitleaks_fails_for_a_token_in_an_uppercase_pdf_file() {
+  real_gitleaks_fails_for_a_token_in Leak.PDF 'header\0 '
+}
+
+real_gitleaks_fails_for_a_token_in_an_svg_file() {
+  real_gitleaks_fails_for_a_token_in key.svg ''
+}
+
+real_gitleaks_ignores_a_pull_request_config_that_allows_every_path() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-config"
+  new_real_repo "$r"
+  printf '[allowlist]\npaths = [".*"]\n' >"$r/tools/ci/gitleaks.toml"
+  printf 'token = "%s"\n' "$(fake_token)" >"$r/Leak.kt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+check "real gitleaks still fails when a token sits in a file git treats as binary" real_gitleaks_still_fails_when_a_token_sits_in_a_file_git_treats_as_binary
+real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-add-config"
+  git init -q -b main "$r"
+  git -C "$r" config user.email test@example.test
+  git -C "$r" config user.name test
+  printf 'base\n' >"$r/README"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m base
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD)"
+  mkdir -p "$r/tools/ci"
+  cp "$root/tools/ci/gitleaks.toml" "$r/tools/ci/gitleaks.toml"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m config
+  real_scan "$r" "$real" >/dev/null
+}
+
+check "real gitleaks passes when a pull request adds the pinned config" real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config
+real_gitleaks_fails_for_a_token_in_gradlew() {
+  real_gitleaks_fails_for_a_token_in gradlew ''
+}
+
+real_gitleaks_fails_for_a_token_in_node_modules() {
+  real_gitleaks_fails_for_a_token_in node_modules/x/index.js ''
+}
+
+real_gitleaks_fails_for_a_token_in_a_gem_file() {
+  real_gitleaks_fails_for_a_token_in Leak.gem ''
+}
+
+real_gitleaks_fails_for_a_token_in_package_lock() {
+  real_gitleaks_fails_for_a_token_in package-lock.json ''
+}
+
+real_gitleaks_fails_for_a_token_in_the_octokit_readme() {
+  real_gitleaks_fails_for_a_token_in x/@octokit/auth-token/README.md '' ''
+}
+
+fake_gcp_key() {
+  echo "AIza$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 35)"
+}
+
+fake_bedrock_key() {
+  local prefix=bedrock-api-key-
+  echo "${prefix}YmVkcm9jay5hbWF6b25hd3MuY29t$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 120)"
+}
+
+real_gitleaks_fails_for_a_key_appended_to_the_config() {
+  local kind="$1" real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-config-$kind"
+  new_real_repo "$r"
+  printf 'k = "%s"\n' "$("fake_${kind}_key")" >>"$r/tools/ci/gitleaks.toml"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m leak
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+real_gitleaks_fails_for_a_gcp_key_appended_to_the_config() {
+  real_gitleaks_fails_for_a_key_appended_to_the_config gcp
+}
+
+real_gitleaks_fails_for_a_bedrock_key_appended_to_the_config() {
+  real_gitleaks_fails_for_a_key_appended_to_the_config bedrock
+}
+
+real_gitleaks_passes_the_unchanged_config_in_a_pull_request() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-config-unchanged"
+  new_real_repo "$r"
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
+  real_scan "$r" "$real" >/dev/null
+}
+
+check "real gitleaks passes the unchanged config in a pull request" real_gitleaks_passes_the_unchanged_config_in_a_pull_request
+check "real gitleaks fails for a token in gradlew" real_gitleaks_fails_for_a_token_in_gradlew
+check "real gitleaks fails for a token in node_modules" real_gitleaks_fails_for_a_token_in_node_modules
+check "real gitleaks fails for a token in a .gem file" real_gitleaks_fails_for_a_token_in_a_gem_file
+check "real gitleaks fails for a token in package-lock.json" real_gitleaks_fails_for_a_token_in_package_lock
+check "real gitleaks fails for a token in the octokit readme" real_gitleaks_fails_for_a_token_in_the_octokit_readme
+check "real gitleaks fails for a gcp key appended to the config" real_gitleaks_fails_for_a_gcp_key_appended_to_the_config
+check "real gitleaks fails for a bedrock key appended to the config" real_gitleaks_fails_for_a_bedrock_key_appended_to_the_config
+check "real gitleaks fails for a token in a .bin file" real_gitleaks_fails_for_a_token_in_a_bin_file
+check "real gitleaks fails for a token in a .png file" real_gitleaks_fails_for_a_token_in_a_png_file
+check "real gitleaks fails for a token in an uppercase .PDF file" real_gitleaks_fails_for_a_token_in_an_uppercase_pdf_file
+check "real gitleaks fails for a token in a .svg file" real_gitleaks_fails_for_a_token_in_an_svg_file
+check "real gitleaks ignores a pull request config that allows every path" real_gitleaks_ignores_a_pull_request_config_that_allows_every_path
+check "the pinned config drops the path allowlist entries that hide binary files" the_pinned_config_drops_the_path_allowlist_entries_that_hide_binary_files
+check "push uses the checked-out config" push_uses_the_checked_out_config
 check "real gitleaks still fails when a token is added only in a merge commit" real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit
 check "real gitleaks still fails when a pull request adds its own ignore entry" real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry
 check "real gitleaks still fails when a pull request hides the diff with gitattributes" real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes
-check "pull request uses a temp config that extends the defaults" pull_request_uses_a_temp_config_that_extends_the_defaults
+check "pull request uses a temp copy of the base branch config" pull_request_uses_a_temp_copy_of_the_base_branch_config
 check "pull request takes the ignore file from the base branch" pull_request_takes_the_ignore_file_from_the_base_branch
 check "pull request scans only the pull request range" pull_request_scans_only_the_pull_request_range
 check "push with a known before scans that range" push_with_a_known_before_scans_that_range
