@@ -321,6 +321,20 @@ class DeleteAccountUseCaseTest {
         assertThat(exportHistory.observeExports().first()).containsExactly(exportRecord())
     }
 
+    @Test
+    fun aFailureWhileDeletingAnApplicationRestoresTheExportHistoryExactly() = runTest {
+        applications.value = fourApplications()
+        profile.value = canonicalCandidateProfile
+        failingApplicationIds = setOf("application-3")
+        exportHistory.record(exportRecord())
+        val useCase = useCase(gateway = gatewayWith(credits = 4))
+
+        val result = useCase()
+
+        assertThat(result).isEqualTo(AccountDeletionResult.Failed(dataIntact = true))
+        assertThat(exportHistory.observeExports().first()).containsExactly(exportRecord())
+    }
+
     private fun consentRecord() = ConsentRecord(
         purposes = setOf(ConsentPurpose.READ_AND_BUILD),
         acceptedAt = kotlin.time.Instant.fromEpochSeconds(1_700_000_000),

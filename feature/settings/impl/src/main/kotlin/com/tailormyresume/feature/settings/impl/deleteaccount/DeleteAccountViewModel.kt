@@ -82,7 +82,10 @@ class DeleteAccountViewModel @Inject constructor(
     fun onDeleteTapped() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
         if (ready.isOffline) return
-        phase.update { current -> current.copy(isConfirmVisible = true) }
+        viewModelScope.launch {
+            snapshot.update { current -> current?.copy(counts = deleteAccount.preview()) }
+            phase.update { current -> current.copy(isConfirmVisible = true) }
+        }
     }
 
     fun onDeleteDismissed() {
@@ -91,7 +94,11 @@ class DeleteAccountViewModel @Inject constructor(
 
     fun onDeleteConfirmed() {
         val ready = uiState.value as? DeleteAccountUiState.Ready ?: return
-        if (!ready.isConfirmVisible || ready.isOffline) return
+        if (!ready.isConfirmVisible) return
+        if (ready.isOffline) {
+            phase.update { current -> current.copy(isConfirmVisible = false) }
+            return
+        }
         phase.update { Phase(stage = Stage.DELETING, step = AccountDeletionStep.entries.first()) }
         PendingNavigation.set(listOf(AccountDeletedNavKey))
         viewModelScope.launch {

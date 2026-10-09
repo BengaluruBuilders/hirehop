@@ -232,6 +232,35 @@ class DeleteAccountViewModelTest {
         assertThat(viewModel.ready().counts.applications).isEqualTo(4)
     }
 
+    @Test
+    fun goingOfflineWhileTheConfirmIsOpen_deletesNothingAndClosesTheDialog() = runTest {
+        val viewModel = enteredViewModel()
+        viewModel.onDeleteTapped()
+        assertThat(viewModel.ready().isConfirmVisible).isTrue()
+
+        connectivity.setOnline(false)
+        viewModel.onDeleteConfirmed()
+
+        val ready = viewModel.ready()
+        assertThat(ready.isOffline).isTrue()
+        assertThat(ready.isConfirmVisible).isFalse()
+        assertThat(applications.value).hasSize(4)
+        assertThat(applicationDeleteCalls).isEqualTo(0)
+        assertThat(PendingNavigation.consume()).isEmpty()
+    }
+
+    @Test
+    fun tappingDeleteRefreshesTheCountsTheConfirmShows() = runTest {
+        val viewModel = enteredViewModel()
+        applications.value = FOUR_APPLICATIONS.drop(1)
+
+        viewModel.onDeleteTapped()
+
+        val ready = viewModel.ready()
+        assertThat(ready.isConfirmVisible).isTrue()
+        assertThat(ready.counts.applications).isEqualTo(3)
+    }
+
     private fun TestScope.enteredViewModel(scenario: DebugScenario = DebugScenario.DEFAULT): DeleteAccountViewModel {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
