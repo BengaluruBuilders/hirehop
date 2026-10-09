@@ -46,8 +46,12 @@ class RemotePaymentGateway @Inject constructor(
     private val reposts = mutableMapOf<String, Job>()
     private var generation = 0
 
+    private class OwnedHistory(val uid: String?, val records: List<PurchaseRecord>)
+
     @Volatile
-    private var history: List<PurchaseRecord>? = null
+    private var history: OwnedHistory? = null
+
+    private fun cachedHistory(): List<PurchaseRecord>? = history?.takeIf { it.uid == uids.uid() }?.records
 
     internal fun repostCount() = synchronized(reposts) { reposts.size }
 
@@ -77,17 +81,20 @@ class RemotePaymentGateway @Inject constructor(
 
     override suspend fun purchaseHistory(): List<PurchaseRecord> {
         val epoch = currentGeneration()
-        return fetchHistory().also { fresh -> keepHistory(fresh, epoch) }
+        val uid = uids.uid()
+        return fetchHistory().also { fresh -> keepHistory(fresh, epoch, uid) }
     }
 
     override fun observePurchaseHistory(): Flow<List<PurchaseRecord>> = flow {
-        history?.let { cached -> emit(cached) }
+        val cached = cachedHistory()
+        cached?.let { emit(it) }
         val epoch = currentGeneration()
+        val uid = uids.uid()
         val fresh = runCatching { fetchHistory() }.getOrElse { failure ->
-            if (failure is CancellationException || history == null) throw failure
+            if (failure is CancellationException || cached == null) throw failure
             return@flow
         }
-        if (keepHistory(fresh, epoch)) emit(fresh)
+        if (keepHistory(fresh, epoch, uid)) emit(fresh)
     }
 
     private suspend fun fetchHistory(): List<PurchaseRecord> =
@@ -95,8 +102,8 @@ class RemotePaymentGateway @Inject constructor(
             PurchaseRecord(purchase.productId, purchase.orderId, Instant.parse(purchase.purchasedAt), PurchaseState.COMPLETED)
         }
 
-    private fun keepHistory(fresh: List<PurchaseRecord>, epoch: Int): Boolean = synchronized(reposts) {
-        (epoch == generation).also { current -> if (current) history = fresh }
+    private fun keepHistory(fresh: List<PurchaseRecord>, epoch: Int, uid: String?): Boolean = synchronized(reposts) {
+        (epoch == generation && uid == uids.uid()).also { current -> if (current) history = OwnedHistory(uid, fresh) }
     }
 
     override suspend fun purchase(packId: String): PurchaseResult {

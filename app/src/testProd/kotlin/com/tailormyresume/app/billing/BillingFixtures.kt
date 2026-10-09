@@ -37,6 +37,10 @@ internal class FakeUid(private val value: String?) : FirebaseUidProvider {
     override fun uid() = value
 }
 
+internal class SwitchableUid(@Volatile var value: String?) : FirebaseUidProvider {
+    override fun uid() = value
+}
+
 internal object FixedToken : IdTokenProvider {
     override fun idToken(forceRefresh: Boolean) = "test-token"
 }

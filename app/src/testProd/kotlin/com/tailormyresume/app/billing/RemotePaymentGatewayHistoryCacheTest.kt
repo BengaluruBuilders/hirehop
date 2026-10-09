@@ -25,7 +25,8 @@ import kotlin.time.Instant
 class RemotePaymentGatewayHistoryCacheTest {
     private val server = MockWebServer().apply { start() }
     private val api = tailormyresumeApi(TailorMyResumeApiConfig(server.url("/").toString()), tailormyresumeOkHttpClient(FixedToken), tailormyresumeJson())
-    private val gateway = RemotePaymentGateway(api, WalletSource(api), FakePlayBilling(), FakeUid("uid-1"), idleScope())
+    private val account = SwitchableUid("uid-1")
+    private val gateway = RemotePaymentGateway(api, WalletSource(api, account), FakePlayBilling(), account, idleScope())
 
     @After
     fun tearDown() {
@@ -104,6 +105,42 @@ class RemotePaymentGatewayHistoryCacheTest {
         val inFlight = async(Dispatchers.IO) { gateway.purchaseHistory() }
         server.takeRequest(SLOW_ANSWER_MILLIS, TimeUnit.MILLISECONDS)
         gateway.clearCredits()
+        inFlight.await()
+        answer(purchasesBody("GPA.9"), delayMillis = SLOW_ANSWER_MILLIS)
+
+        val early = withTimeoutOrNull(FAST_WAIT_MILLIS) { gateway.observePurchaseHistory().first() }
+
+        assertThat(early).isNull()
+    }
+
+    @Test
+    fun anotherAccountDoesNotSeeTheCachedHistoryWithoutAClear() = runBlocking<Unit> {
+        warmCache()
+        account.value = "uid-2"
+        answer(purchasesBody("GPA.9"), delayMillis = SLOW_ANSWER_MILLIS)
+
+        val early = withTimeoutOrNull(FAST_WAIT_MILLIS) { gateway.observePurchaseHistory().first() }
+
+        assertThat(early).isNull()
+    }
+
+    @Test
+    fun aFailedRefreshDoesNotRevealTheOtherAccountsHistory() = runBlocking<Unit> {
+        warmCache()
+        account.value = "uid-2"
+        fail()
+
+        val outcome = runCatching { withTimeout(SLOW_ANSWER_MILLIS) { gateway.observePurchaseHistory().toList() } }
+
+        assertThat(outcome.isFailure).isTrue()
+    }
+
+    @Test
+    fun anAnswerFetchedForAnotherAccountIsNotStored() = runBlocking<Unit> {
+        answer(purchasesBody("GPA.7"), delayMillis = SLOW_ANSWER_MILLIS / 2)
+        val inFlight = async(Dispatchers.IO) { gateway.purchaseHistory() }
+        server.takeRequest(SLOW_ANSWER_MILLIS, TimeUnit.MILLISECONDS)
+        account.value = "uid-2"
         inFlight.await()
         answer(purchasesBody("GPA.9"), delayMillis = SLOW_ANSWER_MILLIS)
 
