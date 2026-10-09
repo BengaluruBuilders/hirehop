@@ -10,6 +10,8 @@ enum class GuidedFieldProblem { REQUIRED, END_BEFORE_START, TOO_LONG, INVALID_EM
 
 enum class GuidedMessage { LOAD_FAILED, SAVE_FAILED }
 
+enum class ExperienceChoice { YES, NO }
+
 data class GuidedSaved(
     val completedSteps: Int,
     val totalSteps: Int,
@@ -35,6 +37,7 @@ data class GuidedFormUiState(
     val filedEntries: List<ProfileEntry> = emptyList(),
     val completedSteps: Set<GuidedStep> = emptySet(),
     val stepEntryIds: Map<GuidedStep, List<String>> = emptyMap(),
+    val experienceChoice: ExperienceChoice? = null,
     val saved: GuidedSaved? = null,
     val message: GuidedMessage? = null,
     val navigation: GuidedNavigation? = null,

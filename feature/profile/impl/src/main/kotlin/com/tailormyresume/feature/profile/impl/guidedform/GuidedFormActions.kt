@@ -10,6 +10,8 @@ sealed interface GuidedFormAction {
 
     data class RemoveSkill(val skill: String) : GuidedFormAction
 
+    data class ChooseExperience(val choice: ExperienceChoice) : GuidedFormAction
+
     data object StartForm : GuidedFormAction
 
     data object Next : GuidedFormAction

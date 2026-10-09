@@ -58,6 +58,7 @@ class GuidedFormViewModel @Inject internal constructor(
             is GuidedFormAction.ValueChanged -> onValueChanged(action.field, action.value)
             GuidedFormAction.AddSkill -> onAddSkill()
             is GuidedFormAction.RemoveSkill -> onRemoveSkill(action.skill)
+            is GuidedFormAction.ChooseExperience -> Unit
             GuidedFormAction.StartForm -> mutableState.update { it.copy(showIntro = false) }
             GuidedFormAction.Next -> onNext()
             GuidedFormAction.Back -> onBack()
