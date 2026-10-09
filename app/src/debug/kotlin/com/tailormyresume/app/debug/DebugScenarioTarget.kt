@@ -64,6 +64,8 @@ enum class DebugScenarioTarget(
 
     val needsSampleJob: Boolean get() = this == Analysis
 
+    val forcesPayment: Boolean get() = this == PackPurchase || this == Credits
+
     fun navKey(scenario: DebugScenario): NavKey = when (this) {
         Welcome -> WelcomeNavKey(scenario = scenario)
         PasteJobDescription -> PasteJobDescriptionNavKey(scenario = scenario)

@@ -43,6 +43,7 @@ internal data class ExportedUiState(
     val statusSheetOpen: Boolean = false,
     val undoStatus: ApplicationStatus? = null,
     val fileRequest: ExportedFileRequest? = null,
+    val openUnavailable: Boolean = false,
 ) {
     val usesFreeCredit: Boolean get() = creditSource == ExportedCreditSource.FREE
 

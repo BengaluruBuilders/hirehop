@@ -113,6 +113,7 @@ class CoverLetterViewModel @Inject constructor(
                 reviewedCount = reviewed,
                 totalCount = total,
                 factCount = profile?.let { CoverLetterComposer.evidenceCount(it, application.analysisOrEmpty()) } ?: 0,
+                showsFactCount = generateCoverLetter.choosesEvidence,
             )
         }
         restoreWrittenLetter(application, profile)

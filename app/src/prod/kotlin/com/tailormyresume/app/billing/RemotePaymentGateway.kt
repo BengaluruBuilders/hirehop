@@ -171,6 +171,7 @@ class RemotePaymentGateway @Inject constructor(
 
     private suspend fun post(purchase: PlayPurchase, retries: Int, epoch: Int): PurchaseResult {
         if (currentGeneration() != epoch) return failed(PurchaseFailureReason.PaymentUnconfirmed)
+        val started = wallet.generation()
         val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
         val response = result.getOrElse { failure ->
             if (failure.isRejection()) return unconfirmed(purchase.productId, epoch)
@@ -182,7 +183,7 @@ class RemotePaymentGateway @Inject constructor(
             delay(RETRY_DELAY_MILLIS * (SETTLE_RETRIES - retries + 1))
             return post(purchase, retries - 1, epoch)
         }
-        return recorded(purchase.productId, response, epoch)
+        return recorded(purchase.productId, response, epoch, started)
     }
 
     private fun repostInBackground(purchase: PlayPurchase, epoch: Int) = synchronized(reposts) {
@@ -197,9 +198,10 @@ class RemotePaymentGateway @Inject constructor(
         for (wait in REPOST_BACKOFF_MILLIS) {
             delay(wait)
             if (purchase.productId !in pending.value) return
+            val started = wallet.generation()
             val result = apiResult { api.purchase(PurchaseRequest(purchase.productId, purchase.token)) }
             result.onSuccess {
-                recorded(purchase.productId, it, epoch)
+                recorded(purchase.productId, it, epoch, started)
                 return
             }
             if (result.exceptionOrNull()?.isRejection() == true) {
@@ -209,10 +211,9 @@ class RemotePaymentGateway @Inject constructor(
         }
     }
 
-    private fun recorded(productId: String, response: PurchaseResponse, epoch: Int): PurchaseResult {
+    private fun recorded(productId: String, response: PurchaseResponse, epoch: Int, started: Int): PurchaseResult {
         synchronized(reposts) {
-            if (epoch != generation) return failed(PurchaseFailureReason.PaymentUnconfirmed)
-            wallet.update(response.wallet)
+            if (epoch != generation || !wallet.update(response.wallet, started)) return failed(PurchaseFailureReason.PaymentUnconfirmed)
             pending.update { it - productId }
             return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
         }

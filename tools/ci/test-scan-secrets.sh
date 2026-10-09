@@ -21,6 +21,7 @@ check() {
 cat >"$work/gitleaks" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$@" >"$RECORD"
+[[ -n "${STUB_OUTPUT:-}" ]] && echo "$STUB_OUTPUT"
 exit "${STUB_EXIT:-0}"
 STUB
 chmod +x "$work/gitleaks"
@@ -110,6 +111,20 @@ a_finding_fails_the_step() {
   ! run_scan env STUB_EXIT=1 GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha"
 }
 
+a_bad_merge_scope_fails_the_step() {
+  git -C "$repo" update-ref refs/heads/broken 1111111111111111111111111111111111111111 2>/dev/null ||
+    printf '1111111111111111111111111111111111111111\n' >"$repo/.git/refs/heads/broken"
+  local status=0
+  run_scan env GITHUB_EVENT_NAME=push BASE_REF= BEFORE= AFTER="$head_sha" 2>/dev/null || status=$?
+  rm -f "$repo/.git/refs/heads/broken"
+  [[ $status -ne 0 && ! -e "$work/record" ]]
+}
+
+a_gitleaks_error_with_a_zero_exit_fails_the_step() {
+  ! run_scan env STUB_OUTPUT='9:41PM ERR [git] fatal: bad object' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null &&
+    ! run_scan env STUB_OUTPUT='WRN partial scan completed' GITHUB_EVENT_NAME=pull_request BASE_REF=main BEFORE= AFTER="$head_sha" >/dev/null
+}
+
 policy_job_field() {
   python3 - "$root/.github/workflows/build.yml" "$1" <<'PY'
 import sys, yaml
@@ -133,6 +148,40 @@ policy_job_has_time_for_the_gitleaks_download() {
 policy_job_runs_the_script_and_its_test() {
   grep -q 'tools/ci/scan-secrets.sh' "$root/.github/workflows/build.yml" &&
     grep -q 'tools/ci/test-scan-secrets.sh' "$root/.github/workflows/build.yml"
+}
+
+pre_scan_steps_ok() {
+  python3 - "$1" <<'PY'
+import re, sys, yaml
+steps = yaml.safe_load(open(sys.argv[1]))["jobs"]["policy"]["steps"]
+scan = next(i for i, s in enumerate(steps) if "tools/ci/scan-secrets.sh" in s.get("run", ""))
+constitution = next(i for i, s in enumerate(steps) if "tools/ci/check-constitution.sh" in s.get("run", ""))
+if scan >= constitution:
+    sys.exit(1)
+for step in steps[:scan]:
+    uses = step.get("uses", "")
+    if uses and not uses.startswith("actions/checkout@"):
+        sys.exit(1)
+    run = step.get("run", "")
+    if re.search(r"(^|[\s;&|(])(\./|tools/|gradlew|\./gradlew|bash\s|sh\s|python3?\s)", run):
+        sys.exit(1)
+PY
+}
+
+policy_job_scans_before_running_any_pull_request_script() {
+  pre_scan_steps_ok "$root/.github/workflows/build.yml"
+}
+
+policy_job_rejects_a_repo_script_before_the_scan() {
+  local mutated="$work/mutated-build.yml"
+  python3 - "$root/.github/workflows/build.yml" "$mutated" <<'PY'
+import sys, yaml
+workflow = yaml.safe_load(open(sys.argv[1]))
+steps = workflow["jobs"]["policy"]["steps"]
+steps.insert(1, {"name": "Setup", "run": "tools/ci/setup.sh"})
+yaml.safe_dump(workflow, open(sys.argv[2], "w"))
+PY
+  ! pre_scan_steps_ok "$mutated"
 }
 
 find_real_gitleaks() {
@@ -209,6 +258,32 @@ real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes(
   grep -q 'leaks found' <<<"$out"
 }
 
+real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-merge"
+  new_real_repo "$r"
+  git -C "$r" checkout -q -b side
+  printf 'side\n' >"$r/Side"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m side
+  git -C "$r" checkout -q main
+  printf 'main\n' >"$r/Main"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m main
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD~1)"
+  git -C "$r" merge -q --no-ff --no-commit side
+  printf 'token = "%s"\n' "$(fake_token)" >"$r/Leak.kt"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m "merge side"
+  local out
+  out="$(real_scan "$r" "$real")" && return 1
+  grep -q 'leaks found' <<<"$out"
+}
+
+check "real gitleaks still fails when a token is added only in a merge commit" real_gitleaks_still_fails_when_a_token_is_added_only_in_a_merge_commit
 check "real gitleaks still fails when a pull request adds its own ignore entry" real_gitleaks_still_fails_when_a_pull_request_adds_its_own_ignore_entry
 check "real gitleaks still fails when a pull request hides the diff with gitattributes" real_gitleaks_still_fails_when_a_pull_request_hides_the_diff_with_gitattributes
 check "pull request uses a temp config that extends the defaults" pull_request_uses_a_temp_config_that_extends_the_defaults
@@ -219,8 +294,12 @@ check "push with an unknown before falls back to a full scan" push_with_an_unkno
 check "push with a zero before falls back to a full scan" push_with_a_zero_before_falls_back_to_a_full_scan
 check "pull request with an unknown base fails without scanning" pull_request_with_an_unknown_base_fails_without_scanning
 check "a finding fails the step" a_finding_fails_the_step
+check "a bad merge scope fails the step" a_bad_merge_scope_fails_the_step
+check "a gitleaks error with a zero exit fails the step" a_gitleaks_error_with_a_zero_exit_fails_the_step
 check "policy job serialises runs per ref" policy_job_serialises_runs_per_ref
 check "policy job has time for the gitleaks download" policy_job_has_time_for_the_gitleaks_download
+check "policy job scans before running any pull request script" policy_job_scans_before_running_any_pull_request_script
+check "policy job rejects a repo script before the scan" policy_job_rejects_a_repo_script_before_the_scan
 check "policy job runs the script and its test" policy_job_runs_the_script_and_its_test
 
 if ((failures > 0)); then

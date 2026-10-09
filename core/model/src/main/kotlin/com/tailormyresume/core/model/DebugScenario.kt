@@ -19,6 +19,7 @@ enum class DebugScenario {
     PENDING,
     CANCELLED,
     RESTORED,
+    FAILED,
     ;
 
     companion object {
