@@ -55,6 +55,7 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.designsystem.theme.tmrShadow
 import com.tailormyresume.core.domain.displayKeywords
 import com.tailormyresume.core.domain.prep.RequirementPhrase
+import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.ui.FactSourceProvenance
 import kotlin.math.roundToInt
 
@@ -328,3 +329,5 @@ internal fun String.headline(): String = RequirementPhrase.of(splitDetail().firs
 private val DETAIL_PATTERN = Regex("""^(.*?)\s*\((.+)\)$""")
 private const val MENU_WIDTH_UNITS = 4
 private const val QUESTION_MIN_LINES = 3
+
+internal fun JobRequirement.gapName(): String = text.headline()
