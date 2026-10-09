@@ -27,6 +27,7 @@ internal fun DeleteAccountRoute(
             onDeleteConfirmed = viewModel::onDeleteConfirmed,
             onDeleteDismissed = viewModel::onDeleteDismissed,
             onDownloadData = onNavigateToYourData,
+            onFinishRemoval = viewModel::onFinishRemovalTapped,
         )
     }
     LaunchedEffect(key) { viewModel.onEnter(key) }
