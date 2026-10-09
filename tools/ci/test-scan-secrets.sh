@@ -84,7 +84,7 @@ push_uses_the_checked_out_config() {
 
 the_pinned_config_drops_the_path_allowlist_entries_that_hide_binary_files() {
   local config="$root/tools/ci/gitleaks.toml"
-  ! grep -Eq "bmp\\|gif|woff2\\?|docx\\?\\|xlsx|gitleaks\\\\\\.toml" "$config" &&
+  ! grep -Eq "^    '''.*(png|woff2|xlsx|gitleaks)" "$config" &&
     grep -q 'v8.30.1' "$config" && grep -q '^\[\[rules\]\]' "$config" && ! grep -q useDefault "$config"
 }
 
@@ -356,6 +356,27 @@ real_gitleaks_ignores_a_pull_request_config_that_allows_every_path() {
 }
 
 check "real gitleaks still fails when a token sits in a file git treats as binary" real_gitleaks_still_fails_when_a_token_sits_in_a_file_git_treats_as_binary
+real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config() {
+  local real status=0
+  real="$(find_real_gitleaks)" || status=$?
+  [[ $status -eq 2 ]] && return 0
+  [[ $status -ne 0 ]] && return 1
+  local r="$work/real-add-config"
+  git init -q -b main "$r"
+  git -C "$r" config user.email test@example.test
+  git -C "$r" config user.name test
+  printf 'base\n' >"$r/README"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m base
+  git -C "$r" update-ref refs/remotes/origin/main "$(git -C "$r" rev-parse HEAD)"
+  mkdir -p "$r/tools/ci"
+  cp "$root/tools/ci/gitleaks.toml" "$r/tools/ci/gitleaks.toml"
+  git -C "$r" add -A
+  git -C "$r" commit -q -m config
+  real_scan "$r" "$real" >/dev/null
+}
+
+check "real gitleaks passes when a pull request adds the pinned config" real_gitleaks_passes_when_a_pull_request_adds_the_pinned_config
 check "real gitleaks fails for a token in a .bin file" real_gitleaks_fails_for_a_token_in_a_bin_file
 check "real gitleaks fails for a token in a .png file" real_gitleaks_fails_for_a_token_in_a_png_file
 check "real gitleaks fails for a token in an uppercase .PDF file" real_gitleaks_fails_for_a_token_in_an_uppercase_pdf_file
