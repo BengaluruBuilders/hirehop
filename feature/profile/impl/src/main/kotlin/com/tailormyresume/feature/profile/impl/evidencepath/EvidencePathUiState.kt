@@ -35,6 +35,7 @@ data class EvidencePathUiState(
     val categoryOrder: List<EvidenceCategory> = EVIDENCE_CATEGORIES,
     val skipNote: EvidenceSkipNote? = null,
     val isDone: Boolean = false,
+    val stamped: EvidenceFactCard? = null,
     val message: EvidenceMessage? = null,
     val navigation: EvidenceNavigation? = null,
 ) {
@@ -42,6 +43,7 @@ data class EvidencePathUiState(
     val questionNumber: Int get() = questionIndex + 1
     val questionTotal: Int get() = category?.questionCount ?: 0
     val categoryCards: List<EvidenceFactCard> get() = cards.filter { it.category == category }
+    val projectName: String? get() = null
     val canSave: Boolean get() = answer.isNotBlank() && !isSaving
 }
 

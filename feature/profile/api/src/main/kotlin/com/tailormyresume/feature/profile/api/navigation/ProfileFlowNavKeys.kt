@@ -16,12 +16,14 @@ data class FactEditorNavKey(
 data class GuidedProfileFormNavKey(
     val startStep: String = "contact",
     val resumedFromScan: Boolean = false,
+    val returnsToProfile: Boolean = false,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
 @Serializable
 data class FactEvidenceNavKey(
     val category: String = "",
+    val returnsToProfile: Boolean = false,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 

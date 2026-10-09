@@ -7,6 +7,7 @@ data class CandidateProfile(
     val headline: String,
     val skills: List<String>,
     val entries: List<ProfileEntry>,
+    val userStatedSkills: List<String> = emptyList(),
 )
 
 object ProfileLimits {

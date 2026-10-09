@@ -58,6 +58,7 @@ class EvidencePathViewModel @Inject internal constructor(
             is EvidencePathAction.AnswerChanged -> onAnswerChanged(action.value)
             EvidencePathAction.Save -> onSave()
             EvidencePathAction.Skip -> onSkip()
+            EvidencePathAction.NextQuestion -> Unit
             EvidencePathAction.AddMore -> onAddMore()
             EvidencePathAction.Finish -> onFinish()
             EvidencePathAction.NavigationConsumed -> mutableState.update { it.copy(navigation = null) }

@@ -9,6 +9,8 @@ sealed interface EvidencePathAction {
 
     data object Skip : EvidencePathAction
 
+    data object NextQuestion : EvidencePathAction
+
     data object AddMore : EvidencePathAction
 
     data object Finish : EvidencePathAction
