@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tailormyresume.app.MainActivity
 import com.tailormyresume.app.ui.AppRootState
 import com.tailormyresume.app.ui.AppViewModel
+import com.tailormyresume.app.ui.NavigationRoot
 import com.tailormyresume.app.ui.RootViewModelStores
 import com.tailormyresume.app.ui.TmrFirstRunRoot
 import com.tailormyresume.app.ui.TmrMainRoot
@@ -112,3 +113,11 @@ private fun DebugScenarioPreview(
 
 internal fun previewShowsWelcome(seenMain: Boolean, rootState: AppRootState): Boolean =
     seenMain && rootState == AppRootState.FirstRun
+
+internal fun previewNavigationRoot(
+    opensFirstRunRoot: Boolean,
+    seenMain: Boolean,
+    rootState: AppRootState,
+    seenAccount: Boolean,
+    hasAccount: Boolean,
+): NavigationRoot = NavigationRoot.Main
