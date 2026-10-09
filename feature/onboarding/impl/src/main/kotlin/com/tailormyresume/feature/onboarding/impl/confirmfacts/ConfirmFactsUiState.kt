@@ -60,10 +60,10 @@ data class ConfirmFactsUiState(
         get() = sections.firstOrNull { it.section == ConfirmFactsSection.Skills }?.skills.orEmpty()
     val visibleSections: List<ConfirmFactsSectionUi>
         get() = sections.filter { it.section !in skippedSections || !it.isEmpty }
-    val totalCount: Int get() = facts.size + skills.size
-    val confirmedCount: Int get() = facts.count(ConfirmFactUi::isConfirmed) + skills.size
+    val totalCount: Int get() = facts.size
+    val confirmedCount: Int get() = facts.count(ConfirmFactUi::isConfirmed)
     val openCount: Int get() = totalCount - confirmedCount
-    val canContinue: Boolean get() = facts.any(ConfirmFactUi::isConfirmed)
+    val canContinue: Boolean get() = confirmedCount > 0
     val isEmpty: Boolean get() = facts.isEmpty() && skills.isEmpty() && contact.isEmpty
     val isFullyConfirmed: Boolean get() = facts.isNotEmpty() && openCount == 0
 }
