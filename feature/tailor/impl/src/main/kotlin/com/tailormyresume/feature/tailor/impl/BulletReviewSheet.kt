@@ -243,11 +243,14 @@ private fun ChangedBlock(item: TailorBulletUi) {
     }
 }
 
-private fun WordDiffResult.addedWords(): List<String> =
-    proposed.filter { it.changed }
+private fun WordDiffResult.addedWords(): List<String> {
+    val originalKeys = original.flatMap { it.text.split(" ") }.map { WordDiff.comparisonKey(it).lowercase() }.toSet()
+    return proposed.filter { it.changed }
         .flatMap { segment -> segment.text.split(" ") }
         .filter { word -> word.any(Char::isLetterOrDigit) }
+        .filter { word -> WordDiff.comparisonKey(word).lowercase() !in originalKeys }
         .distinct()
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

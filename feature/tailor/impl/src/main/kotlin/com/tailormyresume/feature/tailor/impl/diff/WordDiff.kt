@@ -11,13 +11,18 @@ internal fun List<DiffSegment>.joinedText(): String = joinToString(separator = "
 
 internal object WordDiff {
 
+    internal fun comparisonKey(word: String): String {
+        val trimmed = word.trim { it in EDGE_PUNCTUATION }
+        return trimmed.ifEmpty { word }
+    }
+
     fun diff(original: String, proposed: String): WordDiffResult {
         val originalWords = original.toWords()
         val proposedWords = proposed.toWords()
         val common =
             longestCommonSubsequence(
-                aKeys = originalWords.map { it.comparisonKey() },
-                bKeys = proposedWords.map { it.comparisonKey() },
+                aKeys = originalWords.map { comparisonKey(it) },
+                bKeys = proposedWords.map { comparisonKey(it) },
                 aSize = originalWords.size,
                 bSize = proposedWords.size,
             )
@@ -51,11 +56,6 @@ internal object WordDiff {
             '\u2019',
             '\u2026',
         )
-
-    private fun String.comparisonKey(): String {
-        val trimmed = trim { it in EDGE_PUNCTUATION }
-        return trimmed.ifEmpty { this }
-    }
 
     private fun List<String>.toSegments(unchangedIndexes: Set<Int>): List<DiffSegment> {
         val segments = mutableListOf<DiffSegment>()
