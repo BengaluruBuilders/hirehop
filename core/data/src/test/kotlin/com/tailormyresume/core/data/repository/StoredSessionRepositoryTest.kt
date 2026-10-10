@@ -31,22 +31,26 @@ class StoredSessionRepositoryTest : SessionRepositoryContractTest() {
     }
 
     @Test
-    fun signOut_removesLegacyConsentKey() = runTest {
+    fun signOut_removesLegacySessionKeys() = runTest {
         val store = TestMockStateStore()
         store.write("session.consent", "{}")
+        store.write("session.careerStage", "STUDENT")
 
         StoredSessionRepository(store).signOut()
 
         assertThat(store.read("session.consent")).isNull()
+        assertThat(store.read("session.careerStage")).isNull()
     }
 
     @Test
-    fun clear_removesLegacyConsentKey() = runTest {
+    fun clear_removesLegacySessionKeys() = runTest {
         val store = TestMockStateStore()
         store.write("session.consent", "{}")
+        store.write("session.careerStage", "STUDENT")
 
         StoredSessionRepository(store).clear()
 
         assertThat(store.read("session.consent")).isNull()
+        assertThat(store.read("session.careerStage")).isNull()
     }
 }

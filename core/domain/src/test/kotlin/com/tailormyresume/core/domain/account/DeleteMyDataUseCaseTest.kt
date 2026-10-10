@@ -1,6 +1,7 @@
 package com.tailormyresume.core.domain.account
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.data.mock.LegacyDataPurge
 import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.domain.DiscardJobDraftsUseCase
 import com.tailormyresume.core.model.ContentReport
@@ -12,6 +13,7 @@ import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.testing.data.canonicalApplication
 import com.tailormyresume.core.testing.data.canonicalCandidateProfile
+import com.tailormyresume.core.testing.mock.TestMockStateStore
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.repository.TestContentReportRepository
 import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
@@ -43,6 +45,7 @@ class DeleteMyDataUseCaseTest {
     }
     private val session = TestSessionRepository()
     private val contentReports = TestContentReportRepository()
+    private val store = TestMockStateStore()
     private var exportedFilesDeletions = 0
     private var transientClears = 0
     private var failingApplicationIds: Set<String> = emptySet()
@@ -66,6 +69,7 @@ class DeleteMyDataUseCaseTest {
             exportedFilesDeletions++
         },
         transientData = TransientDataCleaner { transientClears++ },
+        legacyDataPurge = LegacyDataPurge(store),
     )
 
     private suspend fun keepAccountState() {
@@ -155,5 +159,18 @@ class DeleteMyDataUseCaseTest {
 
         assertThat(result.isSuccess).isTrue()
         assertThat(contentReports.observeReports(kept.draftKey).first()).isEmpty()
+    }
+
+    @Test
+    fun removesLegacyPrepPlanStoredUnderTheJobDraftKey() = runTest {
+        val kept = KeptJobDescription(text = "jd", company = "Acme", role = "Analyst")
+        session.keepJobDescription(kept)
+        store.write("prep.plan.${kept.draftKey}", "plan")
+        store.write("coverletter.${canonicalApplication.id}", "letter")
+
+        useCase()()
+
+        assertThat(store.read("prep.plan.${kept.draftKey}")).isNull()
+        assertThat(store.read("coverletter.${canonicalApplication.id}")).isNull()
     }
 }
