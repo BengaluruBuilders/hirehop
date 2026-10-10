@@ -1,14 +1,28 @@
 package com.tailormyresume.feature.tailor.impl.result
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.domain.ResumeTailor
+import com.tailormyresume.core.domain.TailorResumeUseCase
 import com.tailormyresume.core.model.BulletDecision
+import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.EntryCategory
+import com.tailormyresume.core.model.GapAnalysis
+import com.tailormyresume.core.model.JobDescription
+import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.KeywordCoverage
+import com.tailormyresume.core.model.QuickAnswer
+import com.tailormyresume.core.model.RequirementPriority
+import com.tailormyresume.core.model.RequirementType
 import com.tailormyresume.core.model.TailoredResume
 import com.tailormyresume.core.model.TailoredSkills
 import com.tailormyresume.core.model.TailoredText
 import com.tailormyresume.core.testing.data.PrototypeFixtures
+import com.tailormyresume.feature.tailor.impl.CleanFabricationGuard
 import com.tailormyresume.feature.tailor.impl.entryFor
 import com.tailormyresume.feature.tailor.impl.testBullet
+import com.tailormyresume.feature.tailor.impl.testEntry
 import com.tailormyresume.feature.tailor.impl.testProfile
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class ChangeCardMapperTest {
@@ -187,5 +201,73 @@ class ChangeCardMapperTest {
         val cards = resume.toChangeCards(testProfile(entries = emptyList()))
 
         assertThat(cards).isEmpty()
+    }
+
+    @Test
+    fun undoneAddedChangeStillShowsTheAddedText() {
+        val bullet = testBullet(
+            id = "b-added",
+            entryId = "exp-1",
+            original = "",
+            proposed = "Presented monthly variance analysis to senior stakeholders.",
+            sourceIds = listOf("ans-req-1"),
+            decision = BulletDecision.REJECTED,
+        )
+
+        val cards = TailoredResume(bullets = listOf(bullet)).toChangeCards(testProfile(entries = emptyList()))
+
+        assertThat(cards.single().kind).isEqualTo(ChangeKind.Added)
+        assertThat(cards.single().undone).isTrue()
+        assertThat(cards.single().before).isNull()
+        assertThat(cards.single().after).isEqualTo("Presented monthly variance analysis to senior stakeholders.")
+    }
+
+    @Test
+    fun useCaseOutputNeverAddsAnAnswerBulletToAnEmployerTheAnswerDoesNotName() = runTest {
+        val infosys = testEntry("exp-infosys", title = "Business Analyst", organization = "Infosys")
+        val profile = testProfile(entries = listOf(infosys))
+        val requirement = JobRequirement(
+            id = "req-1",
+            text = "Presented results to the board",
+            type = RequirementType.EXPERIENCE,
+            priority = RequirementPriority.MUST_HAVE,
+            keywords = listOf("presenting"),
+        )
+        val job = JobDescription("Analyst", "Northwind", "raw", listOf(requirement))
+        val detail = "Presented the monthly variance report to the CFO"
+        val proposed = TailoredResume(
+            bullets = listOf(
+                testBullet(
+                    id = "b-ans",
+                    entryId = "exp-infosys",
+                    original = "",
+                    proposed = detail,
+                    sourceIds = listOf("ans-req-1"),
+                ),
+            ),
+        )
+        val tailor = object : ResumeTailor {
+            override suspend fun tailor(
+                profile: CandidateProfile,
+                job: JobDescription,
+                gap: GapAnalysis,
+                applicationId: String,
+                section: EntryCategory?,
+            ) = proposed
+        }
+        val useCase = TailorResumeUseCase(tailor, CleanFabricationGuard)
+        val gap = GapAnalysis(emptyList(), KeywordCoverage(0, 0))
+
+        val unnamed = useCase(profile, job, gap, "app-1", quickAnswer = QuickAnswer("req-1", "YES_REGULARLY", detail))
+        val named = useCase(
+            profile,
+            job,
+            gap,
+            "app-1",
+            quickAnswer = QuickAnswer("req-1", "YES_REGULARLY", "$detail at Infosys"),
+        )
+
+        assertThat(unnamed.toChangeCards(profile)).isEmpty()
+        assertThat(named.toChangeCards(profile).map { it.kind }).containsExactly(ChangeKind.Added)
     }
 }

@@ -64,7 +64,7 @@ private fun TailoredBullet.toBulletCard(entriesById: Map<String, ProfileEntry>):
         kind = if (originalText.isBlank()) ChangeKind.Added else ChangeKind.Rewritten,
         source = sourceOf(sourceIds),
         before = if (undone) null else originalText.takeIf { it.isNotBlank() },
-        after = if (undone) originalText else proposedText,
+        after = if (undone && originalText.isNotBlank()) originalText else proposedText,
         undone = undone,
     )
 }

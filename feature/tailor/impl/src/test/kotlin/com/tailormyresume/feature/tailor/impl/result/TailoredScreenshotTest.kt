@@ -169,6 +169,32 @@ class TailoredScreenshotTest {
         rule.onNodeWithText("Undone").assertExists()
     }
 
+    private val undoneAdded = listOf(
+        ChangeCard(
+            id = "b-added",
+            area = ChangeArea.Entry("Business Analyst · Infosys"),
+            kind = ChangeKind.Added,
+            source = ChangeSource.YourAnswer,
+            before = null,
+            after = "Presented monthly variance analysis to senior stakeholders.",
+            undone = true,
+        ),
+    )
+
+    @Test
+    fun changesAfterUndoAdded() {
+        shoot("result_changes_after_undo_added", ready(changes = undoneAdded), TailoredTab.Changes, TmrTestDevices.prototype)
+        rule.onNodeWithText("Presented monthly variance analysis to senior stakeholders.").assertExists()
+        rule.onNodeWithText("Undone").assertExists()
+    }
+
+    @Test
+    @Config(qualifiers = NARROW_QUALIFIERS)
+    fun changesAfterUndoAdded_font2_337dp() {
+        shoot("result_changes_after_undo_added", ready(changes = undoneAdded), TailoredTab.Changes, NARROW_DEVICE)
+        rule.onNodeWithText("Undone").assertExists()
+    }
+
     @Test
     @Config(qualifiers = NARROW_QUALIFIERS)
     fun changesAfterOneUndo_font2_337dp() {
