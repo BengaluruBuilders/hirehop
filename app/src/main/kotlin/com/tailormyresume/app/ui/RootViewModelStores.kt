@@ -15,6 +15,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 
 internal enum class NavigationRoot { FirstRun, Main }
 
+internal data class AccountRoot(val accountId: String?)
+
 internal class RootViewModelStores : ViewModel() {
 
     private val stores = mutableMapOf<NavigationRoot, ViewModelStore>()
@@ -28,6 +30,10 @@ internal class RootViewModelStores : ViewModel() {
     fun releaseAll() = NavigationRoot.entries.forEach(::release)
 
     fun keepOnly(root: NavigationRoot) = NavigationRoot.entries.filter { it != root }.forEach(::release)
+
+    fun storeOf(root: AccountRoot): ViewModelStore = ViewModelStore()
+
+    fun keepOnly(root: AccountRoot) = Unit
 
     override fun onCleared() = releaseAll()
 

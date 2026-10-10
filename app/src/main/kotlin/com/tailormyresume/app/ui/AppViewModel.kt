@@ -2,6 +2,8 @@ package com.tailormyresume.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tailormyresume.core.data.repository.CreditsRepository
+import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.onboarding.ObserveStartDestinationUseCase
 import com.tailormyresume.core.domain.onboarding.StartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,12 @@ class AppViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
             initialValue = AppRootState.Loading,
         )
+
+    constructor(
+        sessionRepository: SessionRepository,
+        observeStartDestination: ObserveStartDestinationUseCase,
+        creditsRepository: CreditsRepository,
+    ) : this(observeStartDestination)
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

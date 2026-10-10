@@ -72,19 +72,26 @@ fun TmrApp(
     val stores = rememberRootViewModelStores()
     LaunchedEffect(rootState) {
         when (rootState) {
-            AppRootState.Loading -> Unit
+            AppRootState.Loading, is AppRootState.Ready -> Unit
             AppRootState.FirstRun -> stores.keepOnly(NavigationRoot.FirstRun)
             AppRootState.Main -> stores.keepOnly(NavigationRoot.Main)
         }
     }
     TmrBackground(modifier = modifier) {
         when (rootState) {
-            AppRootState.Loading -> Unit
+            AppRootState.Loading, is AppRootState.Ready -> Unit
             AppRootState.FirstRun -> TmrFirstRunRoot(hasHome = hasHome)
             AppRootState.Main -> TmrMainRoot(hasHome = hasHome)
         }
     }
 }
+
+@Composable
+internal fun TmrAccountRoot(
+    ready: AppRootState.Ready,
+    modifier: Modifier = Modifier,
+    entryProvider: ((Navigator) -> (NavKey) -> NavEntry<NavKey>)? = null,
+) = Unit
 
 @Composable
 internal fun TmrFirstRunRoot(
