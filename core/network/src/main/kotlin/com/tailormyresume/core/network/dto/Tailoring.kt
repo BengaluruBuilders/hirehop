@@ -1,9 +1,22 @@
 package com.tailormyresume.core.network.dto
 
 import com.tailormyresume.core.model.EditType
-import com.tailormyresume.core.model.EntryCategory
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
+@Serializable
+enum class AnswerChoice { YES_REGULARLY, A_FEW_TIMES, NOT_YET, SKIPPED }
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+data class AnswerDto(
+    val requirementId: String,
+    val choice: AnswerChoice,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val detail: String? = null,
+)
+
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class TailoringStartRequest(
     val requestId: String,
@@ -11,17 +24,31 @@ data class TailoringStartRequest(
     val job: JobDto,
     val matches: List<MatchDto>,
     val profile: ProfileFactsDto,
-    val section: EntryCategory?,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val answer: AnswerDto? = null,
 )
 
 @Serializable
 enum class TailoringStatus { RUNNING, SUCCEEDED, FAILED }
 
-@Serializable
-enum class TailoringFailureCode { AI_PROVIDER_ERROR, QUOTA_EXCEEDED, BUDGET_EXCEEDED, INTERRUPTED }
+internal object TailoringFailureCodeSerializer :
+    LenientEnumSerializer<TailoringFailureCode>(
+        TailoringFailureCode.entries.toTypedArray(),
+        TailoringFailureCode.UNKNOWN,
+        "TailoringFailureCode",
+    )
 
-@Serializable
-enum class BulletVerification { PASSED, REPAIRED, REVERTED, UNCHANGED }
+@Serializable(with = TailoringFailureCodeSerializer::class)
+enum class TailoringFailureCode { AI_PROVIDER_ERROR, QUOTA_EXCEEDED, BUDGET_EXCEEDED, INTERRUPTED, UNKNOWN }
+
+internal object BulletVerificationSerializer :
+    LenientEnumSerializer<BulletVerification>(
+        BulletVerification.entries.toTypedArray(),
+        BulletVerification.UNKNOWN,
+        "BulletVerification",
+    )
+
+@Serializable(with = BulletVerificationSerializer::class)
+enum class BulletVerification { PASSED, REPAIRED, REVERTED, UNCHANGED, UNKNOWN }
 
 @Serializable
 data class TailoredBulletDto(
@@ -35,7 +62,18 @@ data class TailoredBulletDto(
 )
 
 @Serializable
-data class TailoringResultDto(val generationId: String, val bullets: List<TailoredBulletDto>)
+data class SummaryResultDto(val text: String, val sourceIds: List<String>, val verification: BulletVerification)
+
+@Serializable
+data class SkillsResultDto(val ordered: List<String> = emptyList(), val added: List<String> = emptyList())
+
+@Serializable
+data class TailoringResultDto(
+    val generationId: String,
+    val bullets: List<TailoredBulletDto>,
+    val summary: SummaryResultDto? = null,
+    val skills: SkillsResultDto? = null,
+)
 
 @Serializable
 data class TailoringDto(

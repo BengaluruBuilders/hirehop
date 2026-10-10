@@ -61,10 +61,13 @@ class DtoRoundTripTest {
     }
 
     @Test
-    fun nullFieldsAreSentOnTheWireBecauseTheBackendRequiresThem() {
+    fun tailoringRequestsOmitNullOptionalFieldsAndNeverSendSection() {
         val request = decode<TailoringStartRequest>("tailoring-start-request")
-        assertThat(request.section).isNull()
-        assertThat(json.encodeToString(TailoringStartRequest.serializer(), request)).contains("\"section\":null")
+        val wire = json.encodeToString(TailoringStartRequest.serializer(), request)
+        assertThat(request.answer).isNull()
+        assertThat(wire).doesNotContain("section")
+        assertThat(wire).doesNotContain("answer")
+        assertThat(wire).doesNotContain("null")
     }
 
     private inline fun <reified T> roundTrip(name: String) {
