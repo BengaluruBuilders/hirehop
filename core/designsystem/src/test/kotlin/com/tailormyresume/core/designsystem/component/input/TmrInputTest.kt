@@ -1,7 +1,6 @@
 package com.tailormyresume.core.designsystem.component.input
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -134,12 +133,8 @@ class TmrInputTest {
         rule.setContent {
             TmrPreviewTheme {
                 Column {
-                    Box(modifier = Modifier.testTag("t")) {
-                        TmrToggle(checked = false, onCheckedChange = { captured = it })
-                    }
-                    Box(modifier = Modifier.testTag("u")) {
-                        TmrToggle(checked = true, onCheckedChange = { captured = it })
-                    }
+                    TmrToggle(checked = false, onCheckedChange = { captured = it }, modifier = Modifier.testTag("t"))
+                    TmrToggle(checked = true, onCheckedChange = { captured = it }, modifier = Modifier.testTag("u"))
                 }
             }
         }
