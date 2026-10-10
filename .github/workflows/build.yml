@@ -446,6 +446,9 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
+      - name: Test the release config
+        run: tools/ci/test-release-config.sh
+
       - name: Run Gradle tasks
         run: >-
           ./gradlew
