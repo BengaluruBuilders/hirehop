@@ -1,6 +1,6 @@
 # Flow 2 · Tailoring
 
-Flow 2 · Tailoring (screens S8 Tailored resume review, S9 Bullet review, S10 Cover letter, S11 Prep questions). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'HireHop Foundations', page 'Flow 2 · Tailoring'.
+Flow 2 · Tailoring (screens S8 Tailored resume review, S9 Bullet review, S10 Cover letter, S11 Prep questions). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'TailorMyResume Foundations', page 'Flow 2 · Tailoring'.
 
 Each state has a light file and a dark file. The copy list shows text that is unique to the state. Text that is the same in every state of the screen is left out.
 
@@ -56,10 +56,10 @@ Show what changed, what is left to decide, and what was left out.
 
 **Frame 04 · background · notification (system)**
 
-- Android notification shade · not HireHop UI
+- Android notification shade · not TailorMyResume UI
 - 10:42
 - H
-- HireHop · now Your tailored resume is ready 7 changes to review for Associate Analyst, Northwind GCC.
+- TailorMyResume · now Your tailored resume is ready 7 changes to review for Associate Analyst, Northwind GCC.
 - Other app notification
 
 **Frame 05 · ready**
@@ -351,7 +351,7 @@ Offer a short letter only after the resume, every paragraph sourced.
 
 - Cover letter · optional 165 words
 - During my internship at Kiran Agro Exports in Nashik, from May to July 2025, I cleaned 12,000 rows of sales data in Excel. I also built pivot reports from that 
-- User-edited Your own words. HireHop does not check hand edits.
+- User-edited Your own words. TailorMyResume does not check hand edits.
 - Report inaccurate content
 - I-01
 - I was also an internal-round finalist at Smart India Hackathon 2024. I would welcome the chance to bring my Excel, SQL and Power BI work to the Business Intelli
@@ -360,7 +360,7 @@ Offer a short letter only after the resume, every paragraph sourced.
 
 - Cover letter · optional 165 words
 - During my internship at Kiran Agro Exports in Nashik, from May to July 2025, I cleaned 12,000 rows of sales data in Excel. I also built pivot reports from that 
-- User-edited Your own words. HireHop does not check hand edits.
+- User-edited Your own words. TailorMyResume does not check hand edits.
 - Report inaccurate content
 - I-01
 - I was also an internal-round finalist at Smart India Hackathon 2024. I would welcome the chance to bring my Excel, SQL and Power BI work to the Business Intelli

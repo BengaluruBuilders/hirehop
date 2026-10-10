@@ -1,6 +1,6 @@
 # Flow 1 · First run
 
-Flow 1 · First run. Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'HireHop Foundations', page 'Flow 1 · First run'.
+Flow 1 · First run. Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'TailorMyResume Foundations', page 'Flow 1 · First run'.
 
 Each state has a light file and a dark file. The copy list shows text that is unique to the state. Text that is the same in every state of the screen is left out.
 
@@ -92,7 +92,7 @@ Get the JD in with no friction.
 
 - Paste the job description text
 - https://www.linkedin.com/jobs/view/40211…
-- Paste the JD text, not the link. HireHop does not open links.
+- Paste the JD text, not the link. TailorMyResume does not open links.
 - 2 of 3 free analyses left today
 - Your JD stays on this phone until you tap Analyse.
 - Analyse is off until you paste the JD text.
@@ -141,7 +141,7 @@ Sign in at the first moment data would leave the phone.
 - Continue with your Google account. One account keeps your JDs, facts and analyses together.
 - I am 18 or older
 - Group or referral code (optional)
-- Next, your JD and resume go to HireHop's server to be read. They stay private to your account.
+- Next, your JD and resume go to TailorMyResume's server to be read. They stay private to your account.
 - Continue is off until you tick “I am 18 or older”.
 - I'm under 18
 
@@ -149,9 +149,9 @@ Sign in at the first moment data would leave the phone.
 
 - Continue with your Google account. One account keeps your JDs, facts and analyses together.
 - I am 18 or older
-- Tick this box to continue. We ask because HireHop is for people 18 and over.
+- Tick this box to continue. We ask because TailorMyResume is for people 18 and over.
 - Group or referral code (optional)
-- Next, your JD and resume go to HireHop's server to be read. They stay private to your account.
+- Next, your JD and resume go to TailorMyResume's server to be read. They stay private to your account.
 - Continue is off until you tick “I am 18 or older”.
 
 **Frame 03 · ready**
@@ -159,7 +159,7 @@ Sign in at the first moment data would leave the phone.
 - Continue with your Google account. One account keeps your JDs, facts and analyses together.
 - I am 18 or older
 - Group or referral code (optional)
-- Next, your JD and resume go to HireHop's server to be read. They stay private to your account.
+- Next, your JD and resume go to TailorMyResume's server to be read. They stay private to your account.
 - I'm under 18
 - Continue with Google
 
@@ -167,14 +167,14 @@ Sign in at the first moment data would leave the phone.
 
 - Continue with your Google account.
 - I am 18 or older
-- Android system sheet · not HireHop UI
+- Android system sheet · not TailorMyResume UI
 - Choose an account
-- to continue to HireHop
+- to continue to TailorMyResume
 - P
 
 **Frame 05 · under 18**
 
-- HireHop is for people 18 and over.
+- TailorMyResume is for people 18 and over.
 - Nothing from this phone was sent.
 - Back to start
 
@@ -184,7 +184,7 @@ Sign in at the first moment data would leave the phone.
 - Continue with your Google account. One account keeps your JDs, facts and analyses together.
 - I am 18 or older
 - Group or referral code (optional)
-- Next, your JD and resume go to HireHop's server to be read. They stay private to your account.
+- Next, your JD and resume go to TailorMyResume's server to be read. They stay private to your account.
 - I'm under 18
 
 **Frame 07 · offline**
@@ -193,7 +193,7 @@ Sign in at the first moment data would leave the phone.
 - Continue with your Google account. One account keeps your JDs, facts and analyses together.
 - I am 18 or older
 - Group or referral code (optional)
-- Next, your JD and resume go to HireHop's server to be read. They stay private to your account.
+- Next, your JD and resume go to TailorMyResume's server to be read. They stay private to your account.
 - Continue needs a connection.
 
 ## S4 · Consent notice
@@ -273,12 +273,12 @@ Get the resume in with no storage permission.
 - Choose your resume (PDF or DOCX)
 - We read it, you confirm each fact, and only confirmed facts are used.
 - No resume? Build your profile step by step.
-- HireHop asks for no storage permission. Android’s file picker opens, and only the one file you pick is shared with HireHop.
+- TailorMyResume asks for no storage permission. Android’s file picker opens, and only the one file you pick is shared with TailorMyResume.
 
 **Frame 02 · picking (system file picker)**
 
 - Recent
-- Android system file picker · not HireHop UI
+- Android system file picker · not TailorMyResume UI
 - PDF DOCX
 - Priya_Deshmukh_Resume.pdf 214 kB · 12 Feb
 - Resume_2024.docx 48 kB · 3 Jan
@@ -354,7 +354,7 @@ Confirm or edit every extracted item.
 **Frame 01 · all pending**
 
 - 0 of 18 confirmed
-- We removed your date of birth and your photo from this import. HireHop never keeps these.
+- We removed your date of birth and your photo from this import. TailorMyResume never keeps these.
 - Experience
 - W-01
 - Data Operations Associate, Saffron Retail, Pune · Jul 2025 to now. Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.
@@ -363,7 +363,7 @@ Confirm or edit every extracted item.
 **Frame 02 · partly confirmed**
 
 - 12 of 18 confirmed
-- We removed your date of birth and your photo from this import. HireHop never keeps these.
+- We removed your date of birth and your photo from this import. TailorMyResume never keeps these.
 - Experience
 - W-01 Confirmed
 - Data Operations Associate, Saffron Retail, Pune · Jul 2025 to now. Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.
@@ -372,7 +372,7 @@ Confirm or edit every extracted item.
 **Frame 03 · confirm stamps · counter ticks**
 
 - 13 of 18 confirmed
-- We removed your date of birth and your photo from this import. HireHop never keeps these.
+- We removed your date of birth and your photo from this import. TailorMyResume never keeps these.
 - Experience
 - W-01 Confirmed
 - Data Operations Associate, Saffron Retail, Pune · Jul 2025 to now. Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.
@@ -381,7 +381,7 @@ Confirm or edit every extracted item.
 **Frame 04 · all confirmed**
 
 - 18 of 18 confirmed
-- All 18 facts are confirmed. HireHop uses only these.
+- All 18 facts are confirmed. TailorMyResume uses only these.
 - Experience
 - W-01 Confirmed
 - Data Operations Associate, Saffron Retail, Pune · Jul 2025 to now. Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.
@@ -390,7 +390,7 @@ Confirm or edit every extracted item.
 **Frame 05 · empty section**
 
 - 18 of 18 confirmed
-- All 18 facts are confirmed. HireHop uses only these.
+- All 18 facts are confirmed. TailorMyResume uses only these.
 - Skills
 - S-06 Confirmed
 - Pivot tables
@@ -400,7 +400,7 @@ Confirm or edit every extracted item.
 
 - 12 of 18 confirmed
 - You're offline. Your edits are saved on this phone and sync when you're back.
-- We removed your date of birth and your photo from this import. HireHop never keeps these.
+- We removed your date of birth and your photo from this import. TailorMyResume never keeps these.
 - Experience
 - W-01 Confirmed
 - Data Operations Associate, Saffron Retail, Pune · Jul 2025 to now. Built weekly sales reports in Excel for 40 stores; cleaned order data with SQL.

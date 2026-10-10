@@ -1,6 +1,6 @@
 # Flow 5 · Workspace and account
 
-Flow 5 · Workspace and account (screens S20 Applications, S21 Application workspace, S22 Settings, S23 Your data, S24 Delete account). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'HireHop Foundations', page 'Flow 5 · Workspace and account'.
+Flow 5 · Workspace and account (screens S20 Applications, S21 Application workspace, S22 Settings, S23 Your data, S24 Delete account). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'TailorMyResume Foundations', page 'Flow 5 · Workspace and account'.
 
 Each state has a light file and a dark file. The copy list shows text that is unique to the state. Text that is the same in every state of the screen is left out.
 
@@ -257,7 +257,7 @@ Account, credits, data and privacy, each one tap away.
 
 ## S23 · Your data
 
-See, correct, download or erase what HireHop holds.
+See, correct, download or erase what TailorMyResume holds.
 
 | Frame | State | Light file | Dark file |
 |---|---|---|---|
@@ -270,7 +270,7 @@ See, correct, download or erase what HireHop holds.
 
 **Frame 01 · default**
 
-- What HireHop holds about you
+- What TailorMyResume holds about you
 - 18
 - Profile facts 15 confirmed · 3 user-stated
 - View
@@ -279,7 +279,7 @@ See, correct, download or erase what HireHop holds.
 
 **Frame 02 · scrolled · purchases, uploaded resume**
 
-- What HireHop holds about you
+- What TailorMyResume holds about you
 - 18
 - Profile facts 15 confirmed · 3 user-stated
 - View
@@ -296,7 +296,7 @@ See, correct, download or erase what HireHop holds.
 
 **Frame 04 · export · share sheet (system)**
 
-- What HireHop holds about you
+- What TailorMyResume holds about you
 - 18
 - Profile facts 15 confirmed · 3 user-stated
 - View
@@ -305,7 +305,7 @@ See, correct, download or erase what HireHop holds.
 
 **Frame 05 · delete dialog**
 
-- What HireHop holds about you
+- What TailorMyResume holds about you
 - 18
 - Profile facts 15 confirmed · 3 user-stated
 - View
@@ -315,7 +315,7 @@ See, correct, download or erase what HireHop holds.
 **Frame 06 · offline**
 
 - You're offline. You can read this list. Downloading and deleting need a connection.
-- What HireHop holds about you
+- What TailorMyResume holds about you
 - 18
 - Profile facts 15 confirmed · 3 user-stated
 - View
@@ -353,9 +353,9 @@ Delete the account with exact counts and an equal way out.
 
 **Frame 03 · done · account deleted**
 
-- HireHop
+- TailorMyResume
 - Your account and data are deleted.
-- Thank you for using HireHop.
+- Thank you for using TailorMyResume.
 - Back to Welcome
 
 **Frame 04 · error**

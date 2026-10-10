@@ -3143,7 +3143,7 @@
       "kind": "title1",
       "maxW": 2560,
       "page": "flow4",
-      "text": "S16 · Profile — see and correct every fact HireHop may use",
+      "text": "S16 · Profile — see and correct every fact TailorMyResume may use",
       "w": 240,
       "x": 0,
       "y": 0
@@ -3215,7 +3215,7 @@
       "kind": "title1",
       "maxW": 2560,
       "page": "flow5",
-      "text": "S23 · Your data — see, correct, download or erase what HireHop holds",
+      "text": "S23 · Your data — see, correct, download or erase what TailorMyResume holds",
       "w": 240,
       "x": 0,
       "y": 6840
@@ -3296,7 +3296,7 @@
       "kind": "title1",
       "maxW": 4480,
       "page": "foundations",
-      "text": "HireHop foundations · Friendly Hero, Jade",
+      "text": "TailorMyResume foundations · Friendly Hero, Jade",
       "w": 240,
       "x": 0,
       "y": -300
@@ -3713,5 +3713,5 @@
       "name": "Flow 5 · Workspace and account"
     }
   ],
-  "title": "HireHop Foundations"
+  "title": "TailorMyResume Foundations"
 }
