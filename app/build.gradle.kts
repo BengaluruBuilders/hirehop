@@ -116,8 +116,29 @@ val verifyUploadSigning by tasks.registering {
     }
 }
 
+val prodBackendProperties =
+    listOf(
+        "tailormyresumeWebClientId",
+        "tailormyresumeFirebaseApiKey",
+        "tailormyresumeFirebaseAppId",
+        "tailormyresumeFirebaseProjectId",
+    )
+
+val verifyProdBackendConfig by tasks.registering {
+    val blank = prodBackendProperties.filter { providers.gradleProperty(it).orNull.isNullOrBlank() }
+    doLast {
+        check(blank.isEmpty()) {
+            "The prod release bundle needs these Gradle properties, missing or blank: ${blank.joinToString()}. " +
+                "See docs/RELEASE.md."
+        }
+    }
+}
+
 tasks.configureEach {
-    if (name.startsWith("bundle") && name.endsWith("Release")) dependsOn(verifyUploadSigning)
+    if (name.startsWith("bundle") && name.endsWith("Release")) {
+        dependsOn(verifyUploadSigning)
+        if (name.contains("Prod")) dependsOn(verifyProdBackendConfig)
+    }
 }
 
 dependencies {

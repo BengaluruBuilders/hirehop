@@ -16,10 +16,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    env:
-      TMR_UPLOAD_STORE_PASSWORD: ${{ secrets.TMR_UPLOAD_STORE_PASSWORD }}
-      TMR_UPLOAD_KEY_ALIAS: ${{ secrets.TMR_UPLOAD_KEY_ALIAS }}
-      TMR_UPLOAD_KEY_PASSWORD: ${{ secrets.TMR_UPLOAD_KEY_PASSWORD }}
+    environment: release
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,11 +51,23 @@ jobs:
 
       - name: Build signed prod bundle
         env:
+          TMR_UPLOAD_STORE_PASSWORD: ${{ secrets.TMR_UPLOAD_STORE_PASSWORD }}
+          TMR_UPLOAD_KEY_ALIAS: ${{ secrets.TMR_UPLOAD_KEY_ALIAS }}
+          TMR_UPLOAD_KEY_PASSWORD: ${{ secrets.TMR_UPLOAD_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_tailormyresumeWebClientId: ${{ secrets.TMR_WEB_CLIENT_ID }}
+          ORG_GRADLE_PROJECT_tailormyresumeFirebaseApiKey: ${{ secrets.TMR_FIREBASE_API_KEY }}
+          ORG_GRADLE_PROJECT_tailormyresumeFirebaseAppId: ${{ secrets.TMR_FIREBASE_APP_ID }}
+          ORG_GRADLE_PROJECT_tailormyresumeFirebaseProjectId: ${{ secrets.TMR_FIREBASE_PROJECT_ID }}
           RUN_NUMBER: ${{ github.run_number }}
-          VERSION_CODE_OFFSET: ${{ vars.TMR_VERSION_CODE_OFFSET || '0' }}
+          VERSION_CODE_OFFSET: ${{ vars.TMR_VERSION_CODE_OFFSET }}
           TMR_VERSION_NAME: ${{ vars.TMR_VERSION_NAME }}
         run: |
-          export TMR_VERSION_CODE=$((RUN_NUMBER + VERSION_CODE_OFFSET))
+          offset="${VERSION_CODE_OFFSET:-0}"
+          if [[ ! "$offset" =~ ^[0-9]+$ ]]; then
+            echo "TMR_VERSION_CODE_OFFSET must be a non-negative integer, got '$offset'" >&2
+            exit 1
+          fi
+          export TMR_VERSION_CODE=$((10#$RUN_NUMBER + 10#$offset))
           ./gradlew :app:bundleProdRelease -PwarningsAsErrors=true
 
       - name: Upload bundle

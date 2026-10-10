@@ -56,4 +56,10 @@ expect_failure "version name rejected" "TMR_VERSION_NAME must look like" \
 expect_success "defaults and valid values accepted" \
   env_clean TMR_VERSION_CODE=2100000000 TMR_VERSION_NAME=1.2.3-beta.1 "$gradle_cmd" :app:tasks -q
 
+blank_props=(-PtailormyresumeWebClientId=x -PtailormyresumeFirebaseApiKey=x -PtailormyresumeFirebaseAppId=x)
+expect_failure "blank prod backend property rejected" "tailormyresumeFirebaseProjectId" \
+  env_clean "$gradle_cmd" :app:verifyProdBackendConfig "${blank_props[@]}" -PtailormyresumeFirebaseProjectId= -q
+expect_success "complete prod backend properties accepted" \
+  env_clean "$gradle_cmd" :app:verifyProdBackendConfig "${blank_props[@]}" -PtailormyresumeFirebaseProjectId=x -q
+
 exit "$failures"
