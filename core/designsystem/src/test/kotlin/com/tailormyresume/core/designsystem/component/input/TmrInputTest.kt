@@ -1,9 +1,12 @@
 package com.tailormyresume.core.designsystem.component.input
 
+import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
@@ -21,6 +24,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
+import com.github.takahirom.roborazzi.RoborazziOptions
+import com.github.takahirom.roborazzi.RoborazziTaskType
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.tailormyresume.core.designsystem.R
 import com.tailormyresume.core.designsystem.component.TmrPreviewTheme
 import com.tailormyresume.core.designsystem.theme.TmrDarkColors
@@ -29,6 +36,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
 
@@ -37,6 +45,27 @@ import org.robolectric.annotation.GraphicsMode
 class TmrInputTest {
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule
+    val folder = TemporaryFolder()
+
+    @Test
+    fun buttonFillsComeFromTokens() {
+        System.setProperty("robolectric.useEmbeddedViewRoot", "false")
+        rule.setContent {
+            TmrPreviewTheme {
+                Column {
+                    TmrPrimaryButton(label = "Enabled", onClick = {}, enabled = true)
+                    TmrPrimaryButton(label = "Disabled", onClick = {}, enabled = false)
+                    TmrSecondaryButton(label = "Secondary", onClick = {})
+                }
+            }
+        }
+        val screen = screenPixels()
+        assertEquals(TmrDarkColors.lime.toArgb(), fillOf(screen, "Enabled"))
+        assertEquals(TmrDarkColors.disabledFill.toArgb(), fillOf(screen, "Disabled"))
+        assertEquals(TmrDarkColors.surfaceHigh.toArgb(), fillOf(screen, "Secondary"))
+    }
 
     @Test
     fun disabledTapRunsOnDisabledClickOnly() {
@@ -179,5 +208,23 @@ class TmrInputTest {
         val results = mutableListOf<TextLayoutResult>()
         action?.action?.invoke(results)
         return results.first().layoutInput.style.color
+    }
+
+    @OptIn(ExperimentalRoborazziApi::class)
+    private fun screenPixels(): android.graphics.Bitmap {
+        val file = folder.newFile("buttons.png")
+        captureScreenRoboImage(file.path, RoborazziOptions(taskType = RoborazziTaskType.Record))
+        return BitmapFactory.decodeFile(file.path)
+    }
+
+    private fun fillOf(screen: android.graphics.Bitmap, text: String): Int {
+        val bounds = rule.onNodeWithText(text).fetchSemanticsNode().boundsInRoot
+        val x = (bounds.left + FILL_SAMPLE_INSET_PX).toInt()
+        val y = bounds.center.y.toInt()
+        return screen.getPixel(x, y)
+    }
+
+    private companion object {
+        const val FILL_SAMPLE_INSET_PX = 12f
     }
 }
