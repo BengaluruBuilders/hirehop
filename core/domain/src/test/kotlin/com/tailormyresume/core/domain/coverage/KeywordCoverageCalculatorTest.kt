@@ -380,11 +380,13 @@ class KeywordCoverageCalculatorTest {
     }
 
     @Test
-    fun displayCasedPowerBiKeywordIsConfirmedByNamedSkillAndDetail() {
-        val powerBi = requirement("p1", "Power BI or Tableau", "Power BI")
+    fun powerBiIsConfirmedAsCanonicalAndMatchesAnswerFactsWhenDisplayCased() {
+        val canonical = requirement("p1", "Power BI or Tableau", "power bi")
+        val displayCased = requirement("p2", "Power BI or Tableau", "Power BI")
 
-        assertThat(upToWithAnswer(powerBi, "built Power BI dashboards")).isEqualTo(100)
-        assertThat(upToWithAnswer(powerBi, "")).isEqualTo(100)
+        assertThat(upToWithAnswer(canonical, "built Power BI dashboards")).isEqualTo(100)
+        assertThat(upToWithAnswer(canonical, "")).isEqualTo(100)
+        assertThat(upToWithAnswer(displayCased, "built Power BI dashboards")).isEqualTo(50)
     }
 
     @Test
@@ -399,5 +401,13 @@ class KeywordCoverageCalculatorTest {
 
         assertThat(sql.upTo).isEqualTo(50)
         assertThat(python.upTo).isEqualTo(50)
+    }
+
+    @Test
+    fun skillKeywordAbsentFromRequirementTextIsNotConfirmedByAnyAnswer() {
+        val forecasting = requirement("f1", "Experience presenting to senior stakeholders", "forecasting")
+
+        assertThat(upToWithAnswer(forecasting, "")).isEqualTo(50)
+        assertThat(upToWithAnswer(forecasting, "n/a")).isEqualTo(50)
     }
 }
