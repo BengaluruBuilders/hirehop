@@ -25,6 +25,9 @@ The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle
 is the current design and the simplified MVP flow. Its scope is in `docs/PRD.md` section 6.1.2, which
 wins over 6.1.1. Where it and the Avvio canvas disagree, the prototype wins. The app does not implement
 it yet. Use the Avvio canvas and the older frames only for states the prototype does not draw.
+Cut by the owner on 2026-10-10, never to be raised again: consent screen, 18+ check, light theme,
+Apple sign-in, follow-up reminders, offline states, and error states beyond the five the prototype
+draws (PRD 6.1.2).
 
 The previous visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
 (dark first, lime, Manrope and Archivo Black), requested on 2026-10-07. It covers all 24 screens in

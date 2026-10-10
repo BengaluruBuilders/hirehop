@@ -41,7 +41,7 @@ slide). Every other screen sits on black, and each setup step opens with a large
 card (radius 32) holding the step label, a two-line Space Mono headline, sticker pills
 ("PDF", "DOCX") and Paige: blue #5AA9F8 for the resume and profile, amber #F7A940 for the job, lime
 #A3F43F for tailoring. This is not the old Avvio look (heavy uppercase Archivo Black, #AEFF00).
-The prototype has no light theme. Phone frame 392 x 852 with a 9 px bezel, so the screen is
+Dark only; the app has no light theme. Phone frame 392 x 852 with a 9 px bezel, so the screen is
 374 x 834 px; treat 1 px as 1 dp.
 
 | Role | Value |
@@ -70,6 +70,18 @@ Offer amber fill, Rejected grey.
 Paige appears on sign-in (three poses), job paste, quick question, tailoring (wobble), Applications
 and the paywall. She bobs with a sine of about 5 px. Under reduced motion she must stand still.
 
+## Not in the MVP — decided by the owner on 2026-10-10
+
+Do not build these, and do not raise them again as gaps, open questions, or review findings
+(`docs/PRD.md` 6.1.2):
+
+1. No consent notice screen and no 18+ check.
+2. No light theme. The app is dark only.
+3. No "Continue with Apple". Sign-in is Google only, even though the prototype draws an Apple button.
+4. No follow-up reminders. Drop the "Follow-up reminders" toggle the prototype shows in Settings.
+5. No offline states, and no error states beyond the five the prototype draws (sign-in cancelled,
+   unreadable file, not a job post, tailoring failed, payment failed). No separate 200% text frames.
+
 ## Navigation
 
 - Top bar per screen from `T`: back, or close on Exported and the paywall; an optional title and an
@@ -88,7 +100,7 @@ The index groups match the left-hand chips in the prototype.
 
 | Screen | States | Key copy and behaviour |
 |---|---|---|
-| Sign in (`signin`) | stories 1–3 auto-advance every 5 s (tap left/right to step, hold to pause); signing in; sign-in cancelled toast "Sign-in cancelled. Nothing was saved." + Retry | Stories: "Upload your resume", "Paste the job you want", "Get a resume made for it". Buttons "Continue with Google", "Continue with Apple". Footer: Terms, Privacy, "Your first tailored resume is free." A new user gets 1 free credit at sign-in. |
+| Sign in (`signin`) | stories 1–3 auto-advance every 5 s (tap left/right to step, hold to pause); signing in; sign-in cancelled toast "Sign-in cancelled. Nothing was saved." + Retry | Stories: "Upload your resume", "Paste the job you want", "Get a resume made for it". Button "Continue with Google". Build Google only; the drawn Apple button is cut. Footer: Terms, Privacy, "Your first tailored resume is free." A new user gets 1 free credit at sign-in. |
 | Upload (`upload`) | default | "Start with your resume". Upload resume (PDF or DOCX, up to 5 MB), Paste as text, Fill in myself. "Never shared." |
 | Unreadable file (`uploadError`) | image-only PDF | "We couldn't read that file", three tips, Choose another file, Paste as text |
 | Paste resume (`pasteResume`) | default | "Paste your resume", Read text |
@@ -122,7 +134,7 @@ The index groups match the left-hand chips in the prototype.
 | Contact (`editContact`) | default | Full name, Phone, City, Email (from Google, read-only), LinkedIn (optional, amber border when empty), Portfolio (optional); Save |
 | Skills (`skills`) | default | Add field, removable chips; Done |
 | List edit (`listEdit`) | Summary; Education; Achievements | One shared editor with a note per section; Save |
-| Settings (`settings`) | default; delete sheet | Account (email, "Signed in with Google"), Credits & purchases, Resume: page size A4/Letter, file name format (Name_Company_Role, Name_Role, Name_Resume). Notifications: Follow-up reminders, Product updates. Privacy & help: Download my data (toast: emailed within 24 h), Help & feedback, Delete account, Sign out. "Terms · Privacy · v1.0.0". Delete sheet: states what is lost, "Type DELETE to confirm". |
+| Settings (`settings`) | default; delete sheet | Account (email, "Signed in with Google"), Credits & purchases, Resume: page size A4/Letter, file name format (Name_Company_Role, Name_Role, Name_Resume). Notifications: Product updates (the drawn Follow-up reminders toggle is cut). Privacy & help: Download my data (toast: emailed within 24 h), Help & feedback, Delete account, Sign out. "Terms · Privacy · v1.0.0". Delete sheet: states what is lost, "Type DELETE to confirm". |
 | Credits (`credits`) | default | "N credits left. They never expire." Buy more. History ledger (+5 lime, −1 white). "Receipts go to your Google email". |
 | Paywall (`paywall`) | out of credits; buying; payment failed sheet | "Keep tailoring for every job". "1 credit = 1 tailored resume. Credits never expire." Packs: 5 for ₹199 (₹40 each), 15 for ₹449 (₹30, Best value, preselected), 40 for ₹999 (₹25). "Buy 15 credits · ₹449". "One-time payment · Restore purchases". Fail sheet: "You weren't charged." |
 

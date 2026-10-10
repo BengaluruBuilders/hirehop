@@ -155,7 +155,7 @@ The feature sections below are not yet rewritten; read them through this table.
 | Area | Simplified MVP | Was |
 |---|---|---|
 | Flow | Sign in → upload resume → review profile → paste job → job analysis → one quick question → tailor → tailored resume → export PDF → Applications | Paste JD first, sign in after first value, consent screen, fact-by-fact confirmation |
-| Sign-in | First screen, three story slides, Google (and Apple in the design). 1 free credit at sign-in. | After first value; Google only |
+| Sign-in | First screen, three story slides, Google only. 1 free credit at sign-in. No consent screen, no 18+ check. | After first value; consent notice; 18+ check |
 | Profile | Import fills the profile; the user reviews it once and must fix required gaps (e.g. a missing end date) before going on. Paste-as-text and a 6-field manual form are the fallbacks. | Confirm every fact; guided form; fresher evidence path |
 | Gap analysis | Match now → after tailoring, have and missing keywords, must-haves with reasons. Missing skills are added only if the user confirms them. | Met / partly met / to prepare per requirement; "I have this" sheet; prep tasks |
 | Evidence | One quick question per tailoring about an unclear must-have; the answer is a source ("Your answer"). | Evidence path questions in the profile |
@@ -165,17 +165,19 @@ The feature sections below are not yet rewritten; read them through this table.
 | Share card | Not in the prototype. Not in the MVP. | P0 |
 | Applications | List with a status bar; statuses Saved, Applied, Interview, Offer, Rejected; "Mark as Applied" with Undo; re-tailor for 1 credit | List, status, notes, prep tasks |
 | Pricing | 1 credit = 1 tailored resume, never expire. Packs 5 for ₹199, 15 for ₹449 (best value), 40 for ₹999. Credit history ledger. | Free tier with 3 gap analyses a day, 5-pack at ₹149 |
-| Settings | Credits, page size, file name format, follow-up reminder and product update toggles, download my data, help, delete account (type DELETE), sign out | Separate Your data and Delete account screens, consent read-only view |
-| Look | Paige mascot and colour-coded hero cards (blue resume, amber job, lime tailor) on black; full-bleed colour sign-in. Space Mono and Space Grotesk. No light theme. | Avvio: dark and light, Manrope and Archivo Black, #AEFF00 |
+| Settings | Credits, page size, file name format, product update toggle, download my data, help, delete account (type DELETE), sign out | Separate Your data and Delete account screens, consent read-only view |
+| Look | Paige mascot and colour-coded hero cards (blue resume, amber job, lime tailor) on black; full-bleed colour sign-in. Space Mono and Space Grotesk. Dark only. | Avvio: dark and light, Manrope and Archivo Black, #AEFF00 |
 
-Open questions. The prototype does not draw these, and they need an owner decision before they are
-cut, because they come from the law, Play policy, or the constitution:
+#### Not in the MVP — decided by the owner on 2026-10-10
 
-1. The consent notice and the 18+ check (F9, section 10.4).
-2. Light theme. The prototype is dark only; the app supports both today.
-3. "Continue with Apple" on Android.
-4. Follow-up reminders are in Settings, but reminders were cut in 6.1.1.
-5. Offline, error, and 200% text states. Reuse the patterns in `design/avvio-canvas/` until the design draws them.
+Do not build these, and do not raise them again as gaps, open questions, or review findings:
+
+1. No consent notice screen and no 18+ check.
+2. No light theme. The app is dark only.
+3. No "Continue with Apple". Sign-in is Google only, even though the prototype draws an Apple button.
+4. No follow-up reminders. Drop the "Follow-up reminders" toggle the prototype shows in Settings.
+5. No offline states, and no error states beyond the five the prototype draws (sign-in cancelled,
+   unreadable file, not a job post, tailoring failed, payment failed). No separate 200% text frames.
 
 ### 6.2 F1 — Resume import and profile
 
@@ -408,8 +410,8 @@ This section is a product reading of the research. It is not legal advice. Get a
 
 **DPDP Act 2023 and DPDP Rules 2025.** The main duties start on 13 May 2027. TailorMyResume processes personal data, because a resume is personal data. The MVP must have:
 
-1. A standalone, itemised consent notice before any upload.
-2. An 18+ confirmation at sign-up.
+1. A standalone, itemised consent notice before any upload. Owner decision 2026-10-10: not in the MVP (6.1.2).
+2. An 18+ confirmation at sign-up. Owner decision 2026-10-10: not in the MVP (6.1.2).
 3. In-app access, correction, and erasure of the user's data.
 4. Account deletion in the app, plus a web link for deletion.
 5. Export of all the user's data.
