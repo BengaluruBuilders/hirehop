@@ -27,7 +27,7 @@ fun TmrPrimaryButton(
     onDisabledClick: () -> Unit = {},
 ) {
     val colors = TmrTheme.colors
-    val unavailable = stringResource(R.string.tmr_input_not_available)
+    val unavailable = stringResource(R.string.core_designsystem_input_not_available)
     Box(
         modifier = modifier
             .heightIn(min = 56.dp)

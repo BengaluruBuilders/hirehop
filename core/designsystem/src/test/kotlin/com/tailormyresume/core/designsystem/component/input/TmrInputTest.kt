@@ -86,7 +86,7 @@ class TmrInputTest {
         val config = rule.onNodeWithText("Continue").fetchSemanticsNode().config
         assertEquals(Role.Button, config.getOrNull(SemanticsProperties.Role))
         assertEquals(
-            rule.activity.getString(R.string.tmr_input_not_available),
+            rule.activity.getString(R.string.core_designsystem_input_not_available),
             config.getOrNull(SemanticsProperties.StateDescription),
         )
     }
