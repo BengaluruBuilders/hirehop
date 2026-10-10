@@ -4,6 +4,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 tools/ci/check-constitution.sh
 tools/ci/test-scan-secrets.sh
+tools/ci/test-release-config.sh
 ./gradlew \
   :build-logic:convention:check \
   spotlessCheck \

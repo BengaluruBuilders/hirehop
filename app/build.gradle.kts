@@ -5,13 +5,41 @@ plugins {
     alias(libs.plugins.dependency.guard)
 }
 
+fun releaseSetting(name: String): String? =
+    (providers.environmentVariable(name).orNull ?: providers.gradleProperty(name).orNull)?.takeIf { it.isNotBlank() }
+
+val maxVersionCode = 2_100_000_000
+
+val releaseVersionCode: Int =
+    releaseSetting("TMR_VERSION_CODE")?.let { raw ->
+        val parsed = raw.toIntOrNull()
+        require(parsed != null && parsed in 1..maxVersionCode) {
+            "TMR_VERSION_CODE must be an integer from 1 to $maxVersionCode, got '$raw'"
+        }
+        parsed
+    } ?: 1
+
+val releaseVersionName: String =
+    releaseSetting("TMR_VERSION_NAME")?.also { raw ->
+        require(Regex("""\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?""").matches(raw)) {
+            "TMR_VERSION_NAME must look like 1.2.3 or 1.2.3-beta.1, got '$raw'"
+        }
+    } ?: "0.1.0"
+
+val uploadKeystoreFile = releaseSetting("TMR_UPLOAD_KEYSTORE_FILE")
+val uploadStorePassword = releaseSetting("TMR_UPLOAD_STORE_PASSWORD")
+val uploadKeyAlias = releaseSetting("TMR_UPLOAD_KEY_ALIAS")
+val uploadKeyPassword = releaseSetting("TMR_UPLOAD_KEY_PASSWORD")
+val hasUploadSigning =
+    listOf(uploadKeystoreFile, uploadStorePassword, uploadKeyAlias, uploadKeyPassword).all { it != null }
+
 android {
     namespace = "com.tailormyresume.app"
 
     defaultConfig {
         applicationId = "com.tailormyresume.app"
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = releaseVersionCode
+        versionName = releaseVersionName
     }
 
     buildFeatures {
@@ -51,12 +79,23 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasUploadSigning) {
+            create("upload") {
+                storeFile = file(uploadKeystoreFile!!)
+                storePassword = uploadStorePassword
+                keyAlias = uploadKeyAlias
+                keyPassword = uploadKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.named("debug").get()
+            if (hasUploadSigning) signingConfig = signingConfigs.getByName("upload")
         }
     }
 
@@ -64,6 +103,41 @@ android {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
+    }
+}
+
+val verifyUploadSigning by tasks.registering {
+    val ready = hasUploadSigning
+    doLast {
+        check(ready) {
+            "Release bundles must be signed with the upload key. Set TMR_UPLOAD_KEYSTORE_FILE, " +
+                "TMR_UPLOAD_STORE_PASSWORD, TMR_UPLOAD_KEY_ALIAS and TMR_UPLOAD_KEY_PASSWORD. See docs/RELEASE.md."
+        }
+    }
+}
+
+val prodBackendProperties =
+    listOf(
+        "tailormyresumeWebClientId",
+        "tailormyresumeFirebaseApiKey",
+        "tailormyresumeFirebaseAppId",
+        "tailormyresumeFirebaseProjectId",
+    )
+
+val verifyProdBackendConfig by tasks.registering {
+    val blank = prodBackendProperties.filter { providers.gradleProperty(it).orNull.isNullOrBlank() }
+    doLast {
+        check(blank.isEmpty()) {
+            "The prod release bundle needs these Gradle properties, missing or blank: ${blank.joinToString()}. " +
+                "See docs/RELEASE.md."
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name.startsWith("bundle") && name.endsWith("Release")) {
+        dependsOn(verifyUploadSigning)
+        if (name.contains("Prod")) dependsOn(verifyProdBackendConfig)
     }
 }
 

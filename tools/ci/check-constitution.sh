@@ -98,6 +98,8 @@ forbid I.5 "Network libraries belong in core:network or in prod-only dependencie
 forbid I.5 "Network libraries in :app must use prodImplementation." \
   '^[[:space:]]*(implementation|api)\(.*libs\.(okhttp|retrofit|firebase|play\.billing|androidx\.credentials|google\.googleid)' \
   'app/build.gradle.kts'
+forbid V.7 "Release must never be signed with the debug key." \
+  'signingConfigs\.(named|getByName)\("debug"\)' app/build.gradle.kts
 forbid IV.3 "Thread.sleep makes tests slow and flaky. Use runTest and virtual time." \
   'Thread\.sleep' '*.kt'
 forbid III.3 "Production code must not reference a test double or a fake." \
