@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.profile.impl.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.tailormyresume.core.navigation.Navigator
@@ -71,3 +72,6 @@ private fun Navigator.leave(exit: ProfileExit) {
 }
 
 private const val EXPERIENCE_TYPE = "experience"
+
+@Composable
+internal fun NavKeyPlaceholder(key: NavKey) {}

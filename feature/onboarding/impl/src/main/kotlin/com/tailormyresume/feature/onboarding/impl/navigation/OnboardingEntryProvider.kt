@@ -1,5 +1,6 @@
 package com.tailormyresume.feature.onboarding.impl.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.tailormyresume.core.domain.onboarding.OnboardingStep
@@ -96,3 +97,6 @@ private fun OnboardingStep.toNavKey(): NavKey = when (this) {
     OnboardingStep.PasteJobDescription -> PasteJobDescriptionNavKey()
     OnboardingStep.Applications -> DefaultApplicationsNavKey
 }
+
+@Composable
+internal fun NavKeyPlaceholder(key: NavKey) {}
