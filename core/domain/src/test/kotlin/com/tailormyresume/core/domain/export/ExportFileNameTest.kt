@@ -75,4 +75,12 @@ class ExportFileNameTest {
             assertThat(build("Priya Deshmukh", "Northwind GCC", "Analyst", format)).endsWith(".pdf")
         }
     }
+
+    @Test
+    fun combiningMarksSurviveInIndicAndLatinNames() {
+        assertThat(build("प्रिया देशमुख", "", "", ExportFileNameFormat.NAME_RESUME))
+            .isEqualTo("प्रिया-देशमुख_Resume.pdf")
+        assertThat(build("Zoe\u0308 Núñez", "", "", ExportFileNameFormat.NAME_RESUME))
+            .isEqualTo("Zoe\u0308-Núñez_Resume.pdf")
+    }
 }

@@ -9,7 +9,7 @@ object ExportFileName {
     private const val MAX_BASE_LENGTH = 100
     private const val FALLBACK_BASE = "Resume"
     private const val EXTENSION = ".pdf"
-    private val nonWord = Regex("[^\\p{L}\\p{N}]+")
+    private val nonWord = Regex("[^\\p{L}\\p{M}\\p{N}]+")
 
     fun build(profile: CandidateProfile, job: JobDescription, format: ExportFileNameFormat): String {
         val parts = when (format) {

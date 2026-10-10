@@ -108,6 +108,18 @@ class AppViewModelTest {
         assertThat(store.read(LOCAL_DATA_KEY)).isEqualTo(LOCAL_DATA_VALUE)
     }
 
+    @Test
+    fun rootState_whenSignedInWithoutCompletedOnboarding_isFirstRunNotMain() = runTest {
+        sessionRepository.sendAccount(SignInAccount.localAccount)
+        sessionRepository.sendOnboardingComplete(false)
+
+        viewModel().rootState.test {
+            assertThat(awaitItem()).isEqualTo(AppRootState.Loading)
+            assertThat(awaitItem()).isEqualTo(AppRootState.FirstRun)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     private companion object {
         const val LOCAL_DATA_KEY = "applications.kept"
         const val LOCAL_DATA_VALUE = "kept"

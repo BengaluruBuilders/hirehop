@@ -348,4 +348,56 @@ class KeywordCoverageCalculatorTest {
         assertThat(coverage.now).isEqualTo(50)
         assertThat(coverage.upTo).isEqualTo(100)
     }
+
+    private fun experienceRequirement(id: String, text: String, vararg keywords: String) = JobRequirement(
+        id = id,
+        text = text,
+        type = RequirementType.EXPERIENCE,
+        priority = RequirementPriority.MUST_HAVE,
+        keywords = keywords.toList(),
+    )
+
+    private fun upToWithAnswer(requirement: JobRequirement, detail: String): Int {
+        val matches = listOf(
+            match(requirement("r1", "Strong SQL", "sql"), MatchStatus.MET),
+            match(requirement, MatchStatus.GAP),
+        )
+        return KeywordCoverageCalculator.compute(matches, QuickAnswer(requirement.id, "YES_REGULARLY", detail), null).upTo
+    }
+
+    @Test
+    fun placeholderDetailDoesNotLetRequirementTextConfirmKeyword() {
+        val stakeholders = experienceRequirement("x1", "Experience presenting to senior stakeholders", "stakeholders")
+
+        assertThat(upToWithAnswer(stakeholders, "n/a")).isEqualTo(50)
+    }
+
+    @Test
+    fun detailStatingTheKeywordConfirmsIt() {
+        val stakeholders = experienceRequirement("x1", "Experience presenting to senior stakeholders", "stakeholders")
+
+        assertThat(upToWithAnswer(stakeholders, "Presented monthly results to stakeholders")).isEqualTo(100)
+    }
+
+    @Test
+    fun displayCasedPowerBiKeywordIsConfirmedByNamedSkillAndDetail() {
+        val powerBi = requirement("p1", "Power BI or Tableau", "Power BI")
+
+        assertThat(upToWithAnswer(powerBi, "built Power BI dashboards")).isEqualTo(100)
+        assertThat(upToWithAnswer(powerBi, "")).isEqualTo(100)
+    }
+
+    @Test
+    fun blankDetailStillConfirmsNamedSkills() {
+        val matches = listOf(
+            match(requirement("r1", "Strong SQL", "sql"), MatchStatus.GAP),
+            match(requirement("r2", "Python", "python"), MatchStatus.GAP),
+        )
+
+        val sql = KeywordCoverageCalculator.compute(matches, QuickAnswer("r1", "YES_REGULARLY", " "), null)
+        val python = KeywordCoverageCalculator.compute(matches, QuickAnswer("r2", "A_FEW_TIMES"), null)
+
+        assertThat(sql.upTo).isEqualTo(50)
+        assertThat(python.upTo).isEqualTo(50)
+    }
 }

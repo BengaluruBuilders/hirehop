@@ -58,10 +58,9 @@ object KeywordCoverageCalculator {
     ): List<String> {
         if (quickAnswer == null || quickAnswer.choice !in setOf(YES_REGULARLY, A_FEW_TIMES)) return emptyList()
         val requirement = requirements.firstOrNull { it.id == quickAnswer.requirementId } ?: return emptyList()
-        if (quickAnswer.detail.isBlank()) {
-            return requirement.keywords.filter { isNamedSkillKeyword(requirement, it) }.map { keywordOf(it) }
-        }
-        return stated(requirement, requirement.text + "\n" + quickAnswer.detail)
+        val named = requirement.keywords.filter { isNamedSkillKeyword(requirement, it) }
+        val statedInDetail = keywordsStatedIn(requirement, quickAnswer.detail)
+        return (named.map(::keywordOf) + statedInDetail.map(::keywordOf)).distinct()
     }
 
     private fun percent(covered: Int, total: Int): Int = if (total == 0) 0 else (200 * covered + total) / (2 * total)
