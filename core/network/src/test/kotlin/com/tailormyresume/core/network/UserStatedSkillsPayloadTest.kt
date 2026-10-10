@@ -26,7 +26,7 @@ class UserStatedSkillsPayloadTest {
     fun statedSkillsAreSubsetOfSentSkills() {
         val facts = profile(listOf("SQL", "Excel"), listOf("sql", "Rust")).toFactsDto()
 
-        assertThat(facts.userStatedSkills).containsExactly("sql")
+        assertThat(facts.userStatedSkills).containsExactly("SQL")
         assertThat(wire(profile(listOf("SQL", "Excel"), listOf("SQL"))))
             .isEqualTo("""{"skills":["SQL","Excel"],"entries":[],"userStatedSkills":["SQL"]}""")
     }
