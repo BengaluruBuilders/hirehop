@@ -17,11 +17,11 @@ import com.tailormyresume.core.designsystem.theme.TmrColors
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
 enum class TmrApplicationStatus(@StringRes val labelRes: Int) {
-    Saved(R.string.content_status_saved),
-    Applied(R.string.content_status_applied),
-    Interview(R.string.content_status_interview),
-    Offer(R.string.content_status_offer),
-    Rejected(R.string.content_status_rejected),
+    Saved(R.string.core_designsystem_content_status_saved),
+    Applied(R.string.core_designsystem_content_status_applied),
+    Interview(R.string.core_designsystem_content_status_interview),
+    Offer(R.string.core_designsystem_content_status_offer),
+    Rejected(R.string.core_designsystem_content_status_rejected),
 }
 
 @Immutable

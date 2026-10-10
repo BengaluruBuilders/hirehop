@@ -22,7 +22,7 @@ private const val TRACK_ALPHA = 0.16f
 @Composable
 fun TmrStoryBars(count: Int, activeIndex: Int, activeFraction: Float, modifier: Modifier = Modifier) {
     val ink = TmrTheme.colors.ink
-    val step = stringResource(R.string.content_story_step, activeIndex + 1, count)
+    val step = stringResource(R.string.core_designsystem_content_story_step, activeIndex + 1, count)
     Row(
         modifier = modifier
             .fillMaxWidth()

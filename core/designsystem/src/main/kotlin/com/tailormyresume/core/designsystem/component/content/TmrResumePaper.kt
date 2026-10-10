@@ -73,7 +73,7 @@ fun TmrResumePaper(
     modifier: Modifier = Modifier,
 ) {
     val colors = TmrTheme.colors
-    val summary = stringResource(R.string.content_paper_summary, coveragePercent)
+    val summary = stringResource(R.string.core_designsystem_content_paper_summary, coveragePercent)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -93,7 +93,7 @@ fun TmrResumePaper(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(R.string.content_percent, coveragePercent),
+                    text = stringResource(R.string.core_designsystem_content_percent, coveragePercent),
                     style = TmrTheme.typography.mono15.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.dp.fixedSp(),
@@ -189,8 +189,8 @@ private fun PaperLegend() {
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        LegendEntry(colors.limeSoft, stringResource(R.string.content_paper_from_resume))
-        LegendEntry(colors.amberHighlight, stringResource(R.string.content_paper_from_answer))
+        LegendEntry(colors.limeSoft, stringResource(R.string.core_designsystem_content_paper_from_resume))
+        LegendEntry(colors.amberHighlight, stringResource(R.string.core_designsystem_content_paper_from_answer))
     }
 }
 

@@ -80,7 +80,7 @@ fun TmrStatusBar(counts: Map<TmrApplicationStatus, Int>, modifier: Modifier = Mo
                     Box(Modifier.size(LegendDot).background(segment.color, CircleShape))
                     Text(
                         text = stringResource(
-                            R.string.content_status_legend,
+                            R.string.core_designsystem_content_status_legend,
                             stringResource(segment.status.labelRes),
                             segment.count,
                         ),

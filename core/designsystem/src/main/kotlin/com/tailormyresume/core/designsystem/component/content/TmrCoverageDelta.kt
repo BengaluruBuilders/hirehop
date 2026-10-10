@@ -26,7 +26,7 @@ private val ArrowSize = 24.dp
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TmrCoverageDelta(now: Int, upTo: Int, modifier: Modifier = Modifier) {
-    val summary = stringResource(R.string.content_coverage_summary, now, upTo)
+    val summary = stringResource(R.string.core_designsystem_content_coverage_summary, now, upTo)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -34,7 +34,7 @@ fun TmrCoverageDelta(now: Int, upTo: Int, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
         Text(
-            text = stringResource(R.string.content_keywords_matched),
+            text = stringResource(R.string.core_designsystem_content_keywords_matched),
             style = TmrTheme.typography.label,
             color = TmrTheme.colors.textMuted,
         )
@@ -43,14 +43,14 @@ fun TmrCoverageDelta(now: Int, upTo: Int, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.sm),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            CoverageValue(now, stringResource(R.string.content_coverage_now), TmrTheme.colors.textMuted)
+            CoverageValue(now, stringResource(R.string.core_designsystem_content_coverage_now), TmrTheme.colors.textMuted)
             Icon(
                 imageVector = TmrIcons.ArrowForward,
                 contentDescription = null,
                 tint = TmrTheme.colors.textDisabled,
                 modifier = Modifier.size(ArrowSize).clearAndSetSemantics {},
             )
-            CoverageValue(upTo, stringResource(R.string.content_coverage_up_to), TmrTheme.colors.lime)
+            CoverageValue(upTo, stringResource(R.string.core_designsystem_content_coverage_up_to), TmrTheme.colors.lime)
         }
     }
 }
@@ -59,7 +59,7 @@ fun TmrCoverageDelta(now: Int, upTo: Int, modifier: Modifier = Modifier) {
 private fun CoverageValue(percent: Int, caption: String, color: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.xxs)) {
         Text(
-            text = stringResource(R.string.content_percent, percent),
+            text = stringResource(R.string.core_designsystem_content_percent, percent),
             style = TmrTheme.typography.display,
             color = color,
         )

@@ -15,7 +15,7 @@ fun TmrSoonRow(label: String, onClick: () -> Unit, modifier: Modifier = Modifier
         onClick = onClick,
         showChevron = false,
         showDivider = showDivider,
-        stateDescription = stringResource(R.string.content_soon_state),
+        stateDescription = stringResource(R.string.core_designsystem_content_soon_state),
         minHeight = 56.dp,
     )
 }

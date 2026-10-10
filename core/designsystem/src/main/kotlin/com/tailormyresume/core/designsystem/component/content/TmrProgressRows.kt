@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -89,9 +90,9 @@ internal fun tmrSpinnerAngle(frameTimeMs: Long, motion: TmrMotion): Float =
 @Composable
 private fun tmrProgressStateDescription(state: TmrProgressState): String =
     when (state) {
-        TmrProgressState.Done -> stringResource(R.string.content_progress_done)
-        TmrProgressState.Active -> stringResource(R.string.content_progress_active)
-        TmrProgressState.Pending -> stringResource(R.string.content_progress_pending)
+        TmrProgressState.Done -> stringResource(R.string.core_designsystem_content_progress_done)
+        TmrProgressState.Active -> stringResource(R.string.core_designsystem_content_progress_active)
+        TmrProgressState.Pending -> stringResource(R.string.core_designsystem_content_progress_pending)
     }
 
 @Composable
@@ -197,8 +198,8 @@ private fun TmrProgressRowItem(row: TmrProgressRow, modifier: Modifier = Modifie
 
 @Composable
 fun TmrProgressRows(rows: List<TmrProgressRow>, percent: Int, modifier: Modifier = Modifier) {
-    val percentText = stringResource(R.string.content_percent, percent)
-    val percentState = stringResource(R.string.content_progress_percent_state, percent)
+    val percentText = stringResource(R.string.core_designsystem_content_percent, percent)
+    val percentState = pluralStringResource(R.plurals.core_designsystem_content_progress_percent_state, percent, percent)
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(RowsGap),

@@ -83,14 +83,14 @@ fun TmrFileCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FileCardButton(
-                label = stringResource(R.string.content_file_share),
-                description = stringResource(R.string.content_file_share_description, fileName),
+                label = stringResource(R.string.core_designsystem_content_file_share),
+                description = stringResource(R.string.core_designsystem_content_file_share_description, fileName),
                 onClick = onShare,
                 modifier = Modifier.weight(1f),
             )
             FileCardButton(
-                label = stringResource(R.string.content_file_open),
-                description = stringResource(R.string.content_file_open_description, fileName),
+                label = stringResource(R.string.core_designsystem_content_file_open),
+                description = stringResource(R.string.core_designsystem_content_file_open_description, fileName),
                 onClick = onOpen,
                 modifier = Modifier.weight(1f),
             )

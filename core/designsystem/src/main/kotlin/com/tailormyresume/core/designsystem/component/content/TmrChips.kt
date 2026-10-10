@@ -25,24 +25,24 @@ import com.tailormyresume.core.designsystem.theme.TmrColors
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 
 enum class TmrKeywordState(@StringRes val stateRes: Int) {
-    Have(R.string.content_keyword_have_state),
-    Missing(R.string.content_keyword_missing_state),
+    Have(R.string.core_designsystem_content_keyword_have_state),
+    Missing(R.string.core_designsystem_content_keyword_missing_state),
 }
 
 enum class TmrSource(@StringRes val labelRes: Int) {
-    YourResume(R.string.content_source_your_resume),
-    YourAnswer(R.string.content_source_your_answer),
+    YourResume(R.string.core_designsystem_content_source_your_resume),
+    YourAnswer(R.string.core_designsystem_content_source_your_answer),
 }
 
 enum class TmrTag(@StringRes val labelRes: Int) {
-    Soon(R.string.content_tag_soon),
-    Add(R.string.content_tag_add),
-    BestValue(R.string.content_tag_best_value),
-    Required(R.string.content_tag_required),
-    New(R.string.content_tag_new),
-    Rewritten(R.string.content_tag_rewritten),
-    Added(R.string.content_tag_added),
-    Reordered(R.string.content_tag_reordered),
+    Soon(R.string.core_designsystem_content_tag_soon),
+    Add(R.string.core_designsystem_content_tag_add),
+    BestValue(R.string.core_designsystem_content_tag_best_value),
+    Required(R.string.core_designsystem_content_tag_required),
+    New(R.string.core_designsystem_content_tag_new),
+    Rewritten(R.string.core_designsystem_content_tag_rewritten),
+    Added(R.string.core_designsystem_content_tag_added),
+    Reordered(R.string.core_designsystem_content_tag_reordered),
 }
 
 @Immutable

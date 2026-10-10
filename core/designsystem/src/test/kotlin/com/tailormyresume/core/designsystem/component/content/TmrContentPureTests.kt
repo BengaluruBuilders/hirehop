@@ -171,7 +171,7 @@ class TmrStringsPolicyTest {
             )
         }
 
-        assertEquals(allowedPhrase, valuesOf(File(resDir(), "values/strings_content.xml"))["content_keywords_matched"])
+        assertEquals(allowedPhrase, valuesOf(File(resDir(), "values/strings_content.xml"))["core_designsystem_content_keywords_matched"])
     }
 }
 
