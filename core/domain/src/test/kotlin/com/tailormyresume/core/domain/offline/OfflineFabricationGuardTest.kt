@@ -1,15 +1,15 @@
 package com.tailormyresume.core.domain.offline
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.domain.AnswerFacts
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.GuardrailViolation
-import org.junit.Test
-import com.tailormyresume.core.domain.AnswerFacts
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.QuickAnswer
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
+import org.junit.Test
 
 class OfflineFabricationGuardTest {
     private val guard = OfflineFabricationGuard()
@@ -344,7 +344,7 @@ class OfflineFabricationGuardTest {
 
     private val answerRequirement = JobRequirement(
         id = "req-1",
-        text = "Presented quarterly results to the board for 3+ years",
+        text = "Presented quarterly results to the board for 3+ years using Looker",
         type = RequirementType.EXPERIENCE,
         priority = RequirementPriority.MUST_HAVE,
         keywords = listOf("looker"),

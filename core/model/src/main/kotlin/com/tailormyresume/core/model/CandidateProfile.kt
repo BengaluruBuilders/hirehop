@@ -49,7 +49,8 @@ fun CandidateProfile.confirmedWithinLimits(): CandidateProfile {
     return copy(skills = limitedSkills, entries = limited)
 }
 
-fun CandidateProfile.sendableFacts(): CandidateProfile = confirmedWithinLimits()
+fun CandidateProfile.sendableFacts(): CandidateProfile =
+    copy(entries = entries.filter { it.source != FactSource.USER_ANSWER }).confirmedWithinLimits()
 
 fun CandidateProfile.isSkillUserStated(skill: String): Boolean =
     userStatedSkills.any { it.equals(skill, ignoreCase = true) }

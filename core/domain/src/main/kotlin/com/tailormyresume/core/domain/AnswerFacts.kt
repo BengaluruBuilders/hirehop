@@ -7,10 +7,25 @@ import com.tailormyresume.core.model.QuickAnswer
 internal object AnswerFacts {
     const val YES_REGULARLY = "YES_REGULARLY"
     const val A_FEW_TIMES = "A_FEW_TIMES"
+    private const val ID_PREFIX = "ans-"
+    private val choicesThatSupportFacts = setOf(YES_REGULARLY, A_FEW_TIMES)
 
-    fun isAnswerId(id: String): Boolean = false
+    fun isAnswerId(id: String): Boolean = id.startsWith(ID_PREFIX)
 
-    fun keywords(answer: QuickAnswer?, job: JobDescription): List<String> = emptyList()
+    fun idsOf(fact: EvidenceBullet): List<String> = listOf(fact.id, "${fact.id}-b1")
 
-    fun factOf(answer: QuickAnswer?, job: JobDescription): EvidenceBullet? = null
+    fun keywords(answer: QuickAnswer?, job: JobDescription): List<String> {
+        if (answer == null || answer.choice !in choicesThatSupportFacts) return emptyList()
+        val requirement = job.requirements.firstOrNull { it.id == answer.requirementId } ?: return emptyList()
+        return keywordsStatedIn(requirement, requirement.text + "\n" + answer.detail)
+    }
+
+    fun factOf(answer: QuickAnswer?, job: JobDescription): EvidenceBullet? {
+        if (answer == null) return null
+        val keywords = keywords(answer, job)
+        val text = listOf(answer.detail.trim(), keywords.joinToString(", "))
+            .filter { it.isNotEmpty() && answer.choice in choicesThatSupportFacts }
+            .joinToString("\n")
+        return text.takeIf { it.isNotEmpty() }?.let { EvidenceBullet(ID_PREFIX + answer.requirementId, it) }
+    }
 }

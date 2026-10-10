@@ -6,6 +6,7 @@ import com.tailormyresume.core.domain.offline.OfflineGapMatcher
 import com.tailormyresume.core.domain.offline.OfflineJobDescriptionAnalyzer
 import com.tailormyresume.core.domain.offline.OfflineResumeTailor
 import com.tailormyresume.core.domain.offline.jobDescriptionResources
+import com.tailormyresume.core.domain.offline.profileOf
 import com.tailormyresume.core.domain.offline.resourceText
 import com.tailormyresume.core.domain.offline.sampleProfile
 import com.tailormyresume.core.model.BulletDecision
@@ -13,23 +14,22 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EditType
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.EvidenceBullet
+import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.GuardrailViolation
 import com.tailormyresume.core.model.JobDescription
-import com.tailormyresume.core.model.KeywordCoverage
-import com.tailormyresume.core.model.TailoredBullet
-import com.tailormyresume.core.model.TailoredResume
-import kotlinx.coroutines.test.runTest
-import org.junit.Test
-import com.tailormyresume.core.model.TailoredText
-import com.tailormyresume.core.model.TailoredSkills
-import com.tailormyresume.core.model.QuickAnswer
-import com.tailormyresume.core.model.ProfileEntry
-import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.KeywordCoverage
+import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.QuickAnswer
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
-import com.tailormyresume.core.domain.offline.profileOf
+import com.tailormyresume.core.model.TailoredBullet
+import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.TailoredSkills
+import com.tailormyresume.core.model.TailoredText
+import kotlinx.coroutines.test.runTest
+import org.junit.Test
 
 class TailorResumeUseCaseTest {
     private val emptyJob = JobDescription("", "", "", emptyList())
@@ -235,7 +235,7 @@ class TailorResumeUseCaseTest {
     )
     private val presenting = JobRequirement(
         id = "req-1",
-        text = "Presented quarterly results to the board for 3+ years",
+        text = "Presented quarterly results to the board for 3+ years using Looker",
         type = RequirementType.EXPERIENCE,
         priority = RequirementPriority.MUST_HAVE,
         keywords = listOf("looker"),
