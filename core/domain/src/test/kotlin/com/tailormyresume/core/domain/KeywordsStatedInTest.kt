@@ -1,6 +1,7 @@
 package com.tailormyresume.core.domain
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.domain.offline.SkillLexicon
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
@@ -40,5 +41,42 @@ class KeywordsStatedInTest {
     @Test
     fun nonLexiconKeywordStillMatchesByStem() {
         assertThat(keywordsStatedIn(requirement("stakeholders"), "Presented to a stakeholder")).containsExactly("stakeholders")
+    }
+
+    private fun stated(keyword: String, statement: String) = keywordsStatedIn(requirement(keyword), statement)
+
+    @Test
+    fun looseAliasesDoNotResolveToAnotherSkill() {
+        assertThat(stated("SwiftUI", "Wrote Swift code")).isEmpty()
+        assertThat(stated("Swift", "Built SwiftUI apps")).isEmpty()
+        assertThat(stated("SwiftUI", "Built SwiftUI apps")).containsExactly("SwiftUI")
+        assertThat(stated("Shell scripting", "Wrote shell scripting tools")).containsExactly("Shell scripting")
+        assertThat(stated("AngularJS", "Built AngularJS apps")).containsExactly("AngularJS")
+        assertThat(stated("Angular", "Built AngularJS apps")).isEmpty()
+        assertThat(SkillLexicon.displayName("Shell scripting")).isEqualTo("Shell scripting")
+        assertThat(SkillLexicon.displayName("AngularJS")).isEqualTo("AngularJS")
+        assertThat(SkillLexicon.displayName("SwiftUI")).isEqualTo("SwiftUI")
+    }
+
+    @Test
+    fun strictAliasesStillResolve() {
+        assertThat(SkillLexicon.displayName("PowerBI")).isEqualTo("Power BI")
+        assertThat(stated("k8s", "Ran Kubernetes clusters")).containsExactly("Kubernetes")
+        assertThat(stated("js", "Wrote JavaScript")).containsExactly("JavaScript")
+        assertThat(stated("ms excel", "Modelled in Excel")).containsExactly("Excel")
+    }
+
+    @Test
+    fun bareGoAndExpressAreStatedOnlyAsStandaloneCapitalisedTokens() {
+        assertThat(stated("Go", "Built services in Go")).containsExactly("Go")
+        assertThat(stated("Go", "Built services in Golang")).containsExactly("Go")
+        assertThat(stated("Express", "Built APIs with Express")).containsExactly("Express")
+        assertThat(stated("Express", "Built APIs with Express.js")).containsExactly("Express")
+        listOf("Owned the go-to-market plan", "We go live in May", "Go live in May", "Let's go", "Pre-Go checks").forEach {
+            assertThat(stated("Go", it)).isEmpty()
+        }
+        listOf("Express interest in roles", "Expressed concerns", "I express thanks", "Non-Express lanes").forEach {
+            assertThat(stated("Express", it)).isEmpty()
+        }
     }
 }

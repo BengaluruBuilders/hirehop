@@ -6,15 +6,24 @@ import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.RequirementType
 
 fun keywordsStatedIn(requirement: JobRequirement, statement: String): List<String> {
-    val statedCanonicals = SkillLexicon.canonicalsIn(statement).toSet()
+    val statedCanonicals = SkillLexicon.strictCanonicalsIn(statement)
+    val statedSurfaces = SkillLexicon.surfaceKeysIn(statement)
     val statedStems = TextTokens.stems(statement)
     return requirement.keywords
-        .filter { keyword -> isStated(keyword, statedCanonicals, statedStems) }
+        .filter { keyword -> isStated(keyword, statedCanonicals, statedSurfaces, statedStems) }
         .map(SkillLexicon::displayName)
 }
 
-private fun isStated(keyword: String, statedCanonicals: Set<String>, statedStems: Set<String>): Boolean =
-    SkillLexicon.normalise(keyword)?.let { it in statedCanonicals } ?: (TextTokens.stem(keyword) in statedStems)
+private fun isStated(
+    keyword: String,
+    statedCanonicals: Set<String>,
+    statedSurfaces: Set<String>,
+    statedStems: Set<String>,
+): Boolean = when {
+    SkillLexicon.normaliseStrict(keyword) != null -> SkillLexicon.normaliseStrict(keyword) in statedCanonicals
+    SkillLexicon.normalise(keyword) != null -> SkillLexicon.keyOfForm(keyword) in statedSurfaces
+    else -> TextTokens.stem(keyword) in statedStems
+}
 
 fun isNamedSkillKeyword(requirement: JobRequirement, keyword: String): Boolean {
     val isSkill = requirement.type == RequirementType.SKILL ||

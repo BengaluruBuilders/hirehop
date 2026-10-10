@@ -11,7 +11,9 @@ internal object SkillLexicon {
 
     private val entriesByCanonical: Map<String, LexiconEntry> = entries.associateBy { it.canonical }
     private val fieldOfStudyCanonicals: Set<String> = fieldOfStudyEntries.map { it.canonical }.toSet()
-    private val entriesByKey: Map<String, LexiconEntry> = buildKeyIndex()
+    private val entriesByKey: Map<String, LexiconEntry> = buildKeyIndex(LexiconEntry::allForms)
+    private val entriesByStrictKey: Map<String, LexiconEntry> =
+        buildKeyIndex { listOf(it.display) + it.aliases + it.exactForms }
     private val patterns: List<TermPattern> = entries.flatMap(TermPattern::compileAll)
 
     fun termsIn(text: String): List<LexiconTerm> {
@@ -23,14 +25,23 @@ internal object SkillLexicon {
 
     fun canonicalsIn(text: String): List<String> = termsIn(text).map { it.canonical }.distinct()
 
+    fun strictCanonicalsIn(text: String): Set<String> =
+        termsIn(text).filterNot(::isLooseAlias).map { it.canonical }.toSet()
+
+    fun surfaceKeysIn(text: String): Set<String> = termsIn(text).map { keyOf(it.surface) }.toSet()
+
+    fun keyOfForm(form: String): String = keyOf(form)
+
     fun normalise(term: String): String? = entriesByKey[keyOf(term)]?.canonical
+
+    fun normaliseStrict(term: String): String? = entriesByStrictKey[keyOf(term)]?.canonical
 
     fun isFieldOfStudy(canonical: String): Boolean = canonical in fieldOfStudyCanonicals
 
     fun isKnown(canonical: String): Boolean = canonical in entriesByCanonical
 
     fun displayName(term: String): String =
-        (entriesByCanonical[term] ?: entriesByKey[keyOf(term)])?.display ?: term
+        (entriesByCanonical[term] ?: entriesByStrictKey[keyOf(term)])?.display ?: term
 
     fun typeOf(canonical: String): RequirementType? = entriesByCanonical[canonical]?.type
 
@@ -39,6 +50,11 @@ internal object SkillLexicon {
         val surface = keyOf(term.surface)
         val ambiguousExactForm = entry.exactForms.any { keyOf(it) == surface && keyOf(it) != keyOf(entry.display) }
         return ambiguousExactForm || entry.looseAliases.any { keyOf(it) == surface }
+    }
+
+    private fun isLooseAlias(term: LexiconTerm): Boolean {
+        val surface = keyOf(term.surface)
+        return entriesByCanonical[term.canonical]?.looseAliases?.any { keyOf(it) == surface } == true
     }
 
     fun surfaceMatchesDisplay(term: LexiconTerm): Boolean {
@@ -58,9 +74,9 @@ internal object SkillLexicon {
 
     private fun keyOf(form: String): String = form.trim().lowercase().replace(separators, " ")
 
-    private fun buildKeyIndex(): Map<String, LexiconEntry> {
+    private fun buildKeyIndex(formsOf: (LexiconEntry) -> List<String>): Map<String, LexiconEntry> {
         val index = LinkedHashMap<String, LexiconEntry>()
-        entries.forEach { entry -> entry.allForms.forEach { index.putIfAbsent(keyOf(it), entry) } }
+        entries.forEach { entry -> formsOf(entry).forEach { index.putIfAbsent(keyOf(it), entry) } }
         return index
     }
 
