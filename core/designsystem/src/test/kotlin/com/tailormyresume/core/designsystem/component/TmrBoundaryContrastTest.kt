@@ -23,7 +23,8 @@ class TmrBoundaryContrastTest {
     @Test
     fun boundaryTokenDiffersFromHairlineToken() {
         assertNotEquals(TmrDarkColors.boundary, TmrDarkColors.outlineVariant)
-        assertEquals(Color(0xFF3A3D3B), TmrDarkColors.outlineVariant)
+        assertEquals(Color(0xFF2A2A2A), TmrDarkColors.outlineVariant)
+        assertEquals(Color(0xFF7D7D7D), TmrDarkColors.boundary)
     }
 
     private fun surfaces(colors: TmrColors): List<Pair<String, Color>> = with(colors) {
