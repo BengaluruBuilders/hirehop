@@ -11,4 +11,8 @@ interface CreditsRepository {
     suspend fun record(entry: CreditLedgerEntry)
 
     suspend fun refresh()
+
+    suspend fun clear()
+
+    suspend fun removeForApplication(applicationId: String)
 }

@@ -22,6 +22,14 @@ class TestCreditsRepository : CreditsRepository {
 
     override suspend fun refresh() = Unit
 
+    override suspend fun clear() {
+        entries.value = emptyList()
+    }
+
+    override suspend fun removeForApplication(applicationId: String) {
+        entries.update { list -> list.filterNot { it.applicationId == applicationId } }
+    }
+
     fun sendLedger(ledger: List<CreditLedgerEntry>) {
         entries.value = ledger
     }

@@ -23,6 +23,8 @@ class FakeJobApplicationDao : JobApplicationDao {
     override fun observeApplication(id: String): Flow<JobApplicationEntity?> =
         entities.map { it[id] }
 
+    override suspend fun getApplication(id: String): JobApplicationEntity? = entities.value[id]
+
     override suspend fun upsertApplication(application: JobApplicationEntity) {
         entities.update { it + (application.id to application) }
     }

@@ -20,11 +20,11 @@ import com.tailormyresume.core.network.dto.RequirementDto
 import com.tailormyresume.core.network.dto.TailoredBulletDto
 
 fun CandidateProfile.toFactsDto(): ProfileFactsDto {
-    val sent = confirmedWithinLimits()
+    val sent = copy(entries = entries.filter { it.source != FactSource.USER_ANSWER }).confirmedWithinLimits()
     return ProfileFactsDto(
         skills = sent.skills,
         userStatedSkills = sent.skills.filter { sent.isSkillUserStated(it) },
-        entries = sent.entries.filter { it.source != FactSource.USER_ANSWER }.map { entry ->
+        entries = sent.entries.map { entry ->
             FactEntryDto(
                 id = entry.id,
                 category = entry.category,

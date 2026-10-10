@@ -33,7 +33,7 @@ internal class OfflineFirstApplicationRepository @Inject constructor(
             .flowOn(ioDispatcher)
 
     override suspend fun upsertApplication(application: JobApplication) =
-        jobApplicationDao.upsertApplication(application.asEntity())
+        jobApplicationDao.upsertKeepingLegacyColumns(application.asEntity())
 
     override suspend fun updateStatus(id: String, status: ApplicationStatus) =
         jobApplicationDao.updateStatus(id = id, status = status, updatedAt = clock.now())

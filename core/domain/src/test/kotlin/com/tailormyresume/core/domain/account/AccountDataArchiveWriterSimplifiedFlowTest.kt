@@ -112,6 +112,23 @@ class AccountDataArchiveWriterSimplifiedFlowTest {
     }
 
     @Test
+    fun storedLegacyNotesAndStatusAreExportedInTextAndJson() {
+        val migrated = data.copy(applications = listOf(application.copy(legacyNotes = "Referral from a colleague", legacyStatus = "NO_RESPONSE")))
+        val target = File(folder.root, "legacy.zip")
+        AccountDataArchiveWriter().write(migrated, target)
+        val files = ZipFile(target).use { zip ->
+            zip.entries().asSequence().associate { it.name to zip.getInputStream(it).readBytes().decodeToString() }
+        }
+
+        val applicationJson = Json.parseToJsonElement(files.getValue("my-data.json")).jsonObject
+            .getValue("applications").jsonArray.single().jsonObject
+        assertThat(applicationJson.string("notes")).isEqualTo("Referral from a colleague")
+        assertThat(applicationJson.string("legacyStatus")).isEqualTo("NO_RESPONSE")
+        assertThat(files.getValue("applications.txt")).contains("Referral from a colleague")
+        assertThat(files.getValue("applications.txt")).contains("legacyStatus=NO_RESPONSE")
+    }
+
+    @Test
     fun theTextEntriesHoldTheNewFieldsToo() {
         val files = archive()
 

@@ -86,6 +86,8 @@ class AccountDataArchiveWriter {
             appendLine("  appliedOn=${application.appliedOn?.toString().orEmpty()}")
             appendLine("  exportFileName=${application.exportFileName.orEmpty()}")
             appendLine("  changesAcceptedAt=${application.changesAcceptedAt?.toString().orEmpty()}")
+            if (application.legacyNotes.isNotEmpty()) appendIndented("notes", application.legacyNotes)
+            application.legacyStatus?.let { appendLine("  legacyStatus=$it") }
             application.keywordCoverage?.let { appendLine("  keywordCoverage now=${it.now} upTo=${it.upTo} final=${it.final ?: ""}") }
             application.quickAnswer?.let { appendIndented("quickAnswer ${it.requirementId} ${it.choice}", it.detail) }
             appendIndented("jobDescription", application.job.rawText)
@@ -211,6 +213,8 @@ class AccountDataArchiveWriter {
         put("appliedOn", application.appliedOn?.toString())
         put("exportFileName", application.exportFileName)
         put("changesAcceptedAt", application.changesAcceptedAt?.toString())
+        if (application.legacyNotes.isNotEmpty()) put("notes", application.legacyNotes)
+        application.legacyStatus?.let { put("legacyStatus", it) }
         application.keywordCoverage?.let { put("keywordCoverage", applicationCoverageJson(it)) }
         application.quickAnswer?.let { put("quickAnswer", quickAnswerJson(it)) }
         put("createdAt", application.createdAt.toString())

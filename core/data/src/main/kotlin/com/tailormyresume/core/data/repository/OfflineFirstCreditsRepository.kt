@@ -26,6 +26,10 @@ internal class OfflineFirstCreditsRepository @Inject constructor(
     override suspend fun record(entry: CreditLedgerEntry) = creditLedgerDao.insert(entry.asEntity())
 
     override suspend fun refresh() = Unit
+
+    override suspend fun clear() = creditLedgerDao.clear()
+
+    override suspend fun removeForApplication(applicationId: String) = creditLedgerDao.deleteForApplication(applicationId)
 }
 
 private fun CreditLedgerEntry.asEntity() = CreditLedgerEntity(

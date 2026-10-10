@@ -55,6 +55,19 @@ class UpdateBulletDecisionUseCaseTest {
     }
 
     @Test
+    fun keepsTheLegacyNotesAndStatusOfTheApplication() = runTest {
+        repository.upsertApplication(
+            application(TailoredResume(listOf(bullet("b1")))).copy(legacyNotes = "no reply yet", legacyStatus = "NO_RESPONSE"),
+        )
+
+        useCase("app-1", "b1", BulletDecision.ACCEPTED)
+
+        val saved = checkNotNull(repository.current("app-1"))
+        assertThat(saved.legacyNotes).isEqualTo("no reply yet")
+        assertThat(saved.legacyStatus).isEqualTo("NO_RESPONSE")
+    }
+
+    @Test
     fun rejectedDecisionIsStoredAndCanBeChangedBack() = runTest {
         repository.upsertApplication(application(TailoredResume(listOf(bullet("b1")))))
 

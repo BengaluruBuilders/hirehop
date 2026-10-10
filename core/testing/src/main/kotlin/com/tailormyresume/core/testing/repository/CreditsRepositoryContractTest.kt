@@ -56,6 +56,28 @@ abstract class CreditsRepositoryContractTest {
         assertThat(repository.observeLedger().first()).containsExactly(purchase)
     }
 
+    @Test
+    fun clearEmptiesTheLedger() = runTest {
+        val repository = createCreditsRepository()
+        repository.record(entry(CreditLedgerKind.FREE_GRANT, 1, day = 2))
+
+        repository.clear()
+
+        assertThat(repository.observeLedger().first()).isEmpty()
+    }
+
+    @Test
+    fun removingAnApplicationDropsOnlyItsRows() = runTest {
+        val repository = createCreditsRepository()
+        val purchase = entry(CreditLedgerKind.PURCHASE, 5, day = 5, productId = "application_pack_5")
+        repository.record(purchase)
+        repository.record(entry(CreditLedgerKind.SPEND, -1, day = 6, applicationId = "kb"))
+
+        repository.removeForApplication("kb")
+
+        assertThat(repository.observeLedger().first()).containsExactly(purchase)
+    }
+
     private fun entry(
         kind: CreditLedgerKind,
         amount: Int,

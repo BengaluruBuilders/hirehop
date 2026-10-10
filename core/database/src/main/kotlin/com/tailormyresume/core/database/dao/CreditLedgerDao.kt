@@ -16,4 +16,10 @@ interface CreditLedgerDao {
 
     @Insert
     suspend fun insert(entry: CreditLedgerEntity)
+
+    @Query("DELETE FROM credit_ledger")
+    suspend fun clear()
+
+    @Query("DELETE FROM credit_ledger WHERE applicationId = :applicationId")
+    suspend fun deleteForApplication(applicationId: String)
 }

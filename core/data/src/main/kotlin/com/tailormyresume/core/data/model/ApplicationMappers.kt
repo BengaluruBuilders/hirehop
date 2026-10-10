@@ -29,6 +29,8 @@ fun JobApplication.asEntity() = JobApplicationEntity(
     quickAnswerChoice = quickAnswer?.choice,
     quickAnswerDetail = quickAnswer?.detail,
     changesAcceptedAt = changesAcceptedAt,
+    notes = legacyNotes,
+    legacyStatus = legacyStatus,
 )
 
 fun JobApplicationEntity.asExternalModel() = JobApplication(
@@ -50,6 +52,8 @@ fun JobApplicationEntity.asExternalModel() = JobApplication(
     exportFileName = exportFileName,
     quickAnswer = quickAnswer(),
     changesAcceptedAt = changesAcceptedAt,
+    legacyNotes = notes,
+    legacyStatus = legacyStatus,
 )
 
 private fun JobApplicationEntity.keywordCoverage(): ApplicationKeywordCoverage? {

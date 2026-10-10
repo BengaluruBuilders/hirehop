@@ -22,4 +22,6 @@ data class JobApplication(
     val exportFileName: String? = null,
     val quickAnswer: QuickAnswer? = null,
     val changesAcceptedAt: Instant? = null,
+    val legacyNotes: String = "",
+    val legacyStatus: String? = null,
 )

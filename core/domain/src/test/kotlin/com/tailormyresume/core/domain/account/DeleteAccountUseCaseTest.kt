@@ -25,7 +25,9 @@ import com.tailormyresume.core.testing.data.sampleApplication
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
 import com.tailormyresume.core.testing.gateway.TestSignInGateway
 import com.tailormyresume.core.testing.mock.TestMockStateStore
+import com.tailormyresume.core.testing.repository.TestCreditsRepository
 import com.tailormyresume.core.testing.repository.TestExportHistoryRepository
+import com.tailormyresume.core.testing.repository.TestResumeSettingsRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -124,6 +126,8 @@ class DeleteAccountUseCaseTest {
             profileRepository = RecordingProfileRepository(profile, calls, { failingProfileClear }),
             creditBalance = AccountCreditBalance(paymentGateway = payment),
             latency = NoMockLatency,
+            creditsRepository = TestCreditsRepository(),
+            resumeSettingsRepository = TestResumeSettingsRepository(),
         )
 
         useCase()
@@ -356,6 +360,8 @@ class DeleteAccountUseCaseTest {
         ),
         creditBalance = AccountCreditBalance(paymentGateway = gateway),
         latency = latency,
+        creditsRepository = TestCreditsRepository(),
+        resumeSettingsRepository = TestResumeSettingsRepository(),
     )
 
     private fun fourApplications(): List<JobApplication> = listOf("1", "2", "3", "4").map { index ->
