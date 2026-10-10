@@ -1,12 +1,12 @@
 # Flow 4 · Profile
 
-Flow 4 · Profile (screens S16 Profile, S17 Fact editor, S18 Guided form, S19 Evidence path). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'HireHop Foundations', page 'Flow 4 · Profile'.
+Flow 4 · Profile (screens S16 Profile, S17 Fact editor, S18 Guided form, S19 Evidence path). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'TailorMyResume Foundations', page 'Flow 4 · Profile'.
 
 Each state has a light file and a dark file. The copy list shows text that is unique to the state. Text that is the same in every state of the screen is left out.
 
 ## S16 · Profile
 
-See and correct every fact HireHop may use.
+See and correct every fact TailorMyResume may use.
 
 | Frame | State | Light file | Dark file |
 |---|---|---|---|
@@ -32,7 +32,7 @@ See and correct every fact HireHop may use.
 - 18 facts
 - Add evidence
 - 13 confirmed 3 user-stated 2 to confirm
-- 2 items are not confirmed. HireHop won’t use them.
+- 2 items are not confirmed. TailorMyResume won’t use them.
 - Review
 
 **Frame 03 · full**

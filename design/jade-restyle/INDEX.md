@@ -1,6 +1,6 @@
 # Jade restyle · frame index
 
-Export of the Claude Design canvas "HireHop" on 2026-10-06:
+Export of the Claude Design canvas "TailorMyResume" on 2026-10-06:
 https://claude.ai/artifact/766P2hFnsULQbnXVeKj3rM. Light mode only for screens; the foundations
 boards have light and dark. 360 x 800 dp. Read the files as text: inline `style` holds the exact
 values. 1 CSS px = 1 dp, font px = sp. `/_blob/...` images are the placeholder characters; use the

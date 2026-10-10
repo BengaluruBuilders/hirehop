@@ -1,6 +1,6 @@
 # Claude Design export
 
-This folder holds the HireHop design "Friendly hero, Jade". It is an export of a Claude Design canvas.
+This folder holds the TailorMyResume design "Friendly hero, Jade". It is an export of a Claude Design canvas.
 Canvas: https://claude.ai/artifact/MuQyV6hk8yvQvwpDj1iHaZ
 
 ## Content

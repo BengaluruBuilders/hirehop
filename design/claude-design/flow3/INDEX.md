@@ -1,6 +1,6 @@
 # Flow 3 · Export and payment
 
-Flow 3 · Export and payment (screens S12 Export preview, S13 Application pack, S14 Exported, S15 Credits and help). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'HireHop Foundations', page 'Flow 3 · Export and payment'.
+Flow 3 · Export and payment (screens S12 Export preview, S13 Application pack, S14 Exported, S15 Credits and help). Direction: Friendly hero, Jade. 360 x 800 dp frames. Source: Claude Design canvas 'TailorMyResume Foundations', page 'Flow 3 · Export and payment'.
 
 Each state has a light file and a dark file. The copy list shows text that is unique to the state. Text that is the same in every state of the screen is left out.
 
@@ -126,9 +126,9 @@ Let the user buy credits, only when they choose to download.
 
 **Frame 02 · Google Play sheet (system)**
 
-- Google Play purchase sheet · not HireHop UI
+- Google Play purchase sheet · not TailorMyResume UI
 - H
-- 5 applications HireHop
+- 5 applications TailorMyResume
 - ₹149.00
 - Price includes GST ₹149.00
 - Payment method UPI · priya.d@okbank
@@ -157,7 +157,7 @@ Let the user buy credits, only when they choose to download.
 **Frame 06 · payment failed**
 
 - Payment didn’t go through
-- Google Play couldn’t complete the payment. HireHop added no charge. Your resume stays saved.
+- Google Play couldn’t complete the payment. TailorMyResume added no charge. Your resume stays saved.
 - Not now
 - Try again
 - Refunds and help
@@ -219,7 +219,7 @@ Confirm the file, share it, and save the application.
 
 **Frame 03 · share sheet (system)**
 
-- Android share sheet · not HireHop UI
+- Android share sheet · not TailorMyResume UI
 - Email
 - WhatsApp
 - Drive
