@@ -1,14 +1,35 @@
 package com.tailormyresume.feature.profile.impl.experience
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.fact.FactIdAllocator
+import com.tailormyresume.core.model.CandidateProfile
+import com.tailormyresume.core.model.EntryCategory
+import com.tailormyresume.core.model.EvidenceBullet
+import com.tailormyresume.core.model.FactSource
+import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.ProfileLimits
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+private const val PRESENT_LABEL = "Present"
+
+private const val PRESENT_IGNORING_CASE = "present"
 
 internal data class EditRoleDraft(
     val title: String = "",
@@ -34,34 +55,180 @@ internal enum class EditRoleEvent { Saved, Deleted }
 
 @HiltViewModel(assistedFactory = EditRoleViewModel.Factory::class)
 internal class EditRoleViewModel @AssistedInject constructor(
-    profileRepository: ProfileRepository,
-    idAllocator: FactIdAllocator,
-    @Assisted entryId: String?,
+    private val profileRepository: ProfileRepository,
+    private val idAllocator: FactIdAllocator,
+    @Assisted private val entryId: String?,
 ) : ViewModel() {
-    val uiState: StateFlow<EditRoleUiState> = TODO()
 
-    val events: Flow<EditRoleEvent> = TODO()
+    private val draft = MutableStateFlow<EditRoleDraft?>(null)
 
-    fun onTitleChange(value: String): Unit = TODO()
+    private val channel = Channel<EditRoleEvent>(Channel.BUFFERED)
 
-    fun onCompanyChange(value: String): Unit = TODO()
+    val events: Flow<EditRoleEvent> = channel.receiveAsFlow()
 
-    fun onStartChange(value: String): Unit = TODO()
+    private var finished = false
 
-    fun onEndChange(value: String): Unit = TODO()
+    val uiState: StateFlow<EditRoleUiState> = combine(
+        profileRepository.observeProfile(),
+        draft,
+    ) { profile, roleDraft ->
+        if (profile == null || roleDraft == null) {
+            EditRoleUiState.Loading
+        } else {
+            EditRoleUiState.Editing(
+                isNew = entryId == null,
+                draft = roleDraft,
+                canSave = canSave(profile, roleDraft),
+                canAddBullet = roleDraft.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY,
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = EditRoleUiState.Loading,
+    )
 
-    fun onCurrentChange(value: Boolean): Unit = TODO()
+    init {
+        viewModelScope.launch {
+            val profile = profileRepository.observeProfile().filterNotNull().first()
+            if (draft.value != null) return@launch
+            val entry = entryId?.let { id ->
+                profile.entries.firstOrNull { it.id == id && it.category == EntryCategory.EXPERIENCE }
+            }
+            draft.value = when {
+                entryId == null -> EditRoleDraft()
+                else -> entry?.toDraft() ?: return@launch
+            }
+        }
+    }
 
-    fun onBulletChange(index: Int, value: String): Unit = TODO()
+    fun onTitleChange(value: String): Unit = edit { it.copy(title = value) }
 
-    fun onAddBullet(): Unit = TODO()
+    fun onCompanyChange(value: String): Unit = edit { it.copy(company = value) }
 
-    fun save(): Unit = TODO()
+    fun onStartChange(value: String): Unit = edit { it.copy(start = value) }
 
-    fun delete(): Unit = TODO()
+    fun onEndChange(value: String): Unit = edit { it.copy(end = value) }
+
+    fun onCurrentChange(value: Boolean): Unit = edit { it.copy(current = value) }
+
+    fun onBulletChange(index: Int, value: String): Unit = edit { roleDraft ->
+        if (index in roleDraft.bullets.indices) {
+            roleDraft.copy(bullets = roleDraft.bullets.toMutableList().apply { set(index, value) })
+        } else {
+            roleDraft
+        }
+    }
+
+    fun onAddBullet(): Unit = edit { roleDraft ->
+        if (roleDraft.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY) {
+            roleDraft.copy(bullets = roleDraft.bullets + "")
+        } else {
+            roleDraft
+        }
+    }
+
+    fun save() {
+        viewModelScope.launch {
+            if (finished) return@launch
+            val profile = profileRepository.observeProfile().first() ?: return@launch
+            val roleDraft = draft.value ?: return@launch
+            if (!canSave(profile, roleDraft)) return@launch
+            val original = entryId?.let { id ->
+                profile.entries.firstOrNull { it.id == id && it.category == EntryCategory.EXPERIENCE }
+                    ?: return@launch
+            }
+            val edited = if (original != null) {
+                roleDraft.toEntry(editedId = original.id, original = original, source = FactSource.USER_EDITED)
+            } else {
+                val newId = idAllocator.nextId(EntryCategory.EXPERIENCE, profile.entries, roleDraft.title.trim())
+                roleDraft.toEntry(editedId = newId, original = null, source = FactSource.USER_STATED)
+            }
+            val entries = if (original == null) {
+                profile.entries.withExperienceInserted(edited)
+            } else {
+                profile.entries.map { if (it.id == edited.id) edited else it }
+            }
+            finished = true
+            profileRepository.saveProfile(profile.copy(entries = entries))
+            channel.send(EditRoleEvent.Saved)
+        }
+    }
+
+    fun delete() {
+        viewModelScope.launch {
+            if (finished) return@launch
+            val id = entryId ?: return@launch
+            val profile = profileRepository.observeProfile().first() ?: return@launch
+            profileRepository.saveProfile(profile.copy(entries = profile.entries.filterNot { it.id == id }))
+            finished = true
+            channel.send(EditRoleEvent.Deleted)
+        }
+    }
+
+    private fun edit(transform: (EditRoleDraft) -> EditRoleDraft) {
+        draft.update { roleDraft -> roleDraft?.let(transform) }
+    }
+
+    private fun canSave(profile: CandidateProfile, roleDraft: EditRoleDraft): Boolean =
+        roleDraft.title.isNotBlank() &&
+            roleDraft.company.isNotBlank() &&
+            roleDraft.bullets.all { it.trim().length <= ProfileLimits.MAX_BULLET_LENGTH } &&
+            roleDraft.bullets.count { it.isNotBlank() } <= ProfileLimits.MAX_BULLETS_PER_ENTRY &&
+            (entryId != null || profile.entries.size < ProfileLimits.MAX_ENTRIES)
 
     @AssistedFactory
     interface Factory {
         fun create(entryId: String?): EditRoleViewModel
     }
+}
+
+private fun EditRoleDraft.toEntry(
+    editedId: String,
+    original: ProfileEntry?,
+    source: FactSource,
+): ProfileEntry = ProfileEntry(
+    id = editedId,
+    category = EntryCategory.EXPERIENCE,
+    title = title.trim(),
+    organization = company.trim(),
+    startDate = start.trim(),
+    endDate = if (current) PRESENT_LABEL else end.trim(),
+    bullets = toBullets(editedId, original),
+    source = source,
+    isConfirmed = true,
+)
+
+private fun EditRoleDraft.toBullets(editedId: String, original: ProfileEntry?): List<EvidenceBullet> {
+    val taken = original?.bullets?.mapTo(mutableSetOf()) { it.id } ?: mutableSetOf()
+    return bullets.mapIndexedNotNull { index, rawText ->
+        val text = rawText.trim()
+        if (text.isEmpty()) return@mapIndexedNotNull null
+        val id = original?.bullets?.getOrNull(index)?.id ?: nextFreeBulletId(editedId, taken)
+        taken += id
+        EvidenceBullet(id = id, text = text)
+    }
+}
+
+private fun nextFreeBulletId(entryId: String, taken: Set<String>): String {
+    var index = 1
+    while ("$entryId-b$index" in taken) index++
+    return "$entryId-b$index"
+}
+
+private fun ProfileEntry.toDraft(): EditRoleDraft {
+    val isPresent = endDate.trim().equals(PRESENT_IGNORING_CASE, ignoreCase = true)
+    return EditRoleDraft(
+        title = title,
+        company = organization,
+        start = startDate,
+        end = if (isPresent) "" else endDate,
+        current = isPresent,
+        bullets = bullets.map { it.text }.ifEmpty { listOf("") },
+    )
+}
+
+private fun List<ProfileEntry>.withExperienceInserted(entry: ProfileEntry): List<ProfileEntry> {
+    val position = indexOfFirst { it.category == EntryCategory.EXPERIENCE }
+    return if (position < 0) this + entry else toMutableList().apply { add(position, entry) }
 }

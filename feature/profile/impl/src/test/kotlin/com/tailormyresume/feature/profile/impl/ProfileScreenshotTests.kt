@@ -15,8 +15,10 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
@@ -435,9 +437,9 @@ class EditRoleScreenshotTest {
             "Add role",
             "e.g. Business Analyst",
             "e.g. Infosys",
-            "Mon YYYY",
             "+ Add bullet",
         )
+        rule.onAllNodesWithText("Mon YYYY").assertCountEquals(2)
         rule.assertNoText("Delete this role")
         rule.assertNoTruncatedText()
         rule.capture("profile_add_role", device)
