@@ -16,6 +16,8 @@ import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -213,5 +215,47 @@ class AppViewModelGateTest {
             cancelAndIgnoreRemainingEvents()
         }
         assertThat(cancelling.refreshes).isEqualTo(1)
+    }
+
+    @Test
+    fun resubscribeAfterTimeout_sameAccount_doesNotRefreshOrFlashLoading() = runTest {
+        sessionRepository.sendAccount(first)
+        val viewModel = viewModel()
+        val ready = AppRootState.Ready(StartDestination.Upload, first.id)
+        viewModel.rootState.test {
+            awaitItem()
+            assertThat(awaitItem()).isEqualTo(ready)
+            cancelAndIgnoreRemainingEvents()
+        }
+        advanceTimeBy(6_000)
+        runCurrent()
+
+        viewModel.rootState.test {
+            assertThat(awaitItem()).isEqualTo(ready)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(credits.refreshes).isEqualTo(1)
+    }
+
+    @Test
+    fun resubscribeAfterTimeout_differentAccount_refreshesAgain() = runTest {
+        sessionRepository.sendAccount(first)
+        val viewModel = viewModel()
+        viewModel.rootState.test {
+            awaitItem()
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+        advanceTimeBy(6_000)
+        runCurrent()
+        sessionRepository.sendAccount(second)
+
+        viewModel.rootState.test {
+            assertThat(awaitItem()).isEqualTo(AppRootState.Ready(StartDestination.Upload, first.id))
+            assertThat(awaitItem()).isEqualTo(AppRootState.Ready(StartDestination.Upload, second.id))
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(credits.refreshes).isEqualTo(2)
     }
 }

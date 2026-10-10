@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -73,5 +75,82 @@ class TmrAppRootTest {
         rule.waitForIdle()
 
         assertThat(startKeys()).containsExactly(DefaultSignInNavKey)
+    }
+
+    private class ClearedProbe : ViewModel() {
+        var cleared = false
+
+        override fun onCleared() {
+            cleared = true
+        }
+    }
+
+    private fun showRoot(startKey: NavKey, pending: List<NavKey>, account: String?) {
+        rule.setContent {
+            TmrTheme {
+                TmrRoot(
+                    root = AccountRoot(account),
+                    startKey = startKey,
+                    initialKeys = { pending },
+                    entryProvider = { shellNavigator ->
+                        navigator = shellNavigator
+                        ({ key: NavKey -> NavEntry(key) {} })
+                    },
+                )
+            }
+        }
+        rule.waitForIdle()
+    }
+
+    @Test
+    fun pendingKeyAtTabStart_replacesTheStack() {
+        showRoot(DefaultApplicationsNavKey, listOf(DefaultProfileNavKey), "account-1")
+
+        assertThat(startKeys()).containsExactly(DefaultProfileNavKey)
+    }
+
+    @Test
+    fun pendingKeyAtSignInStart_isDropped() {
+        showRoot(DefaultSignInNavKey, listOf(DefaultProfileNavKey), null)
+
+        assertThat(startKeys()).containsExactly(DefaultSignInNavKey)
+    }
+
+    @Test
+    fun pendingKeyAtUploadStart_isDropped() {
+        showRoot(UploadNavKey(), listOf(DefaultProfileNavKey), "account-1")
+
+        assertThat(startKeys()).containsExactly(UploadNavKey())
+    }
+
+    @Test
+    fun accountChange_clearsThePreviousAccountsViewModels() {
+        var probe: ClearedProbe? = null
+        var current by mutableStateOf<AppRootState>(AppRootState.Ready(StartDestination.Applications, "account-1"))
+        rule.setContent {
+            TmrTheme {
+                TmrApp(
+                    rootState = current,
+                    entryProvider = { _ ->
+                        (
+                            { key: NavKey ->
+                                NavEntry(key) {
+                                    val created = viewModel<ClearedProbe>(key = "probe-$key") { ClearedProbe() }
+                                    if (probe == null) probe = created
+                                }
+                            }
+                            )
+                    },
+                )
+            }
+        }
+        rule.waitForIdle()
+        val accountOneProbe = checkNotNull(probe)
+        assertThat(accountOneProbe.cleared).isFalse()
+
+        current = AppRootState.Ready(StartDestination.SignIn, null)
+        rule.waitForIdle()
+
+        assertThat(accountOneProbe.cleared).isTrue()
     }
 }

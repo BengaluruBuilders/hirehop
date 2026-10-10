@@ -71,6 +71,7 @@ fun TmrApp(
     rootState: AppRootState,
     modifier: Modifier = Modifier,
     hasHome: () -> Boolean = { false },
+    entryProvider: ((Navigator) -> (NavKey) -> NavEntry<NavKey>)? = null,
 ) {
     val stores = rememberRootViewModelStores()
     LaunchedEffect(rootState) {
@@ -79,7 +80,7 @@ fun TmrApp(
     TmrBackground(modifier = modifier) {
         when (rootState) {
             AppRootState.Loading -> Unit
-            is AppRootState.Ready -> TmrAccountRoot(ready = rootState, hasHome = hasHome)
+            is AppRootState.Ready -> TmrAccountRoot(ready = rootState, hasHome = hasHome, entryProvider = entryProvider)
         }
     }
 }
@@ -121,9 +122,11 @@ internal fun TmrRoot(
         val navigationState = rememberNavigationState(startKey)
         val navigator = remember(navigationState) {
             shellNavigator(navigationState, hasHome).also { navigator ->
-                val startsAtTab = startKey.isTopLevelDestination()
-                initialKeys().forEach { key ->
-                    if (startsAtTab && key.isTopLevelDestination()) navigator.root(key) else navigator.navigate(key)
+                val pending = initialKeys()
+                if (startKey.isTopLevelDestination()) {
+                    pending.forEach { key ->
+                        if (key.isTopLevelDestination()) navigator.root(key) else navigator.navigate(key)
+                    }
                 }
             }
         }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.repository.CreditsRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.onboarding.ObserveStartDestinationUseCase
+import com.tailormyresume.core.domain.onboarding.StartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,19 +26,28 @@ class AppViewModel @Inject constructor(
     private val creditsRepository: CreditsRepository,
 ) : ViewModel() {
 
+    private var lastHandled: Pair<String?, StartDestination>? = null
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val rootState: StateFlow<AppRootState> = sessionRepository.observeAccount()
         .map { account -> account?.id }
         .distinctUntilChanged()
         .flatMapLatest { accountId ->
             flow {
-                emit(AppRootState.Ready(observeStartDestination().first(), accountId))
-                if (accountId != null) refreshWallet()
+                val handled = lastHandled
+                if (handled != null && handled.first == accountId) {
+                    emit(AppRootState.Ready(handled.second, accountId))
+                } else {
+                    val start = observeStartDestination().first()
+                    lastHandled = accountId to start
+                    emit(AppRootState.Ready(start, accountId))
+                    if (accountId != null) refreshWallet()
+                }
             }
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly,
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = AppRootState.Loading,
         )
 
