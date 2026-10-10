@@ -17,7 +17,12 @@ class ObserveStartDestinationUseCase @Inject constructor(
         combine(
             sessionRepository.observeAccount(),
             sessionRepository.observeOnboardingComplete(),
-        ) { account, complete ->
-            if (account != null && complete) StartDestination.Applications else StartDestination.SignIn
+            profileRepository.observeProfile(),
+        ) { account, complete, profile ->
+            when {
+                account == null -> StartDestination.SignIn
+                complete || profile?.reviewedAt != null -> StartDestination.Applications
+                else -> StartDestination.Upload
+            }
         }.distinctUntilChanged()
 }

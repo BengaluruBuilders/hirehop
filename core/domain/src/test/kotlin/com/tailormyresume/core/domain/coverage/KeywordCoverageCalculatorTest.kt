@@ -315,4 +315,37 @@ class KeywordCoverageCalculatorTest {
 
         assertThat(coverage.final).isEqualTo(25)
     }
+
+    @Test
+    fun blankDetailAnswerWithoutNamedSkillConfirmsNothing() {
+        val experience = JobRequirement(
+            id = "x1",
+            text = "Experience presenting to senior stakeholders",
+            type = RequirementType.EXPERIENCE,
+            priority = RequirementPriority.MUST_HAVE,
+            keywords = listOf("stakeholder management"),
+        )
+        val matches = listOf(
+            match(requirement("r1", "Strong SQL", "sql"), MatchStatus.MET),
+            match(experience, MatchStatus.GAP),
+        )
+
+        val coverage = KeywordCoverageCalculator.compute(matches, QuickAnswer("x1", "A_FEW_TIMES"), null)
+
+        assertThat(coverage.now).isEqualTo(50)
+        assertThat(coverage.upTo).isEqualTo(50)
+    }
+
+    @Test
+    fun blankDetailAnswerConfirmsNamedSkillKeywords() {
+        val matches = listOf(
+            match(requirement("r1", "Strong SQL", "sql"), MatchStatus.MET),
+            match(requirement("r2", "Python", "python"), MatchStatus.GAP),
+        )
+
+        val coverage = KeywordCoverageCalculator.compute(matches, QuickAnswer("r2", "YES_REGULARLY"), null)
+
+        assertThat(coverage.now).isEqualTo(50)
+        assertThat(coverage.upTo).isEqualTo(100)
+    }
 }
