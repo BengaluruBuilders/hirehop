@@ -12,8 +12,8 @@ internal fun interface AnalysisProgressTicker {
 internal class DelayAnalysisProgressTicker @Inject constructor() : AnalysisProgressTicker {
     override fun percents(): Flow<Int> = flow {
         for (percent in STEP_PERCENT..CAP_PERCENT step STEP_PERCENT) {
-            delay(STEP_MILLIS)
             emit(percent)
+            delay(STEP_MILLIS)
         }
     }
 
