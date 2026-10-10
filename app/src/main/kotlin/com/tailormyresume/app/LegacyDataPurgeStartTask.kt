@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,7 +17,17 @@ class LegacyDataPurgeStartTask @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope,
 ) : AppStartTask {
     override fun start() {
-        scope.launch { purge() }
+        scope.launch { runPurge() }
+    }
+
+    private suspend fun runPurge() {
+        try {
+            purge()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (failure: Exception) {
+            return
+        }
     }
 }
 

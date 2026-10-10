@@ -8,7 +8,7 @@ import org.junit.Test
 class LegacyDataPurgeTest {
 
     @Test
-    fun removesCoverLetterAndPrepPlanKeysIncludingDraftKeysAndLeavesTheRest() = runTest {
+    fun legacyFeatureKeysAreRemovedIncludingDraftsAndOthersKept() = runTest {
         val store = TestMockStateStore()
         store.write("coverletter.x", "letter")
         store.write("prep.plan.y", "plan")
