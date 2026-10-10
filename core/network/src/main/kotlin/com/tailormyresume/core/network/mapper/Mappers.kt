@@ -8,6 +8,7 @@ import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.confirmedWithinLimits
+import com.tailormyresume.core.model.isSkillUserStated
 import com.tailormyresume.core.network.dto.BulletDto
 import com.tailormyresume.core.network.dto.ContentReportRequest
 import com.tailormyresume.core.network.dto.FactEntryDto
@@ -21,6 +22,7 @@ fun CandidateProfile.toFactsDto(): ProfileFactsDto {
     val sent = confirmedWithinLimits()
     return ProfileFactsDto(
         skills = sent.skills,
+        userStatedSkills = sent.skills.filter { sent.isSkillUserStated(it) },
         entries = sent.entries.map { entry ->
             FactEntryDto(
                 id = entry.id,

@@ -5,6 +5,8 @@ import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,8 +24,13 @@ data class FactEntryDto(
     val bullets: List<BulletDto>,
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class ProfileFactsDto(val skills: List<String>, val entries: List<FactEntryDto>)
+data class ProfileFactsDto(
+    val skills: List<String>,
+    val entries: List<FactEntryDto>,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val userStatedSkills: List<String> = emptyList(),
+)
 
 @Serializable
 data class RequirementDto(
