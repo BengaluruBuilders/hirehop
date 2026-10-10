@@ -31,7 +31,14 @@ class CollectAccountDataUseCaseTest {
     private val credits = TestCreditsRepository()
     private val resumeSettings = TestResumeSettingsRepository()
     private val collect = CollectAccountDataUseCase(
-        session, profiles, applications, exports, payments, credits, resumeSettings, clock,
+        session,
+        profiles,
+        applications,
+        exports,
+        payments,
+        credits,
+        resumeSettings,
+        clock,
     )
 
     @Test

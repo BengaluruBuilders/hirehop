@@ -6,10 +6,10 @@ import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.testing.data.canonicalCandidateProfile
 import com.tailormyresume.core.testing.data.canonicalProfileWithoutEntries
-import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import kotlin.time.Instant
 
 abstract class ProfileRepositoryContractTest {
 

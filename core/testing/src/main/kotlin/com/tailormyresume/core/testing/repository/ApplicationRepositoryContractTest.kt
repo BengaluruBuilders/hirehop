@@ -2,8 +2,8 @@ package com.tailormyresume.core.testing.repository
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.data.repository.ApplicationRepository
-import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.ApplicationKeywordCoverage
+import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.QuickAnswer
 import com.tailormyresume.core.testing.data.canonicalApplication
@@ -48,7 +48,7 @@ abstract class ApplicationRepositoryContractTest {
         val application: JobApplication = canonicalApplication
         repository.upsertApplication(application)
 
-        val renamed = application.copy(notes = "Applied through the college portal")
+        val renamed = application.copy(location = "Pune - Hybrid")
         repository.upsertApplication(renamed)
 
         assertThat(repository.observeApplications().first()).hasSize(1)
@@ -76,18 +76,6 @@ abstract class ApplicationRepositoryContractTest {
 
         assertThat(repository.observeApplications().first().map { it.id })
             .containsExactly(canonicalApplication.id)
-    }
-
-    @Test
-    fun aNotesChangeIsVisibleToTheCaller() = runTest {
-        val repository = createApplicationRepository()
-        val application: JobApplication = canonicalApplication
-        repository.upsertApplication(application)
-
-        repository.updateNotes(application.id, "Recruiter called on 12 Mar")
-
-        assertThat(repository.observeApplication(application.id).first()?.notes)
-            .isEqualTo("Recruiter called on 12 Mar")
     }
 
     @Test

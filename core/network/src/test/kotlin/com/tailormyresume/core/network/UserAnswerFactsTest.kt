@@ -19,7 +19,11 @@ class UserAnswerFactsTest {
     @Test
     fun userAnswerFactsAreNeverSentToTheBackend() {
         val profile = CandidateProfile(
-            "Priya", "p@example.com", "+91", "Headline", listOf("SQL"),
+            "Priya",
+            "p@example.com",
+            "+91",
+            "Headline",
+            listOf("SQL"),
             listOf(entry("E1", FactSource.IMPORTED), entry("E2", FactSource.USER_ANSWER), entry("E3", FactSource.USER_STATED)),
         )
 

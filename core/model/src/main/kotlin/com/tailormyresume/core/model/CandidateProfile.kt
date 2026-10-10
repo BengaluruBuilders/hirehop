@@ -1,5 +1,7 @@
 package com.tailormyresume.core.model
 
+import kotlin.time.Instant
+
 data class CandidateProfile(
     val fullName: String,
     val email: String,
@@ -8,6 +10,12 @@ data class CandidateProfile(
     val skills: List<String>,
     val entries: List<ProfileEntry>,
     val userStatedSkills: List<String> = emptyList(),
+    val city: String = "",
+    val linkedinUrl: String = "",
+    val portfolioUrl: String = "",
+    val summary: String = "",
+    val sourceFileName: String? = null,
+    val reviewedAt: Instant? = null,
 )
 
 object ProfileLimits {

@@ -3,6 +3,7 @@ package com.tailormyresume.core.network.mapper
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
+import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.RequirementMatch
@@ -23,7 +24,7 @@ fun CandidateProfile.toFactsDto(): ProfileFactsDto {
     return ProfileFactsDto(
         skills = sent.skills,
         userStatedSkills = sent.skills.filter { sent.isSkillUserStated(it) },
-        entries = sent.entries.map { entry ->
+        entries = sent.entries.filter { it.source != FactSource.USER_ANSWER }.map { entry ->
             FactEntryDto(
                 id = entry.id,
                 category = entry.category,

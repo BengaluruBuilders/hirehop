@@ -54,7 +54,7 @@ class AccountDataArchiveWriterSimplifiedFlowTest {
         account = null,
         profile = profile,
         applications = listOf(application),
-        entitlement = PurchaseEntitlement(freeCredits = 0, purchasedCredits = 0),
+        entitlement = PurchaseEntitlement(freeCredits = 0, purchasedCredits = 0, pendingPackIds = emptyList(), unlockedApplicationIds = emptySet()),
         purchases = emptyList(),
         exports = emptyList(),
         creditLedger = listOf(
@@ -121,7 +121,7 @@ class AccountDataArchiveWriterSimplifiedFlowTest {
         assertThat(files.getValue("applications.txt")).contains("Priya_Northwind_Analyst.pdf")
         assertThat(files.getValue("applications.txt")).contains("Quarterly reviews")
         assertThat(files.getValue("purchases.txt")).contains("application_pack_5")
-        assertThat(files.getValue("purchases.txt")).contains("pageSize=LETTER")
+        assertThat(files.getValue("account.txt")).contains("pageSize=LETTER")
     }
 
     private fun JsonObject.string(name: String): String = getValue(name).jsonPrimitive.content

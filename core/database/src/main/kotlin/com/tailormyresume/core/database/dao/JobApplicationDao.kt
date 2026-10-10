@@ -22,9 +22,6 @@ interface JobApplicationDao {
     @Query("UPDATE job_applications SET status = :status, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateStatus(id: String, status: ApplicationStatus, updatedAt: Instant)
 
-    @Query("UPDATE job_applications SET notes = :notes, updatedAt = :updatedAt WHERE id = :id")
-    suspend fun updateNotes(id: String, notes: String, updatedAt: Instant)
-
     @Query("DELETE FROM job_applications WHERE id = :id")
     suspend fun deleteApplication(id: String)
 }
