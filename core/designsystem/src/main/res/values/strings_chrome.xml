@@ -12,5 +12,4 @@
     <string name="core_designsystem_chrome_tab_profile">Profile</string>
     <string name="core_designsystem_chrome_add_application">New application</string>
     <string name="core_designsystem_chrome_dismiss">Dismiss</string>
-    <string name="core_designsystem_chrome_sheet_title">Sheet</string>
 </resources>

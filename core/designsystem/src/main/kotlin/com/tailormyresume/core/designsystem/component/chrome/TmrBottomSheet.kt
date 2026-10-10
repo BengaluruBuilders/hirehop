@@ -37,8 +37,8 @@ private val SheetShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 @Composable
 fun TmrBottomSheet(
     onDismiss: () -> Unit,
+    title: String,
     modifier: Modifier = Modifier,
-    title: String = stringResource(R.string.core_designsystem_chrome_sheet_title),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spacing = TmrTheme.spacing

@@ -56,11 +56,7 @@ private fun ComposeTestRule.settleFixerToast(
     }
 }
 
-private const val FIX_SHRINK_FRAMES = 12
-
 private fun ComposeTestRule.assertNoSplitWords(label: String, useUnmergedTree: Boolean = true) {
-    repeat(FIX_SHRINK_FRAMES) { mainClock.advanceTimeByFrame() }
-    waitForIdle()
     val results = mutableListOf<TextLayoutResult>()
     onNode(
         hasText(label, ignoreCase = true) and SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult),
@@ -87,19 +83,42 @@ class TmrChromeWholeWordsA11yTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-    private fun setLargeTextContent(content: @Composable () -> Unit) {
+    private fun setLargeTextContent(
+        fontScale: Float = FIX_FONT_SCALE,
+        content: @Composable () -> Unit,
+    ) {
         composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
             TmrPreviewTheme {
                 val base = LocalDensity.current.density
-                CompositionLocalProvider(LocalDensity provides Density(base, FIX_FONT_SCALE)) {
+                CompositionLocalProvider(LocalDensity provides Density(base, fontScale)) {
                     Box(Modifier.width(FIX_PARENT_WIDTH).testTag(FIX_PARENT_TAG)) {
                         content()
                     }
                 }
             }
         }
-        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun longTopBarTitleWrapsAtOneXInsteadOfClipping() {
+        val title = "Senior Backend Platform Engineering Manager"
+        setLargeTextContent(fontScale = 1f) {
+            TmrTopBar(leading = TmrTopBarLeading.Back, onLeading = {}, title = title)
+        }
+        val results = mutableListOf<TextLayoutResult>()
+        composeRule
+            .onNode(
+                hasText(title, ignoreCase = true) and SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult),
+                useUnmergedTree = true,
+            ).fetchSemanticsNode()
+            .config[SemanticsActions.GetTextLayoutResult]
+            .action
+            ?.invoke(results)
+        val layout = requireNotNull(results.firstOrNull())
+        assertFalse(layout.didOverflowWidth)
+        assertFalse(layout.didOverflowHeight)
+        assertTrue(layout.lineCount > 1)
     }
 
     @Test
@@ -174,6 +193,26 @@ class TmrToastTimeoutA11yTest {
             message = "Applied, marked today",
             action = TmrToastAction(label = "Undo", onClick = {}),
         )
+    }
+
+    @Test
+    fun dismissSemanticsActionClearsToastWithoutRunningAction() {
+        val state = TmrToastState()
+        var actionRuns = 0
+        setHost(state, screenReader = true)
+        composeRule.settleFixerToast(
+            state = state,
+            message = "Applied, marked today",
+            action = TmrToastAction(label = "Undo", onClick = { actionRuns++ }),
+        )
+        composeRule.runOnIdle {
+            val config = composeRule.onNodeWithTag(TmrChromeTags.TOAST).fetchSemanticsNode().config
+            assertTrue(config[SemanticsActions.Dismiss].action?.invoke() == true)
+        }
+        composeRule.runOnIdle {
+            assertNull(state.current)
+            assertEquals(0, actionRuns)
+        }
     }
 
     @Test

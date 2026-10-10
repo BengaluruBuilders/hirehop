@@ -361,7 +361,7 @@ class TmrChromeSemanticsA11yTest {
         composeRule.setContent {
             TmrPreviewTheme {
                 Box(Modifier.fillMaxSize()) {
-                    TmrBottomSheet(onDismiss = { dismissals++ }) {
+                    TmrBottomSheet(onDismiss = { dismissals++ }, title = "Sheet") {
                         Text("Change status", color = TmrTheme.colors.text)
                     }
                 }
@@ -440,7 +440,7 @@ class TmrChromeGeometryA11yTest {
             TmrPreviewTheme {
                 Box(Modifier.fillMaxSize()) {
                     captureSpacing()
-                    TmrBottomSheet(onDismiss = {}) {
+                    TmrBottomSheet(onDismiss = {}, title = "Sheet") {
                         Text("Change status", color = TmrTheme.colors.text)
                     }
                 }

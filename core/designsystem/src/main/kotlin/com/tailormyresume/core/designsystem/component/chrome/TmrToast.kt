@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.dismiss
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -147,7 +148,13 @@ fun TmrToastHost(
                 .heightIn(min = 44.dp)
                 .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                 .testTag(TmrChromeTags.TOAST)
-                .semantics { liveRegion = LiveRegionMode.Polite },
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    dismiss {
+                        state.dismiss()
+                        true
+                    }
+                },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

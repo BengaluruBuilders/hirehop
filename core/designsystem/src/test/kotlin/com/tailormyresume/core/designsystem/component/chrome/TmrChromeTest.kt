@@ -334,7 +334,7 @@ class TmrBottomSheetTest {
         composeRule.setContent {
             TmrPreviewTheme {
                 Box(Modifier.fillMaxSize()) {
-                    TmrBottomSheet(onDismiss = { dismissals++ }) {
+                    TmrBottomSheet(onDismiss = { dismissals++ }, title = "Sheet") {
                         Text("Change status", color = TmrTheme.colors.text)
                     }
                 }
@@ -378,7 +378,7 @@ class TmrChromeMotionTest {
                     LocalTmrMotion provides if (motion) TmrMotionDefaults.Default else TmrMotionDefaults.Reduced,
                 ) {
                     Box(Modifier.fillMaxSize()) {
-                        TmrBottomSheet(onDismiss = {}) {
+                        TmrBottomSheet(onDismiss = {}, title = "Sheet") {
                             Text("Change status", color = TmrTheme.colors.text)
                         }
                     }
@@ -598,7 +598,7 @@ class TmrChromeScreenshotTest {
     @Test
     fun sheet() =
         capture(screenName = "chrome_sheet", settleMillis = 1000L) {
-            TmrBottomSheet(onDismiss = {}) {
+            TmrBottomSheet(onDismiss = {}, title = "Sheet") {
                 Text("Change status", color = TmrTheme.colors.text)
             }
         }
