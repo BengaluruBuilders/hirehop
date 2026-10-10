@@ -1,4 +1,4 @@
-package com.tailormyresume.core.domain.prep
+package com.tailormyresume.core.domain
 
 object RequirementPhrase {
     private val leadingMarker = Regex(

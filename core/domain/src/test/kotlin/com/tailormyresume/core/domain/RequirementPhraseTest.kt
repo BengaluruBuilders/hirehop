@@ -1,4 +1,4 @@
-package com.tailormyresume.core.domain.prep
+package com.tailormyresume.core.domain
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
