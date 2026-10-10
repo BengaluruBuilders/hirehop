@@ -59,7 +59,7 @@ class TmrColors(
     val outline: Color get() = line
     val outlineVariant: Color get() = line
     val outlineSoft: Color get() = line
-    val boundary: Color get() = lineHigher
+    val boundary: Color get() = textDisabled
     val disabledContent: Color get() = textDisabled
     val onSurface: Color get() = text
     val onSurfaceVariant: Color get() = textMuted

@@ -67,7 +67,7 @@ differ on purpose.
 | `text` | `#FFFFFF` | Primary text |
 | `textSecondary` | `#C8C8C8` | Body copy |
 | `textMuted` | `#A6A6A6` | Labels, later steps |
-| `textDisabled` | `#7A7A7A` | Placeholder, disabled, pending rows |
+| `textDisabled` | `#7D7D7D` | Placeholder, disabled, pending rows |
 | `ink` | `#0A0A0A` | Text on light fills |
 | `lime` | `#A3F43F` | Primary, selected, Interview |
 | `limeSelected` | `#141A0A` | Selected option fill |

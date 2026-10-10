@@ -26,7 +26,7 @@ class TmrPaigeColorValuesTest {
         assertEquals(Color(0xFFFFFFFF), TmrDarkColors.text)
         assertEquals(Color(0xFFC8C8C8), TmrDarkColors.textSecondary)
         assertEquals(Color(0xFFA6A6A6), TmrDarkColors.textMuted)
-        assertEquals(Color(0xFF7A7A7A), TmrDarkColors.textDisabled)
+        assertEquals(Color(0xFF7D7D7D), TmrDarkColors.textDisabled)
         assertEquals(Color(0xFF0A0A0A), TmrDarkColors.ink)
         assertEquals(Color(0xFFA3F43F), TmrDarkColors.lime)
         assertEquals(Color(0xFF141A0A), TmrDarkColors.limeSelected)
