@@ -1,8 +1,8 @@
 package com.tailormyresume.app.navigation
 
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import org.junit.Test
+import java.io.File
 
 class NoDockReferencesTest {
 

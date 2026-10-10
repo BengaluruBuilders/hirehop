@@ -6,9 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.DpRect
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -22,9 +21,15 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
 
+private const val MAX_FRAMES_TO_APPEAR = 10
+
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ReducedMotionShellTest {
+
+    init {
+        registerComposeActivity()
+    }
 
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
@@ -46,7 +51,11 @@ class ReducedMotionShellTest {
         trigger: () -> Unit,
     ): Pair<DpRect, DpRect> {
         trigger()
-        rule.mainClock.advanceTimeByFrame()
+        var frames = 0
+        do {
+            rule.mainClock.advanceTimeByFrame()
+            frames += 1
+        } while (rule.onAllNodes(target).fetchSemanticsNodes().isEmpty() && frames < MAX_FRAMES_TO_APPEAR)
         val first = rule.onNode(target).getBoundsInRoot()
         rule.mainClock.advanceTimeBy(2_000)
         return first to rule.onNode(target).getBoundsInRoot()

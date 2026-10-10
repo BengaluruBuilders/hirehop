@@ -1,23 +1,28 @@
 package com.tailormyresume.app.navigation
 
+import android.app.Application
+import android.content.ComponentName
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
+import androidx.test.core.app.ApplicationProvider
 import com.tailormyresume.app.ui.TmrShell
 import com.tailormyresume.core.designsystem.component.chrome.TmrTopBarLeading
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.navigation.NavigationState
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.core.navigation.rememberNavigationState
+import org.robolectric.Shadows.shadowOf
 
 private val STEP_DESCRIPTIONS = listOf("Step 1 of 3, Profile", "Step 2 of 3, Job", "Step 3 of 3, Tailor")
 
@@ -82,7 +87,7 @@ internal class ShellHarness(private val rule: ComposeContentTestRule) {
         if (row.step == null) {
             stepNodes.assertCountEquals(0)
         } else {
-            rule.onAllNodes(hasContentDescription(STEP_DESCRIPTIONS.getValue(row.step - 1))).assertCountEquals(1)
+            rule.onAllNodes(hasContentDescription(STEP_DESCRIPTIONS[row.step - 1])).assertCountEquals(1)
         }
         rule.onAllNodes(hasContentDescription("Back")).assertCountEquals(if (leading == TmrTopBarLeading.Back) 1 else 0)
         rule.onAllNodes(hasContentDescription("Close")).assertCountEquals(if (leading == TmrTopBarLeading.Close) 1 else 0)
@@ -95,4 +100,10 @@ internal class ShellHarness(private val rule: ComposeContentTestRule) {
         }
         row.action?.let { rule.onNodeWithText(it).assertExists("$label action") }
     }
+}
+
+internal fun registerComposeActivity() {
+    val application = ApplicationProvider.getApplicationContext<Application>()
+    shadowOf(application.packageManager)
+        .addActivityIfNotPresent(ComponentName(application, ComponentActivity::class.java))
 }

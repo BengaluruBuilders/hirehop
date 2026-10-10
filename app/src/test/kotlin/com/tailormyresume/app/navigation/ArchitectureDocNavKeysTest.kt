@@ -2,8 +2,8 @@ package com.tailormyresume.app.navigation
 
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import java.io.File
 import org.junit.Test
+import java.io.File
 
 class ArchitectureDocNavKeysTest {
 
@@ -28,7 +28,7 @@ class ArchitectureDocNavKeysTest {
                 .split('.')
                 .take(2)
                 .joinToString("/")
-            val line = rows.firstOrNull { it.contains(name) }
+            val line = rows.firstOrNull { Regex("`" + name + "[`(]").containsMatchIn(it) }
             assertWithMessage("$name is listed in section 6").that(line).isNotNull()
             assertWithMessage("$name row names its module $module").that(line).contains(module)
         }

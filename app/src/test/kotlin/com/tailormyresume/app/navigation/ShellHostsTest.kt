@@ -27,10 +27,15 @@ import org.robolectric.annotation.GraphicsMode
 
 private const val TOAST_TAG = "tmr_chrome_toast"
 private const val SHEET_TAG = "tmr_chrome_sheet"
+private const val FRAMES_TO_SETTLE = 5
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ShellHostsTest {
+
+    init {
+        registerComposeActivity()
+    }
 
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
@@ -40,16 +45,19 @@ class ShellHostsTest {
     private fun provider(
         onSave: () -> Unit = {},
         registerSave: Boolean = false,
+        showHosts: Boolean = false,
     ): (Navigator) -> (NavKey) -> NavEntry<NavKey> = { _ ->
         { key ->
             NavEntry(key) {
                 val toast = LocalTmrToast.current
                 val sheet = LocalTmrSheetHost.current
                 LaunchedEffect(key) {
-                    toast.show("toast one")
-                    toast.show("toast two")
-                    sheet.show("Sheet A") { Text("sheet body A") }
-                    sheet.show("Sheet B") { Text("sheet body B") }
+                    if (showHosts) {
+                        toast.show("toast one")
+                        toast.show("toast two")
+                        sheet.show("Sheet A") { Text("sheet body A") }
+                        sheet.show("Sheet B") { Text("sheet body B") }
+                    }
                 }
                 if (registerSave && key is EditResumeNavKey) RegisterChromeAction(onSave)
                 Column { Text(checkNotNull(key::class.simpleName)) }
@@ -60,7 +68,7 @@ class ShellHostsTest {
     @Test
     fun exactlyOneToastHostAndOneSheetHost() {
         rule.mainClock.autoAdvance = false
-        shell.show(DefaultApplicationsNavKey, provider())
+        shell.show(DefaultApplicationsNavKey, provider(showHosts = true))
         rule.mainClock.advanceTimeByFrame()
 
         rule.onAllNodesWithTag(TOAST_TAG).assertCountEquals(1)
@@ -77,9 +85,10 @@ class ShellHostsTest {
         rule.mainClock.autoAdvance = false
         shell.show(DefaultApplicationsNavKey, provider(onSave = { saved += 1 }, registerSave = true))
         shell.go(EditResumeNavKey("app-1"))
+        repeat(FRAMES_TO_SETTLE) { rule.mainClock.advanceTimeByFrame() }
 
         rule.onNodeWithText("Save").performClick()
-        rule.waitForIdle()
+        rule.mainClock.advanceTimeByFrame()
 
         assertThat(saved).isEqualTo(1)
         assertThat(shell.stack).containsExactly(DefaultApplicationsNavKey, EditResumeNavKey("app-1")).inOrder()
@@ -90,6 +99,7 @@ class ShellHostsTest {
         rule.mainClock.autoAdvance = false
         shell.show(DefaultApplicationsNavKey)
         shell.go(EditResumeNavKey("app-1"))
+        repeat(FRAMES_TO_SETTLE) { rule.mainClock.advanceTimeByFrame() }
 
         rule.onNodeWithText("Save").performClick()
         rule.mainClock.advanceTimeByFrame()

@@ -4,10 +4,10 @@ import androidx.navigation3.runtime.NavKey
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.tailormyresume.feature.profile.api.navigation.ProfileListSection
-import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.junit.Test
+import java.io.File
 
 class NavKeyCatalogTest {
 

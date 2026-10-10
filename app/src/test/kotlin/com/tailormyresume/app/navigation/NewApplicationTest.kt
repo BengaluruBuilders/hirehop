@@ -16,6 +16,10 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class NewApplicationTest {
 
+    init {
+        registerComposeActivity()
+    }
+
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
 

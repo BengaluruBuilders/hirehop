@@ -32,6 +32,10 @@ private const val ID = "app-1"
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ShellWalkTest {
 
+    init {
+        registerComposeActivity()
+    }
+
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
 

@@ -51,7 +51,10 @@ class NavigatorBackTest {
     @Test
     fun theFallbackIsAskedAboutTheCurrentKeyOnly() {
         val asked = mutableListOf<NavKey>()
-        val (_, navigator) = navigatorOf(BackFirst, BackSecond, fallback = { asked += it; null })
+        val (_, navigator) = navigatorOf(BackFirst, BackSecond, fallback = {
+            asked += it
+            null
+        })
 
         navigator.goBack()
         navigator.goBack()

@@ -195,6 +195,10 @@ dependencies {
     testImplementation(libs.androidx.test.ext.junit)
 }
 
+tasks.register("recordRoborazziDebug") { dependsOn("recordRoborazziDemoDebug") }
+
+tasks.register("verifyRoborazziDebug") { dependsOn("verifyRoborazziDemoDebug") }
+
 dependencyGuard {
     configuration("demoReleaseRuntimeClasspath")
     configuration("prodReleaseRuntimeClasspath")

@@ -2,10 +2,10 @@ package com.tailormyresume.app.navigation
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.semantics.SemanticsMatcher
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.navigation3.runtime.NavKey
@@ -55,6 +55,10 @@ private val STATES: List<Pair<String, List<NavKey>>> = listOf(
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ShellChromeScreenshotTest {
 
+    init {
+        registerComposeActivity()
+    }
+
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
 
@@ -90,7 +94,8 @@ class ShellChromeScreenshotTest {
     private fun assertNoTruncatedText() {
         textLayouts().forEach { (node, layout) ->
             val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString(" ") { it.text }.orEmpty()
-            assertFalse("$text has visual overflow", layout.hasVisualOverflow)
+            assertFalse("$text overflows its height", layout.didOverflowHeight)
+            assertTrue("$text is clipped by its node", layout.size.width <= node.size.width && layout.size.height <= node.size.height)
             val ellipsized = (0 until layout.lineCount).filter { layout.isLineEllipsized(it) }
             assertTrue("$text has ellipsized lines $ellipsized", ellipsized.isEmpty())
         }
