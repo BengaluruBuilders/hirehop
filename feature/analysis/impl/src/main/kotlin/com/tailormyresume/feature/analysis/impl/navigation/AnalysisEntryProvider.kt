@@ -8,6 +8,6 @@ import com.tailormyresume.feature.analysis.api.navigation.AnalysisNavKey
 
 fun EntryProviderScope<NavKey>.analysisEntry(navigator: Navigator) {
     entry<AnalysisNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
 }

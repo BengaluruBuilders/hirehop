@@ -11,15 +11,15 @@ import com.tailormyresume.feature.settings.api.navigation.YourDataNavKey
 
 fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
     entry<SettingsNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
     entry<YourDataNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
     entry<DeleteAccountNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
     entry<AccountDeletedNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
 }

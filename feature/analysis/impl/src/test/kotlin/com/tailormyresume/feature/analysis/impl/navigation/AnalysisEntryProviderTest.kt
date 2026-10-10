@@ -45,6 +45,6 @@ class AnalysisEntryProviderTest {
             }
         }
 
-        composeRule.onNodeWithText(key::class.simpleName!!).assertIsDisplayed()
+        composeRule.onNodeWithText(checkNotNull(key::class.simpleName)).assertIsDisplayed()
     }
 }

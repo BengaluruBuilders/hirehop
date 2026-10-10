@@ -53,7 +53,7 @@ class ApplicationsEntryProviderTest {
             }
         }
 
-        composeRule.onNodeWithText(key::class.simpleName!!).assertIsDisplayed()
+        composeRule.onNodeWithText(checkNotNull(key::class.simpleName)).assertIsDisplayed()
     }
 
     @Test
@@ -72,6 +72,6 @@ class ApplicationsEntryProviderTest {
             }
         }
 
-        composeRule.onNodeWithText(key::class.simpleName!!).assertIsDisplayed()
+        composeRule.onNodeWithText(checkNotNull(key::class.simpleName)).assertIsDisplayed()
     }
 }

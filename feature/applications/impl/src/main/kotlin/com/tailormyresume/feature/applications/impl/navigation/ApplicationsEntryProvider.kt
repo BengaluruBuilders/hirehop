@@ -9,12 +9,12 @@ import com.tailormyresume.feature.applications.api.navigation.ApplicationsNavKey
 
 fun EntryProviderScope<NavKey>.applicationsEntry(navigator: Navigator) {
     entry<ApplicationsNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
 }
 
 fun EntryProviderScope<NavKey>.applicationDetailEntry(navigator: Navigator) {
     entry<ApplicationDetailNavKey> { key ->
-        BasicText(text = key::class.simpleName!!)
+        BasicText(text = key::class.simpleName.orEmpty())
     }
 }

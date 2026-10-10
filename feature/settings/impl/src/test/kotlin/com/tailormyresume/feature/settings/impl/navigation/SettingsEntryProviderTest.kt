@@ -58,7 +58,7 @@ class SettingsEntryProviderTest {
         }
 
         keys.forEach { navKey ->
-            composeRule.onNodeWithText(navKey::class.simpleName!!).assertIsDisplayed()
+            composeRule.onNodeWithText(checkNotNull(navKey::class.simpleName)).assertIsDisplayed()
         }
     }
 }
