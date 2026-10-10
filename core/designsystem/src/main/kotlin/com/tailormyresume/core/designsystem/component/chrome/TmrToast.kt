@@ -52,9 +52,23 @@ private fun defaultRecommendedTimeoutMillis(): (Int, Int) -> Int {
     }
 }
 
+@Composable
+private fun defaultIsScreenReaderEnabled(): () -> Boolean {
+    val context = LocalContext.current
+    return {
+        context.getSystemService(AccessibilityManager::class.java)
+            ?.isTouchExplorationEnabled ?: false
+    }
+}
+
 class TmrToastAction(val label: String, val onClick: () -> Unit)
 
-class TmrToast(val id: Long, val message: String, val action: TmrToastAction?)
+class TmrToast(
+    val id: Long,
+    val message: String,
+    val action: TmrToastAction?,
+    val durationMillis: Int,
+)
 
 @Stable
 class TmrToastState {
@@ -63,9 +77,18 @@ class TmrToastState {
 
     private var lastId by mutableLongStateOf(0L)
 
-    fun show(message: String, action: TmrToastAction? = null) {
+    fun show(
+        message: String,
+        action: TmrToastAction? = null,
+        durationMillis: Int = TOAST_DISPLAY_MS,
+    ) {
         lastId += 1L
-        current = TmrToast(id = lastId, message = message, action = action)
+        current = TmrToast(
+            id = lastId,
+            message = message,
+            action = action,
+            durationMillis = durationMillis,
+        )
     }
 
     fun dismiss() {
@@ -78,6 +101,7 @@ fun TmrToastHost(
     state: TmrToastState,
     modifier: Modifier = Modifier,
     recommendedTimeoutMillis: (Int, Int) -> Int = defaultRecommendedTimeoutMillis(),
+    isScreenReaderEnabled: () -> Boolean = defaultIsScreenReaderEnabled(),
 ) {
     val toast = state.current ?: return
     val motion = TmrTheme.motion
@@ -85,18 +109,26 @@ fun TmrToastHost(
     val typography = TmrTheme.typography
     val shapes = TmrTheme.shapes
     val spacing = TmrTheme.spacing
-    val displayMs =
+    val displayMs: Int? =
         remember(toast.id) {
-            if (toast.action != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                recommendedTimeoutMillis(TOAST_DISPLAY_MS, AccessibilityManager.FLAG_CONTENT_TEXT or AccessibilityManager.FLAG_CONTENT_CONTROLS)
+            if (toast.action != null && isScreenReaderEnabled()) {
+                null
+            } else if (toast.action != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                recommendedTimeoutMillis(
+                    toast.durationMillis,
+                    AccessibilityManager.FLAG_CONTENT_TEXT or AccessibilityManager.FLAG_CONTENT_CONTROLS,
+                )
             } else {
-                TOAST_DISPLAY_MS
+                toast.durationMillis
             }
         }
     val progress = remember(toast.id) { Animatable(if (motion.reduced) 1f else 0f) }
     LaunchedEffect(toast.id) {
-        delay(displayMs.toLong())
-        state.dismiss()
+        val timeout = displayMs
+        if (timeout != null) {
+            delay(timeout.toLong())
+            state.dismiss()
+        }
     }
     if (!motion.reduced) {
         LaunchedEffect(toast.id) { progress.animateTo(1f, motion.proofSpecs.spatial) }

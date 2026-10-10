@@ -38,6 +38,7 @@ private val SheetShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 fun TmrBottomSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.core_designsystem_chrome_sheet_title),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spacing = TmrTheme.spacing
@@ -46,7 +47,6 @@ fun TmrBottomSheet(
     LaunchedEffect(motion.reduced) {
         if (motion.reduced) progress.snapTo(1f) else progress.animateTo(1f, motion.proofSpecs.spatial)
     }
-    val sheetTitle = stringResource(R.string.core_designsystem_chrome_sheet_title)
     BackHandler(onBack = onDismiss)
     Box(modifier.fillMaxSize()) {
         Box(
@@ -71,7 +71,7 @@ fun TmrBottomSheet(
                 .clip(SheetShape)
                 .background(TmrTheme.colors.sheet)
                 .pointerInput(Unit) { detectTapGestures { } }
-                .semantics { paneTitle = sheetTitle }
+                .semantics { paneTitle = title }
                 .padding(top = spacing.sheetPaddingTop),
         ) {
             Box(

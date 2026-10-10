@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
@@ -26,6 +27,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -36,6 +38,7 @@ import com.tailormyresume.core.designsystem.theme.TmrMotionDefaults
 import com.tailormyresume.core.designsystem.theme.TmrSpacing
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -48,9 +51,18 @@ private const val A11Y_FRAME_MS = 16L
 private const val A11Y_TOAST_DISPLAY_MS = 3200L
 private const val A11Y_LONG_TIMEOUT_MS = 10_000
 private const val A11Y_FONT_SCALE = 2f
+private const val A11Y_STRESS_FONT_SCALE = 3f
 private const val A11Y_PARENT_TAG = "parent"
 private const val A11Y_STEP_COUNT = 3
+private val A11Y_TOAST_TOP = 96.dp + 8.dp
 private val A11Y_PARENT_WIDTH = 337.dp
+
+private fun ComposeTestRule.textLayoutOf(text: String): TextLayoutResult {
+    val results = mutableListOf<TextLayoutResult>()
+    val node = onNodeWithText(text, useUnmergedTree = true).fetchSemanticsNode()
+    node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+    return results.first()
+}
 
 private fun ComposeTestRule.settleToast(
     state: TmrToastState,
@@ -70,12 +82,15 @@ class TmrChromeLargeTextA11yTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-    private fun setLargeTextContent(content: @Composable () -> Unit) {
+    private fun setLargeTextContent(
+        fontScale: Float = A11Y_FONT_SCALE,
+        content: @Composable () -> Unit,
+    ) {
         composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
             TmrPreviewTheme {
                 val base = LocalDensity.current.density
-                CompositionLocalProvider(LocalDensity provides Density(base, A11Y_FONT_SCALE)) {
+                CompositionLocalProvider(LocalDensity provides Density(base, fontScale)) {
                     Box(Modifier.width(A11Y_PARENT_WIDTH).testTag(A11Y_PARENT_TAG)) {
                         content()
                     }
@@ -127,6 +142,7 @@ class TmrChromeLargeTextA11yTest {
         assertTrue(actionBounds.right <= A11Y_PARENT_WIDTH)
         assertTrue(saveBounds.top >= actionBounds.top)
         assertTrue(saveBounds.bottom <= actionBounds.bottom)
+        assertFalse(composeRule.textLayoutOf("Save").didOverflowHeight)
     }
 
     @Test
@@ -150,6 +166,24 @@ class TmrChromeLargeTextA11yTest {
         assertTrue(undoBounds.right <= actionBounds.right)
         assertTrue(undoBounds.top >= actionBounds.top)
         assertTrue(undoBounds.bottom <= actionBounds.bottom)
+        val undoLayout = composeRule.textLayoutOf("Undo")
+        assertFalse(undoLayout.didOverflowHeight)
+    }
+
+    @Test
+    fun topBarActionGrowsWithTextAtFontScale3() {
+        setLargeTextContent(fontScale = A11Y_STRESS_FONT_SCALE) {
+            TmrTopBar(leading = TmrTopBarLeading.Back, onLeading = {}, title = "Resume", action = "Save", onAction = {})
+        }
+        assertFalse(composeRule.textLayoutOf("Save").didOverflowHeight)
+    }
+
+    @Test
+    fun toastActionGrowsWithTextAtFontScale3() {
+        val state = TmrToastState()
+        setLargeTextContent(fontScale = A11Y_STRESS_FONT_SCALE) { TmrToastHost(state) }
+        composeRule.settleToast(state, "Applied, marked today", TmrToastAction(label = "Undo", onClick = {}))
+        assertFalse(composeRule.textLayoutOf("Undo").didOverflowHeight)
     }
 }
 
@@ -268,11 +302,10 @@ class TmrToastBehaviourA11yTest {
         val state = TmrToastState()
         setHost(state, motion = TmrMotionDefaults.Reduced)
         composeRule.settleToast(state = state, message = "Changes saved")
-        val firstTop =
-            composeRule
-                .onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true)
-                .getBoundsInRoot()
-                .top
+        val toastNode = composeRule.onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true)
+        toastNode.assertIsDisplayed()
+        val firstTop = toastNode.getBoundsInRoot().top
+        assertEquals(A11Y_TOAST_TOP.value, firstTop.value, 0.5f)
         composeRule.mainClock.advanceTimeBy(2000)
         composeRule.waitForIdle()
         val settledTop =
