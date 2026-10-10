@@ -88,10 +88,10 @@ class TmrInputScreenshotTest {
     }
 
     @Test
-    fun toggleOn() = capture("input_toggle_on") { TmrToggle(checked = true, onCheckedChange = {}) }
+    fun toggleOn() = capture("input_toggle_on") { TmrToggle(label = "Notify me", checked = true, onCheckedChange = {}) }
 
     @Test
-    fun toggleOff() = capture("input_toggle_off") { TmrToggle(checked = false, onCheckedChange = {}) }
+    fun toggleOff() = capture("input_toggle_off") { TmrToggle(label = "Notify me", checked = false, onCheckedChange = {}) }
 
     @Test
     fun fieldDefault() = capture("input_field_default") {

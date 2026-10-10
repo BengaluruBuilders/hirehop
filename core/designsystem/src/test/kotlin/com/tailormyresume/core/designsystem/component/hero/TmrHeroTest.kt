@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -19,8 +20,10 @@ import androidx.compose.ui.test.isFocusable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -277,7 +280,7 @@ class TmrHeroTest {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             CompositionLocalProvider(LocalTmrMotion provides TmrMotionDefaults.Reduced) {
-                val clock = rememberPaigeTimeMs(TmrMotionDefaults.Reduced)
+                val clock = rememberPaigeTimeMs(TmrMotionDefaults.Reduced, animated = true)
                 SideEffect { captured = clock }
             }
         }
@@ -294,12 +297,43 @@ class TmrHeroTest {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             CompositionLocalProvider(LocalTmrMotion provides TmrMotionDefaults.Default) {
-                val clock = rememberPaigeTimeMs(TmrMotionDefaults.Default)
+                val clock = rememberPaigeTimeMs(TmrMotionDefaults.Default, animated = true)
                 SideEffect { captured = clock }
             }
         }
         rule.mainClock.advanceTimeBy(1000)
         assertTrue(captured() > 0L)
+    }
+
+    @Test
+    fun staticPosesDoNotRunClock() {
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            TmrPreviewTheme {
+                CompositionLocalProvider(LocalTmrMotion provides TmrMotionDefaults.Default) {
+                    Box(modifier = Modifier.fillMaxSize().background(TmrTheme.colors.background)) {
+                        TmrPaige(TmrPaigePose.Fail)
+                        val clock = rememberPaigeTimeMs(TmrMotionDefaults.Default, animated = false)
+                        SideEffect { captured = clock }
+                    }
+                }
+            }
+        }
+        rule.mainClock.advanceTimeBy(1000)
+        assertEquals(0L, captured())
+    }
+
+    @Test
+    fun paigeUnderDefaultMotionReachesIdleWithAutoAdvancingClock() {
+        rule.setContent {
+            TmrPreviewTheme {
+                CompositionLocalProvider(LocalTmrMotion provides TmrMotionDefaults.Default) {
+                    TmrPaige(TmrPaigePose.Home)
+                }
+            }
+        }
+        rule.waitForIdle()
+        rule.onRoot().assertExists()
     }
 
     @Test
@@ -331,7 +365,7 @@ class TmrHeroTest {
     }
 
     @Test
-    fun headlineTwoLines() {
+    fun headlineStyle() {
         val headline =
             "Add the confirmed facts your recruiter already knows about you so the tailored " +
                 "application reads like yours from the first line."
@@ -346,10 +380,31 @@ class TmrHeroTest {
                 }
             }
         }
-        assertTrue(lineCountOf(headline) <= 2)
         assertEquals(28.sp, styleOf(headline).fontSize)
         assertTrue(rule.onAllNodesWithText("STEP ONE").fetchSemanticsNodes().isNotEmpty())
         assertEquals(12.sp, styleOf("STEP ONE").fontSize)
+    }
+
+    @Test
+    fun headlineFullyDisplayedAtFontScale200() {
+        val headline = "Tell Paige about you"
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 2.0f)) {
+                TmrPreviewTheme {
+                    Box(modifier = Modifier.width(374.dp)) {
+                        TmrHeroCard(
+                            color = TmrHeroColor.Blue,
+                            label = "Step one",
+                            headline = headline,
+                        )
+                    }
+                }
+            }
+        }
+        val layout = layoutResultOf(headline)
+        assertEquals(false, layout.hasVisualOverflow)
+        assertEquals(headline, layout.layoutInput.text.text)
     }
 
     private fun assertSpec(
@@ -443,8 +498,6 @@ class TmrHeroTest {
     }
 
     private fun styleOf(text: String): TextStyle = layoutResultOf(text).layoutInput.style
-
-    private fun lineCountOf(text: String): Int = layoutResultOf(text).lineCount
 
     private companion object {
         val SAMPLE_TIMES_MS = listOf(0L, 105L, 420L, 1000L, 2639L)

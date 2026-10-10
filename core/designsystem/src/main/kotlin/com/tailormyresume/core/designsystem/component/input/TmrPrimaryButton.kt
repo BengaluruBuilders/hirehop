@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -31,6 +32,7 @@ fun TmrPrimaryButton(
     Box(
         modifier = modifier
             .heightIn(min = 56.dp)
+            .clip(TmrTheme.shapes.pill)
             .background(if (enabled) colors.lime else colors.disabledFill, TmrTheme.shapes.pill)
             .clickable(role = Role.Button, onClick = if (enabled) onClick else onDisabledClick)
             .semantics { if (!enabled) stateDescription = unavailable }

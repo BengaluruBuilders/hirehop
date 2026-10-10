@@ -1,5 +1,6 @@
 package com.tailormyresume.core.designsystem.component.hero
 
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -7,7 +8,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -135,17 +135,17 @@ internal fun paigeRotationDegrees(motion: TmrMotion, spec: TmrPaigeSpec, timeMs:
 private val stillClock: () -> Long = { 0L }
 
 @Composable
-internal fun rememberPaigeTimeMs(motion: TmrMotion): () -> Long {
+internal fun rememberPaigeTimeMs(motion: TmrMotion, animated: Boolean): () -> Long {
     val time = remember { mutableLongStateOf(0L) }
-    val reduced = motion.reduced
-    LaunchedEffect(reduced) {
-        if (reduced) return@LaunchedEffect
-        val start = withFrameNanos { it }
+    val running = !motion.reduced && animated
+    LaunchedEffect(running) {
+        if (!running) return@LaunchedEffect
+        val start = withInfiniteAnimationFrameNanos { it }
         while (true) {
-            withFrameNanos { time.longValue = (it - start) / NANOS_PER_MILLI }
+            withInfiniteAnimationFrameNanos { time.longValue = (it - start) / NANOS_PER_MILLI }
         }
     }
-    return if (reduced) stillClock else remember { { time.longValue } }
+    return if (running) remember { { time.longValue } } else stillClock
 }
 
 private const val NANOS_PER_MILLI = 1_000_000L
@@ -155,7 +155,7 @@ fun TmrPaige(pose: TmrPaigePose, modifier: Modifier = Modifier) {
     val motion = TmrTheme.motion
     val colors = TmrTheme.colors
     val spec = remember(pose) { pose.spec() }
-    val timeMs = rememberPaigeTimeMs(motion)
+    val timeMs = rememberPaigeTimeMs(motion, animated = spec.wobble || spec.bobPhase != null)
     Canvas(
         modifier = modifier
             .size(PageWidth, PageHeight)
@@ -202,7 +202,7 @@ private fun DrawScope.drawTicks(colors: TmrColors) {
 }
 
 private fun DrawScope.drawArms(colors: TmrColors) {
-    val diameter = 22.dp.toPx()
+    val diameter = 27.dp.toPx()
     val stroke = Outline.toPx()
     listOf((-16).dp.toPx(), PageWidth.toPx() + 16.dp.toPx() - diameter).forEach { left ->
         val center = Offset(left + diameter / 2, 92.dp.toPx() + diameter / 2)
@@ -226,7 +226,7 @@ private fun DrawScope.drawPage(colors: TmrColors) {
 
 private fun DrawScope.drawFold(colors: TmrColors) {
     val stroke = Outline.toPx()
-    val side = 30.dp.toPx()
+    val side = 32.5.dp.toPx()
     val left = size.width - stroke - side
     val top = stroke
     val bottom = top + side
@@ -269,8 +269,8 @@ private fun DrawScope.drawHappyFace(spec: TmrPaigeSpec, colors: TmrColors) {
     drawOval(colors.cheek, Offset(16.dp.toPx(), 74.dp.toPx()), cheekSize)
     drawOval(colors.cheek, Offset(size.width - 16.dp.toPx() - cheekSize.width, 74.dp.toPx()), cheekSize)
     val stroke = Outline.toPx()
-    val width = spec.mouthWidth.toPx()
-    val height = spec.mouthHeight.toPx()
+    val width = (spec.mouthWidth + 5.dp).toPx()
+    val height = (spec.mouthHeight + 2.5.dp).toPx()
     val left = (size.width - width) / 2 + stroke / 2
     val right = (size.width + width) / 2 - stroke / 2
     val top = 72.dp.toPx()
@@ -289,8 +289,8 @@ private fun DrawScope.drawHappyFace(spec: TmrPaigeSpec, colors: TmrColors) {
 
 private fun DrawScope.drawSadMouth(colors: TmrColors) {
     val stroke = Outline.toPx()
-    val width = 20.dp.toPx()
-    val height = 10.dp.toPx()
+    val width = 25.dp.toPx()
+    val height = 12.5.dp.toPx()
     val left = (size.width - width) / 2 + stroke / 2
     val right = (size.width + width) / 2 - stroke / 2
     val boxTop = 78.dp.toPx()

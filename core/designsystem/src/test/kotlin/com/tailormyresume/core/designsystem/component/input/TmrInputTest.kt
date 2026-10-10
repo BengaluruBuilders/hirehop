@@ -13,8 +13,12 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -162,8 +166,18 @@ class TmrInputTest {
         rule.setContent {
             TmrPreviewTheme {
                 Column {
-                    TmrToggle(checked = false, onCheckedChange = { captured = it }, modifier = Modifier.testTag("t"))
-                    TmrToggle(checked = true, onCheckedChange = { captured = it }, modifier = Modifier.testTag("u"))
+                    TmrToggle(
+                        label = "Notify me",
+                        checked = false,
+                        onCheckedChange = { captured = it },
+                        modifier = Modifier.testTag("t"),
+                    )
+                    TmrToggle(
+                        label = "Weekly digest",
+                        checked = true,
+                        onCheckedChange = { captured = it },
+                        modifier = Modifier.testTag("u"),
+                    )
                 }
             }
         }
@@ -175,6 +189,43 @@ class TmrInputTest {
         assertEquals(ToggleableState.On, on.getOrNull(SemanticsProperties.ToggleableState))
         rule.onNodeWithTag("t").performClick()
         assertEquals(true, captured)
+    }
+
+    @Test
+    fun toggleRowIsTheSwitchWithNameAndTouchTarget() {
+        var captured: Boolean? = null
+        rule.setContent {
+            TmrPreviewTheme {
+                TmrToggle(
+                    label = "Notify me",
+                    checked = false,
+                    onCheckedChange = { captured = it },
+                    modifier = Modifier.testTag("t"),
+                )
+            }
+        }
+        val row = rule.onNodeWithTag("t")
+        assertEquals(Role.Switch, row.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Role))
+        row.assertHeightIsAtLeast(48.dp)
+        row.assert(hasText("Notify me"))
+        rule.onNodeWithText("Notify me", useUnmergedTree = false).assertHeightIsAtLeast(48.dp)
+        rule.onNode(hasText("Notify me") and isToggleable()).performClick()
+        assertEquals(true, captured)
+    }
+
+    @Test
+    fun toggleExposesOneToggleableNode() {
+        rule.setContent {
+            TmrPreviewTheme {
+                TmrToggle(
+                    label = "Notify me",
+                    checked = false,
+                    onCheckedChange = {},
+                    modifier = Modifier.testTag("t"),
+                )
+            }
+        }
+        rule.onAllNodes(isToggleable()).assertCountEquals(1)
     }
 
     @Test

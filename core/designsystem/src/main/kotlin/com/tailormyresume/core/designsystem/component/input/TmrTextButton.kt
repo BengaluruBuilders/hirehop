@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -23,6 +24,7 @@ fun TmrTextButton(
     Box(
         modifier = modifier
             .heightIn(min = 48.dp)
+            .clip(TmrTheme.shapes.pill)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center,
