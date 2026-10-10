@@ -3,6 +3,7 @@ package com.tailormyresume.core.network.mapper
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
+import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.RequirementMatch
@@ -19,7 +20,7 @@ import com.tailormyresume.core.network.dto.RequirementDto
 import com.tailormyresume.core.network.dto.TailoredBulletDto
 
 fun CandidateProfile.toFactsDto(): ProfileFactsDto {
-    val sent = confirmedWithinLimits()
+    val sent = copy(entries = entries.filter { it.source != FactSource.USER_ANSWER }).confirmedWithinLimits()
     return ProfileFactsDto(
         skills = sent.skills,
         userStatedSkills = sent.skills.filter { sent.isSkillUserStated(it) },

@@ -35,7 +35,6 @@ class UpdateBulletDecisionUseCaseTest {
         id = "app-1",
         job = JobDescription("t", "c", "raw", emptyList()),
         status = ApplicationStatus.SAVED,
-        notes = "",
         gapAnalysis = GapAnalysis(emptyList(), KeywordCoverage(0, 0)),
         tailoredResume = resume,
         createdAt = created,
@@ -53,6 +52,19 @@ class UpdateBulletDecisionUseCaseTest {
             .containsExactly(BulletDecision.PENDING, BulletDecision.ACCEPTED).inOrder()
         assertThat(saved.updatedAt).isEqualTo(Instant.fromEpochSeconds(2_000_000_000))
         assertThat(saved.createdAt).isEqualTo(created)
+    }
+
+    @Test
+    fun keepsTheLegacyNotesAndStatusOfTheApplication() = runTest {
+        repository.upsertApplication(
+            application(TailoredResume(listOf(bullet("b1")))).copy(legacyNotes = "no reply yet", legacyStatus = "NO_RESPONSE"),
+        )
+
+        useCase("app-1", "b1", BulletDecision.ACCEPTED)
+
+        val saved = checkNotNull(repository.current("app-1"))
+        assertThat(saved.legacyNotes).isEqualTo("no reply yet")
+        assertThat(saved.legacyStatus).isEqualTo("NO_RESPONSE")
     }
 
     @Test
