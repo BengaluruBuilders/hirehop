@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
@@ -22,6 +23,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -104,6 +106,34 @@ internal fun AndroidComposeTestRule<*, ComponentActivity>.descriptionValues(
         node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
     }
 
+private fun assertWrapsAtWordBoundaries(node: SemanticsNode) {
+    val layouts = mutableListOf<TextLayoutResult>()
+    node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
+    layouts.forEach { layout ->
+        val text = layout.layoutInput.text.text
+        (0 until layout.lineCount).forEach { line ->
+            assertFalse("'$text' is ellipsized on line $line", layout.isLineEllipsized(line))
+        }
+        for (line in 0 until layout.lineCount - 1) {
+            val end = layout.getLineEnd(line, visibleEnd = false)
+            val atBoundary = end in 1 until text.length &&
+                (text[end - 1].isWhitespace() || text[end].isWhitespace() || text[end - 1] == '-')
+            assertTrue("'$text' breaks a word that fits on one line at $end", atBoundary || !wordFitsOnOneLine(layout, end))
+        }
+    }
+}
+
+private fun wordFitsOnOneLine(layout: TextLayoutResult, index: Int): Boolean {
+    val text = layout.layoutInput.text.text
+    val start = text.substring(0, index).indexOfLast { it.isWhitespace() } + 1
+    val end = text.indexOf(' ', index).takeIf { it >= 0 } ?: text.length
+    val width = (start until end).sumOf { char -> layout.getBoundingBox(char).width.toDouble() }
+    return width <= layout.size.width
+}
+
+private fun AndroidComposeTestRule<*, ComponentActivity>.spinnerAnimated(): Boolean =
+    semanticsNodes().mapNotNull { node -> node.config.getOrNull(TmrSpinnerAnimatedKey) }.single()
+
 internal fun AndroidComposeTestRule<*, ComponentActivity>.assertStaysInsideContainer(
     content: @Composable () -> Unit,
 ) {
@@ -124,6 +154,7 @@ internal fun AndroidComposeTestRule<*, ComponentActivity>.assertStaysInsideConta
         .flatten()
         .toList()
     assertTrue("container has no semantics descendants", descendants.isNotEmpty())
+    descendants.forEach { node -> assertWrapsAtWordBoundaries(node) }
     descendants.forEach { node ->
         val bounds = node.boundsInRoot
         assertTrue("left ${bounds.left} < ${container.left}", bounds.left >= container.left - 1f)
@@ -200,6 +231,21 @@ class TmrProgressRowsTest {
     }
 
     @Test
+    fun staysInsideParentAtFontScale200() {
+        rule.assertStaysInsideContainer {
+            TmrProgressRows(rows = PROGRESS_ROWS, percent = 40)
+        }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(qualifiers = TmrTestDevices.PROTOTYPE_QUALIFIERS)
+class TmrProgressSpinnerMotionTest {
+    @get:Rule
+    val rule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
     fun reducedMotionStillRenders() {
         rule.setContent {
             TmrPreviewTheme {
@@ -209,17 +255,18 @@ class TmrProgressRowsTest {
             }
         }
 
-        rule.onNodeWithText("40%").assertExists()
-        PROGRESS_ROWS.forEach { row ->
-            rule.onNodeWithText(row.label, useUnmergedTree = true).assertExists()
-        }
+        assertFalse("spinner animates under reduced motion", rule.spinnerAnimated())
     }
 
     @Test
-    fun staysInsideParentAtFontScale200() {
-        rule.assertStaysInsideContainer {
-            TmrProgressRows(rows = PROGRESS_ROWS, percent = 40)
+    fun spinnerAnimatesWhenMotionIsNotReduced() {
+        rule.setContent {
+            TmrPreviewTheme {
+                TmrProgressRows(rows = PROGRESS_ROWS, percent = 40)
+            }
         }
+
+        assertTrue("spinner does not animate when motion is allowed", rule.spinnerAnimated())
     }
 }
 
@@ -247,6 +294,7 @@ class TmrResumePaperTest {
             it.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
         }
         assertEquals(1, descriptions.count { description -> description.contains(PAPER_SUMMARY) })
+        assertEquals(1, descriptions.count { description -> description.startsWith("Resume preview.") })
         assertFalse(descriptions.any { description -> MATCH_WORD.containsMatchIn(description) })
         assertFalse(rule.textValues().any { text -> MATCH_WORD.containsMatchIn(text) })
 

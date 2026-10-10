@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +45,8 @@ import com.tailormyresume.core.designsystem.icon.TmrIcons
 import com.tailormyresume.core.designsystem.theme.TmrColors
 import com.tailormyresume.core.designsystem.theme.TmrMotion
 import com.tailormyresume.core.designsystem.theme.TmrTheme
+
+internal val TmrSpinnerAnimatedKey = SemanticsPropertyKey<Boolean>("TmrSpinnerAnimated")
 
 enum class TmrProgressState { Done, Active, Pending }
 
@@ -137,7 +140,7 @@ private fun ProgressSpinner(modifier: Modifier = Modifier) {
     Canvas(
         modifier = modifier
             .size(MarkerSize)
-            .clearAndSetSemantics {}
+            .clearAndSetSemantics { this[TmrSpinnerAnimatedKey] = frame != null }
             .graphicsLayer { rotationZ = frame?.let { tmrSpinnerAngle(it.value.toLong(), motion) } ?: 0f },
     ) {
         val stroke = MarkerBorder.toPx()
