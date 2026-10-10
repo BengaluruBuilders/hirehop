@@ -1,5 +1,6 @@
 package com.tailormyresume.core.domain
 
+import com.tailormyresume.core.domain.offline.SkillLexicon
 import com.tailormyresume.core.domain.offline.TextTokens
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
@@ -120,7 +121,8 @@ class TailorResumeUseCase @Inject constructor(
 
     private fun contentClauses(sentence: String): List<String> =
         CLAUSE_BREAK.split(sentence).map { it.trim() }.filter { clause ->
-            TextTokens.words(clause).any { it.any(Char::isDigit) || (it.length > 1 && it.lowercase() !in FUNCTION_WORDS) }
+            TextTokens.words(clause).any { it.any(Char::isDigit) || it.lowercase() !in FUNCTION_WORDS } ||
+                SkillLexicon.termsIn(clause).isNotEmpty()
         }
 
     private fun sentenceViolations(
@@ -160,6 +162,6 @@ class TailorResumeUseCase @Inject constructor(
     private companion object {
         val SENTENCE_BREAK = Regex("(?<=[.!?])\\s+")
         val CLAUSE_BREAK = Regex("[!?;:]|[.,](?!\\d)|\\b(?:and|or|with)\\b", RegexOption.IGNORE_CASE)
-        val FUNCTION_WORDS = setOf("the", "an", "of", "in", "to", "for", "using", "at", "on", "by", "as", "from", "my")
+        val FUNCTION_WORDS = setOf("the", "an", "of", "in", "to", "for", "using", "at", "on", "by", "as", "from", "my", "a", "i")
     }
 }

@@ -502,4 +502,68 @@ class TailorResumeUseCaseTest {
 
         assertThat(AnswerFacts.factOf(prototypeAnswer.copy(detail = cfoDetail), emptyJob)?.text).isEqualTo(cfoDetail)
     }
+
+    private suspend fun answerKeywordsFor(detail: String, requirementText: String, type: RequirementType, vararg keywords: String): List<String> {
+        val requirement = JobRequirement("req-1", requirementText, type, RequirementPriority.MUST_HAVE, keywords.toList())
+        val job = JobDescription("Analyst", "Northwind", "raw", listOf(requirement))
+        return AnswerFacts.keywords(QuickAnswer("req-1", AnswerFacts.A_FEW_TIMES, detail), job)
+    }
+
+    @Test
+    fun placeholderDetailAddsNoRequirementKeywords() = runTest {
+        val presentingText = "Presenting quarterly results to senior leaders"
+        val keywords = arrayOf("presenting", "quarterly", "results", "senior", "leaders")
+
+        assertThat(answerKeywordsFor("Yes, a few times", presentingText, RequirementType.EXPERIENCE, *keywords)).isEmpty()
+        assertThat(answerKeywordsFor("n/a", "Managing stakeholders", RequirementType.EXPERIENCE, "stakeholders")).isEmpty()
+
+        val job = JobDescription(
+            "Analyst",
+            "Northwind",
+            "raw",
+            listOf(JobRequirement("req-1", presentingText, RequirementType.EXPERIENCE, RequirementPriority.MUST_HAVE, keywords.toList())),
+        )
+        val placeholder = QuickAnswer("req-1", AnswerFacts.A_FEW_TIMES, "Yes, a few times")
+        val summaryResult = run(TailoredResume(emptyList(), summary = summary("Presenting quarterly results.", "ans-req-1")), placeholder, job)
+        val skillsResult = run(
+            TailoredResume(emptyList(), skills = TailoredSkills(listOf("SQL", "Quarterly", "Results"), emptyList())),
+            placeholder,
+            job,
+        )
+        assertThat(checkNotNull(summaryResult.summary).violations).isNotEmpty()
+        assertThat(checkNotNull(skillsResult.skills).skills).containsExactly("SQL")
+    }
+
+    @Test
+    fun detailKeywordsAreOnlyThoseTheDetailStates() = runTest {
+        assertThat(
+            answerKeywordsFor("Built it in Power BI", "Dashboards for finance teams", RequirementType.EXPERIENCE, "power bi", "dashboards"),
+        ).containsExactly("Power BI")
+        assertThat(answerKeywordsFor("", "Advanced SQL", RequirementType.SKILL, "sql")).containsExactly("SQL")
+    }
+
+    @Test
+    fun oneLetterSkillClausesAreCheckedAgainstSources() = runTest {
+        listOf("Built dashboards with R." to "R", "Shipped services in C++." to "C++").forEach { (text, skill) ->
+            val lacking = run(TailoredResume(emptyList(), summary = summary(text, "exp-infosys-b1")))
+            assertThat(checkNotNull(lacking.summary).violations).isNotEmpty()
+
+            val stating = run(
+                TailoredResume(emptyList(), summary = summary(text, "ans-req-1")),
+                answer(detail = "Built dashboards and shipped services using $skill"),
+            )
+            assertThat(checkNotNull(stating.summary).violations).isEmpty()
+        }
+    }
+
+    @Test
+    fun honestOneFactSummariesStillPass() = runTest {
+        listOf(
+            "Built Power BI dashboards for monthly finance reports.",
+            "Wrote SQL pipelines over transaction data.",
+        ).forEach { text ->
+            val result = run(TailoredResume(emptyList(), summary = summary(text, "exp-infosys-b1", "exp-infosys-b2")))
+            assertThat(checkNotNull(result.summary).violations).isEmpty()
+        }
+    }
 }

@@ -18,10 +18,8 @@ internal object AnswerFacts {
     fun keywords(answer: QuickAnswer?, job: JobDescription): List<String> {
         if (answer == null || answer.choice !in choicesThatSupportFacts) return emptyList()
         val requirement = job.requirements.firstOrNull { it.id == answer.requirementId } ?: return emptyList()
-        if (answer.detail.isBlank()) {
-            return requirement.keywords.filter { isNamedSkillKeyword(requirement, it) }.map(SkillLexicon::displayName)
-        }
-        return keywordsStatedIn(requirement, requirement.text + "\n" + answer.detail)
+        val named = requirement.keywords.filter { isNamedSkillKeyword(requirement, it) }.map(SkillLexicon::displayName)
+        return (named + keywordsStatedIn(requirement, answer.detail)).distinct()
     }
 
     fun factOf(answer: QuickAnswer?, job: JobDescription): EvidenceBullet? {
