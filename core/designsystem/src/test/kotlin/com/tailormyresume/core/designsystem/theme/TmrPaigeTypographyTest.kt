@@ -61,7 +61,7 @@ class TmrPaigeTypographyTest {
     fun groteskVariableFontCoversWeights400To700() {
         val family = TmrFontFamilies.grotesk
         assertTrue(family is FontListFontFamily, "grotesk was ${family::class.java.name}")
-        val weights = (family as FontListFontFamily).fonts.map { it.weight.weight }.toSet()
+        val weights = family.fonts.map { it.weight.weight }.toSet()
         listOf(400, 500, 600, 700).forEach { weight ->
             assertTrue(weights.contains(weight), "grotesk had weights $weights")
         }
@@ -71,7 +71,7 @@ class TmrPaigeTypographyTest {
     fun monoFamilyHasRegularAndBold() {
         val family = TmrFontFamilies.mono
         assertTrue(family is FontListFontFamily, "mono was ${family::class.java.name}")
-        val weights = (family as FontListFontFamily).fonts.map { it.weight.weight }.toSet()
+        val weights = family.fonts.map { it.weight.weight }.toSet()
         listOf(400, 700).forEach { weight ->
             assertTrue(weights.contains(weight), "mono had weights $weights")
         }
