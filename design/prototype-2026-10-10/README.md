@@ -29,7 +29,8 @@ removed; nothing else changed.
 - As text: the logic block is the spec. `index()` lists every screen and state, `fresh()` and
   `returning()` hold the sample data, `renderVals()` holds every copy variant and colour rule.
   `T` (line ~1171) says which screens show the step bar, back, close, title and the top-right action.
-- In a browser: `cd design/prototype-2026-10-10 && python3 -m http.server 8767`, then open
+- In a browser: start the `prototype` entry of `.claude/launch.json` (or
+  `python3 -m http.server 8767 --directory design/prototype-2026-10-10`), then open
   `http://127.0.0.1:8767/Prototype.dc.html`. "New user" starts at sign-in; "Returning user" starts at
   Applications with three sample applications. The chips jump to any state.
 - Live: open the project link above (needs the owner's claude.ai login).
