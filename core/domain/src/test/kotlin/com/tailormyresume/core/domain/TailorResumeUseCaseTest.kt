@@ -252,11 +252,12 @@ class TailorResumeUseCaseTest {
     private suspend fun run(
         proposed: TailoredResume,
         quickAnswer: QuickAnswer? = answer(),
+        job: JobDescription = analystJob,
     ): TailoredResume {
         val tailor = object : ResumeTailor {
             override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis, applicationId: String, section: EntryCategory?) = proposed
         }
-        return TailorResumeUseCase(tailor, OfflineFabricationGuard())(analystProfile, analystJob, emptyGap, "app-1", quickAnswer = quickAnswer)
+        return TailorResumeUseCase(tailor, OfflineFabricationGuard())(analystProfile, job, emptyGap, "app-1", quickAnswer = quickAnswer)
     }
 
     private fun summary(text: String, vararg sourceIds: String, decision: BulletDecision = BulletDecision.PENDING) =
@@ -414,5 +415,91 @@ class TailorResumeUseCaseTest {
         )
 
         assertThat(result.decisions).containsExactly(BulletDecision.PENDING, BulletDecision.PENDING, BulletDecision.PENDING)
+    }
+
+    private suspend fun presentingJob(): Pair<JobDescription, String> {
+        val job = OfflineJobDescriptionAnalyzer().analyze(
+            "Analyst\nNorthwind\n\nRequirements\n- Experience presenting quarterly results to the board for 3+ years\n",
+        )
+        return job to job.requirements.first { it.text.contains("presenting", ignoreCase = true) }.id
+    }
+
+    @Test
+    fun blankDetailAnswerDoesNotTurnRequirementWordsIntoFacts() = runTest {
+        val (job, requirementId) = presentingJob()
+        val blank = QuickAnswer(requirementId, AnswerFacts.A_FEW_TIMES, "")
+
+        assertThat(AnswerFacts.factOf(blank, job)).isNull()
+        val summaryResult = run(
+            TailoredResume(emptyList(), summary = summary("Presenting quarterly results.", "ans-$requirementId")),
+            blank,
+            job,
+        )
+        val skillsResult = run(
+            TailoredResume(emptyList(), skills = TailoredSkills(listOf("SQL", "Quarterly", "Results"), emptyList())),
+            blank,
+            job,
+        )
+
+        assertThat(checkNotNull(summaryResult.summary).text).isEqualTo("Analyst building dashboards.")
+        assertThat(checkNotNull(summaryResult.summary).violations).isNotEmpty()
+        assertThat(checkNotNull(skillsResult.skills).skills).containsExactly("SQL")
+    }
+
+    @Test
+    fun blankDetailAnswerStillContributesTheNamedSkill() = runTest {
+        val blank = answer(detail = "")
+
+        assertThat(AnswerFacts.keywords(blank, analystJob)).containsExactly("Looker")
+        assertThat(AnswerFacts.factOf(blank, analystJob)?.text).isEqualTo("Looker")
+    }
+
+    @Test
+    fun summaryClauseFromAnotherFactCannotRideOnAnAnswer() = runTest {
+        val result = run(
+            TailoredResume(
+                emptyList(),
+                summary = summary("$cfoDetail with Power BI dashboards.", "exp-infosys-b1", "ans-req-1"),
+            ),
+        )
+
+        val kept = checkNotNull(result.summary)
+        assertThat(kept.text).isEqualTo("Analyst building dashboards.")
+        assertThat(kept.violations).isNotEmpty()
+    }
+
+    @Test
+    fun summaryClausesOfOneEntryAreKept() = runTest {
+        val text = "Built Power BI dashboards for monthly finance reports and wrote SQL pipelines over transaction data."
+        val result = run(TailoredResume(emptyList(), summary = summary(text, "exp-infosys-b1", "exp-infosys-b2")))
+
+        assertThat(checkNotNull(result.summary).text).isEqualTo(text)
+        assertThat(checkNotNull(result.summary).violations).isEmpty()
+    }
+
+    @Test
+    fun summaryOfFunctionWordsOnlyFallsBack() = runTest {
+        val result = run(TailoredResume(emptyList(), summary = summary("The and of. To, or with.", "exp-infosys-b1")))
+
+        assertThat(checkNotNull(result.summary).text).isEqualTo("Analyst building dashboards.")
+        assertThat(checkNotNull(result.summary).violations).containsExactly(GuardrailViolation.MissingSource)
+    }
+
+    @Test
+    fun summaryNumberOnlyClauseIsStillChecked() = runTest {
+        val result = run(
+            TailoredResume(emptyList(), summary = summary("Built Power BI dashboards for monthly finance reports, by 40%.", "exp-infosys-b1")),
+        )
+
+        assertThat(checkNotNull(result.summary).violations).contains(GuardrailViolation.UnsupportedNumber("40%"))
+    }
+
+    @Test
+    fun prototypeAnswerChoiceBacksAFact() = runTest {
+        val prototypeAnswer = checkNotNull(
+            com.tailormyresume.core.testing.data.PrototypeFixtures.returning().applications.firstNotNullOf { it.quickAnswer },
+        )
+
+        assertThat(AnswerFacts.factOf(prototypeAnswer.copy(detail = cfoDetail), emptyJob)?.text).isEqualTo(cfoDetail)
     }
 }

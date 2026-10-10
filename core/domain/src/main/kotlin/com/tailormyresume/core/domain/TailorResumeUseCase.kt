@@ -1,5 +1,6 @@
 package com.tailormyresume.core.domain
 
+import com.tailormyresume.core.domain.offline.TextTokens
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
@@ -25,12 +26,16 @@ class TailorResumeUseCase @Inject constructor(
         val answerFact: EvidenceBullet?,
         val answerKeywords: List<String>,
         val answerDetail: String,
+        val entryOfBullet: Map<String, String>,
     ) {
         val answerBullets: Map<String, EvidenceBullet> =
             answerFact?.let { fact -> AnswerFacts.idsOf(fact).associateWith { fact } }.orEmpty()
 
         fun resolve(ids: List<String>): List<EvidenceBullet> =
-            ids.mapNotNull { profileBullets[it] ?: answerBullets[it] }
+            ids.mapNotNull { profileBullets[it] ?: answerBullets[it] }.distinct()
+
+        fun groupOf(source: EvidenceBullet): String =
+            entryOfBullet[source.id] ?: source.id
     }
 
     suspend operator fun invoke(
@@ -46,6 +51,8 @@ class TailorResumeUseCase @Inject constructor(
             answerFact = AnswerFacts.factOf(quickAnswer, job),
             answerKeywords = AnswerFacts.keywords(quickAnswer, job),
             answerDetail = quickAnswer?.detail.orEmpty(),
+            entryOfBullet = profile.confirmedWithinLimits().entries
+                .flatMap { entry -> entry.bullets.map { it.id to entry.id } }.toMap(),
         )
         val proposed = tailor.tailor(profile, job, gap, applicationId, section)
         return TailoredResume(
@@ -87,9 +94,7 @@ class TailorResumeUseCase @Inject constructor(
 
     private fun verifiedSummary(summary: TailoredText, evidence: Evidence, profile: CandidateProfile): TailoredText {
         val sources = evidence.resolve(summary.sourceIds)
-        val violations = SENTENCE_BREAK.split(summary.text.trim()).filter { it.isNotBlank() }
-            .flatMap { guard.check(it, sources, profile) }
-            .distinct()
+        val violations = summaryViolations(summary.text, sources, evidence, profile)
         if (violations.isEmpty()) {
             return summary.copy(original = profile.summary, violations = emptyList(), decision = BulletDecision.PENDING)
         }
@@ -99,6 +104,46 @@ class TailorResumeUseCase @Inject constructor(
             violations = violations,
             decision = BulletDecision.PENDING,
         )
+    }
+
+    private fun summaryViolations(
+        text: String,
+        sources: List<EvidenceBullet>,
+        evidence: Evidence,
+        profile: CandidateProfile,
+    ): List<GuardrailViolation> {
+        if (sources.isEmpty()) return listOf(GuardrailViolation.MissingSource)
+        val sentences = SENTENCE_BREAK.split(text.trim()).map(::contentClauses).filter { it.isNotEmpty() }
+        if (sentences.isEmpty()) return listOf(GuardrailViolation.MissingSource)
+        return sentences.flatMap { clauses -> sentenceViolations(clauses, sources, evidence, profile) }.distinct()
+    }
+
+    private fun contentClauses(sentence: String): List<String> =
+        CLAUSE_BREAK.split(sentence).map { it.trim() }.filter { clause ->
+            TextTokens.words(clause).any { it.any(Char::isDigit) || (it.length > 1 && it.lowercase() !in FUNCTION_WORDS) }
+        }
+
+    private fun sentenceViolations(
+        clauses: List<String>,
+        sources: List<EvidenceBullet>,
+        evidence: Evidence,
+        profile: CandidateProfile,
+    ): List<GuardrailViolation> {
+        val checks = clauses.map { clause ->
+            sources.associateWith { guard.check(clause, listOf(it), profile) }
+        }
+        val failed = clauses.indices.filter { index -> checks[index].values.none { it.isEmpty() } }
+        if (failed.isNotEmpty()) {
+            return failed.flatMap { index -> checks[index].values.minBy { it.size } }
+        }
+        val groupsPerClause = checks.map { byClause ->
+            byClause.filterValues { it.isEmpty() }.keys.map(evidence::groupOf).toSet()
+        }
+        val sharedGroup = groupsPerClause.reduce { common, groups -> common intersect groups }
+        if (sharedGroup.isNotEmpty()) return emptyList()
+        val best = groupsPerClause.flatten().groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+        return clauses.filterIndexed { index, _ -> best !in groupsPerClause[index] }
+            .map { GuardrailViolation.UnsupportedTerm(it) }
     }
 
     private fun verifiedSkills(skills: TailoredSkills, evidence: Evidence, profile: CandidateProfile): TailoredSkills {
@@ -114,5 +159,7 @@ class TailorResumeUseCase @Inject constructor(
 
     private companion object {
         val SENTENCE_BREAK = Regex("(?<=[.!?])\\s+")
+        val CLAUSE_BREAK = Regex("[!?;:]|[.,](?!\\d)|\\b(?:and|or|with)\\b", RegexOption.IGNORE_CASE)
+        val FUNCTION_WORDS = setOf("the", "an", "of", "in", "to", "for", "using", "at", "on", "by", "as", "from", "my")
     }
 }

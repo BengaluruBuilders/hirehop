@@ -9,11 +9,11 @@ class AcceptChangesUseCase @Inject constructor(
     private val applicationRepository: ApplicationRepository,
     private val clock: Clock,
 ) {
-    suspend operator fun invoke(applicationId: String) {
-        val application = applicationRepository.observeApplication(applicationId).first() ?: return
-        val resume = application.tailoredResume ?: return
+    suspend operator fun invoke(applicationId: String) = DecisionWriteLock.serialised {
+        val application = applicationRepository.observeApplication(applicationId).first() ?: return@serialised
+        val resume = application.tailoredResume ?: return@serialised
         val accepted = resume.withPendingAccepted()
-        if (accepted == resume && application.changesAcceptedAt != null) return
+        if (accepted == resume && application.changesAcceptedAt != null) return@serialised
         val now = clock.now()
         applicationRepository.upsertApplication(
             application.copy(

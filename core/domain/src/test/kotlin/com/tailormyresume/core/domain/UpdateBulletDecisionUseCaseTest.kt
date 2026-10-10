@@ -1,6 +1,7 @@
 package com.tailormyresume.core.domain
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.model.ApplicationStatus
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.GapAnalysis
@@ -9,6 +10,12 @@ import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.TailoredSkills
+import com.tailormyresume.core.model.TailoredText
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.time.Instant
@@ -116,5 +123,44 @@ class UpdateBulletDecisionUseCaseTest {
         assertThat(undone.decision).isEqualTo(BulletDecision.REJECTED)
         assertThat(undone.originalText).isEqualTo("original b1")
         assertThat(undone.proposedText).isEqualTo("proposed b1")
+    }
+
+    @Test
+    fun summaryAndSkillsCanBeUndoneAndAreNotAcceptedByAcceptChanges() = runTest {
+        val resume = TailoredResume(
+            listOf(bullet("b1")),
+            summary = TailoredText("new", "old"),
+            skills = TailoredSkills(listOf("SQL"), listOf("SQL", "Excel")),
+        )
+        repository.upsertApplication(application(resume))
+
+        useCase("app-1", UpdateBulletDecisionUseCase.SUMMARY_CHANGE_ID, BulletDecision.REJECTED)
+        useCase("app-1", UpdateBulletDecisionUseCase.SKILLS_CHANGE_ID, BulletDecision.REJECTED)
+        AcceptChangesUseCase(repository, clock)("app-1")
+
+        val saved = checkNotNull(checkNotNull(repository.current("app-1")).tailoredResume)
+        assertThat(saved.summary?.decision).isEqualTo(BulletDecision.REJECTED)
+        assertThat(saved.skills?.decision).isEqualTo(BulletDecision.REJECTED)
+        assertThat(saved.bullets.single().decision).isEqualTo(BulletDecision.ACCEPTED)
+        assertThat(ExportReadiness.check(checkNotNull(repository.current("app-1")))).isEqualTo(ExportCheck.ALLOWED)
+    }
+
+    @Test
+    fun undoThenAcceptInQuickSuccessionNeverSavesTheUndoneChangeAsAccepted() = runTest {
+        repository.upsertApplication(application(TailoredResume(listOf(bullet("b1"), bullet("b2")))))
+        val slowReads = object : ApplicationRepository by repository {
+            override fun observeApplication(id: String): Flow<JobApplication?> =
+                repository.observeApplication(id).onEach { delay(10) }
+        }
+        val undo = UpdateBulletDecisionUseCase(slowReads, clock)
+        val accept = AcceptChangesUseCase(slowReads, clock)
+
+        launch { undo("app-1", "b1", BulletDecision.REJECTED) }
+        launch { accept("app-1") }
+        testScheduler.advanceUntilIdle()
+
+        val saved = checkNotNull(checkNotNull(repository.current("app-1")).tailoredResume)
+        assertThat(saved.bullets.map { it.decision })
+            .containsExactly(BulletDecision.REJECTED, BulletDecision.ACCEPTED).inOrder()
     }
 }

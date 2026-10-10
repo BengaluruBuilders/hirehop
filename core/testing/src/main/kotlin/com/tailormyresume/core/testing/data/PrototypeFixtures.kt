@@ -59,7 +59,7 @@ object PrototypeFixtures {
                 nowMatch = 61,
                 file = "Priya-Deshmukh_Northwind-GCC_Associate-Analyst.pdf",
                 rawText = NORTHWIND_JOB_TEXT,
-                quickAnswer = QuickAnswer(requirementId = "presenting-to-senior-leaders", choice = "yes"),
+                quickAnswer = QuickAnswer(requirementId = "presenting-to-senior-leaders", choice = "YES_REGULARLY"),
             ),
             application(
                 id = "kb",

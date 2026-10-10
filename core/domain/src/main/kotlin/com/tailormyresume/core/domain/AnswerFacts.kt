@@ -1,5 +1,6 @@
 package com.tailormyresume.core.domain
 
+import com.tailormyresume.core.domain.offline.SkillLexicon
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.QuickAnswer
@@ -17,6 +18,9 @@ internal object AnswerFacts {
     fun keywords(answer: QuickAnswer?, job: JobDescription): List<String> {
         if (answer == null || answer.choice !in choicesThatSupportFacts) return emptyList()
         val requirement = job.requirements.firstOrNull { it.id == answer.requirementId } ?: return emptyList()
+        if (answer.detail.isBlank()) {
+            return requirement.keywords.filter { isNamedSkillKeyword(requirement, it) }.map(SkillLexicon::displayName)
+        }
         return keywordsStatedIn(requirement, requirement.text + "\n" + answer.detail)
     }
 
