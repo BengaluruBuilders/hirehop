@@ -60,8 +60,8 @@ fun TmrTopBar(
         }
     val leadingLabel =
         when (leading) {
-            TmrTopBarLeading.Back -> stringResource(R.string.chrome_back)
-            TmrTopBarLeading.Close -> stringResource(R.string.chrome_close)
+            TmrTopBarLeading.Back -> stringResource(R.string.core_designsystem_chrome_back)
+            TmrTopBarLeading.Close -> stringResource(R.string.core_designsystem_chrome_close)
             TmrTopBarLeading.None -> null
         }
     Row(

@@ -29,9 +29,9 @@ fun tmrStepPillStyle(step: Int, current: Int, colors: TmrColors): TmrStepPillSty
 fun TmrStepBar(current: Int, modifier: Modifier = Modifier) {
     val names =
         listOf(
-            stringResource(R.string.chrome_step_profile),
-            stringResource(R.string.chrome_step_job),
-            stringResource(R.string.chrome_step_tailor),
+            stringResource(R.string.core_designsystem_chrome_step_profile),
+            stringResource(R.string.core_designsystem_chrome_step_job),
+            stringResource(R.string.core_designsystem_chrome_step_tailor),
         )
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         names.forEachIndexed { index, name ->
@@ -39,11 +39,11 @@ fun TmrStepBar(current: Int, modifier: Modifier = Modifier) {
             val style = tmrStepPillStyle(step, current, TmrTheme.colors)
             val label =
                 if (step < current) {
-                    stringResource(R.string.chrome_step_done_label, name)
+                    stringResource(R.string.core_designsystem_chrome_step_done_label, name)
                 } else {
-                    stringResource(R.string.chrome_step_pending_label, step, name)
+                    stringResource(R.string.core_designsystem_chrome_step_pending_label, step, name)
                 }
-            val description = stringResource(R.string.chrome_step_description, step, name)
+            val description = stringResource(R.string.core_designsystem_chrome_step_description, step, name)
             val pill =
                 Modifier
                     .background(style.container, CircleShape)

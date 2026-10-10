@@ -52,7 +52,7 @@ fun TmrBottomSheet(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClickLabel = stringResource(R.string.chrome_dismiss),
+                    onClickLabel = stringResource(R.string.core_designsystem_chrome_dismiss),
                     role = Role.Button,
                     onClick = onDismiss,
                 ),

@@ -89,12 +89,12 @@ fun TmrTabBar(
         ) {
             TmrTabItem(
                 selected = selected == TmrTab.Applications,
-                label = stringResource(R.string.chrome_tab_applications),
+                label = stringResource(R.string.core_designsystem_chrome_tab_applications),
                 selectedIcon = TmrIcons.Applications,
                 unselectedIcon = TmrIcons.ApplicationsBorder,
                 onClick = onApplications,
             )
-            val addDescription = stringResource(R.string.chrome_add_application)
+            val addDescription = stringResource(R.string.core_designsystem_chrome_add_application)
             Box(
                 modifier =
                 Modifier
@@ -114,7 +114,7 @@ fun TmrTabBar(
             }
             TmrTabItem(
                 selected = selected == TmrTab.Profile,
-                label = stringResource(R.string.chrome_tab_profile),
+                label = stringResource(R.string.core_designsystem_chrome_tab_profile),
                 selectedIcon = TmrIcons.Profile,
                 unselectedIcon = TmrIcons.ProfileBorder,
                 onClick = onProfile,
