@@ -71,7 +71,7 @@ internal fun TmrColors.toDarkScheme(): ColorScheme = darkColorScheme(
     inverseSurface = paper,
     inverseOnSurface = ink,
     inversePrimary = ink,
-    outline = line,
+    outline = textDisabled,
     outlineVariant = line,
     scrim = scrim,
 )
