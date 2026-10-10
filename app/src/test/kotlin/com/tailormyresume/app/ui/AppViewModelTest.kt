@@ -7,6 +7,7 @@ import com.tailormyresume.core.domain.offline.OfflineSignInGateway
 import com.tailormyresume.core.domain.onboarding.ObserveStartDestinationUseCase
 import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.testing.mock.TestMockStateStore
+import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -21,7 +22,7 @@ class AppViewModelTest {
 
     private val sessionRepository = TestSessionRepository()
 
-    private fun viewModel() = AppViewModel(ObserveStartDestinationUseCase(sessionRepository))
+    private fun viewModel() = AppViewModel(ObserveStartDestinationUseCase(sessionRepository, TestProfileRepository()))
 
     @Test
     fun rootState_beforeAnyValueIsCollected_isLoading() {
