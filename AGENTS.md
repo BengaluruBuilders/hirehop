@@ -19,7 +19,11 @@ The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle
 
 ## Design source
 
-The current visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
+The current design is the Paige prototype in `design/prototype-2026-10-10/` (`README.md` and
+`Prototype.dc.html`), dark only, with Space Mono and Space Grotesk. It wins over everything below
+where both show the same screen. The GitHub issues labelled `revamp` list the values.
+
+The earlier visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
 (dark first, lime, Manrope and Archivo Black), requested on 2026-10-07. It covers all 24 screens in
 dark and light. It, `docs/AVVIO_REDESIGN.md` and `docs/DESIGN_SYSTEM.md` supersede the Jade appearance
 rules and frame styling below. The older exported frames still document states and copy that the
@@ -29,7 +33,8 @@ If a task changes UI, read the frames for that flow before you write code.
 
 | Need | File |
 |---|---|
-| **Current look (wins first)** | `design/avvio-canvas/README.md`, then `flow<N>-*.md` outlines |
+| **Current look (Paige prototype, wins first)** | `design/prototype-2026-10-10/README.md`, then `Prototype.dc.html` |
+| Previous look | `design/avvio-canvas/README.md`, then `flow<N>-*.md` outlines |
 | Older restyle | `design/jade-restyle/INDEX.md`, then the frames it lists; rules in `docs/REDESIGN.md` section 0 |
 | Tokens: type, colour, surface, shape, spacing (older Jade board) | `design/claude-design/foundations/Main.dc.html`, `Colour.dc.html`, `Surface.dc.html` |
 | Motion registers `proof` and `hop` | `design/claude-design/foundations/Motion.dc.html` |
@@ -55,12 +60,13 @@ If the design changes, export the frames again and replace the folder in one PR.
 
 ## Motion
 
-- Two registers only: `proof` (default) and `hop` (gap closed, exported, pack purchased, first fact confirmed).
+- Two registers for state changes: `proof` (default) and `hop` (gap closed, exported, pack purchased, first fact confirmed).
 - Read specs from `TmrTheme.motion`. Do not add a duration scale or an easing scale.
 - Motion code lives in `core:designsystem`. Navigation wiring lives in `:app`.
 - A feature calls an `Tmr*` primitive. It never calls `tween(`, `spring(`, or a numeric duration.
 - If `TmrTheme.motion.reduced` is true, nothing moves. The state change stays visible.
 - In a lazy list, animate `graphicsLayer` alpha, translation, and scale only.
+- `TmrTheme.motion.idle` holds the ambient loops: Paige bob 5 dp, tailoring wobble, 5 s story slides and a 900 ms spinner. With `reduced` they stay still, and story taps still step.
 - Do not build the multi-frame sequences of the board.
 - A settled frame must not change. Do not record a screenshot baseline again for a motion change.
 - The table of needs, primitives, and tokens is in `docs/DESIGN_SYSTEM.md`, section "Motion".
