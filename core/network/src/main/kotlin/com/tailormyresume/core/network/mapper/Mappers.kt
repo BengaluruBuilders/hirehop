@@ -3,6 +3,7 @@ package com.tailormyresume.core.network.mapper
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.ContentReport
+import com.tailormyresume.core.model.EditType
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.JobRequirement
 import com.tailormyresume.core.model.QuickAnswer
@@ -94,7 +95,7 @@ fun TailoredBulletDto.toTailoredBullet(originalText: String): TailoredBullet = T
     originalText = originalText,
     proposedText = proposedText,
     sourceIds = sourceIds,
-    editTypes = editTypes,
+    editTypes = editTypes.filter { it != EditType.UNKNOWN },
     keywordsUsed = keywordsUsed,
     violations = emptyList(),
     decision = BulletDecision.PENDING,

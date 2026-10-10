@@ -2,6 +2,7 @@ package com.tailormyresume.app.ai
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.TailorResumeUseCase
+import com.tailormyresume.core.model.EditType
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.testing.mock.TestMockStateStore
@@ -77,5 +78,14 @@ class RemoteResumeTailorV2ResultTest {
         val summary = checkNotNull(resume.summary)
         assertThat(summary.violations).isEmpty()
         assertThat(summary.text).isEqualTo("Data analyst who cleans sales data in Excel.")
+    }
+
+    @Test
+    fun unknownEditTypeDecodesAndIsDropped() = runTest {
+        backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT).replace("\"REWORD\"", "\"SIMPLIFY\",\"REWORD\"")))
+
+        val bullet = tailor.tailor(profile, job, gap, "app-1", null).bullets.single()
+
+        assertThat(bullet.editTypes).containsExactly(EditType.REWORD)
     }
 }

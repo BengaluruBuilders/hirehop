@@ -51,4 +51,23 @@ class RemoteResumeTailorFailureTest {
 
         assertThat(failureOfNextAttempt()).isEqualTo(AiFailure.Unavailable)
     }
+
+    @Test
+    fun unknownStatusIsTerminalNotPolledAndClearsRequestId() = runTest {
+        backend.reply(202, tailoringBody("PAUSED"))
+
+        assertThat(failureOfNextAttempt()).isEqualTo(AiFailure.Unavailable)
+        assertThat(store.read("tailoring.request.app-1")).isNull()
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun unknownStatusAfterPollingIsTerminalToo() = runTest {
+        backend.reply(202, tailoringBody("RUNNING"))
+        backend.reply(200, tailoringBody("PAUSED"))
+
+        assertThat(failureOfNextAttempt()).isEqualTo(AiFailure.Unavailable)
+        assertThat(store.read("tailoring.request.app-1")).isNull()
+        assertThat(backend.server.requestCount).isEqualTo(2)
+    }
 }

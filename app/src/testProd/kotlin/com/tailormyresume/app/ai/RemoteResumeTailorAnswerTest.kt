@@ -35,10 +35,11 @@ class RemoteResumeTailorAnswerTest {
     }
 
     @Test
-    fun blankDetailIsSentAsNoDetail() = runTest {
-        val body = bodyFor(QuickAnswer("req-1", "SKIPPED", "   "))
-
-        assertThat(body).contains(""""answer":{"requirementId":"req-1","choice":"SKIPPED"}""")
+    fun blankDetailIsSentAsNullDetail() = runTest {
+        assertThat(bodyFor(QuickAnswer("req-1", "SKIPPED", "   ")))
+            .contains(""""answer":{"requirementId":"req-1","choice":"SKIPPED","detail":null}""")
+        assertThat(bodyFor(QuickAnswer("req-1", "NOT_YET", "")))
+            .contains(""""answer":{"requirementId":"req-1","choice":"NOT_YET","detail":null}""")
     }
 
     @Test

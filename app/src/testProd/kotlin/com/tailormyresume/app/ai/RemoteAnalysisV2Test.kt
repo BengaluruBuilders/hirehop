@@ -118,6 +118,32 @@ class RemoteAnalysisV2Test {
     }
 
     @Test
+    fun cachedRematchDropsTheReasonWhenSomeCitedEvidenceIsNoLongerConfirmed() = runBlocking<Unit> {
+        val grown = candidate.copy(entries = candidate.entries + confirmedEntry("W-02", "W-02-b1", "Presented to the CFO."))
+        backend.reply(200, analysisBody("MET", """"$FACT_ID","W-02-b1"""", "Presented to the CFO.", "null"))
+
+        val first = source.analyse(grown, "the raw job text").gap.matches.single()
+        val second = source.analyse(candidate, "the raw job text").gap.matches.single()
+
+        assertThat(first.reason).isEqualTo("Presented to the CFO.")
+        assertThat(second.status).isEqualTo(MatchStatus.MET)
+        assertThat(second.evidenceIds).containsExactly(FACT_ID)
+        assertThat(second.reason).isNull()
+        assertThat(backend.server.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun cachedRematchDropsTheReasonWhenAllCitedEvidenceIsNoLongerConfirmed() = runBlocking<Unit> {
+        backend.reply(200, analysisBody("MET", """"$FACT_ID"""", "Shown in your role.", "null"))
+
+        source.analyse(candidate, "the raw job text")
+        val second = source.analyse(candidate.copy(entries = emptyList()), "the raw job text").gap.matches.single()
+
+        assertThat(second.status).isEqualTo(MatchStatus.GAP)
+        assertThat(second.reason).isNull()
+    }
+
+    @Test
     fun notAJobPostIsItsOwnFailureNotCachedAndNotRetried() = runBlocking<Unit> {
         backend.fail(422, "NOT_A_JOB_POST")
         backend.fail(422, "NOT_A_JOB_POST")
