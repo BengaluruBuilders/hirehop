@@ -33,10 +33,12 @@ fun TmrCoverageDelta(now: Int, upTo: Int, modifier: Modifier = Modifier) {
             .semantics(mergeDescendants = true) { contentDescription = summary },
         verticalArrangement = Arrangement.spacedBy(TmrTheme.spacing.md),
     ) {
+        val label = stringResource(R.string.core_designsystem_content_keywords_matched)
         Text(
-            text = stringResource(R.string.core_designsystem_content_keywords_matched),
+            text = label.uppercase(),
             style = TmrTheme.typography.label,
             color = TmrTheme.colors.textMuted,
+            modifier = Modifier.readAs(label),
         )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(14.dp),

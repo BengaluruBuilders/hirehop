@@ -247,10 +247,10 @@ class TmrProgressRowStyleTest {
         assertEquals(colors.textMuted, active.meta)
 
         val pending = tmrProgressRowColors(TmrProgressState.Pending, colors)
-        assertEquals(colors.textDisabled, pending.label)
-        assertEquals(colors.textDisabled, pending.meta)
-        assertEquals(Color(0xFF7D7D7D), pending.label)
-        assertEquals(Color(0xFF7D7D7D), pending.meta)
+        assertEquals(colors.textMuted, pending.label)
+        assertEquals(colors.textMuted, pending.meta)
+        assertEquals(Color(0xFFA6A6A6), pending.label)
+        assertEquals(Color(0xFFA6A6A6), pending.meta)
     }
 
     @Test

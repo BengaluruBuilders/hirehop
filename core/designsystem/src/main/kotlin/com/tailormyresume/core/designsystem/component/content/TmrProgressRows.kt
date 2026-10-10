@@ -80,7 +80,7 @@ internal fun tmrProgressRowColors(state: TmrProgressState, colors: TmrColors): T
     when (state) {
         TmrProgressState.Done -> TmrProgressRowColors(colors.text, colors.lime)
         TmrProgressState.Active -> TmrProgressRowColors(colors.text, colors.textMuted)
-        TmrProgressState.Pending -> TmrProgressRowColors(colors.textDisabled, colors.textDisabled)
+        TmrProgressState.Pending -> TmrProgressRowColors(colors.textMuted, colors.textMuted)
     }
 
 internal fun tmrSpinnerAngle(frameTimeMs: Long, motion: TmrMotion): Float =

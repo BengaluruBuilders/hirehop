@@ -2,9 +2,13 @@ package com.tailormyresume.core.designsystem.component.content
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -165,10 +169,14 @@ private fun SectionLabelSample() {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatusChips() {
     ScreenColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             TmrApplicationStatus.entries.forEach { status ->
                 TmrStatusChip(status = status)
             }
@@ -243,7 +251,14 @@ private fun InitialDiscs() {
 @Composable
 private fun StoryBars() {
     ScreenColumn {
-        TmrStoryBars(count = 3, activeIndex = 1, activeFraction = 0.5f)
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(TmrTheme.colors.blue, TmrTheme.shapes.cardLarge)
+                .padding(horizontal = 26.dp, vertical = 12.dp),
+        ) {
+            TmrStoryBars(count = 3, activeIndex = 1, activeFraction = 0.5f)
+        }
     }
 }
 

@@ -114,22 +114,12 @@ private fun assertWrapsAtWordBoundaries(node: SemanticsNode) {
         (0 until layout.lineCount).forEach { line ->
             assertFalse("'$text' is ellipsized on line $line", layout.isLineEllipsized(line))
         }
-        for (line in 0 until layout.lineCount - 1) {
-            val end = layout.getLineEnd(line, visibleEnd = false)
-            val atBoundary = end in 1 until text.length &&
-                (text[end - 1].isWhitespace() || text[end].isWhitespace() || text[end - 1] == '-')
-            assertTrue("'$text' breaks a word that fits on one line at $end", atBoundary || !wordFitsOnOneLine(layout, end))
-        }
+        assertFalse("'$text' breaks inside a word", breaksInsideWord(layout))
     }
 }
 
-private fun wordFitsOnOneLine(layout: TextLayoutResult, index: Int): Boolean {
-    val text = layout.layoutInput.text.text
-    val start = text.substring(0, index).indexOfLast { it.isWhitespace() } + 1
-    val end = text.indexOf(' ', index).takeIf { it >= 0 } ?: text.length
-    val width = (start until end).sumOf { char -> layout.getBoundingBox(char).width.toDouble() }
-    return width <= layout.size.width
-}
+private fun textLayouts(node: SemanticsNode): List<TextLayoutResult> =
+    mutableListOf<TextLayoutResult>().also { node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(it) }
 
 private fun AndroidComposeTestRule<*, ComponentActivity>.spinnerAnimated(): Boolean =
     semanticsNodes().mapNotNull { node -> node.config.getOrNull(TmrSpinnerAnimatedKey) }.single()
@@ -609,6 +599,25 @@ class TmrContentFontScaleTest {
         rule.assertStaysInsideContainer {
             TmrFileCard(fileName = LONG_FILE_NAME, meta = FILE_META, onShare = {}, onOpen = {})
         }
+        rule.onNodeWithText(LONG_FILE_NAME, useUnmergedTree = true).assertExists()
+        val nameLayout = rule.semanticsNodes()
+            .flatMap { textLayouts(it) }
+            .single { it.layoutInput.text.text.replace("\u200B", "") == LONG_FILE_NAME }
+        assertTrue("file name did not wrap", nameLayout.lineCount > 1)
+    }
+
+    @Test
+    fun fileNameWithoutSeparatorsShrinksToTheFloorInsteadOfBreaking() {
+        val unbroken = "DeshmukhNorthwindResumePdf"
+        rule.assertStaysInsideContainer {
+            TmrFileCard(fileName = unbroken, meta = FILE_META, onShare = {}, onOpen = {})
+        }
+        val layout = rule.semanticsNodes()
+            .flatMap { textLayouts(it) }
+            .single { it.layoutInput.text.text.replace("\u200B", "") == unbroken }
+        val scaledSize = layout.layoutInput.style.fontSize.value * 2f
+        assertTrue("name did not shrink", layout.layoutInput.style.fontSize.value < scaledSize)
+        assertFalse(breaksInsideWord(layout))
     }
 
     @Test

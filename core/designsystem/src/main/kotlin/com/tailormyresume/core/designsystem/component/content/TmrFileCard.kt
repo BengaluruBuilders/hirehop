@@ -34,6 +34,8 @@ private val FileIconSize = 18.dp
 
 private val FileTileCorner = 12.dp
 
+private val FILE_NAME_SEPARATORS = charArrayOf('_', '.', '-', '/')
+
 @Composable
 fun TmrFileCard(
     fileName: String,
@@ -66,10 +68,11 @@ fun TmrFileCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                Text(
+                TmrFitText(
                     text = fileName,
                     style = TmrTheme.typography.strongLarge,
                     color = TmrTheme.colors.text,
+                    breakAfter = FILE_NAME_SEPARATORS,
                 )
                 Text(
                     text = meta,

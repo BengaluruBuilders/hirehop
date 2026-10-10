@@ -111,6 +111,7 @@ fun TmrSourceChip(source: TmrSource, modifier: Modifier = Modifier) {
 @Composable
 fun TmrTagChip(tag: TmrTag, modifier: Modifier = Modifier) {
     val style = tmrTagStyle(tag, TmrTheme.colors)
+    val label = stringResource(tag.labelRes)
     Surface(
         modifier = modifier,
         shape = CircleShape,
@@ -118,10 +119,10 @@ fun TmrTagChip(tag: TmrTag, modifier: Modifier = Modifier) {
         border = BorderStroke(1.dp, style.border),
     ) {
         Text(
-            text = stringResource(tag.labelRes),
+            text = label.uppercase(),
             style = TmrTheme.typography.label,
             color = style.text,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp).readAs(label),
         )
     }
 }
