@@ -21,7 +21,7 @@ The Jade restyle frames (foundations, Flows 1 and 2) are in `design/jade-restyle
 
 The current design is the Paige prototype in `design/prototype-2026-10-10/` (`README.md` and
 `Prototype.dc.html`), dark only, with Space Mono and Space Grotesk. It wins over everything below
-where both show the same screen. `docs/revamp/2026-10-10/PLAN.md` section 3 lists the values.
+where both show the same screen. The GitHub issues labelled `revamp` list the values.
 
 The earlier visual direction is the Claude Design canvas in `design/avvio-canvas/README.md`
 (dark first, lime, Manrope and Archivo Black), requested on 2026-10-07. It covers all 24 screens in

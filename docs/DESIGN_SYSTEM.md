@@ -41,7 +41,7 @@ A feature must change these things when it adopts the integration changes.
 
 ## Tokens
 
-The app is dark only. The values come from `docs/revamp/2026-10-10/PLAN.md` section 3 and the
+The app is dark only. The values come from the plan for the revamp (GitHub issues labelled `revamp`) and the
 prototype in `design/prototype-2026-10-10/`. The phone screen is 374 x 834 dp. Every token from the
 older Avvio palette keeps its name as a computed alias of a Paige token, so existing components
 compile unchanged. `disabledContent` is `textDisabled` and `onSurfaceVariant` is `textMuted`; they
@@ -83,8 +83,9 @@ differ on purpose.
 | `rejectedBorder` | `#444444` | Rejected chip border |
 | `scrim` | `#000000` at 65% | Sheet scrim |
 
-`textDisabled` on `surface` is 4.40:1 and on `fill` 3.62:1. Use it only for placeholder, disabled
-and pending text.
+`textDisabled` (`#7D7D7D`) is 4.59:1 on `surface` and `card` and 5.10:1 on `background`. `boundary` and
+`outline` alias it, so component borders reach 3:1. Use it for placeholder, disabled and pending
+text and for component borders.
 
 ### Type (`TmrTheme.typography`)
 
