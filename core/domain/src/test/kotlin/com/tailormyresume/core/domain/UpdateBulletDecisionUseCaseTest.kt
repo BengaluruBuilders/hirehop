@@ -35,7 +35,6 @@ class UpdateBulletDecisionUseCaseTest {
         id = "app-1",
         job = JobDescription("t", "c", "raw", emptyList()),
         status = ApplicationStatus.SAVED,
-        notes = "",
         gapAnalysis = GapAnalysis(emptyList(), KeywordCoverage(0, 0)),
         tailoredResume = resume,
         createdAt = created,

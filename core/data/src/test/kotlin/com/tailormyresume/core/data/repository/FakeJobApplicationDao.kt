@@ -31,10 +31,6 @@ class FakeJobApplicationDao : JobApplicationDao {
         modify(id) { it.copy(status = status, updatedAt = updatedAt) }
     }
 
-    override suspend fun updateNotes(id: String, notes: String, updatedAt: Instant) {
-        modify(id) { it.copy(notes = notes, updatedAt = updatedAt) }
-    }
-
     override suspend fun deleteApplication(id: String) {
         entities.update { it - id }
     }

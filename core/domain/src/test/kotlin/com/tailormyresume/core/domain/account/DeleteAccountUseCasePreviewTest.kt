@@ -90,8 +90,6 @@ private class EmptyApplicationRepository(
 
     override suspend fun updateStatus(id: String, status: ApplicationStatus) = Unit
 
-    override suspend fun updateNotes(id: String, notes: String) = Unit
-
     override suspend fun deleteApplication(id: String) = Unit
 }
 
