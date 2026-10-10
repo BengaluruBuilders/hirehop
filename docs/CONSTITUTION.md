@@ -136,6 +136,8 @@ the release APK still requests no network permission.
 | Item | Why | Gate |
 |---|---|---|
 | The Roborazzi row now takes the prototype in `design/prototype-2026-10-10/`, at 374 x 834 dp, as its acceptance source | The 2026-10-10 prototype replaces the older design in `design/claude-design`. | `verifyRoborazziDebug` (unchanged) |
+| D4: one explicit "Accept changes" action in the Changes tab, with per-change Undo, satisfies I.2's explicit accept before export | The prototype has one accept control for all changes. Export PDF stays disabled until it is taken, so no export happens without an explicit accept. I.2 is unchanged. | `UpdateBulletDecisionUseCaseTest` and `TailorViewModelTest` (existing) |
+| D5: the before/after number is keyword coverage per PRD 4.2, labelled as keyword coverage, never match, fit or ATS | The prototype shows a before/after number. It is only honest as keyword coverage, so the label says so. I.3 is unchanged. | `tools/ci/check-constitution.sh` policy I.3 |
 
 ### Ledger amendment — 2026-10-08, network access for the TailorMyResume backend (I.5)
 
