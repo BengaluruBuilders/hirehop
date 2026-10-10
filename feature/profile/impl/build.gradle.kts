@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.feature.profile.api)
     implementation(projects.feature.onboarding.api)
+    implementation(projects.feature.settings.api)
     implementation(projects.feature.analysis.api)
     implementation(projects.feature.applications.api)
     implementation(libs.androidx.compose.material3)
