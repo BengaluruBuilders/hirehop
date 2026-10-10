@@ -120,7 +120,7 @@ class DebugScenarioActivity : ComponentActivity() {
     }
 
     private fun applyEdgeToEdge() {
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT), navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
     }
 
     private fun openPreview() {
