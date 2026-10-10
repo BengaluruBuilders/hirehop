@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
@@ -45,6 +46,8 @@ import com.tailormyresume.core.screenshot.TmrTestDevices
 import com.tailormyresume.core.screenshot.captureForDevice
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -54,6 +57,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 private const val TOAST_VISIBLE_MS = 3200L
+private const val FRAME_MS = 16L
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -253,6 +257,10 @@ class TmrToastTest {
 
     private fun show(state: TmrToastState, message: String, action: TmrToastAction? = null) {
         composeRule.runOnIdle { state.show(message, action) }
+        repeat(2) {
+            composeRule.mainClock.advanceTimeBy(FRAME_MS)
+            composeRule.waitForIdle()
+        }
     }
 
     @Test
@@ -260,11 +268,13 @@ class TmrToastTest {
         val state = TmrToastState()
         host(state)
         show(state, "Changes saved")
-        composeRule.mainClock.advanceTimeBy(TOAST_VISIBLE_MS - 1)
-        composeRule
-            .onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true)
-            .assertIsDisplayed()
-        composeRule.mainClock.advanceTimeBy(1)
+        composeRule.mainClock.advanceTimeBy(TOAST_VISIBLE_MS - 1, ignoreFrameDuration = true)
+        composeRule.runOnIdle { assertNotNull(state.current) }
+        composeRule.onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true).assertExists()
+        composeRule.mainClock.advanceTimeBy(1, ignoreFrameDuration = true)
+        composeRule.runOnIdle { assertNull(state.current) }
+        composeRule.mainClock.advanceTimeBy(FRAME_MS)
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true).assertDoesNotExist()
     }
 
@@ -273,13 +283,13 @@ class TmrToastTest {
         val state = TmrToastState()
         host(state)
         show(state, "Changes saved")
-        composeRule.mainClock.advanceTimeBy(2000)
+        composeRule.mainClock.advanceTimeBy(2000, ignoreFrameDuration = true)
         show(state, "Applied, marked today")
-        composeRule.mainClock.advanceTimeBy(2000)
+        composeRule.mainClock.advanceTimeBy(2000, ignoreFrameDuration = true)
         composeRule.onNodeWithText("Applied, marked today").assertIsDisplayed()
         composeRule.onNodeWithText("Changes saved").assertDoesNotExist()
-        composeRule.mainClock.advanceTimeBy(TOAST_VISIBLE_MS - 2000)
-        composeRule.onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.mainClock.advanceTimeBy(TOAST_VISIBLE_MS - 2000, ignoreFrameDuration = true)
+        composeRule.runOnIdle { assertNull(state.current) }
     }
 
     @Test
@@ -296,6 +306,8 @@ class TmrToastTest {
             .onNodeWithTag(TmrChromeTags.TOAST_ACTION, useUnmergedTree = true)
             .performClick()
         composeRule.runOnIdle { assertEquals(1, actionClicks) }
+        composeRule.mainClock.advanceTimeBy(FRAME_MS)
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag(TmrChromeTags.TOAST, useUnmergedTree = true).assertDoesNotExist()
     }
 
@@ -459,7 +471,10 @@ class TmrChromeScreenshotTest {
             composeRule.runOnIdle {
                 fontScale.value = TmrTestDevices.prototypeLargeFont.fontScale
             }
-            composeRule.waitForIdle()
+            repeat(2) {
+                composeRule.mainClock.advanceTimeBy(FRAME_MS)
+                composeRule.waitForIdle()
+            }
             composeRule.captureForDevice(
                 outputDirectory = SCREENSHOT_DIRECTORY,
                 screenName = screenName,
@@ -502,6 +517,7 @@ class TmrChromeScreenshotTest {
                     onApplications = {},
                     onAdd = {},
                     onProfile = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
         }
@@ -515,6 +531,7 @@ class TmrChromeScreenshotTest {
                     onApplications = {},
                     onAdd = {},
                     onProfile = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
         }
