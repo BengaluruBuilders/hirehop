@@ -29,7 +29,8 @@ internal object SkillLexicon {
 
     fun isKnown(canonical: String): Boolean = canonical in entriesByCanonical
 
-    fun displayName(canonical: String): String = entriesByCanonical[canonical]?.display ?: canonical
+    fun displayName(term: String): String =
+        (entriesByCanonical[term] ?: entriesByKey[keyOf(term)])?.display ?: term
 
     fun typeOf(canonical: String): RequirementType? = entriesByCanonical[canonical]?.type
 

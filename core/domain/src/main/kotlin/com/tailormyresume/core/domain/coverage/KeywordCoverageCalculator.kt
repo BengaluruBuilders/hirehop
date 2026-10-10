@@ -47,10 +47,7 @@ object KeywordCoverageCalculator {
     private fun stated(
         requirement: JobRequirement,
         statement: String,
-    ): List<String> = keywordsStatedIn(
-        requirement.copy(keywords = requirement.keywords.map(String::lowercase)),
-        statement,
-    ).map { it.lowercase() }
+    ): List<String> = keywordsStatedIn(requirement, statement).map(String::lowercase)
 
     private fun answerKeywords(
         requirements: List<JobRequirement>,

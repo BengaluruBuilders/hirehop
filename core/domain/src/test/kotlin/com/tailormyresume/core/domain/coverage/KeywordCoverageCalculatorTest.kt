@@ -386,7 +386,7 @@ class KeywordCoverageCalculatorTest {
 
         assertThat(upToWithAnswer(canonical, "built Power BI dashboards")).isEqualTo(100)
         assertThat(upToWithAnswer(canonical, "")).isEqualTo(100)
-        assertThat(upToWithAnswer(displayCased, "built Power BI dashboards")).isEqualTo(50)
+        assertThat(upToWithAnswer(displayCased, "built Power BI dashboards")).isEqualTo(100)
     }
 
     @Test
