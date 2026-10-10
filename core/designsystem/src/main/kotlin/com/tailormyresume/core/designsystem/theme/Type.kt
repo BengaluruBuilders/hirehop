@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.sp
 object TmrFontFamilies {
     val sans = FontFamily.Default
     val display = FontFamily.Default
+    val mono: FontFamily = FontFamily.Default
+    val grotesk: FontFamily = FontFamily.Default
 }
 
 @Immutable

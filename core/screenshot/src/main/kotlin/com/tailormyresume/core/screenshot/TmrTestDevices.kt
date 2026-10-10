@@ -12,6 +12,9 @@ object TmrTestDevices {
     const val DEFAULT_FONT_SCALE = 1.0f
     const val LARGE_FONT_SCALE = 2.0f
 
+    const val PROTOTYPE_QUALIFIERS = ""
+    val prototype = TmrTestDevice("prototype", PROTOTYPE_QUALIFIERS, DEFAULT_FONT_SCALE)
+    val prototypeLargeFont = TmrTestDevice("prototype-large", PROTOTYPE_QUALIFIERS, DEFAULT_FONT_SCALE)
     val board = TmrTestDevice("board", BOARD_QUALIFIERS, DEFAULT_FONT_SCALE)
     val boardLargeFont = TmrTestDevice("board-font-200", BOARD_QUALIFIERS, LARGE_FONT_SCALE)
     val smallPhone = TmrTestDevice("small-phone", SMALL_PHONE_QUALIFIERS, DEFAULT_FONT_SCALE)
