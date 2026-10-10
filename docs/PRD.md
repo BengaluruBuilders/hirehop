@@ -146,6 +146,37 @@ else enters the MVP without a new decision in this section.
 
 Channel attribution for college groups uses Play Install Referrer links, not a sign-up code.
 
+### 6.1.2 Simplified MVP (2026-10-10)
+
+The user simplified the MVP with the prototype in `design/prototype-2026-10-10/` (screen list and copy
+in its `README.md`). Where this section and 6.1.1 or sections 6.2 to 8 disagree, this section wins.
+The feature sections below are not yet rewritten; read them through this table.
+
+| Area | Simplified MVP | Was |
+|---|---|---|
+| Flow | Sign in → upload resume → review profile → paste job → job analysis → one quick question → tailor → tailored resume → export PDF → Applications | Paste JD first, sign in after first value, consent screen, fact-by-fact confirmation |
+| Sign-in | First screen, three story slides, Google (and Apple in the design). 1 free credit at sign-in. | After first value; Google only |
+| Profile | Import fills the profile; the user reviews it once and must fix required gaps (e.g. a missing end date) before going on. Paste-as-text and a 6-field manual form are the fallbacks. | Confirm every fact; guided form; fresher evidence path |
+| Gap analysis | Match now → after tailoring, have and missing keywords, must-haves with reasons. Missing skills are added only if the user confirms them. | Met / partly met / to prepare per requirement; "I have this" sheet; prep tasks |
+| Evidence | One quick question per tailoring about an unclear must-have; the answer is a source ("Your answer"). | Evidence path questions in the profile |
+| Tailoring review | A Resume tab and a Changes tab (before, after, source). Edit in one editor. Must fit 1 page. | Per-bullet accept, keep, or edit; 2 regenerations |
+| Export | PDF only, file name `Name_Company_Role.pdf` (format set in Settings), A4 or Letter | PDF and DOCX, preview before the paywall |
+| Prep questions, cover letter | Shown as "Soon". Not in the MVP. | P0 |
+| Share card | Not in the prototype. Not in the MVP. | P0 |
+| Applications | List with a status bar; statuses Saved, Applied, Interview, Offer, Rejected; "Mark as Applied" with Undo; re-tailor for 1 credit | List, status, notes, prep tasks |
+| Pricing | 1 credit = 1 tailored resume, never expire. Packs 5 for ₹199, 15 for ₹449 (best value), 40 for ₹999. Credit history ledger. | Free tier with 3 gap analyses a day, 5-pack at ₹149 |
+| Settings | Credits, page size, file name format, follow-up reminder and product update toggles, download my data, help, delete account (type DELETE), sign out | Separate Your data and Delete account screens, consent read-only view |
+| Look | Paige mascot and colour-coded hero cards (blue resume, amber job, lime tailor) on black; full-bleed colour sign-in. Space Mono and Space Grotesk. No light theme. | Avvio: dark and light, Manrope and Archivo Black, #AEFF00 |
+
+Open questions. The prototype does not draw these, and they need an owner decision before they are
+cut, because they come from the law, Play policy, or the constitution:
+
+1. The consent notice and the 18+ check (F9, section 10.4).
+2. Light theme. The prototype is dark only; the app supports both today.
+3. "Continue with Apple" on Android.
+4. Follow-up reminders are in Settings, but reminders were cut in 6.1.1.
+5. Offline, error, and 200% text states. Reuse the patterns in `design/avvio-canvas/` until the design draws them.
+
 ### 6.2 F1 — Resume import and profile
 
 User story: as a candidate, I import my resume once, so I do not re-enter my background for each job.
