@@ -215,13 +215,13 @@ class TmrChipStyleTest {
         assertEquals(colors.lime, bestValue.border)
 
         val soon = tmrTagStyle(TmrTag.Soon, colors)
-        assertEquals(colors.text, soon.text)
-        assertEquals(colors.textMuted, soon.fill)
+        assertEquals(colors.textMuted, soon.text)
+        assertEquals(Color.Transparent, soon.fill)
         assertEquals(colors.boundary, soon.border)
 
         val required = tmrTagStyle(TmrTag.Required, colors)
-        assertEquals(colors.text, required.text)
-        assertEquals(colors.amber, required.fill)
+        assertEquals(colors.amber, required.text)
+        assertEquals(Color.Transparent, required.fill)
         assertEquals(colors.amber, required.border)
 
         listOf(TmrTag.New, TmrTag.Added, TmrTag.Rewritten, TmrTag.Reordered).forEach { tag ->

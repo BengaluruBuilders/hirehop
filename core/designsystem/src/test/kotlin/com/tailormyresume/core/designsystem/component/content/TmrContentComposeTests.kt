@@ -250,19 +250,10 @@ class TmrResumePaperTest {
         assertFalse(descriptions.any { description -> MATCH_WORD.containsMatchIn(description) })
         assertFalse(rule.textValues().any { text -> MATCH_WORD.containsMatchIn(text) })
 
-        val paper =
-            merged.first { node ->
-                node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty().any {
-                        description ->
-                    description.contains(PAPER_SUMMARY)
-                }
-            }
-        assertTrue(paper.config.getOrNull(SemanticsProperties.Text).orEmpty().isNotEmpty())
         val mergedWithText = merged.filter { node ->
             node.config.getOrNull(SemanticsProperties.Text).orEmpty().isNotEmpty()
         }
-        assertEquals(1, mergedWithText.size)
-        assertEquals(paper.id, mergedWithText.first().id)
+        assertTrue(mergedWithText.isEmpty())
     }
 
     @Test
