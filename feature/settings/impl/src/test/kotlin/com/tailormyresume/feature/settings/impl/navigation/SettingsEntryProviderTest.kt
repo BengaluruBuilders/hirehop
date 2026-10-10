@@ -48,7 +48,7 @@ class SettingsEntryProviderTest {
         )
 
         composeRule.setContent {
-            TmrTheme(darkTheme = false) {
+            TmrTheme {
                 Column {
                     keys.forEach { navKey ->
                         key(navKey) { provider(navKey).Content() }
