@@ -86,7 +86,8 @@ class TailoredViewModelTest {
         val pendingAccepted = TailoredResume(listOf(bullet)).withPendingAccepted()
         assertThat(before.coveragePercent)
             .isEqualTo(KeywordCoverageCalculator.compute(gap.matches, null, pendingAccepted).final)
-        assertThat(before.blocks.flatMap { it.lines }.flatten().map { it.text }).contains("Developed an internal tool")
+        assertThat(before.blocks.flatMap { it.lines }.map { line -> line.joinToString("") { it.text } })
+            .contains("Developed an internal tool")
 
         AcceptChangesUseCase(applicationRepository, clock)("app-1")
 
@@ -105,7 +106,8 @@ class TailoredViewModelTest {
 
         val ready = viewModel.ready()
         assertThat(ready.changes.single().undone).isTrue()
-        assertThat(ready.blocks.flatMap { it.lines }.flatten().map { it.text }).contains("Built an internal tool")
+        assertThat(ready.blocks.flatMap { it.lines }.map { line -> line.joinToString("") { it.text } })
+            .contains("Built an internal tool")
         assertThat(applicationRepository.observeApplication("app-1").first()?.tailoredResume?.bullets?.single()?.decision)
             .isEqualTo(BulletDecision.REJECTED)
     }

@@ -27,6 +27,7 @@ private const val SCREENSHOT_DIRECTORY = "src/test/screenshots"
 internal fun ComposeContentTestRule.captureResultScreen(
     screenName: String,
     device: TmrTestDevice = TmrTestDevices.prototype,
+    beforeCapture: () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val context = ApplicationProvider.getApplicationContext<Context>()
@@ -39,6 +40,8 @@ internal fun ComposeContentTestRule.captureResultScreen(
             }
         }
     }
+    waitForIdle()
+    beforeCapture()
     waitForIdle()
     runBlocking { captureForDevice(SCREENSHOT_DIRECTORY, screenName, device) }
 }

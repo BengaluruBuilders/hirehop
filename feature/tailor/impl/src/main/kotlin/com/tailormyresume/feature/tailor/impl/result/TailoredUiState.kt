@@ -3,6 +3,8 @@ package com.tailormyresume.feature.tailor.impl.result
 import androidx.compose.runtime.Immutable
 import com.tailormyresume.core.designsystem.component.content.TmrPaperBlock
 
+internal enum class TailoredTab { Resume, Changes }
+
 internal sealed interface TailoredUiState {
     data object Loading : TailoredUiState
 

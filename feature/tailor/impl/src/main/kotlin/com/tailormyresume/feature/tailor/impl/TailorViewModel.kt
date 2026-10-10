@@ -7,6 +7,9 @@ import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.ContentReportRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.TailoringReviewStateRepository
+import com.tailormyresume.core.domain.AcceptChangesUseCase
+import com.tailormyresume.core.domain.ExportCheck
+import com.tailormyresume.core.domain.ExportReadiness
 import com.tailormyresume.core.domain.UpdateBulletDecisionUseCase
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.CandidateProfile
@@ -15,6 +18,8 @@ import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.ReportedItemKind
 import com.tailormyresume.core.model.TailoringReviewState
+import com.tailormyresume.feature.tailor.api.navigation.EditResumeNavKey
+import com.tailormyresume.feature.tailor.api.navigation.ExportedNavKey
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -25,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -53,6 +59,8 @@ internal class TailorViewModel @AssistedInject constructor(
 
     private val decisionMutex = Mutex()
 
+    private val acceptChanges = AcceptChangesUseCase(applicationRepository, clock)
+
     private val activeScenario = MutableStateFlow(scenario)
 
     private val sessionState = combine(
@@ -78,19 +86,27 @@ internal class TailorViewModel @AssistedInject constructor(
 
     val events: Flow<TailorEvent> = eventChannel.receiveAsFlow()
 
-    fun onUndoChange(changeId: String) = Unit
+    fun onUndoChange(changeId: String) {
+        viewModelScope.launch { updateBulletDecision(applicationId, changeId, BulletDecision.REJECTED) }
+    }
 
-    fun onAcceptChanges() = Unit
+    fun onAcceptChanges() {
+        viewModelScope.launch { acceptChanges(applicationId) }
+    }
 
-    fun onExportTapped() = Unit
+    fun onExportTapped() {
+        viewModelScope.launch {
+            val application = applicationRepository.observeApplication(applicationId).first()
+            val allowed = application != null && ExportReadiness.check(application) == ExportCheck.ALLOWED
+            eventChannel.send(
+                if (allowed) TailorEvent.Navigate(ExportedNavKey(applicationId)) else TailorEvent.ExportBlocked,
+            )
+        }
+    }
 
-    fun onEditTapped() = Unit
-
-    fun onAccept(bulletId: String) = setDecision(bulletId, BulletDecision.ACCEPTED)
-
-    fun onKeepOriginal(bulletId: String) = setDecision(bulletId, BulletDecision.REJECTED)
-
-    fun onUndo(bulletId: String) = setDecision(bulletId, BulletDecision.PENDING)
+    fun onEditTapped() {
+        eventChannel.trySend(TailorEvent.Navigate(EditResumeNavKey(applicationId)))
+    }
 
     fun onEditByHand(bulletId: String, text: String) {
         viewModelScope.launch {
@@ -120,12 +136,6 @@ internal class TailorViewModel @AssistedInject constructor(
                     generationId = success.reportedGenerationId(kind, itemId),
                 ),
             )
-        }
-    }
-
-    private fun setDecision(bulletId: String, decision: BulletDecision) {
-        viewModelScope.launch {
-            decisionMutex.withLock { updateBulletDecision(applicationId, bulletId, decision) }
         }
     }
 

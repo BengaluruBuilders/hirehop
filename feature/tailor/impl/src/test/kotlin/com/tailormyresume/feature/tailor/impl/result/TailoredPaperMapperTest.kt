@@ -3,7 +3,6 @@ package com.tailormyresume.feature.tailor.impl.result
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.component.content.TmrPaperBlock
 import com.tailormyresume.core.designsystem.component.content.TmrPaperHighlight
-import com.tailormyresume.core.designsystem.component.content.TmrPaperSpan
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.TailoredResume

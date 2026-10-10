@@ -6,7 +6,12 @@ import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.CreditsRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.TailorResumeUseCase
+import com.tailormyresume.core.domain.TailoringCreditSpend
+import com.tailormyresume.core.domain.coverage.KeywordCoverageCalculator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.time.Clock
 
@@ -24,6 +29,31 @@ internal class TailoringRunner @Inject constructor(
     private val clock: Clock,
     @Dispatcher(TmrDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) {
-    suspend operator fun invoke(applicationId: String): TailoringResult =
-        TailoringResult.Failure(NotImplementedError())
+    suspend operator fun invoke(applicationId: String): TailoringResult = try {
+        val application = checkNotNull(applicationRepository.observeApplication(applicationId).first())
+        val profile = checkNotNull(profileRepository.observeProfile().first())
+        val gap = checkNotNull(application.gapAnalysis)
+        val tailored = TailoringCreditSpend.forSuccess(
+            applicationId = applicationId,
+            clock = clock,
+            record = creditsRepository::record,
+        ) {
+            withContext(dispatcher) {
+                tailorResume(profile, application.job, gap, applicationId, quickAnswer = application.quickAnswer)
+            }
+        }
+        applicationRepository.upsertApplication(
+            application.copy(
+                tailoredResume = tailored,
+                keywordCoverage = KeywordCoverageCalculator.compute(gap.matches, application.quickAnswer, tailored),
+                changesAcceptedAt = null,
+                updatedAt = clock.now(),
+            ),
+        )
+        TailoringResult.Success
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Exception) {
+        TailoringResult.Failure(failure)
+    }
 }

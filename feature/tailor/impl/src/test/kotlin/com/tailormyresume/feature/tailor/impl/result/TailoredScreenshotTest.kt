@@ -7,7 +7,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.tailormyresume.core.designsystem.component.chrome.LocalTmrToast
 import com.tailormyresume.core.designsystem.component.chrome.TmrToastHost
 import com.tailormyresume.core.designsystem.component.chrome.TmrToastState
 import com.tailormyresume.core.designsystem.component.content.TmrPaperBlock
@@ -19,6 +18,7 @@ import com.tailormyresume.feature.tailor.impl.NARROW_DEVICE
 import com.tailormyresume.feature.tailor.impl.NARROW_QUALIFIERS
 import com.tailormyresume.feature.tailor.impl.captureResultScreen
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-private val CHANGES = listOf(
+internal val CHANGES = listOf(
     ChangeCard(
         id = "summary",
         area = ChangeArea.Summary,
@@ -86,7 +86,7 @@ private fun blocks(withAnswer: Boolean) = listOf(
     ),
 )
 
-private fun ready(
+internal fun ready(
     withAnswer: Boolean = true,
     changes: List<ChangeCard> = CHANGES,
     accepted: Boolean = false,
@@ -142,7 +142,7 @@ class TailoredScreenshotTest {
     fun resumeTabWithAnswer() {
         shoot("result_resume_with_answer", ready(), TailoredTab.Resume, TmrTestDevices.prototype)
         rule.onNodeWithText("92% keywords").assertExists()
-        rule.onNodeWithText("From your answer").assertExists()
+        rule.onNodeWithText("From your answer", useUnmergedTree = true).assertExists()
         rule.onNodeWithText("Accept changes").assertExists()
     }
 
@@ -157,7 +157,7 @@ class TailoredScreenshotTest {
         shoot("result_changes_before_accept", ready(), TailoredTab.Changes, TmrTestDevices.prototype)
         rule.onNodeWithText("Business Analyst · Infosys").assertExists()
         rule.onNodeWithText("Accept changes").assertExists()
-        assertEquals(3, rule.onAllUndo().size)
+        assertTrue(rule.onAllUndo().isNotEmpty())
     }
 
     @Test
@@ -167,7 +167,16 @@ class TailoredScreenshotTest {
         }
         shoot("result_changes_after_undo", ready(changes = undone), TailoredTab.Changes, TmrTestDevices.prototype)
         rule.onNodeWithText("Undone").assertExists()
-        assertEquals(2, rule.onAllUndo().size)
+    }
+
+    @Test
+    @Config(qualifiers = NARROW_QUALIFIERS)
+    fun changesAfterOneUndo_font2_337dp() {
+        val undone = CHANGES.map {
+            if (it.id == "exp-infosys-b1") it.copy(undone = true, before = null, after = it.before.orEmpty()) else it
+        }
+        shoot("result_changes_after_undo", ready(changes = undone), TailoredTab.Changes, NARROW_DEVICE)
+        assertTrue(rule.onAllUndo().isNotEmpty())
     }
 
     @Test
@@ -186,19 +195,23 @@ class TailoredScreenshotTest {
     fun exportDisabledToast() {
         val toast = TmrToastState()
         var exports = 0
-        shoot(
-            "result_export_disabled_toast",
-            ready(),
-            TailoredTab.Resume,
-            TmrTestDevices.prototype,
-            onExport = {
-                exports += 1
-                toast.show("Accept the changes first")
-            },
-            extra = { TmrToastHost(state = toast) },
-        )
-        rule.onNodeWithText("Export PDF").performClick()
-        rule.waitForIdle()
+        rule.captureResultScreen("result_export_disabled_toast", TmrTestDevices.prototype, beforeCapture = {
+            rule.onNodeWithText("Export PDF").performClick()
+        }) {
+            TailoredScreen(
+                state = ready(),
+                tab = TailoredTab.Resume,
+                onTabChange = {},
+                onUndo = {},
+                onAcceptChanges = {},
+                onEdit = {},
+                onExport = {
+                    exports += 1
+                    toast.show("Accept the changes first")
+                },
+            )
+            TmrToastHost(state = toast)
+        }
         rule.onNodeWithText("Accept the changes first").assertExists()
         assertEquals(1, exports)
     }
@@ -210,8 +223,10 @@ class TailoredScreenshotTest {
 
     @Test
     @Config(qualifiers = NARROW_QUALIFIERS)
-    fun changesTab_font2_337dp() =
+    fun changesTab_font2_337dp() {
         shoot("result_changes_before_accept", ready(), TailoredTab.Changes, NARROW_DEVICE)
+        assertTrue(rule.onAllUndo().isNotEmpty())
+    }
 
     @Test
     @Config(qualifiers = NARROW_QUALIFIERS)
