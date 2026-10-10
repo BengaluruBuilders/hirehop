@@ -37,7 +37,7 @@ class HandEditBulletLegacyFieldsTest {
 
         val edited = HandEditBulletUseCase(repository, TestTailoringReviewStateRepository(), TestClock())("app-1", "b1", "Built a tool")
 
-        val saved = repository.observeApplication("app-1").first()!!
+        val saved = checkNotNull(repository.observeApplication("app-1").first())
         assertThat(edited).isTrue()
         assertThat(saved.legacyNotes).isEqualTo("no reply yet")
         assertThat(saved.legacyStatus).isEqualTo("NO_RESPONSE")

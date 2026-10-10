@@ -43,11 +43,11 @@ class OfflineFirstApplicationRepositoryLegacyColumnsTest {
     fun upsertingTheObservedModelKeepsStoredNotesAndLegacyStatus() = runTest {
         database.jobApplicationDao().upsertApplication(migratedRow)
         val repository = repository()
-        val observed = repository.observeApplication(migratedRow.id).first()!!
+        val observed = checkNotNull(repository.observeApplication(migratedRow.id).first())
 
         repository.upsertApplication(observed.copy(location = "Pune"))
 
-        val stored = database.jobApplicationDao().getApplication(migratedRow.id)!!
+        val stored = checkNotNull(database.jobApplicationDao().getApplication(migratedRow.id))
         assertThat(stored.location).isEqualTo("Pune")
         assertThat(stored.notes).isEqualTo("no reply yet")
         assertThat(stored.legacyStatus).isEqualTo("NO_RESPONSE")
@@ -59,7 +59,7 @@ class OfflineFirstApplicationRepositoryLegacyColumnsTest {
 
         repository().upsertApplication(testApplication.copy(location = "Goa"))
 
-        val stored = database.jobApplicationDao().getApplication(migratedRow.id)!!
+        val stored = checkNotNull(database.jobApplicationDao().getApplication(migratedRow.id))
         assertThat(stored.notes).isEqualTo("no reply yet")
         assertThat(stored.legacyStatus).isEqualTo("NO_RESPONSE")
     }
@@ -68,12 +68,12 @@ class OfflineFirstApplicationRepositoryLegacyColumnsTest {
     fun reinsertingAfterDeleteRestoresTheLegacyFieldsCarriedByTheModel() = runTest {
         database.jobApplicationDao().upsertApplication(migratedRow)
         val repository = repository()
-        val observed = repository.observeApplication(migratedRow.id).first()!!
+        val observed = checkNotNull(repository.observeApplication(migratedRow.id).first())
         repository.deleteApplicationRow(migratedRow.id)
 
         repository.upsertApplication(observed)
 
-        val stored = database.jobApplicationDao().getApplication(migratedRow.id)!!
+        val stored = checkNotNull(database.jobApplicationDao().getApplication(migratedRow.id))
         assertThat(stored.notes).isEqualTo("no reply yet")
         assertThat(stored.legacyStatus).isEqualTo("NO_RESPONSE")
     }
