@@ -16,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.designsystem.component.chrome.LocalTmrSheetHost
 import com.tailormyresume.core.designsystem.component.chrome.LocalTmrToast
+import com.tailormyresume.core.designsystem.component.chrome.TmrSheetHostState
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.core.navigation.RegisterChromeAction
 import com.tailormyresume.feature.applications.api.navigation.DefaultApplicationsNavKey
@@ -106,5 +107,38 @@ class ShellHostsTest {
 
         assertThat(shell.stack).containsExactly(DefaultApplicationsNavKey)
         rule.onNodeWithText("Changes saved").assertExists()
+    }
+
+    @Test
+    fun aSheetOpenOnOneScreenIsGoneAfterGo() = assertSheetGoneAfter { it.go(EditResumeNavKey("app-1")) }
+
+    @Test
+    fun aSheetOpenOnOneScreenIsGoneAfterBack() = assertSheetGoneAfter { it.navigator.goBack() }
+
+    @Test
+    fun aSheetOpenOnOneScreenIsGoneAfterRoot() = assertSheetGoneAfter { it.root(EditResumeNavKey("app-1")) }
+
+    @Test
+    fun aSheetOpenOnOneScreenIsGoneAfterReplace() = assertSheetGoneAfter { it.navigator.replace(EditResumeNavKey("app-1")) }
+
+    private fun assertSheetGoneAfter(navigate: (ShellHarness) -> Unit) {
+        lateinit var sheetHost: TmrSheetHostState
+        shell.show(DefaultApplicationsNavKey, { _ ->
+            { key ->
+                NavEntry(key) {
+                    sheetHost = LocalTmrSheetHost.current
+                    Text(checkNotNull(key::class.simpleName))
+                }
+            }
+        })
+        shell.go(EditResumeNavKey("app-0"))
+        rule.runOnIdle { sheetHost.show("Sheet") { Text("sheet body") } }
+        rule.onNodeWithText("sheet body").assertExists()
+
+        rule.runOnIdle { navigate(shell) }
+        rule.waitForIdle()
+
+        rule.onAllNodesWithText("sheet body").assertCountEquals(0)
+        assertThat(sheetHost.current).isNull()
     }
 }

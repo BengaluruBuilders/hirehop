@@ -94,6 +94,8 @@ class ShellChromeScreenshotTest {
     private fun assertNoTruncatedText() {
         textLayouts().forEach { (node, layout) ->
             val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString(" ") { it.text }.orEmpty()
+            val widestLine = (0 until layout.lineCount).maxOf { layout.getLineRight(it) }
+            assertTrue("$text overflows its width: line right $widestLine > ${layout.size.width}", widestLine <= layout.size.width + 0.5f)
             assertFalse("$text overflows its height", layout.didOverflowHeight)
             assertTrue("$text is clipped by its node", layout.size.width <= node.size.width && layout.size.height <= node.size.height)
             val ellipsized = (0 until layout.lineCount).filter { layout.isLineEllipsized(it) }
