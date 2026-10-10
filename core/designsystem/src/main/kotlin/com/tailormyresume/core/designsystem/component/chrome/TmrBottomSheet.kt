@@ -1,5 +1,6 @@
 package com.tailormyresume.core.designsystem.component.chrome
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.R
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -43,6 +46,8 @@ fun TmrBottomSheet(
     LaunchedEffect(motion.reduced) {
         if (motion.reduced) progress.snapTo(1f) else progress.animateTo(1f, motion.proofSpecs.spatial)
     }
+    val sheetTitle = stringResource(R.string.core_designsystem_chrome_sheet_title)
+    BackHandler(onBack = onDismiss)
     Box(modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -66,6 +71,7 @@ fun TmrBottomSheet(
                 .clip(SheetShape)
                 .background(TmrTheme.colors.sheet)
                 .pointerInput(Unit) { detectTapGestures { } }
+                .semantics { paneTitle = sheetTitle }
                 .padding(top = spacing.sheetPaddingTop),
         ) {
             Box(

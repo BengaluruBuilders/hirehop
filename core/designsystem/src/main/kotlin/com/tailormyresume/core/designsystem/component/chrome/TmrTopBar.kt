@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -68,7 +68,7 @@ fun TmrTopBar(
         modifier =
         modifier
             .fillMaxWidth()
-            .height(TOP_BAR_HEIGHT)
+            .heightIn(min = TOP_BAR_HEIGHT)
             .padding(
                 top = TOP_BAR_PADDING_TOP,
                 start = spacing.d16,
@@ -145,7 +145,7 @@ fun TmrTopBar(
                     Box(
                         modifier =
                         Modifier
-                            .height(spacing.topBarButton)
+                            .heightIn(min = spacing.topBarButton)
                             .clip(shapes.pill)
                             .background(colors.lime)
                             .padding(horizontal = TOP_BAR_ACTION_PADDING),

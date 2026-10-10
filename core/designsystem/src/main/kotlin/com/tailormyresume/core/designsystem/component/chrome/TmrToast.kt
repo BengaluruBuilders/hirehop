@@ -1,5 +1,7 @@
 package com.tailormyresume.core.designsystem.component.chrome
 
+import android.os.Build
+import android.view.accessibility.AccessibilityManager
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,11 +10,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -25,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -34,7 +37,20 @@ import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import kotlinx.coroutines.delay
 
-private const val TOAST_DISPLAY_MS = 3200L
+private const val TOAST_DISPLAY_MS = 3200
+
+@Composable
+private fun defaultRecommendedTimeoutMillis(): (Int, Int) -> Int {
+    val context = LocalContext.current
+    return { original, flags ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.getSystemService(AccessibilityManager::class.java)
+                ?.getRecommendedTimeoutMillis(original, flags) ?: original
+        } else {
+            original
+        }
+    }
+}
 
 class TmrToastAction(val label: String, val onClick: () -> Unit)
 
@@ -58,16 +74,28 @@ class TmrToastState {
 }
 
 @Composable
-fun TmrToastHost(state: TmrToastState, modifier: Modifier = Modifier) {
+fun TmrToastHost(
+    state: TmrToastState,
+    modifier: Modifier = Modifier,
+    recommendedTimeoutMillis: (Int, Int) -> Int = defaultRecommendedTimeoutMillis(),
+) {
     val toast = state.current ?: return
     val motion = TmrTheme.motion
     val colors = TmrTheme.colors
     val typography = TmrTheme.typography
     val shapes = TmrTheme.shapes
     val spacing = TmrTheme.spacing
+    val displayMs =
+        remember(toast.id) {
+            if (toast.action != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                recommendedTimeoutMillis(TOAST_DISPLAY_MS, AccessibilityManager.FLAG_CONTENT_TEXT or AccessibilityManager.FLAG_CONTENT_CONTROLS)
+            } else {
+                TOAST_DISPLAY_MS
+            }
+        }
     val progress = remember(toast.id) { Animatable(if (motion.reduced) 1f else 0f) }
     LaunchedEffect(toast.id) {
-        delay(TOAST_DISPLAY_MS)
+        delay(displayMs.toLong())
         state.dismiss()
     }
     if (!motion.reduced) {
@@ -102,17 +130,24 @@ fun TmrToastHost(state: TmrToastState, modifier: Modifier = Modifier) {
                 Box(
                     modifier =
                     Modifier
-                        .height(40.dp)
-                        .clip(CircleShape)
-                        .background(colors.ink)
+                        .minimumInteractiveComponentSize()
                         .clickable(role = Role.Button) {
-                            action.onClick()
                             state.dismiss()
-                        }.padding(horizontal = 14.dp)
-                        .testTag(TmrChromeTags.TOAST_ACTION),
+                            action.onClick()
+                        }.testTag(TmrChromeTags.TOAST_ACTION),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = action.label, style = typography.button, color = colors.lime)
+                    Box(
+                        modifier =
+                        Modifier
+                            .heightIn(min = 40.dp)
+                            .clip(CircleShape)
+                            .background(colors.ink)
+                            .padding(horizontal = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(text = action.label, style = typography.button, color = colors.lime)
+                    }
                 }
             }
         }

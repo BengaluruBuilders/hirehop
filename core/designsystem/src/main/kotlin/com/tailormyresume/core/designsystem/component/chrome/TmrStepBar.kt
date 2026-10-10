@@ -2,12 +2,15 @@ package com.tailormyresume.core.designsystem.component.chrome
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -33,6 +36,7 @@ fun TmrStepBar(current: Int, modifier: Modifier = Modifier) {
             stringResource(R.string.core_designsystem_chrome_step_job),
             stringResource(R.string.core_designsystem_chrome_step_tailor),
         )
+    val enlarged = LocalDensity.current.fontScale > 1f
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         names.forEachIndexed { index, name ->
             val step = index + 1
@@ -44,21 +48,27 @@ fun TmrStepBar(current: Int, modifier: Modifier = Modifier) {
                     stringResource(R.string.core_designsystem_chrome_step_pending_label, step, name)
                 }
             val description = stringResource(R.string.core_designsystem_chrome_step_description, step, name)
-            val pill =
-                Modifier
+            val pillWidth = if (enlarged) Modifier.weight(1f, fill = false) else Modifier
+            val semantics =
+                if (step == current) {
+                    Modifier.semantics(mergeDescendants = true) { contentDescription = description }
+                } else {
+                    Modifier
+                }
+            Box(
+                modifier =
+                pillWidth
                     .background(style.container, CircleShape)
                     .padding(horizontal = 11.dp, vertical = 7.dp)
-            TmrCapsText(
-                text = label,
-                style = TmrTheme.typography.label,
-                color = style.content,
-                modifier =
-                if (step == current) {
-                    pill.semantics(mergeDescendants = true) { contentDescription = description }
-                } else {
-                    pill
-                },
-            )
+                    .then(semantics),
+                contentAlignment = Alignment.Center,
+            ) {
+                TmrCapsText(
+                    text = label,
+                    style = TmrTheme.typography.label,
+                    color = style.content,
+                )
+            }
         }
     }
 }
