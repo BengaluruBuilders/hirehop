@@ -5,39 +5,44 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.repository.CreditsRepository
 import com.tailormyresume.core.data.repository.SessionRepository
 import com.tailormyresume.core.domain.onboarding.ObserveStartDestinationUseCase
-import com.tailormyresume.core.domain.onboarding.StartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
+    sessionRepository: SessionRepository,
     observeStartDestination: ObserveStartDestinationUseCase,
+    private val creditsRepository: CreditsRepository,
 ) : ViewModel() {
 
-    val rootState: StateFlow<AppRootState> = observeStartDestination()
-        .map { destination ->
-            when (destination) {
-                StartDestination.SignIn, StartDestination.Upload -> AppRootState.FirstRun
-                StartDestination.Applications -> AppRootState.Main
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val rootState: StateFlow<AppRootState> = sessionRepository.observeAccount()
+        .map { account -> account?.id }
+        .distinctUntilChanged()
+        .flatMapLatest { accountId ->
+            flow {
+                emit(AppRootState.Ready(observeStartDestination().first(), accountId))
+                if (accountId != null) refreshWallet()
             }
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            started = SharingStarted.Eagerly,
             initialValue = AppRootState.Loading,
         )
 
-    constructor(
-        sessionRepository: SessionRepository,
-        observeStartDestination: ObserveStartDestinationUseCase,
-        creditsRepository: CreditsRepository,
-    ) : this(observeStartDestination)
-
-    private companion object {
-        const val STOP_TIMEOUT_MILLIS = 5_000L
+    private suspend fun refreshWallet() {
+        runCatching { creditsRepository.refresh() }
+            .onFailure { failure -> if (failure is CancellationException) throw failure }
     }
 }
