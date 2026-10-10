@@ -104,6 +104,7 @@ sends `fullName`, `email`, `phone`, or `headline`.
 | `category` | `EDUCATION`, `EXPERIENCE`, `PROJECT`, `CERTIFICATION`, `ACHIEVEMENT` |
 | `source` | `IMPORTED`, `USER_STATED`, `USER_EDITED` |
 | ids | Entry and bullet ids are opaque, `^[A-Za-z0-9:_.-]{1,64}$`, and unique over all entries and bullets |
+| `userStatedSkills` | Optional; omit it, send `null`, or send an array of strings (at most 100, else `400 INVALID_INPUT`). Entries should also appear in `skills`; entries that do not (compared ignoring case) are ignored. The skills it names are those the candidate states without evidence from an entry. The server marks them `STATED_BY_CANDIDATE` to the AI, never presents them as verified experience, and turns a `MET` match backed only by such skills into `PARTIAL`. Evidence ids stay `skill:<skill>`. Older app builds omit the field and are unaffected. |
 | sizes | At most 40 entries, 15 bullets per entry, 200 bullets in total, 400 characters per bullet, 100 skills, 60 characters per skill, 200 characters per other text field. This fits in the 256 KB body limit of the routes that take it, also for text in Indian scripts (3 bytes per character) |
 
 **Evidence ids.** The evidence ids of a request are: every entry id, every bullet id, and
