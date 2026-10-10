@@ -38,7 +38,7 @@ class ContractV2DecodeTest {
 
         assertThat(response.job.location).isEqualTo("Pune")
         assertThat(response.matches.single().reason).isEqualTo("Not clear.")
-        assertThat(response.question!!.text).isEqualTo("Have you led?")
+        assertThat(response.question?.text).isEqualTo("Have you led?")
     }
 
     @Test
@@ -52,7 +52,8 @@ class ContractV2DecodeTest {
         )
 
         assertThat(failed.tailoring.failureCode).isEqualTo(TailoringFailureCode.UNKNOWN)
-        assertThat(summary.tailoring.result!!.summary!!.verification).isEqualTo(BulletVerification.UNKNOWN)
-        assertThat(summary.tailoring.result!!.skills).isNull()
+        val result = checkNotNull(summary.tailoring.result)
+        assertThat(result.summary?.verification).isEqualTo(BulletVerification.UNKNOWN)
+        assertThat(result.skills).isNull()
     }
 }

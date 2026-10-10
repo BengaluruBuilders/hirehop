@@ -17,7 +17,7 @@ class AnswerMappingTest {
     @Test
     fun everyKnownChoiceMapsAndABlankDetailIsNull() {
         AnswerChoice.entries.forEach { choice ->
-            val dto = QuickAnswer("req-4", choice.name, "   ").toAnswerDto(job)!!
+            val dto = checkNotNull(QuickAnswer("req-4", choice.name, "   ").toAnswerDto(job))
             assertThat(dto.choice).isEqualTo(choice)
             assertThat(dto.detail).isNull()
         }
@@ -34,10 +34,10 @@ class AnswerMappingTest {
         val emoji = "😀"
         val detail = "a".repeat(399) + emoji
 
-        val capped = QuickAnswer("req-4", "A_FEW_TIMES", detail).toAnswerDto(job)!!.detail!!
+        val capped = checkNotNull(QuickAnswer("req-4", "A_FEW_TIMES", detail).toAnswerDto(job)?.detail)
 
         assertThat(capped).isEqualTo("a".repeat(399))
-        assertThat(QuickAnswer("req-4", "A_FEW_TIMES", "b".repeat(900)).toAnswerDto(job)!!.detail).hasLength(400)
-        assertThat(QuickAnswer("req-4", "A_FEW_TIMES", "  kept  ").toAnswerDto(job)!!.detail).isEqualTo("kept")
+        assertThat(QuickAnswer("req-4", "A_FEW_TIMES", "b".repeat(900)).toAnswerDto(job)?.detail).hasLength(400)
+        assertThat(QuickAnswer("req-4", "A_FEW_TIMES", "  kept  ").toAnswerDto(job)?.detail).isEqualTo("kept")
     }
 }

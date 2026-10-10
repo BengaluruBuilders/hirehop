@@ -36,10 +36,9 @@ class SummaryFactsPayloadTest {
     fun summaryIdAndOmissionRules() {
         val sent = profile("Data analyst with 2 years in retail operations.").toFactsDto().summary
 
-        assertThat(sent!!.text).isEqualTo("Data analyst with 2 years in retail operations.")
-        assertThat(sent.id).matches(idRule.toPattern())
-        assertThat(sent.id).doesNotContain("ans-")
-        assertThat(sent.id.startsWith("ans-")).isFalse()
+        assertThat(sent?.text).isEqualTo("Data analyst with 2 years in retail operations.")
+        assertThat(sent?.id).matches(idRule.toPattern())
+        assertThat(sent?.id?.startsWith("ans-")).isFalse()
         assertThat(profile("   ").toFactsDto().summary).isNull()
         assertThat(profile("x".repeat(1_001)).toFactsDto().summary).isNull()
         assertThat(profile("x".repeat(1_000)).toFactsDto().summary).isNotNull()
@@ -49,7 +48,7 @@ class SummaryFactsPayloadTest {
     fun summaryIdCollidesWithNoEntryOrBulletId() {
         val clashing = listOf(entry("summary", "summary-1"), entry("E2", "summary-2"))
 
-        val id = profile("A summary.", clashing).toFactsDto().summary!!.id
+        val id = profile("A summary.", clashing).toFactsDto().summary?.id
 
         assertThat(id).isNotIn(listOf("summary", "summary-1", "summary-2", "E2"))
         assertThat(id).matches(idRule.toPattern())

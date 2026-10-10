@@ -97,7 +97,7 @@ class RemoteJobImporterTest {
         RemoteJobImporter(api).import("https://elsewhere.example.org/job")
 
         val request = backend.server.takeRequest()
-        assertThat(request.requestUrl!!.host).isEqualTo(backend.server.hostName)
+        assertThat(checkNotNull(request.requestUrl).host).isEqualTo(backend.server.hostName)
         assertThat(request.getHeader("Authorization")).isEqualTo("Bearer token-123")
         assertThat(request.getHeader("X-App-Id")).isEqualTo("tailormyresume")
         assertThat(backend.server.requestCount).isEqualTo(1)

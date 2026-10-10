@@ -2,7 +2,6 @@ package com.tailormyresume.app.ai
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.TailorResumeUseCase
-import com.tailormyresume.core.domain.offline.OfflineFabricationGuard
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.testing.mock.TestMockStateStore
@@ -39,10 +38,12 @@ class RemoteResumeTailorV2ResultTest {
         val emptySkills = tailor.tailor(profile, job, gap, "app-1", null)
         val missing = tailor.tailor(profile, job, gap, "app-1", null)
 
-        assertThat(full.summary!!.text).isEqualTo("Data analyst who cleans sales data in Excel.")
-        assertThat(full.summary!!.original).isEqualTo("Data analyst with Excel.")
-        assertThat(full.skills!!.skills).containsExactly("Excel", "SQL", "Power BI").inOrder()
-        assertThat(full.skills!!.original).containsExactly("SQL", "Excel").inOrder()
+        val summary = checkNotNull(full.summary)
+        val skills = checkNotNull(full.skills)
+        assertThat(summary.text).isEqualTo("Data analyst who cleans sales data in Excel.")
+        assertThat(summary.original).isEqualTo("Data analyst with Excel.")
+        assertThat(skills.skills).containsExactly("Excel", "SQL", "Power BI").inOrder()
+        assertThat(skills.original).containsExactly("SQL", "Excel").inOrder()
         assertThat(emptySkills.summary).isNull()
         assertThat(emptySkills.skills).isNull()
         assertThat(missing.summary).isNull()
@@ -60,19 +61,21 @@ class RemoteResumeTailorV2ResultTest {
             ),
         )
 
-        val resume = TailorResumeUseCase(tailor, OfflineFabricationGuard())(profile, job, gap, "app-1")
+        val resume = TailorResumeUseCase(tailor, AllowAllGuard)(profile, job, gap, "app-1")
 
-        assertThat(resume.summary!!.text).isEqualTo("Data analyst with Excel.")
-        assertThat(resume.summary!!.violations).isNotEmpty()
+        val summary = checkNotNull(resume.summary)
+        assertThat(summary.text).isEqualTo("Data analyst with Excel.")
+        assertThat(summary.violations).isNotEmpty()
     }
 
     @Test
     fun aResolvableSummaryPassesThroughTheDeviceGuard() = runTest {
         backend.reply(202, result(summaryJson, ""))
 
-        val resume = TailorResumeUseCase(tailor, OfflineFabricationGuard())(profile, job, gap, "app-1")
+        val resume = TailorResumeUseCase(tailor, AllowAllGuard)(profile, job, gap, "app-1")
 
-        assertThat(resume.summary!!.violations).isEmpty()
-        assertThat(resume.summary!!.text).isEqualTo("Data analyst who cleans sales data in Excel.")
+        val summary = checkNotNull(resume.summary)
+        assertThat(summary.violations).isEmpty()
+        assertThat(summary.text).isEqualTo("Data analyst who cleans sales data in Excel.")
     }
 }

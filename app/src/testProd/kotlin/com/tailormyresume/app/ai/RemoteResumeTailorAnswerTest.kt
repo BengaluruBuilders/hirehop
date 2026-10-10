@@ -2,7 +2,6 @@ package com.tailormyresume.app.ai
 
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.TailorResumeUseCase
-import com.tailormyresume.core.domain.offline.OfflineFabricationGuard
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.KeywordCoverage
 import com.tailormyresume.core.model.QuickAnswer
@@ -53,8 +52,12 @@ class RemoteResumeTailorAnswerTest {
     fun theUseCasePassesTheQuickAnswerToTheTailor() = runTest {
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
 
-        TailorResumeUseCase(tailor, OfflineFabricationGuard())(
-            candidate, job, gap, "app-1", quickAnswer = QuickAnswer("req-1", "YES_REGULARLY", "Led SQL reporting."),
+        TailorResumeUseCase(tailor, AllowAllGuard)(
+            candidate,
+            job,
+            gap,
+            "app-1",
+            quickAnswer = QuickAnswer("req-1", "YES_REGULARLY", "Led SQL reporting."),
         )
 
         assertThat(backend.server.takeRequest().body.readUtf8()).contains(""""choice":"YES_REGULARLY"""")

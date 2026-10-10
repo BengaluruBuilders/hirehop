@@ -1,8 +1,8 @@
 package com.tailormyresume.core.network
 
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import org.junit.Test
+import java.io.File
 
 class NoLoggingSourceTest {
     private val forbidden = Regex("""(^|[^A-Za-z0-9_.])(Log\.|Timber|println\(|HttpLoggingInterceptor)""")
