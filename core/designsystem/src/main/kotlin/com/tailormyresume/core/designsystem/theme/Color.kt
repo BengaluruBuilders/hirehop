@@ -56,7 +56,7 @@ class TmrColors(
     val onTool: Color get() = text
     val onToolVariant: Color get() = textSecondary
     val onToolSelected: Color get() = lime
-    val outline: Color get() = line
+    val outline: Color get() = textDisabled
     val outlineVariant: Color get() = line
     val outlineSoft: Color get() = line
     val boundary: Color get() = textDisabled
