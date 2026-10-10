@@ -25,7 +25,7 @@ class TmrDisabledButtonTest {
     val rule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun disabledTextButtonLabelIsDimNotPrimaryNorPlaceholder() {
+    fun disabledTextButtonLabelUsesDisabledContentWithReadableContrast() {
         rule.setContent {
             TmrPreviewTheme {
                 Column {
