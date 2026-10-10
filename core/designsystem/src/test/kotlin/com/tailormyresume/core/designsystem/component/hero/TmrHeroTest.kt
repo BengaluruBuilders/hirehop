@@ -306,21 +306,24 @@ class TmrHeroTest {
     }
 
     @Test
-    fun staticPosesDoNotRunClock() {
-        rule.mainClock.autoAdvance = false
+    fun onlyMovingPosesAskForAnimatedClock() {
+        val requested = mutableMapOf<TmrPaigePose, Boolean>()
         rule.setContent {
             TmrPreviewTheme {
                 CompositionLocalProvider(LocalTmrMotion provides TmrMotionDefaults.Default) {
-                    Box(modifier = Modifier.fillMaxSize().background(TmrTheme.colors.background)) {
-                        TmrPaige(TmrPaigePose.Fail)
-                        val clock = rememberPaigeTimeMs(TmrMotionDefaults.Default, animated = false)
-                        SideEffect { captured = clock }
+                    TmrPaigePose.entries.forEach { pose ->
+                        TmrPaige(pose, Modifier) { motion, animated ->
+                            requested[pose] = animated
+                            rememberPaigeTimeMs(motion, animated)
+                        }
                     }
                 }
             }
         }
-        rule.mainClock.advanceTimeBy(1000)
-        assertEquals(0L, captured())
+        val still = setOf(TmrPaigePose.Fail, TmrPaigePose.Delete)
+        TmrPaigePose.entries.forEach { pose ->
+            assertEquals("${pose.name} clock request", pose !in still, requested[pose])
+        }
     }
 
     @Test
@@ -387,7 +390,7 @@ class TmrHeroTest {
 
     @Test
     fun headlineFullyDisplayedAtFontScale200() {
-        val headline = "Tell Paige about you"
+        val headline = "Add the confirmed facts your recruiter already knows about you"
         rule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, 2.0f)) {
@@ -403,6 +406,7 @@ class TmrHeroTest {
             }
         }
         val layout = layoutResultOf(headline)
+        assertTrue("lineCount ${layout.lineCount}", layout.lineCount > 2)
         assertEquals(false, layout.hasVisualOverflow)
         assertEquals(headline, layout.layoutInput.text.text)
     }

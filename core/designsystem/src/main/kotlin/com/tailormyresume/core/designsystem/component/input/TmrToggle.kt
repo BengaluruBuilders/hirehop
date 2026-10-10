@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.theme.TmrTheme
@@ -27,7 +26,6 @@ fun TmrToggle(
     Row(
         modifier = modifier
             .heightIn(min = 48.dp)
-            .clip(TmrTheme.shapes.pill)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
         verticalAlignment = Alignment.CenterVertically,
     ) {

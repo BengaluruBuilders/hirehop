@@ -2,11 +2,15 @@ package com.tailormyresume.core.designsystem.component.input
 
 import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
@@ -26,6 +30,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -261,6 +266,39 @@ class TmrInputTest {
         return results.first().layoutInput.style.color
     }
 
+    @Test
+    fun toggleLabelFirstGlyphIsNotClippedAtFontScale200() {
+        System.setProperty("robolectric.useEmbeddedViewRoot", "false")
+        val label = "HHHH HHHH HHHH HHHH HHHH HHHH HHHH HHHH"
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 2.0f)) {
+                TmrPreviewTheme {
+                    Box(modifier = Modifier.width(374.dp)) {
+                        TmrToggle(label = label, checked = false, onCheckedChange = {})
+                    }
+                }
+            }
+        }
+        val screen = screenPixels()
+        val text = rule.onNode(hasText(label), useUnmergedTree = true).fetchSemanticsNode()
+        val layouts = mutableListOf<TextLayoutResult>()
+        text.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
+        val layout = layouts.first()
+        assertTrue("lineCount ${layout.lineCount}", layout.lineCount >= 2)
+        val bounds = text.boundsInRoot
+        val background = screen.getPixel(0, 0)
+        fun inkLeft(fromFraction: Float, toFraction: Float): Int {
+            val lineTop = layout.getLineTop(0)
+            val lineHeight = layout.getLineBottom(0) - lineTop
+            val rows = (bounds.top + lineTop + lineHeight * fromFraction).toInt()..(bounds.top + lineTop + lineHeight * toFraction).toInt()
+            return rows.minOf { y ->
+                (bounds.left.toInt()..bounds.left.toInt() + GLYPH_SCAN_PX).first { x -> screen.getPixel(x, y) != background }
+            }
+        }
+        assertEquals(inkLeft(MID_BAND_START, MID_BAND_END), inkLeft(TOP_BAND_START, TOP_BAND_END))
+    }
+
     @OptIn(ExperimentalRoborazziApi::class)
     private fun screenPixels(): android.graphics.Bitmap {
         val file = folder.newFile("buttons.png")
@@ -277,5 +315,10 @@ class TmrInputTest {
 
     private companion object {
         const val FILL_SAMPLE_INSET_PX = 12f
+        const val GLYPH_SCAN_PX = 40
+        const val TOP_BAND_START = 0.25f
+        const val TOP_BAND_END = 0.32f
+        const val MID_BAND_START = 0.55f
+        const val MID_BAND_END = 0.62f
     }
 }

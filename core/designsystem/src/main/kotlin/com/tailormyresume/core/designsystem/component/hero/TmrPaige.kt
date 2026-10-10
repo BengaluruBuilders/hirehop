@@ -151,11 +151,18 @@ internal fun rememberPaigeTimeMs(motion: TmrMotion, animated: Boolean): () -> Lo
 private const val NANOS_PER_MILLI = 1_000_000L
 
 @Composable
-fun TmrPaige(pose: TmrPaigePose, modifier: Modifier = Modifier) {
+fun TmrPaige(pose: TmrPaigePose, modifier: Modifier = Modifier) = TmrPaige(pose, modifier, ::rememberPaigeTimeMs)
+
+@Composable
+internal fun TmrPaige(
+    pose: TmrPaigePose,
+    modifier: Modifier,
+    rememberTimeMs: @Composable (TmrMotion, Boolean) -> () -> Long,
+) {
     val motion = TmrTheme.motion
     val colors = TmrTheme.colors
     val spec = remember(pose) { pose.spec() }
-    val timeMs = rememberPaigeTimeMs(motion, animated = spec.wobble || spec.bobPhase != null)
+    val timeMs = rememberTimeMs(motion, spec.wobble || spec.bobPhase != null)
     Canvas(
         modifier = modifier
             .size(PageWidth, PageHeight)
