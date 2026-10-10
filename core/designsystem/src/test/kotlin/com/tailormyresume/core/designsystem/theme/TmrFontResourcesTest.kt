@@ -28,7 +28,7 @@ class TmrFontResourcesTest {
         )
         val licences = mapOf(
             "SpaceMono-OFL.txt" to "8e4ee42b2553e1e01504e61cb0d46d148cd8c9e5eacaa3622a7df2d4f2955b9f",
-            "SpaceGrotesk-OFL.txt" to "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+            "SpaceGrotesk-OFL.txt" to "c6dec685825f73b18c20926fddc65e8315642e12986f15db0699170940a09efc",
         )
         licences.forEach { (name, hash) ->
             val file = File("fonts-licenses/$name")
