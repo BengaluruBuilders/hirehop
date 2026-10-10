@@ -318,8 +318,8 @@ class TmrChromeSemanticsA11yTest {
                 .getOrNull(SemanticsProperties.CollectionItemInfo)
         assertNotNull(applications)
         assertNotNull(profile)
-        assertEquals(0, applications!!.columnIndex)
-        assertEquals(1, profile!!.columnIndex)
+        assertEquals(0, applications?.columnIndex)
+        assertEquals(1, profile?.columnIndex)
     }
 
     @Test
