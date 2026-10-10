@@ -21,6 +21,15 @@ import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import com.tailormyresume.core.model.TailoredText
+import com.tailormyresume.core.model.TailoredSkills
+import com.tailormyresume.core.model.QuickAnswer
+import com.tailormyresume.core.model.ProfileEntry
+import com.tailormyresume.core.model.FactSource
+import com.tailormyresume.core.model.JobRequirement
+import com.tailormyresume.core.model.RequirementPriority
+import com.tailormyresume.core.model.RequirementType
+import com.tailormyresume.core.domain.offline.profileOf
 
 class TailorResumeUseCaseTest {
     private val emptyJob = JobDescription("", "", "", emptyList())
@@ -204,5 +213,206 @@ class TailorResumeUseCaseTest {
             assertThat(resume.bullets).isNotEmpty()
             resume.bullets.forEach { assertThat(it.violations).isEmpty() }
         }
+    }
+
+    private val infosys = ProfileEntry(
+        id = "exp-infosys",
+        category = EntryCategory.EXPERIENCE,
+        title = "Business Analyst",
+        organization = "Infosys",
+        startDate = "Jul 2022",
+        endDate = "Present",
+        bullets = listOf(
+            EvidenceBullet("exp-infosys-b1", "Built Power BI dashboards for monthly finance reports"),
+            EvidenceBullet("exp-infosys-b2", "Wrote SQL pipelines over transaction data"),
+        ),
+        source = FactSource.IMPORTED,
+        isConfirmed = true,
+    )
+    private val analystProfile = profileOf(listOf("SQL", "Excel", "Power BI"), infosys).copy(
+        summary = "Analyst building dashboards.",
+        userStatedSkills = listOf("Tableau"),
+    )
+    private val presenting = JobRequirement(
+        id = "req-1",
+        text = "Presented quarterly results to the board for 3+ years",
+        type = RequirementType.EXPERIENCE,
+        priority = RequirementPriority.MUST_HAVE,
+        keywords = listOf("looker"),
+    )
+    private val analystJob = JobDescription("Analyst", "Northwind", "raw", listOf(presenting))
+    private val cfoDetail = "Presented the monthly variance report to the CFO"
+
+    private fun answer(choice: String = AnswerFacts.YES_REGULARLY, detail: String = cfoDetail) =
+        QuickAnswer("req-1", choice, detail)
+
+    private fun answerBullet(proposed: String, entryId: String = "exp-infosys") = bullet("t-ans", "ans-req-1", "", proposed)
+        .copy(entryId = entryId, editTypes = listOf(EditType.EMPHASISE))
+
+    private suspend fun run(
+        proposed: TailoredResume,
+        quickAnswer: QuickAnswer? = answer(),
+    ): TailoredResume {
+        val tailor = object : ResumeTailor {
+            override suspend fun tailor(profile: CandidateProfile, job: JobDescription, gap: GapAnalysis, applicationId: String, section: EntryCategory?) = proposed
+        }
+        return TailorResumeUseCase(tailor, OfflineFabricationGuard())(analystProfile, analystJob, emptyGap, "app-1", quickAnswer = quickAnswer)
+    }
+
+    private fun summary(text: String, vararg sourceIds: String, decision: BulletDecision = BulletDecision.PENDING) =
+        TailoredText(text, "", sourceIds.toList(), decision = decision)
+
+    @Test
+    fun unsupportedAnswerBulletFallsBackToOriginal() = runTest {
+        val result = run(
+            TailoredResume(listOf(answerBullet("$cfoDetail and cut reporting time by 40%"))),
+            answer(detail = "$cfoDetail at Infosys"),
+        )
+
+        val fallback = result.bullets.single()
+        assertThat(fallback.proposedText).isEqualTo(fallback.originalText)
+        assertThat(fallback.proposedText).isEmpty()
+        assertThat(fallback.violations).contains(GuardrailViolation.UnsupportedNumber("40%"))
+    }
+
+    @Test
+    fun notYetAndSkippedAnswersCreateNoFactAndAnsBulletFailsWithMissingSource() = runTest {
+        listOf("NOT_YET", "SKIPPED").forEach { choice ->
+            val result = run(TailoredResume(listOf(answerBullet(cfoDetail))), answer(choice = choice))
+
+            assertThat(result.bullets.single().violations).containsExactly(GuardrailViolation.MissingSource)
+            assertThat(result.bullets.single().proposedText).isEmpty()
+        }
+        assertThat(run(TailoredResume(listOf(answerBullet(cfoDetail))), quickAnswer = null).bullets.single().violations)
+            .containsExactly(GuardrailViolation.MissingSource)
+    }
+
+    @Test
+    fun answerWithoutEmployerNameIsNotAttachedToInfosys() = runTest {
+        val result = run(TailoredResume(listOf(answerBullet(cfoDetail))))
+
+        assertThat(result.bullets).isEmpty()
+    }
+
+    @Test
+    fun answerNamingInfosysOrTitleMayAttach() = runTest {
+        val byEmployer = run(TailoredResume(listOf(answerBullet(cfoDetail))), answer(detail = "$cfoDetail at INFOSYS"))
+        val byTitle = run(TailoredResume(listOf(answerBullet(cfoDetail))), answer(detail = "As a business analyst: $cfoDetail"))
+        val partialWord = run(TailoredResume(listOf(answerBullet(cfoDetail))), answer(detail = "$cfoDetail for Infosystems"))
+
+        assertThat(byEmployer.bullets.single().violations).isEmpty()
+        assertThat(byTitle.bullets.map { it.id }).containsExactly("t-ans")
+        assertThat(partialWord.bullets).isEmpty()
+    }
+
+    @Test
+    fun prototypeAnswerGivesThreeChanges() = runTest {
+        val result = run(
+            TailoredResume(
+                bullets = listOf(
+                    bullet("t1", "exp-infosys-b1", "x", "Built Power BI dashboards for monthly reports").copy(entryId = "exp-infosys"),
+                    bullet("t2", "exp-infosys-b2", "x", "Wrote SQL pipelines for transaction data").copy(entryId = "exp-infosys"),
+                    answerBullet(cfoDetail),
+                ),
+                summary = summary("Built Power BI dashboards for monthly reports. $cfoDetail.", "exp-infosys-b1", "ans-req-1"),
+            ),
+        )
+
+        assertThat(result.bullets.map { it.id }).containsExactly("t1", "t2").inOrder()
+        assertThat(result.summary?.violations).isEmpty()
+        assertThat(result.changeCount).isEqualTo(3)
+    }
+
+    @Test
+    fun unsupportedSummarySentenceRestoresOriginalSummary() = runTest {
+        val result = run(
+            TailoredResume(
+                emptyList(),
+                summary = summary("Built Power BI dashboards for monthly reports. Led a team of 12 analysts.", "exp-infosys-b1"),
+            ),
+        )
+
+        val kept = checkNotNull(result.summary)
+        assertThat(kept.text).isEqualTo("Analyst building dashboards.")
+        assertThat(kept.original).isEqualTo("Analyst building dashboards.")
+        assertThat(kept.violations).isNotEmpty()
+        assertThat(result.changeCount).isEqualTo(0)
+    }
+
+    @Test
+    fun summaryWithoutAnyCitedSourceFallsBack() = runTest {
+        val result = run(TailoredResume(emptyList(), summary = summary("Built Power BI dashboards for monthly reports.")))
+
+        assertThat(checkNotNull(result.summary).violations).containsExactly(GuardrailViolation.MissingSource)
+    }
+
+    @Test
+    fun supportedSummaryIsKept() = runTest {
+        val proposedText = "Built Power BI dashboards for monthly reports."
+        val result = run(TailoredResume(emptyList(), summary = summary(proposedText, "exp-infosys-b1")))
+
+        val kept = checkNotNull(result.summary)
+        assertThat(kept.text).isEqualTo(proposedText)
+        assertThat(kept.original).isEqualTo("Analyst building dashboards.")
+        assertThat(kept.violations).isEmpty()
+    }
+
+    @Test
+    fun answerWithoutDetailCannotSupportRequirementNumbersInTheSummary() = runTest {
+        val result = run(
+            TailoredResume(emptyList(), summary = summary("Presented quarterly results to the board for 3 years.", "ans-req-1")),
+            answer(choice = AnswerFacts.A_FEW_TIMES, detail = ""),
+        )
+
+        val kept = checkNotNull(result.summary)
+        assertThat(kept.text).isEqualTo("Analyst building dashboards.")
+        assertThat(kept.violations).contains(GuardrailViolation.UnsupportedNumber("3"))
+    }
+
+    @Test
+    fun skillsReorderedFromProfileOnly() = runTest {
+        val result = run(TailoredResume(emptyList(), skills = TailoredSkills(listOf("Power BI", "SQL", "Excel"), emptyList())))
+
+        val skills = checkNotNull(result.skills)
+        assertThat(skills.skills).containsExactly("Power BI", "SQL", "Excel").inOrder()
+        assertThat(skills.original).containsExactly("SQL", "Excel", "Power BI").inOrder()
+        assertThat(skills.violations).isEmpty()
+    }
+
+    @Test
+    fun addedSkillFromUserStatedOrAnswerKept() = runTest {
+        val result = run(
+            TailoredResume(emptyList(), skills = TailoredSkills(listOf("SQL", "tableau", "Looker"), emptyList())),
+            answer(detail = "Built weekly Looker dashboards"),
+        )
+
+        assertThat(checkNotNull(result.skills).skills).containsExactly("SQL", "tableau", "Looker").inOrder()
+        assertThat(checkNotNull(result.skills).violations).isEmpty()
+    }
+
+    @Test
+    fun otherAddedSkillRemovedWithViolation() = runTest {
+        val result = run(
+            TailoredResume(emptyList(), skills = TailoredSkills(listOf("SQL", "Kubernetes", "Looker"), emptyList())),
+            answer(choice = "NOT_YET"),
+        )
+
+        val skills = checkNotNull(result.skills)
+        assertThat(skills.skills).containsExactly("SQL")
+        assertThat(skills.violations)
+            .containsExactly(GuardrailViolation.UnsupportedTerm("Kubernetes"), GuardrailViolation.UnsupportedTerm("Looker"))
+    }
+
+    @Test
+    fun newSuggestionsStartPending() = runTest {
+        val result = run(
+            TailoredResume(
+                bullets = listOf(bullet("t1", "exp-infosys-b2", "x", "Wrote SQL pipelines for transaction data")),
+                summary = summary("Built Power BI dashboards for monthly reports.", "exp-infosys-b1", decision = BulletDecision.ACCEPTED),
+                skills = TailoredSkills(listOf("SQL"), emptyList(), decision = BulletDecision.ACCEPTED),
+            ),
+        )
+
+        assertThat(result.decisions).containsExactly(BulletDecision.PENDING, BulletDecision.PENDING, BulletDecision.PENDING)
     }
 }

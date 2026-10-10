@@ -5,6 +5,7 @@ import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobDescription
+import com.tailormyresume.core.model.QuickAnswer
 import com.tailormyresume.core.model.TailoredBullet
 import com.tailormyresume.core.model.TailoredResume
 import com.tailormyresume.core.model.confirmedWithinLimits
@@ -20,6 +21,7 @@ class TailorResumeUseCase @Inject constructor(
         gap: GapAnalysis,
         applicationId: String,
         section: EntryCategory? = null,
+        quickAnswer: QuickAnswer? = null,
     ): TailoredResume {
         val confirmedSources = profile.confirmedWithinLimits().entries
             .flatMap { it.bullets }

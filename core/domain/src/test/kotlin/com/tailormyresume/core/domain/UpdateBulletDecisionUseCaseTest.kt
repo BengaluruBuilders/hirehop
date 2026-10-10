@@ -104,4 +104,17 @@ class UpdateBulletDecisionUseCaseTest {
         val saved = checkNotNull(repository.current("app-1"))
         assertThat(checkNotNull(saved.tailoredResume).bullets.single().decision).isEqualTo(BulletDecision.PENDING)
     }
+
+    @Test
+    fun undoSetsRejectedAndOriginalTextIsUsed() = runTest {
+        repository.upsertApplication(application(TailoredResume(listOf(bullet("b1")))))
+        useCase("app-1", "b1", BulletDecision.ACCEPTED)
+
+        useCase("app-1", "b1", BulletDecision.REJECTED)
+
+        val undone = checkNotNull(checkNotNull(repository.current("app-1")).tailoredResume).bullets.single()
+        assertThat(undone.decision).isEqualTo(BulletDecision.REJECTED)
+        assertThat(undone.originalText).isEqualTo("original b1")
+        assertThat(undone.proposedText).isEqualTo("proposed b1")
+    }
 }
