@@ -135,6 +135,11 @@ in `skill:C++`; the id regex does not apply to it). This is the format the devic
 (`EvidenceSources.SKILL_ID_PREFIX`). Any id that a response cites must be an
 evidence id of the same request. The server removes every other id before it answers.
 
+The server also issues `ans-` evidence ids (section 4.4): `ans-<requirementId>` for the fact of an answer and
+`ans-<requirementId>-b1` for its bullet. They count as evidence ids of the request for that answer, and they are
+the only valid `USER_ANSWER` citations. An `ans-` id may be cited by `result.summary`, and by a bullet under the
+placement rule of 4.4 (rule 2). An answer never creates an employer claim.
+
 ### `Job` and `Match`
 
 ```json
@@ -205,8 +210,8 @@ The compatibility fields of section 1 are also in the answer until the follow-up
 
 `POST /v1/me/consents` stays in core. The app does not call it. The consent rows that exist stay for
 history and appear in `GET /v1/tailormyresume/me/export` (4.10). The server does not read them to
-allow or refuse a route. The `noticeVersion` setting of TailorMyResume is removed from the config of the
-TailorMyResume routes.
+allow or refuse a route. The `noticeVersion` setting of TailorMyResume stays in the config (revamp D15): tests and
+the eval runner still read it. Nothing in the routes depends on it.
 
 ### 4.2 `POST /v1/tailormyresume/resume/parse`
 
@@ -464,7 +469,7 @@ Credit rules:
 | `failureCode` | Only when `FAILED`: `AI_PROVIDER_ERROR`, `QUOTA_EXCEEDED`, `BUDGET_EXCEEDED`, `INTERRUPTED` |
 | `result.summary` | `{text, sourceIds, verification}` or `null`. `null` means that the summary does not change. `verification` is `PASSED` or `REPAIRED` |
 | `result.skills.ordered` | The profile skills, each once, in the order for this job. Skills that the model left out follow in their old order |
-| `result.skills.added` | Skills that the candidate stated (`userStatedSkills`), or that an answer names verbatim in its detail. Nothing else |
+| `result.skills.added` | Skills that the candidate stated (`userStatedSkills`), or that a `YES_REGULARLY` or `A_FEW_TIMES` answer names verbatim in its detail. A `NOT_YET` or `SKIPPED` answer never adds a skill. Nothing else |
 | `editTypes` | `REWORD`, `REORDER`, `SHORTEN`, `EMPHASISE`, `MERGE` |
 | `verification` | `PASSED`: verifier found every claim supported. `REPAIRED`: passed after the one repair. `REVERTED`: failed after repair, `proposedText` is the text of the first source bullet and `editTypes` is empty. `UNCHANGED`: the model left out a source bullet, so the server added it back as is |
 
@@ -475,8 +480,9 @@ Rules:
 1. Pipeline: generate, check, verify with the verifier model (a different model from the generator),
    repair once the bullets and the summary that fail, verify again, revert the bullets that still fail.
    The summary and the skills use the same calls. A job makes no more than 4 model calls.
-2. Checks before the verifier: every `sourceIds` value is an evidence id of the request; all sources of a
-   bullet belong to `entryId`; every `keywordsUsed` value is in `proposedText` and in the text of a
+2. Checks before the verifier: every `sourceIds` value is an evidence id of the request, or an `ans-` id that
+   this request's answer issued (4.4); all sources of a bullet belong to `entryId`, except an `ans-` source,
+   which is allowed under rule 2 of the answer rules below; every `keywordsUsed` value is in `proposedText` and in the text of a
    cited source; every number in a summary is in a cited source. A failed check counts as a verifier failure.
 3. Claim retention: every confirmed bullet is a source of at least one answer bullet. The server adds a
    missing one as `UNCHANGED`.
@@ -495,9 +501,12 @@ Quick-question answer, and the truth rule (PLAN section 2.3). An answer is a fac
 
 1. `YES_REGULARLY` and `A_FEW_TIMES` make the server add one fact, `ans-<requirementId>`, with source
    `USER_ANSWER`. When `detail` is not empty, the server also adds one bullet, `ans-<requirementId>-b1`,
-   with the text of `detail`. `NOT_YET` and `SKIPPED` add nothing.
+   with the text of `detail`. The text of the fact is `detail`, or the requirement text when there is no detail.
+   `NOT_YET` and `SKIPPED` add nothing; a `detail` sent with them is ignored.
 2. A bullet of an experience entry E may cite an `ans-` id only when `detail` names the organisation or the
-   title of E (case-insensitive). Otherwise the answer can support only the summary and the skills.
+   title of E (case-insensitive). The `ans-` source sits next to at least one source bullet of E, and the bullet
+   stays under E. Otherwise the answer can support only the summary and the skills. An answer creates no entry
+   and no employer claim (revamp D6). The device FabricationGuard (D7) accepts an `ans-` id as a source in the same way.
    The server drops or reverts a bullet that breaks this rule.
 3. Only the server makes `USER_ANSWER` facts. A request that sends this source, or an id that starts
    with `ans-`, gets `400 INVALID_INPUT`.
@@ -583,7 +592,7 @@ The credit ledger. It has no request body.
 
 | Field | Rule |
 |---|---|
-| `balance` | The sum of all `amount` values. It equals `wallet.credits` |
+| `balance` | `wallet.freeCredits + wallet.purchasedCredits` from the wallet counters, which stay authoritative (apps-backend #89). It equals `wallet.credits`. History of wallets made before the ledger may differ from it by the deploy window |
 | `entries` | Newest first. At most 100 |
 | `kind` | `WELCOME`: the first free credit, amount `+1`. `PURCHASE`: a pack, amount `+5`, `+15`, or `+40`, with `productId`. `TAILORING`: a successful tailoring, amount `-1`, with `applicationId`. `REFUND`: credits given back, positive amount. `MIGRATION`: the balance that a wallet had before the ledger existed, one row for each wallet that had credits, positive amount |
 | `amount` | Signed integer, never `0` |
@@ -700,7 +709,7 @@ Request:
 | Field | Rule |
 |---|---|
 | `applicationId` | Device id of the application, or the draft key of Gap analysis (`analysis-draft-<hash>`). `^[A-Za-z0-9_-]{1,80}$` |
-| `itemKind` | `REQUIREMENT`, `RESUME_BULLET`, `SECTION`. The kinds `COVER_LETTER` and `PREP_QUESTION` of v1 are removed with their routes |
+| `itemKind` | `REQUIREMENT`, `RESUME_BULLET`, `SECTION`. The kinds `COVER_LETTER` and `PREP_QUESTION` of v1 stay (apps-backend #97): old reports stay readable, `POST /content-reports` still accepts them and export still returns them |
 | `generationId` | The id from the answer that made the item, or `null` |
 | `itemText` | 1 to 2,000 characters. The reported text, so the team can check it. It is personal data and is kept as section 6 says |
 
@@ -757,6 +766,8 @@ Backs the server part of `AccountDataExporter`. The app adds it to the archive a
       "credits": 6, "freeCredits": 1, "purchasedCredits": 5, "analysesLeftToday": 20,
       "day": "2026-10-10", "resetsAt": "..."
     },
+    "credits": [{ "id": "...", "kind": "PURCHASE", "amount": 5, "applicationId": null, "productId": "...", "createdAt": "..." }],
+    "unlocks": [{ "applicationId": "...", "creditKind": "...", "createdAt": "..." }],
     "purchases": [],
     "contentReports": [
       { "id": "...", "applicationId": "...", "itemKind": "...", "itemId": "...", "generationId": "...", "itemText": "...", "reportedAt": "..." }
@@ -765,7 +776,7 @@ Backs the server part of `AccountDataExporter`. The app adds it to the archive a
 }
 ```
 
-Times are ISO strings. `consents` lists the rows that the user made before v2. The app keeps the sub-objects
+Times are ISO strings. `consents` lists the rows that the user made before v2. `credits` lists every ledger row, oldest first, with no cap (apps-backend #89 c8). `unlocks` lists the stored unlock rows while `tailormyresume_unlocks` exists (section 6). `wallet` carries the deprecated fields of section 1 too. The app keeps the sub-objects
 as opaque JSON.
 
 Errors: `401`, `409 ACCOUNT_DELETED`, `429 RATE_LIMITED`.
@@ -779,7 +790,7 @@ ledger table must show this. Errors: `401`, `409 ACCOUNT_DELETED`.
 
 ### 4.12 Removed routes
 
-v2 removes these. The backend removes each in the issue named in the last column. The app side has stopped using each one.
+v2 retires these. The app side has stopped using each one. The backend removes each in the issue named in the last column, except that `unlock` and `section` stay as the compatibility routes of section 1 (revamp D12) until the follow-up after app #287 is deployed.
 
 | Removed | What replaces it | App side that stopped using it | Backend issue |
 |---|---|---|---|
@@ -787,7 +798,7 @@ v2 removes these. The backend removes each in the issue named in the last column
 | `POST /prep-questions` (C15) | Nothing. The prep feature is deleted | The prep question source and its screens, deleted in app issues #257 and #260 | #97 |
 | `POST /cover-letters` (C15) | Nothing. The cover letter feature is deleted | The cover letter source and its screens, deleted in app issues #257 and #260 | #97 |
 | The `section` parameter of `POST /tailorings` | Nothing. A new tailoring costs 1 credit | Section regeneration, deleted in app issue #257 | #90 |
-| The consent requirement on AI routes (C14), error `CONSENT_REQUIRED`, and the `noticeVersion` setting | Nothing. The core route `POST /v1/me/consents` and the `consents` table stay for history | The Consent screen and `POST /v1/me/consents` calls, deleted in app issue #260 | #87 |
+| The consent requirement on AI routes (C14) and the error `CONSENT_REQUIRED`. The `noticeVersion` setting stays (revamp D15) | Nothing. The core route `POST /v1/me/consents` and the `consents` table stay for history | The Consent screen and `POST /v1/me/consents` calls, deleted in app issue #260 | #87 |
 
 ## 5. Limits that bind the app
 
