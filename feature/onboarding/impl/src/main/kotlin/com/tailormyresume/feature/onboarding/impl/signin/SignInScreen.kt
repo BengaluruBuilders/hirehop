@@ -72,8 +72,8 @@ internal fun SignInRoute(
     val message = stringResource(R.string.feature_onboarding_impl_signin_cancelled)
     val retry = stringResource(R.string.feature_onboarding_impl_signin_retry)
     val onContinue = viewModel::onContinueWithGoogle
-    LaunchedEffect(uiState) {
-        if (uiState == SignInUiState.Cancelled) toast.show(message, TmrToastAction(retry, onContinue))
+    LaunchedEffect(viewModel) {
+        viewModel.cancelled.collect { toast.show(message, TmrToastAction(retry, onContinue)) }
     }
     SignInScreen(uiState, onContinue, modifier)
 }

@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.domain.SignInResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -22,6 +25,10 @@ internal class SignInViewModel @Inject constructor(
 
     val uiState: StateFlow<SignInUiState> = state.asStateFlow()
 
+    private val cancelledEvents = Channel<Unit>(Channel.BUFFERED)
+
+    val cancelled: Flow<Unit> = cancelledEvents.receiveAsFlow()
+
     fun onContinueWithGoogle() {
         if (state.getAndUpdate { SignInUiState.SigningIn } == SignInUiState.SigningIn) return
         viewModelScope.launch {
@@ -32,7 +39,10 @@ internal class SignInViewModel @Inject constructor(
             } catch (failure: Exception) {
                 null
             }
-            if (result !is SignInResult.SignedIn) state.value = SignInUiState.Cancelled
+            if (result !is SignInResult.SignedIn) {
+                state.value = SignInUiState.Cancelled
+                cancelledEvents.trySend(Unit)
+            }
         }
     }
 }

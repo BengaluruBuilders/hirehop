@@ -1,5 +1,7 @@
 package com.tailormyresume.feature.onboarding.impl.signin
 
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -75,5 +77,27 @@ class SignInRouteTest {
         composeRule.waitForIdle()
 
         assertThat(gateway.calls).isEqualTo(2)
+        composeRule.onNodeWithText("Sign-in cancelled. Nothing was saved.").assertIsDisplayed()
+    }
+
+    @Test
+    fun rotationDoesNotShowTheToastAgain() {
+        reduceMotion()
+        val viewModel = SignInViewModel(ScriptedSignInGateway { SignInResult.Cancelled })
+        val generation = mutableIntStateOf(0)
+        composeRule.showSignIn { key(generation.intValue) { SignInRoute(viewModel) } }
+        composeRule.onNodeWithText("Continue with Google").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Sign-in cancelled. Nothing was saved.").assertIsDisplayed()
+        composeRule.mainClock.advanceTimeBy(TOAST_TIMEOUT_MS)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Sign-in cancelled. Nothing was saved.").assertDoesNotExist()
+
+        composeRule.runOnIdle { generation.intValue += 1 }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("Sign-in cancelled. Nothing was saved.").assertDoesNotExist()
     }
 }
+
+private const val TOAST_TIMEOUT_MS = 30_000L
