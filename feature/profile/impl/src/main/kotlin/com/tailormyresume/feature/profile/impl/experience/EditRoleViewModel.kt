@@ -3,7 +3,7 @@ package com.tailormyresume.feature.profile.impl.experience
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tailormyresume.core.data.repository.ProfileRepository
-import com.tailormyresume.core.domain.fact.FactIdAllocator
+import com.tailormyresume.core.domain.fact.FactIdPrefix
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.EvidenceBullet
@@ -26,10 +26,13 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 private const val PRESENT_LABEL = "Present"
 
 private const val PRESENT_IGNORING_CASE = "present"
+
+private const val UNIQUE_SUFFIX_LENGTH = 8
 
 internal data class EditRoleDraft(
     val title: String = "",
@@ -56,7 +59,6 @@ internal enum class EditRoleEvent { Saved, Deleted }
 @HiltViewModel(assistedFactory = EditRoleViewModel.Factory::class)
 internal class EditRoleViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
-    private val idAllocator: FactIdAllocator,
     @Assisted private val entryId: String?,
 ) : ViewModel() {
 
@@ -68,7 +70,7 @@ internal class EditRoleViewModel @AssistedInject constructor(
 
     private var finished = false
 
-    private var saving = false
+    private var busy = false
 
     val uiState: StateFlow<EditRoleUiState> = combine(
         profileRepository.observeProfile(),
@@ -130,14 +132,18 @@ internal class EditRoleViewModel @AssistedInject constructor(
         }
     }
 
-    fun save() {
-        if (finished || saving) return
-        saving = true
+    fun save(): Unit = singleFlight { write() }
+
+    fun delete(): Unit = singleFlight { remove() }
+
+    private fun singleFlight(action: suspend () -> Unit) {
+        if (finished || busy) return
+        busy = true
         viewModelScope.launch {
             try {
-                write()
+                action()
             } finally {
-                saving = false
+                busy = false
             }
         }
     }
@@ -154,7 +160,7 @@ internal class EditRoleViewModel @AssistedInject constructor(
         val edited = if (original != null) {
             roleDraft.toEntry(editedId = original.id, original = original, source = FactSource.USER_EDITED)
         } else {
-            val newId = idAllocator.nextId(EntryCategory.EXPERIENCE, profile.entries, roleDraft.title.trim())
+            val newId = neverUsedId(roleDraft.title.trim(), profile.entries.mapTo(mutableSetOf()) { it.id })
             roleDraft.toEntry(editedId = newId, original = null, source = FactSource.USER_STATED)
         }
         val entries = if (original == null) {
@@ -167,15 +173,12 @@ internal class EditRoleViewModel @AssistedInject constructor(
         channel.send(EditRoleEvent.Saved)
     }
 
-    fun delete() {
-        viewModelScope.launch {
-            if (finished) return@launch
-            val id = entryId ?: return@launch
-            val profile = profileRepository.observeProfile().first() ?: return@launch
-            profileRepository.saveProfile(profile.copy(entries = profile.entries.filterNot { it.id == id }))
-            finished = true
-            channel.send(EditRoleEvent.Deleted)
-        }
+    private suspend fun remove() {
+        val id = entryId ?: return
+        val profile = profileRepository.observeProfile().first() ?: return
+        finished = true
+        profileRepository.saveProfile(profile.copy(entries = profile.entries.filterNot { it.id == id }))
+        channel.send(EditRoleEvent.Deleted)
     }
 
     private fun edit(transform: (EditRoleDraft) -> EditRoleDraft) {
@@ -219,6 +222,14 @@ private fun EditRoleDraft.toBullets(editedId: String, original: ProfileEntry?): 
         val id = original?.bullets?.getOrNull(index)?.id ?: nextFreeBulletId(editedId, taken)
         taken += id
         EvidenceBullet(id = id, text = text)
+    }
+}
+
+private fun neverUsedId(title: String, taken: Set<String>): String {
+    val prefix = FactIdPrefix.of(EntryCategory.EXPERIENCE, title)
+    while (true) {
+        val id = "$prefix-${UUID.randomUUID().toString().take(UNIQUE_SUFFIX_LENGTH)}"
+        if (id !in taken) return id
     }
 }
 

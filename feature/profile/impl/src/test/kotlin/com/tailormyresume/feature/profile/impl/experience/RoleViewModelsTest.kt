@@ -3,7 +3,6 @@ package com.tailormyresume.feature.profile.impl.experience
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.data.repository.ProfileRepository
-import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.domain.profile.ProfileCompleteness
 import com.tailormyresume.core.domain.profile.RequiredGaps
 import com.tailormyresume.core.model.CandidateProfile
@@ -118,7 +117,7 @@ class EditRoleViewModelTest {
 
     private val profileRepository = TestProfileRepository()
 
-    private fun viewModel(entryId: String?) = EditRoleViewModel(profileRepository, FactIdAllocator(), entryId)
+    private fun viewModel(entryId: String?) = EditRoleViewModel(profileRepository, entryId)
 
     private fun TestScope.collectUiState(viewModel: EditRoleViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
@@ -288,9 +287,9 @@ class EditRoleViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        val allocated = FactIdAllocator().nextId(EntryCategory.EXPERIENCE, profile.entries, "Intern")
-        assertThat(allocated).isEqualTo("I-01")
         val saved = checkNotNull(savedProfile())
+        val allocated = saved.entries.map { it.id }.single { id -> profile.entries.none { it.id == id } }
+        assertThat(allocated).startsWith("I-")
         val created = saved.entry(allocated)
         assertThat(saved.entries.indexOfFirst { it.id == allocated })
             .isEqualTo(profile.entries.indexOfFirst { it.id == "exp-infosys" })
@@ -301,7 +300,7 @@ class EditRoleViewModelTest {
         assertThat(created.organization).isEqualTo("Acme")
         assertThat(created.startDate).isEqualTo("Jan 2019")
         assertThat(created.endDate).isEqualTo("Mar 2019")
-        assertThat(created.bullets.map { it.id }).containsExactly("I-01-b1")
+        assertThat(created.bullets.map { it.id }).containsExactly("$allocated-b1")
         assertThat(created.bullets.single().text).isEqualTo("Built a report")
         assertThat(saved.entries.filter { it.id != allocated }).isEqualTo(profile.entries)
     }
@@ -413,7 +412,7 @@ class EditRoleViewModelTest {
                 emit(profileRepository.observeProfile().first())
             }
         }
-        val viewModel = EditRoleViewModel(slowRepository, FactIdAllocator(), null)
+        val viewModel = EditRoleViewModel(slowRepository, null)
         collectUiState(viewModel)
         advanceUntilIdle()
         viewModel.onTitleChange("Intern")
@@ -426,6 +425,105 @@ class EditRoleViewModelTest {
         val entries = checkNotNull(savedProfile()).entries
         assertThat(entries).hasSize(base.entries.size + 1)
         assertThat(entries.map { it.id }).containsNoDuplicates()
+    }
+
+    private fun TestScope.slowRepository(): ProfileRepository = object : ProfileRepository by profileRepository {
+        override fun observeProfile(): Flow<CandidateProfile?> = flow {
+            delay(10)
+            emit(profileRepository.observeProfile().first())
+        }
+    }
+
+    @Test
+    fun doubleDelete_emitsOneDeletedEventAndWritesOnce() = runTest {
+        profileRepository.sendProfile(PrototypeFixtures.returning().profile)
+        val viewModel = EditRoleViewModel(slowRepository(), "exp-bajaj")
+        collectUiState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.delete()
+            viewModel.delete()
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Deleted)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun saveThenDelete_inTheSameWindow_doesNotResurrectTheRole() = runTest {
+        val profile = PrototypeFixtures.returning().profile
+        profileRepository.sendProfile(profile)
+        val viewModel = EditRoleViewModel(slowRepository(), "exp-bajaj")
+        collectUiState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.save()
+            viewModel.delete()
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Saved)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(checkNotNull(savedProfile()).entries.map { it.id }).contains("exp-bajaj")
+    }
+
+    @Test
+    fun deleteThenSave_inTheSameWindow_doesNotResurrectTheRole() = runTest {
+        profileRepository.sendProfile(PrototypeFixtures.returning().profile)
+        val viewModel = EditRoleViewModel(slowRepository(), "exp-bajaj")
+        collectUiState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.delete()
+            viewModel.save()
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Deleted)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(checkNotNull(savedProfile()).entries.map { it.id }).doesNotContain("exp-bajaj")
+    }
+
+    @Test
+    fun addAfterDelete_neverReusesTheDeletedRoleOrBulletIds() = runTest {
+        val base = PrototypeFixtures.returning().profile
+        val roles = base.entries.filter { it.category == EntryCategory.EXPERIENCE }
+            .mapIndexed { index, role ->
+                val id = "W-0${index + 1}"
+                role.copy(id = id, bullets = role.bullets.mapIndexed { b, bullet -> bullet.copy(id = "$id-b${b + 1}") })
+            }
+        val others = base.entries.filter { it.category != EntryCategory.EXPERIENCE }
+        val deleted = roles[1]
+        profileRepository.sendProfile(base.copy(entries = roles + others))
+        val deleting = viewModel(deleted.id)
+        collectUiState(deleting)
+        deleting.events.test {
+            deleting.delete()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Deleted)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        val adding = viewModel(null)
+        collectUiState(adding)
+        adding.onTitleChange("Analyst")
+        adding.onCompanyChange("Acme")
+        adding.onBulletChange(0, "First")
+        adding.onAddBullet()
+        adding.onBulletChange(1, "Second")
+        adding.events.test {
+            adding.save()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Saved)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        val created = checkNotNull(savedProfile()).entries.single { it.title == "Analyst" }
+        assertThat(created.id).isNotEqualTo(deleted.id)
+        assertThat(created.bullets.map { it.id }).containsNoneIn(deleted.bullets.map { it.id })
+        assertThat(created.bullets.map { it.id }).containsNoDuplicates()
     }
 
     @Test

@@ -87,7 +87,7 @@ internal fun yearsOfExperience(entries: List<ProfileEntry>, clock: Clock): Int? 
         val start = monthIndex(role.startDate, JANUARY) ?: return null
         val end = endMonthIndex(role.endDate, clock) ?: return null
         if (end < start) return null
-        spans += start to end
+        spans += start to end + 1
     }
     return mergedMonthSpan(spans) / MONTHS_PER_YEAR
 }

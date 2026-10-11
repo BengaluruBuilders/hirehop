@@ -70,12 +70,22 @@ class YearsOfExperienceTest {
     fun gapBetweenRoles_isNotCounted() {
         val entries = listOf(experience("Jan 2018", "Dec 2018"), experience("Jan 2023", "Dec 2023"))
 
-        assertThat(yearsOfExperience(entries, clock)).isEqualTo(1)
+        assertThat(yearsOfExperience(entries, clock)).isEqualTo(2)
     }
 
     @Test
     fun lessThanTwelveMonths_floorsToZero() {
-        assertThat(yearsOfExperience(listOf(experience("Jun 2020", "May 2021")), clock)).isEqualTo(0)
+        assertThat(yearsOfExperience(listOf(experience("Jun 2020", "Apr 2021")), clock)).isEqualTo(0)
+    }
+
+    @Test
+    fun janToDecOfOneYear_isOneYear() {
+        assertThat(yearsOfExperience(listOf(experience("Jan 2024", "Dec 2024")), clock)).isEqualTo(1)
+    }
+
+    @Test
+    fun twelveCalendarMonthsAcrossTwoYears_isOneYear() {
+        assertThat(yearsOfExperience(listOf(experience("Jun 2020", "May 2021")), clock)).isEqualTo(1)
     }
 
     @Test
@@ -131,14 +141,14 @@ class YearsOfExperienceTest {
             entry(EntryCategory.ACHIEVEMENT, "Jan 2000", "Dec 2009"),
         )
 
-        assertThat(yearsOfExperience(entries, clock)).isEqualTo(0)
+        assertThat(yearsOfExperience(entries, clock)).isEqualTo(1)
     }
 
     @Test
     fun bareYearDates_areParsed() {
         val entries = listOf(experience("2020", "2021"))
 
-        assertThat(yearsOfExperience(entries, clock)).isEqualTo(1)
+        assertThat(yearsOfExperience(entries, clock)).isEqualTo(2)
     }
 }
 
