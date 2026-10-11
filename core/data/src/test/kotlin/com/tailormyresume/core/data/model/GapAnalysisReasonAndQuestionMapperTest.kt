@@ -1,7 +1,9 @@
 package com.tailormyresume.core.data.model
 
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.database.json.GapAnalysisDto
 import com.tailormyresume.core.model.QuickQuestion
+import kotlinx.serialization.json.Json
 import org.junit.Test
 
 class GapAnalysisReasonAndQuestionMapperTest {
@@ -23,8 +25,16 @@ class GapAnalysisReasonAndQuestionMapperTest {
 
     @Test
     fun analysisStoredBeforeTheFieldsExistedStillReads() {
-        val restored = testGapAnalysis.copy(question = null).asDto().asExternalModel()
+        val storedBeforeTheFields = """
+            {"matches":[{"requirement":{"id":"r1","text":"SQL","type":"SKILL","priority":"MUST_HAVE","keywords":["sql"]},
+            "status":"MET","evidenceIds":["e1"]}],"keywordCoverage":{"covered":1,"total":2}}
+        """.trimIndent()
+
+        val restored = Json.decodeFromString(GapAnalysisDto.serializer(), storedBeforeTheFields).asExternalModel()
 
         assertThat(restored.question).isNull()
+        assertThat(restored.matches.map { it.reason }).containsExactly(null)
+        assertThat(restored.matches.single().evidenceIds).containsExactly("e1")
+        assertThat(restored.keywordCoverage.total).isEqualTo(2)
     }
 }

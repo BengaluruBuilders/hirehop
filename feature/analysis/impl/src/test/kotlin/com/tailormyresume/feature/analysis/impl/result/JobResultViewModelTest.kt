@@ -73,6 +73,21 @@ class JobResultViewModelTest {
     }
 
     @Test
+    fun storedAnswerClearsTheUnclearRowAndShowsItsRealStatus() = runTest {
+        seed(
+            ResultTestData.application(
+                quickAnswer = QuickAnswer(ResultTestData.STAKEHOLDER_ID, "NOT_YET", ""),
+            ),
+        )
+        val state = readyState(viewModel())
+
+        assertThat(state.mustHaves.count { it.unclear }).isEqualTo(0)
+        assertThat(state.mustHaves.first { it.requirementId == ResultTestData.STAKEHOLDER_ID }.status)
+            .isEqualTo(MatchStatus.GAP)
+        assertThat(state.asksQuestion).isFalse()
+    }
+
+    @Test
     fun reasonWithoutCitedEvidenceForMetIsDropped() = runTest {
         val matches = listOf(
             RequirementMatch(ResultTestData.sql, MatchStatus.MET, emptyList(), "Used SQL daily at your internship"),

@@ -84,7 +84,7 @@ private fun toUiState(application: JobApplication?, credits: Int): JobResultUiSt
                     text = match.requirement.text,
                     status = match.status,
                     reason = match.keepReason(),
-                    unclear = match.requirement.id == gap.question?.requirementId,
+                    unclear = application.quickAnswer == null && match.requirement.id == gap.question?.requirementId,
                 )
             },
         credits = credits,

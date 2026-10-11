@@ -3,8 +3,11 @@ package com.tailormyresume.feature.analysis.impl.question
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.coverage.KeywordCoverageCalculator
+import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.JobApplication
 import com.tailormyresume.core.model.QuickAnswer
+import com.tailormyresume.core.model.TailoredBullet
+import com.tailormyresume.core.model.TailoredResume
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.feature.analysis.impl.ResultTestData
@@ -201,6 +204,39 @@ class QuickQuestionViewModelTest {
         assertThat(notYet.keywordCoverage)
             .isEqualTo(KeywordCoverageCalculator.compute(ResultTestData.matches, notYet.quickAnswer, null))
         assertThat(notYet.keywordCoverage?.upTo).isEqualTo(nullAnswerUpTo)
+    }
+
+    @Test
+    fun alreadyTailoredApplicationKeepsItsFinalCoverage() = runTest {
+        val resume = TailoredResume(
+            listOf(
+                TailoredBullet(
+                    id = "b1",
+                    entryId = "x1",
+                    originalText = "Built reports",
+                    proposedText = "Built SQL and Excel reports",
+                    sourceIds = emptyList(),
+                    editTypes = emptyList(),
+                    keywordsUsed = emptyList(),
+                    violations = emptyList(),
+                    decision = BulletDecision.ACCEPTED,
+                ),
+            ),
+        )
+        val storedFinal = KeywordCoverageCalculator.compute(ResultTestData.matches, null, resume).final
+        assertThat(storedFinal).isNotNull()
+        seed(
+            ResultTestData.application(tailoredResume = resume)
+                .copy(keywordCoverage = KeywordCoverageCalculator.compute(ResultTestData.matches, null, resume)),
+        )
+        val viewModel = viewModel()
+        viewModel.onPick(QuickChoice.A_FEW_TIMES)
+
+        viewModel.onContinue()
+
+        assertThat(stored().keywordCoverage?.final).isEqualTo(storedFinal)
+        viewModel.onSkip()
+        assertThat(stored().keywordCoverage?.final).isEqualTo(storedFinal)
     }
 
     @Test

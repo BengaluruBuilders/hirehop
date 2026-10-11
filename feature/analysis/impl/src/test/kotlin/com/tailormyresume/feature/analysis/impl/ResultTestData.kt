@@ -12,6 +12,7 @@ import com.tailormyresume.core.model.QuickQuestion
 import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
+import com.tailormyresume.core.model.TailoredResume
 import kotlin.time.Instant
 
 internal object ResultTestData {
@@ -57,6 +58,7 @@ internal object ResultTestData {
         question: QuickQuestion? = ResultTestData.question,
         quickAnswer: QuickAnswer? = null,
         location: String = "Bengaluru · Hybrid",
+        tailoredResume: TailoredResume? = null,
     ) = JobApplication(
         id = id,
         job = JobDescription(
@@ -68,7 +70,7 @@ internal object ResultTestData {
         ),
         status = ApplicationStatus.SAVED,
         gapAnalysis = GapAnalysis(matches, KeywordCoverage(0, 0), question = question),
-        tailoredResume = null,
+        tailoredResume = tailoredResume,
         createdAt = Instant.fromEpochSeconds(0),
         updatedAt = Instant.fromEpochSeconds(0),
         location = location,

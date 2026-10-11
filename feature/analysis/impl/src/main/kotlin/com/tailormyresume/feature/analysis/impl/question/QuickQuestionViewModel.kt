@@ -93,7 +93,7 @@ internal class QuickQuestionViewModel @AssistedInject constructor(
         applicationRepository.upsertApplication(
             current.copy(
                 quickAnswer = answer,
-                keywordCoverage = KeywordCoverageCalculator.compute(gap.matches, answer, null),
+                keywordCoverage = KeywordCoverageCalculator.compute(gap.matches, answer, current.tailoredResume),
             ),
         )
         return true
