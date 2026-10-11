@@ -1,6 +1,8 @@
 package com.tailormyresume.feature.analysis.impl.navigation
 
 import com.tailormyresume.core.data.repository.ContentReportRepository
+import com.tailormyresume.core.data.repository.NoRemoteLedger
+import com.tailormyresume.core.data.repository.RemoteLedgerSource
 import com.tailormyresume.core.domain.ImportedJob
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.JobAnalysisSource
@@ -29,4 +31,7 @@ object AnalysisTestBindings {
 
     @Provides
     fun contentReportRepository(): ContentReportRepository = TestContentReportRepository()
+
+    @Provides
+    fun remoteLedgerSource(): RemoteLedgerSource = NoRemoteLedger()
 }
