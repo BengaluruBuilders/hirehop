@@ -1,7 +1,6 @@
 package com.tailormyresume.feature.tailor.impl.export
 
 import android.content.Context
-import android.graphics.pdf.PdfDocument
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers
 import com.tailormyresume.core.model.PageSize
@@ -18,20 +17,28 @@ internal class AndroidPdfResumeRenderer @Inject constructor(
     @param:Dispatcher(TmrDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ResumePdfRenderer {
 
-    override suspend fun render(document: ResumeDocument, fileName: String, pageSize: PageSize): RenderedResume =
-        withContext(ioDispatcher) {
-            val pdf = PdfDocument()
-            try {
-                val writer = PdfPageWriter(pdf)
-                ResumePdfComposer(writer = writer, style = PdfResumeStyle()).compose(document)
-                val file = ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY)).write(fileName) { pdf.writeTo(it) }
-                RenderedResume(file = file, pageCount = writer.pageCount, lines = emptyList())
-            } finally {
-                pdf.close()
+    override suspend fun render(document: ResumeDocument, fileName: String, pageSize: PageSize): RenderedResume {
+        val fitted = withContext(defaultDispatcher) { fit(document, pageSize) }
+        try {
+            return withContext(ioDispatcher) {
+                val directory = ExportDirectory(File(context.cacheDir, EXPORT_DIRECTORY))
+                val file = directory.write(fileName) { fitted.pages.writeTo(it) }
+                RenderedResume(file = file, pageCount = fitted.pageCount, lines = fitted.lines)
             }
+        } finally {
+            fitted.pages.close()
+        }
+    }
+
+    override suspend fun pageCount(document: ResumeDocument, pageSize: PageSize): Int =
+        withContext(defaultDispatcher) {
+            val fitted = fit(document, pageSize)
+            fitted.pages.close()
+            fitted.pageCount
         }
 
-    override suspend fun pageCount(document: ResumeDocument, pageSize: PageSize): Int = TODO()
+    private fun fit(document: ResumeDocument, pageSize: PageSize): FittedResume<AndroidPdfPages> =
+        ResumePdfFit.compose(document, pageSize, newPages = ::AndroidPdfPages, discard = AndroidPdfPages::close)
 
     private companion object {
         const val EXPORT_DIRECTORY = "exports"

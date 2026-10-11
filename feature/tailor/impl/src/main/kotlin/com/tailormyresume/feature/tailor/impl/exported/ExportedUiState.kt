@@ -9,6 +9,8 @@ internal sealed interface ExportedUiState {
 
     data object NothingExported : ExportedUiState
 
+    data object ExportFailed : ExportedUiState
+
     @Immutable
     data class Ready(
         val fileName: String,

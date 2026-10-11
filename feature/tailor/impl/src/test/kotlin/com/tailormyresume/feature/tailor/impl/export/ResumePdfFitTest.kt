@@ -1,6 +1,5 @@
 package com.tailormyresume.feature.tailor.impl.export
 
-import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.model.BulletDecision
 import com.tailormyresume.core.model.EntryCategory
@@ -15,33 +14,22 @@ import com.tailormyresume.feature.tailor.impl.document.ResumeDocumentAssembler
 import com.tailormyresume.feature.tailor.impl.document.ResumeEntry
 import com.tailormyresume.feature.tailor.impl.document.ResumeSection
 import com.tailormyresume.feature.tailor.impl.document.TestResumeHeadings
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.GraphicsMode
-import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ResumePdfFitTest {
-
-    @get:Rule
-    val folder = TemporaryFolder()
 
     private val profile = PrototypeFixtures.returning().profile
 
     private val document: ResumeDocument =
         ResumeDocumentAssembler(TestResumeHeadings).assemble(profile, tailoredResume())
 
-    private fun renderer(): ResumePdfRenderer = AndroidPdfResumeRenderer(
-        ApplicationProvider.getApplicationContext(),
-        UnconfinedTestDispatcher(),
-        UnconfinedTestDispatcher(),
-    )
+    private fun fit(document: ResumeDocument, size: PageSize) =
+        ResumePdfFit.compose(document, size, ::BitmapPdfPages)
 
     private fun tailoredResume(): TailoredResume = TailoredResume(
         bullets = profile.entries
@@ -98,34 +86,33 @@ class ResumePdfFitTest {
     }
 
     @Test
-    fun prototypeDataIsOnePageInA4AndLetter() = runTest {
-        val renderer = renderer()
-
+    fun prototypeDataIsOnePageInA4AndLetter() {
         listOf(PageSize.A4, PageSize.LETTER).forEach { size ->
-            val rendered = renderer.render(document, "resume-${size.name.lowercase()}.pdf", size)
-            val copied = File(folder.root, rendered.file.name)
-            copied.writeBytes(rendered.file.readBytes())
+            val fitted = fit(document, size)
 
-            assertThat(rendered.pageCount).isEqualTo(1)
-            assertThat(copied.exists()).isTrue()
-            assertThat(copied.length()).isGreaterThan(0L)
-            assertThat(copied.length()).isAtMost(200_000L)
-            assertThat(renderer.pageCount(document, size)).isEqualTo(1)
+            assertThat(fitted.pageCount).isEqualTo(1)
+            assertThat(fitted.pages.pageSizes).hasSize(1)
         }
     }
 
     @Test
-    fun renderedLinesEqualAcceptedDocument() = runTest {
-        val rendered = renderer().render(document, "accepted.pdf", PageSize.A4)
-
-        assertThat(rendered.lines).containsExactlyElementsIn(expectedLines(document)).inOrder()
-        assertThat(rendered.lines).contains(INFOSYS_B1_PROPOSED)
-        assertThat(rendered.lines).contains(TATA_B1_ORIGINAL)
-        assertThat(rendered.lines).doesNotContain(TATA_B1_PROPOSED)
+    fun pagesAreCreatedAtTheSettingsPageSize() {
+        assertThat(fit(document, PageSize.A4).pages.pageSizes).containsExactly(595 to 842)
+        assertThat(fit(document, PageSize.LETTER).pages.pageSizes).containsExactly(612 to 792)
     }
 
     @Test
-    fun oversizedResumeSpillsToMoreThanOnePage() = runTest {
+    fun renderedLinesEqualAcceptedDocument() {
+        val lines = fit(document, PageSize.A4).lines
+
+        assertThat(lines).containsExactlyElementsIn(expectedLines(document)).inOrder()
+        assertThat(lines).contains(INFOSYS_B1_PROPOSED)
+        assertThat(lines).contains(TATA_B1_ORIGINAL)
+        assertThat(lines).doesNotContain(TATA_B1_PROPOSED)
+    }
+
+    @Test
+    fun oversizedResumeSpillsToMoreThanOnePage() {
         val oversized = ResumeDocument(
             name = "Priya Deshmukh",
             contactLine = "priya.deshmukh@gmail.com | +91 98200 41736",
@@ -148,18 +135,45 @@ class ResumePdfFitTest {
             skillsHeading = "Skills",
         )
 
-        val rendered = renderer().render(oversized, "oversized.pdf", PageSize.A4)
+        assertThat(fit(oversized, PageSize.A4).pageCount).isGreaterThan(1)
+    }
 
-        assertThat(rendered.pageCount).isGreaterThan(1)
+    private fun documentWithBullets(count: Int) = ResumeDocument(
+        name = "Priya Deshmukh",
+        contactLine = "priya.deshmukh@gmail.com | +91 98200 41736",
+        headline = "Finance analyst",
+        skills = listOf("SQL", "Power BI"),
+        sections = listOf(
+            ResumeSection(
+                category = EntryCategory.EXPERIENCE,
+                heading = "Experience",
+                entries = listOf(
+                    ResumeEntry(
+                        title = "Business Analyst",
+                        organization = "Infosys",
+                        dateRange = "Jul 2022 - Present",
+                        bullets = List(count) { "$LONG_BULLET point ${it + 1}" },
+                    ),
+                ),
+            ),
+        ),
+        skillsHeading = "Skills",
+    )
+
+    private fun pagesFor(document: ResumeDocument, pass: FitPass): Int {
+        val writer = PdfPageWriter(BitmapPdfPages(), PageSize.A4)
+        ResumePdfComposer(writer, PdfResumeStyle(pass)).compose(document)
+        return writer.pageCount
     }
 
     @Test
-    fun fileNameIsKept() = runTest {
-        val fileName = File(folder.root, "Priya-Deshmukh_Northwind-GCC_Associate-Analyst.pdf").name
+    fun secondPassFitsWhatTheFirstPassCannot() {
+        val count = (5..40).first { n ->
+            val candidate = documentWithBullets(n)
+            pagesFor(candidate, FitPass.Regular) > 1 && pagesFor(candidate, FitPass.Compact) == 1
+        }
 
-        val rendered = renderer().render(document, fileName, PageSize.A4)
-
-        assertThat(rendered.file.name).isEqualTo(fileName)
+        assertThat(fit(documentWithBullets(count), PageSize.A4).pageCount).isEqualTo(1)
     }
 
     private companion object {

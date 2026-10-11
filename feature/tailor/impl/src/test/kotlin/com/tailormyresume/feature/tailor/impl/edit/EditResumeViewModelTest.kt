@@ -14,8 +14,8 @@ import com.tailormyresume.core.testing.repository.TestResumeSettingsRepository
 import com.tailormyresume.core.testing.repository.TestTailoringReviewStateRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestClock
-import com.tailormyresume.feature.tailor.impl.HandEditBulletUseCase
 import com.tailormyresume.feature.tailor.impl.EXPORT_ACCEPTED_AT
+import com.tailormyresume.feature.tailor.impl.HandEditBulletUseCase
 import com.tailormyresume.feature.tailor.impl.acceptedApplication
 import com.tailormyresume.feature.tailor.impl.acceptedBullet
 import com.tailormyresume.feature.tailor.impl.document.ResumeDocumentAssembler

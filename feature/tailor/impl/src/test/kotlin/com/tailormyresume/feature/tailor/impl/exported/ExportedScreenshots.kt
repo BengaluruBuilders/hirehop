@@ -82,10 +82,8 @@ class ExportedScreenshots {
         rule.onNodeWithText("PDF · 1 page · 48 KB").assertExists()
         rule.onNodeWithText("Share").assertExists()
         rule.onNodeWithText("Open").assertExists()
-        rule.onNodeWithText("2 left").assertExists()
-        rule.onNodeWithText("was 3. Credits never expire.").assertExists()
-        rule.onNodeWithText("Saved to Applications: Associate Analyst").assertExists()
-        rule.onNodeWithText("Northwind GCC").assertExists()
+        rule.onNodeWithText("2 left, was 3. Credits never expire.").assertExists()
+        rule.onNodeWithText("Saved to Applications: Associate Analyst, Northwind GCC").assertExists()
         rule.onNodeWithText("Did you apply?").assertExists()
         rule.onNodeWithText("✓ Mark as Applied").assertExists()
         rule.onNodeWithText("Get prep questions").assertExists()
@@ -200,11 +198,12 @@ class ExportedScreenshots {
         var wentToApplications = 0
         val picked = mutableListOf<ApplicationStatus>()
         var sheet by mutableStateOf<ApplicationStatus?>(null)
+        var status by mutableStateOf(ApplicationStatus.SAVED)
 
         rule.setContent {
             TmrTheme {
                 ExportedScreen(
-                    state = ready(status = ApplicationStatus.APPLIED, markedOn = "10 Oct", statusSheet = sheet),
+                    state = ready(status = status, markedOn = "10 Oct".takeIf { status != ApplicationStatus.SAVED }, statusSheet = sheet),
                     onShare = { shares += 1 },
                     onOpen = { opens += 1 },
                     onMarkApplied = { marked += 1 },
@@ -225,6 +224,8 @@ class ExportedScreenshots {
         rule.onNodeWithText("Get prep questions").performClick()
         rule.onNodeWithText("Write a cover letter").performClick()
         rule.onNodeWithText("Go to Applications").performClick()
+        status = ApplicationStatus.APPLIED
+        rule.waitForIdle()
         rule.onNodeWithText("Change").performClick()
 
         sheet = ApplicationStatus.INTERVIEW

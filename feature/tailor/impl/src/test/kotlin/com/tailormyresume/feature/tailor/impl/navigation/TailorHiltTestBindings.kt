@@ -8,15 +8,31 @@ import com.tailormyresume.core.model.EntryCategory
 import com.tailormyresume.core.model.GapAnalysis
 import com.tailormyresume.core.model.JobDescription
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.feature.tailor.impl.document.AndroidResumeHeadings
+import com.tailormyresume.feature.tailor.impl.document.ResumeHeadings
+import com.tailormyresume.feature.tailor.impl.export.BitmapPdfResumeRenderer
+import com.tailormyresume.feature.tailor.impl.export.ExportModule
+import com.tailormyresume.feature.tailor.impl.export.ResumePdfRenderer
+import com.tailormyresume.feature.tailor.impl.exported.CacheExportedFileStore
+import com.tailormyresume.feature.tailor.impl.exported.ExportedFileStore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.hilt.testing.TestInstallIn
 
 @Module
-@InstallIn(SingletonComponent::class)
+@TestInstallIn(components = [SingletonComponent::class], replaces = [ExportModule::class])
 internal abstract class TailorHiltTestBindings {
+
+    @Binds
+    abstract fun bindResumePdfRenderer(renderer: BitmapPdfResumeRenderer): ResumePdfRenderer
+
+    @Binds
+    abstract fun bindExportedFileStore(store: CacheExportedFileStore): ExportedFileStore
+
+    @Binds
+    abstract fun bindResumeHeadings(headings: AndroidResumeHeadings): ResumeHeadings
 
     @Binds
     abstract fun bindContentReports(impl: StoredContentReportRepository): ContentReportRepository

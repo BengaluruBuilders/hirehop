@@ -4,7 +4,15 @@ import com.tailormyresume.core.data.repository.ApplicationRepository
 import com.tailormyresume.core.data.repository.ExportHistoryRepository
 import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.data.repository.ResumeSettingsRepository
+import com.tailormyresume.core.domain.ExportCheck
+import com.tailormyresume.core.domain.ExportReadiness
+import com.tailormyresume.core.domain.export.ExportFileName
+import com.tailormyresume.core.domain.export.ExportFileNameFormat
+import com.tailormyresume.core.model.ExportFormat
+import com.tailormyresume.core.model.ExportRecord
+import com.tailormyresume.core.model.FileNameFormat
 import com.tailormyresume.feature.tailor.impl.document.ResumeDocumentAssembler
+import kotlinx.coroutines.flow.first
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -18,6 +26,8 @@ internal sealed interface ExportOutcome {
     ) : ExportOutcome
 
     data object Refused : ExportOutcome
+
+    data object Failed : ExportOutcome
 }
 
 internal class ExportResumeUseCase @Inject constructor(
@@ -29,5 +39,34 @@ internal class ExportResumeUseCase @Inject constructor(
     private val renderer: ResumePdfRenderer,
     private val clock: Clock,
 ) {
-    suspend operator fun invoke(applicationId: String): ExportOutcome = TODO()
+    suspend operator fun invoke(applicationId: String): ExportOutcome {
+        val application = applicationRepository.observeApplication(applicationId).first() ?: return ExportOutcome.Refused
+        if (ExportReadiness.check(application) != ExportCheck.ALLOWED) return ExportOutcome.Refused
+        val resume = application.tailoredResume ?: return ExportOutcome.Refused
+        val profile = profileRepository.observeProfile().first() ?: return ExportOutcome.Refused
+        val settings = settingsRepository.observeSettings().first()
+        val fileName = ExportFileName.build(profile, application.job, settings.fileNameFormat.toExportFormat())
+        val rendered = renderer.render(assembler.assemble(profile, resume), fileName, settings.pageSize)
+        val exportedAt = clock.now()
+        applicationRepository.observeApplication(applicationId).first()?.let { latest ->
+            applicationRepository.upsertApplication(latest.copy(exportFileName = fileName, updatedAt = exportedAt))
+        }
+        exportHistory.record(
+            ExportRecord(
+                applicationId = applicationId,
+                format = ExportFormat.PDF,
+                fileName = fileName,
+                exportedAt = exportedAt,
+                creditKind = null,
+                pageCount = rendered.pageCount,
+            ),
+        )
+        return ExportOutcome.Exported(fileName, rendered.file, rendered.pageCount, rendered.sizeBytes)
+    }
+
+    private fun FileNameFormat.toExportFormat(): ExportFileNameFormat = when (this) {
+        FileNameFormat.NAME_COMPANY_ROLE -> ExportFileNameFormat.NAME_COMPANY_ROLE
+        FileNameFormat.NAME_ROLE -> ExportFileNameFormat.NAME_ROLE
+        FileNameFormat.NAME_RESUME -> ExportFileNameFormat.NAME_RESUME
+    }
 }
