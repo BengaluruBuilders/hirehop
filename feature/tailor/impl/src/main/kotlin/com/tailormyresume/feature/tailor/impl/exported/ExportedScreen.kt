@@ -155,8 +155,9 @@ private fun CreditsCard(state: ExportedUiState.Ready) {
             val line = if (state.freeResumeUsed) {
                 stringResource(R.string.feature_tailor_impl_exported_credits_free)
             } else {
-                stringResource(
-                    R.string.feature_tailor_impl_exported_credits_paid,
+                pluralStringResource(
+                    R.plurals.feature_tailor_impl_exported_credits_paid,
+                    state.creditsLeft,
                     state.creditsLeft,
                     state.creditsLeft + 1,
                 )

@@ -12,7 +12,10 @@
         <item quantity="one">PDF · %1$d page · %2$d KB</item>
         <item quantity="other">PDF · %1$d pages · %2$d KB</item>
     </plurals>
-    <string name="feature_tailor_impl_exported_credits_paid">%1$d left, was %2$d. Credits never expire.</string>
+    <plurals name="feature_tailor_impl_exported_credits_paid">
+        <item quantity="one">%1$d left, was %2$d. Credits never expire.</item>
+        <item quantity="other">%1$d left, was %2$d. Credits never expire.</item>
+    </plurals>
     <string name="feature_tailor_impl_exported_credits_free">Free resume used. 0 credits left. Nothing was charged.</string>
     <string name="feature_tailor_impl_exported_saved_to">Saved to Applications: %1$s, %2$s</string>
     <string name="feature_tailor_impl_exported_did_you_apply">Did you apply?</string>
