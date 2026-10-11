@@ -7,6 +7,7 @@ import com.tailormyresume.core.domain.profile.ProfileCompleteness
 import com.tailormyresume.core.domain.profile.RequiredGaps
 import com.tailormyresume.core.model.CandidateProfile
 import com.tailormyresume.core.model.EntryCategory
+import com.tailormyresume.core.model.EvidenceBullet
 import com.tailormyresume.core.model.FactSource
 import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.testing.data.PrototypeFixtures
@@ -524,6 +525,54 @@ class EditRoleViewModelTest {
         assertThat(created.id).isNotEqualTo(deleted.id)
         assertThat(created.bullets.map { it.id }).containsNoneIn(deleted.bullets.map { it.id })
         assertThat(created.bullets.map { it.id }).containsNoDuplicates()
+    }
+
+    private suspend fun EditRoleViewModel.saveAndAwait() {
+        events.test {
+            save()
+            assertThat(awaitItem()).isEqualTo(EditRoleEvent.Saved)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun editExisting_removedMiddleBulletIdIsNeverReusedAndKeptIdsStay() = runTest {
+        val base = PrototypeFixtures.returning().profile
+        val threeBullets = base.entries.map { entry ->
+            if (entry.id != "exp-infosys") {
+                entry
+            } else {
+                entry.copy(
+                    bullets = listOf("1", "2", "3").map { EvidenceBullet(id = "exp-infosys-b$it", text = "Bullet $it") },
+                )
+            }
+        }
+        profileRepository.sendProfile(base.copy(entries = threeBullets))
+        val first = viewModel("exp-infosys")
+        collectUiState(first)
+        first.onBulletChange(0, "Bullet 1 reworded")
+        first.onBulletChange(1, "")
+        first.onAddBullet()
+        first.onBulletChange(3, "Bullet 4")
+        first.saveAndAwait()
+
+        val afterFirst = checkNotNull(savedProfile()).entry("exp-infosys").bullets
+        assertThat(afterFirst.map { it.id }.take(2)).containsExactly("exp-infosys-b1", "exp-infosys-b3").inOrder()
+        assertThat(afterFirst.first().text).isEqualTo("Bullet 1 reworded")
+        val added = afterFirst.last().id
+        assertThat(added).startsWith("exp-infosys-b")
+        assertThat(added).isNotIn(listOf("exp-infosys-b1", "exp-infosys-b2", "exp-infosys-b3"))
+
+        val second = viewModel("exp-infosys")
+        collectUiState(second)
+        second.onAddBullet()
+        second.onBulletChange(3, "Bullet 5")
+        second.saveAndAwait()
+
+        val ids = checkNotNull(savedProfile()).entry("exp-infosys").bullets.map { it.id }
+        assertThat(ids.take(3)).containsExactly("exp-infosys-b1", "exp-infosys-b3", added).inOrder()
+        assertThat(ids).containsNoDuplicates()
+        assertThat(ids).doesNotContain("exp-infosys-b2")
     }
 
     @Test

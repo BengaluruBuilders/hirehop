@@ -41,6 +41,7 @@ internal data class EditRoleDraft(
     val end: String = "",
     val current: Boolean = false,
     val bullets: List<String> = listOf(""),
+    val bulletIds: List<String?> = listOf(null),
 )
 
 internal sealed interface EditRoleUiState {
@@ -126,7 +127,7 @@ internal class EditRoleViewModel @AssistedInject constructor(
 
     fun onAddBullet(): Unit = edit { roleDraft ->
         if (roleDraft.bullets.size < ProfileLimits.MAX_BULLETS_PER_ENTRY) {
-            roleDraft.copy(bullets = roleDraft.bullets + "")
+            roleDraft.copy(bullets = roleDraft.bullets + "", bulletIds = roleDraft.bulletIds + null)
         } else {
             roleDraft
         }
@@ -215,13 +216,21 @@ private fun EditRoleDraft.toEntry(
 )
 
 private fun EditRoleDraft.toBullets(editedId: String, original: ProfileEntry?): List<EvidenceBullet> {
-    val taken = original?.bullets?.mapTo(mutableSetOf()) { it.id } ?: mutableSetOf()
+    val taken = bulletIds.filterNotNullTo(mutableSetOf())
     return bullets.mapIndexedNotNull { index, rawText ->
         val text = rawText.trim()
         if (text.isEmpty()) return@mapIndexedNotNull null
-        val id = original?.bullets?.getOrNull(index)?.id ?: nextFreeBulletId(editedId, taken)
+        val id = bulletIds.getOrNull(index)
+            ?: if (original == null) nextFreeBulletId(editedId, taken) else randomBulletId(editedId, taken)
         taken += id
         EvidenceBullet(id = id, text = text)
+    }
+}
+
+private fun randomBulletId(entryId: String, taken: Set<String>): String {
+    while (true) {
+        val id = "$entryId-b${UUID.randomUUID().toString().take(UNIQUE_SUFFIX_LENGTH)}"
+        if (id !in taken) return id
     }
 }
 
@@ -248,6 +257,7 @@ private fun ProfileEntry.toDraft(): EditRoleDraft {
         end = if (isPresent) "" else endDate,
         current = isPresent,
         bullets = bullets.map { it.text }.ifEmpty { listOf("") },
+        bulletIds = bullets.map { it.id }.ifEmpty { listOf(null) },
     )
 }
 
