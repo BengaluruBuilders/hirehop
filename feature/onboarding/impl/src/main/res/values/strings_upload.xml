@@ -13,8 +13,7 @@
 
     <string name="feature_onboarding_impl_unreadable_title_file">We couldn\'t read that file</string>
     <string name="feature_onboarding_impl_unreadable_title_neutral">We couldn\'t read your resume</string>
-    <string name="feature_onboarding_impl_unreadable_meta_image_only">%1$s · image only</string>
-    <string name="feature_onboarding_impl_unreadable_meta_size">%1$s · %2$s</string>
+    <string name="feature_onboarding_impl_file_meta_image_only">image only</string>
     <string name="feature_onboarding_impl_unreadable_explain_image_only">It looks like a photo or scan, so there\'s no text for us to read.</string>
     <string name="feature_onboarding_impl_unreadable_explain_file">We couldn\'t open this file or find any text in it.</string>
     <string name="feature_onboarding_impl_unreadable_explain_too_large">This file is bigger than 5 MB.</string>

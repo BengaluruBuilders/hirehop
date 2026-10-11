@@ -4,12 +4,11 @@ import androidx.lifecycle.ViewModel
 import com.tailormyresume.feature.onboarding.impl.importresume.ResumeFile
 import com.tailormyresume.feature.onboarding.impl.importresume.ResumeImportDraft
 import com.tailormyresume.feature.onboarding.impl.importresume.UploadFailure
-import com.tailormyresume.feature.onboarding.impl.importresume.UploadFailureKind
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
 
 internal enum class UnreadableEvent { OpenReading, OpenPaste }
@@ -19,11 +18,19 @@ internal class UnreadableViewModel @Inject constructor(
     private val draft: ResumeImportDraft,
 ) : ViewModel() {
 
-    val uiState: StateFlow<UploadFailure> = MutableStateFlow(UploadFailure(UploadFailureKind.Neutral))
+    private val eventChannel = Channel<UnreadableEvent>(Channel.BUFFERED)
 
-    val events: Flow<UnreadableEvent> = emptyFlow()
+    val uiState: StateFlow<UploadFailure> = draft.failureOrNeutral
 
-    fun onFilePicked(file: ResumeFile?) = Unit
+    val events: Flow<UnreadableEvent> = eventChannel.receiveAsFlow()
 
-    fun onPasteAsText() = Unit
+    fun onFilePicked(file: ResumeFile?) {
+        if (file == null) return
+        draft.setFile(file)
+        eventChannel.trySend(UnreadableEvent.OpenReading)
+    }
+
+    fun onPasteAsText() {
+        eventChannel.trySend(UnreadableEvent.OpenPaste)
+    }
 }

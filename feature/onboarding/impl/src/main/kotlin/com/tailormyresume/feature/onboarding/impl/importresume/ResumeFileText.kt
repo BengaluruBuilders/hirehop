@@ -23,3 +23,21 @@ internal fun resumeFileSizeText(bytes: Long): String =
     } else {
         stringResource(R.string.feature_onboarding_impl_file_size_kb, maxOf(1L, bytes / BYTES_PER_KB).toInt())
     }
+
+private const val META_SEPARATOR = " · "
+
+@Composable
+internal fun resumeFileMeta(
+    mimeType: String?,
+    fileName: String?,
+    byteSize: Long,
+    imageOnly: Boolean = false,
+): String {
+    val type = resumeFileTypeLabel(mimeType, fileName)
+    val detail = when {
+        imageOnly -> stringResource(R.string.feature_onboarding_impl_file_meta_image_only)
+        byteSize > 0L -> resumeFileSizeText(byteSize)
+        else -> ""
+    }
+    return listOf(type, detail).filter { it.isNotBlank() }.joinToString(META_SEPARATOR)
+}

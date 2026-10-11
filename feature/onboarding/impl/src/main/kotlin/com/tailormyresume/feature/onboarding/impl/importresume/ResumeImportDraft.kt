@@ -34,9 +34,11 @@ internal class ResumeImportDraft @Inject constructor(
 ) {
     private val pending = MutableStateFlow<ResumeSource?>(null)
     private val failed = MutableStateFlow<UploadFailure?>(null)
+    private val shown = MutableStateFlow(NEUTRAL_FAILURE)
 
     val source: StateFlow<ResumeSource?> = pending
     val failure: StateFlow<UploadFailure?> = failed
+    val failureOrNeutral: StateFlow<UploadFailure> = shown
 
     init {
         scope.launch {
@@ -52,16 +54,25 @@ internal class ResumeImportDraft @Inject constructor(
 
     fun fail(failure: UploadFailure) {
         pending.value = null
-        failed.value = failure
+        setFailure(failure)
     }
 
     fun clear() {
         pending.value = null
-        failed.value = null
+        setFailure(null)
     }
 
     private fun begin(source: ResumeSource) {
-        failed.value = null
+        setFailure(null)
         pending.value = source
+    }
+
+    private fun setFailure(failure: UploadFailure?) {
+        failed.value = failure
+        shown.value = failure ?: NEUTRAL_FAILURE
+    }
+
+    private companion object {
+        val NEUTRAL_FAILURE = UploadFailure(UploadFailureKind.Neutral)
     }
 }
