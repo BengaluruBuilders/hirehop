@@ -84,6 +84,13 @@ class YearsOfExperienceTest {
     }
 
     @Test
+    fun futureEndIsClampedToNow_andFutureStartAddsNothing() {
+        assertThat(yearsOfExperience(listOf(experience("Jan 2026", "Dec 2026")), clock)).isEqualTo(0)
+        val withNextYear = listOf(experience("Jan 2020", "Dec 2020"), experience("Jan 2027", "Dec 2027"))
+        assertThat(yearsOfExperience(withNextYear, clock)).isEqualTo(1)
+    }
+
+    @Test
     fun twelveCalendarMonthsAcrossTwoYears_isOneYear() {
         assertThat(yearsOfExperience(listOf(experience("Jun 2020", "May 2021")), clock)).isEqualTo(1)
     }
