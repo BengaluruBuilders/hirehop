@@ -67,22 +67,24 @@ class TailoringRunnerTest {
         profileRepository.sendProfile(profile)
     }
 
+    private fun tailorResumeOf(tailor: suspend () -> TailoredResume) = TailorResumeUseCase(
+        object : ResumeTailor {
+            override suspend fun tailor(
+                profile: CandidateProfile,
+                job: JobDescription,
+                gap: GapAnalysis,
+                applicationId: String,
+                section: EntryCategory?,
+            ): TailoredResume = tailor()
+        },
+        CleanFabricationGuard,
+    )
+
     private fun runner(tailor: suspend () -> TailoredResume) = TailoringRunner(
         applicationRepository = applicationRepository,
         profileRepository = profileRepository,
         creditsRepository = creditsRepository,
-        tailorResume = TailorResumeUseCase(
-            object : ResumeTailor {
-                override suspend fun tailor(
-                    profile: CandidateProfile,
-                    job: JobDescription,
-                    gap: GapAnalysis,
-                    applicationId: String,
-                    section: EntryCategory?,
-                ): TailoredResume = tailor()
-            },
-            CleanFabricationGuard,
-        ),
+        tailorResume = tailorResumeOf(tailor),
         clock = clock,
         dispatcher = dispatcher,
     )
@@ -92,7 +94,7 @@ class TailoringRunnerTest {
         seed()
         val tailored = TailoredResume(bullets = listOf(bullet))
 
-        val result = runner { tailored }("app-1")
+        val result = runner { tailored }("app-1", "run-1")
 
         assertThat(result).isEqualTo(TailoringResult.Success)
         val ledger = creditsRepository.observeLedger().first()
@@ -100,6 +102,7 @@ class TailoringRunnerTest {
         assertThat(ledger.single().kind).isEqualTo(CreditLedgerKind.SPEND)
         assertThat(ledger.single().amount).isEqualTo(-1)
         assertThat(ledger.single().applicationId).isEqualTo("app-1")
+        assertThat(ledger.single().productId).isEqualTo("run-run-1")
         val stored = checkNotNull(applicationRepository.observeApplication("app-1").first())
         val storedResume = checkNotNull(stored.tailoredResume)
         assertThat(storedResume.bullets.map { it.id }).containsExactly("b1")
@@ -114,7 +117,7 @@ class TailoringRunnerTest {
         seed()
         val before = applicationRepository.observeApplication("app-1").first()
 
-        val result = runner { error("model unavailable") }("app-1")
+        val result = runner { error("model unavailable") }("app-1", "run-1")
 
         assertThat(result).isInstanceOf(TailoringResult.Failure::class.java)
         assertThat(creditsRepository.observeLedger().first()).isEmpty()
@@ -126,7 +129,7 @@ class TailoringRunnerTest {
         seed(gapAnalysis = null)
         val before = applicationRepository.observeApplication("app-1").first()
 
-        val result = runner { TailoredResume(bullets = emptyList()) }("app-1")
+        val result = runner { TailoredResume(bullets = emptyList()) }("app-1", "run-1")
 
         assertThat(result).isInstanceOf(TailoringResult.Failure::class.java)
         assertThat(creditsRepository.observeLedger().first()).isEmpty()
@@ -142,7 +145,7 @@ class TailoringRunnerTest {
             awaitCancellation()
         }
 
-        val job = launch { run("app-1") }
+        val job = launch { run("app-1", "run-1") }
         runCurrent()
         started.await()
         job.cancel()
@@ -160,7 +163,7 @@ class TailoringRunnerTest {
         var thrown: Throwable? = null
         val job = launch {
             try {
-                runner { throw CancellationException("stop") }("app-1")
+                runner { throw CancellationException("stop") }("app-1", "run-1")
             } catch (expected: CancellationException) {
                 thrown = expected
             }
@@ -172,43 +175,81 @@ class TailoringRunnerTest {
         assertThat(creditsRepository.observeLedger().first()).isEmpty()
     }
 
-    private val priorSpend = com.tailormyresume.core.model.CreditLedgerEntry(
-        CreditLedgerKind.SPEND,
-        -1,
-        "app-1",
-        null,
-        clock.now(),
-    )
+    private suspend fun spends() = creditsRepository.observeLedger().first().filter { it.kind == CreditLedgerKind.SPEND }
 
     @Test
-    fun restoredAfterFinishNeitherRerunsNorSpendsAgain() = runTest(dispatcher) {
+    fun restoredAfterFinishWithTheSameRunNeitherRerunsNorSpendsAgain() = runTest(dispatcher) {
         seed()
         val tailored = TailoredResume(bullets = listOf(bullet))
-        runner { tailored }("app-1")
+        runner { tailored }("app-1", "run-1")
         var reruns = 0
 
         val result = runner {
             reruns++
             tailored
-        }("app-1")
+        }("app-1", "run-1")
 
         assertThat(result).isEqualTo(TailoringResult.Success)
         assertThat(reruns).isEqualTo(0)
-        assertThat(creditsRepository.observeLedger().first()).hasSize(1)
+        assertThat(spends()).hasSize(1)
     }
 
     @Test
-    fun crashBetweenSpendAndResultStillProducesTheResultWithoutASecondSpend() = runTest(dispatcher) {
+    fun reTailorOfTheSameApplicationWithANewRunRunsAndSpendsOnceMore() = runTest(dispatcher) {
         seed()
-        creditsRepository.sendLedger(listOf(priorSpend))
         val tailored = TailoredResume(bullets = listOf(bullet))
+        runner { tailored }("app-1", "run-1")
+        var reruns = 0
 
-        val result = runner { tailored }("app-1")
+        val result = runner {
+            reruns++
+            tailored
+        }("app-1", "run-2")
 
         assertThat(result).isEqualTo(TailoringResult.Success)
-        assertThat(creditsRepository.observeLedger().first()).hasSize(1)
+        assertThat(reruns).isEqualTo(1)
+        assertThat(spends().map { it.productId }).containsExactly("run-run-1", "run-run-2")
+    }
+
+    @Test
+    fun crashAfterResultBeforeSpendRerunsAndSpendsExactlyOnce() = runTest(dispatcher) {
+        seed()
+        val tailored = TailoredResume(bullets = listOf(bullet))
+        val failingCredits = object : com.tailormyresume.core.data.repository.CreditsRepository by creditsRepository {
+            override suspend fun record(entry: com.tailormyresume.core.model.CreditLedgerEntry) = error("process died")
+        }
+        val crashed = TailoringRunner(
+            applicationRepository,
+            profileRepository,
+            failingCredits,
+            tailorResumeOf { tailored },
+            clock,
+            dispatcher,
+        )("app-1", "run-1")
+        assertThat(crashed).isInstanceOf(TailoringResult.Failure::class.java)
+        assertThat(spends()).isEmpty()
+
+        val result = runner { tailored }("app-1", "run-1")
+
+        assertThat(result).isEqualTo(TailoringResult.Success)
+        assertThat(spends()).hasSize(1)
         val stored = checkNotNull(applicationRepository.observeApplication("app-1").first())
         assertThat(stored.tailoredResume?.bullets?.map { it.id }).containsExactly("b1")
         assertThat(stored.keywordCoverage?.final).isNotNull()
+    }
+
+    @Test
+    fun retryAfterFailureReusesTheRunAndSpendsAtMostOnce() = runTest(dispatcher) {
+        seed()
+        val tailored = TailoredResume(bullets = listOf(bullet))
+
+        val failed = runner { error("model unavailable") }("app-1", "run-1")
+        val retried = runner { tailored }("app-1", "run-1")
+        val again = runner { tailored }("app-1", "run-1")
+
+        assertThat(failed).isInstanceOf(TailoringResult.Failure::class.java)
+        assertThat(retried).isEqualTo(TailoringResult.Success)
+        assertThat(again).isEqualTo(TailoringResult.Success)
+        assertThat(spends()).hasSize(1)
     }
 }

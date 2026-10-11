@@ -4,16 +4,19 @@ import androidx.navigation3.runtime.NavKey
 import com.tailormyresume.core.model.DebugScenario
 import com.tailormyresume.core.navigation.Navigator
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class TailoringNavKey(
     val applicationId: String,
+    val runId: String,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
 @Serializable
 data class TailorFailedNavKey(
     val applicationId: String,
+    val runId: String,
     val scenario: DebugScenario = DebugScenario.defaultValue,
 ) : NavKey
 
@@ -36,7 +39,7 @@ data class ExportedNavKey(
 ) : NavKey
 
 fun Navigator.navigateToTailoring(applicationId: String) {
-    navigate(TailoringNavKey(applicationId))
+    navigate(TailoringNavKey(applicationId, UUID.randomUUID().toString()))
 }
 
 fun Navigator.navigateToExported(applicationId: String) {

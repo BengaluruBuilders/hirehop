@@ -27,15 +27,15 @@ internal object TailorViewModelKeys {
 fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
     entry<TailoringNavKey> { key ->
         TailoringRoute(
-            viewModel = hiltViewModel<TailoringViewModel, TailoringViewModel.Factory>(key = key.applicationId) { factory ->
-                factory.create(key.applicationId)
+            viewModel = hiltViewModel<TailoringViewModel, TailoringViewModel.Factory>(key = key.runId) { factory ->
+                factory.create(key.applicationId, key.runId)
             },
             onDone = { navigator.replace(TailoredNavKey(key.applicationId, key.scenario)) },
-            onFailed = { navigator.replace(TailorFailedNavKey(key.applicationId, key.scenario)) },
+            onFailed = { navigator.replace(TailorFailedNavKey(key.applicationId, key.runId, key.scenario)) },
         )
     }
     entry<TailorFailedNavKey> { key ->
-        val navigation = remember(key) { TailorFailedNavigation(navigator, key.applicationId) }
+        val navigation = remember(key) { TailorFailedNavigation(navigator, key.applicationId, key.runId) }
         TailorFailedScreen(onTryAgain = navigation::retry, onGoBack = navigation::goBack)
     }
     entry<TailoredNavKey> { key ->

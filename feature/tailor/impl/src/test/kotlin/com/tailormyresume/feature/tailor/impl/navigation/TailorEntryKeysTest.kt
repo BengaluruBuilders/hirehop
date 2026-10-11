@@ -40,7 +40,7 @@ class TailorEntryKeysTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val navigator = Navigator(NavigationState(NavBackStack<NavKey>(TailoringNavKey("app-1"))))
+    private val navigator = Navigator(NavigationState(NavBackStack<NavKey>(TailoringNavKey("app-1", "run-1"))))
 
     private val provider: (NavKey) -> NavEntry<NavKey> =
         entryProvider {
@@ -55,8 +55,8 @@ class TailorEntryKeysTest {
 
     private val routedKeys: List<NavKey> =
         listOf(
-            TailoringNavKey("app-1"),
-            TailorFailedNavKey("app-1"),
+            TailoringNavKey("app-1", "run-1"),
+            TailorFailedNavKey("app-1", "run-1"),
             TailoredNavKey("app-1"),
         )
 

@@ -12,10 +12,11 @@ private const val ANSWER_ID_PREFIX = "ans-"
 
 internal fun ResumeDocument.toPaperBlocks(resume: TailoredResume): List<TmrPaperBlock> =
     buildList<TmrPaperBlock> {
-        val summaryHighlight = if (resume.summary?.takeIf { it.decision == BulletDecision.ACCEPTED }?.sourceIds.orEmpty().any { it.startsWith(ANSWER_ID_PREFIX) }) {
-            TmrPaperHighlight.FromAnswer
-        } else {
-            TmrPaperHighlight.FromResume
+        val acceptedSummary = resume.summary?.takeIf { it.decision == BulletDecision.ACCEPTED }
+        val summaryHighlight = when {
+            acceptedSummary == null -> TmrPaperHighlight.None
+            acceptedSummary.sourceIds.any { it.startsWith(ANSWER_ID_PREFIX) } -> TmrPaperHighlight.FromAnswer
+            else -> TmrPaperHighlight.FromResume
         }
         if (summary.isNotBlank()) {
             add(TmrPaperBlock(lines = listOf(listOf(TmrPaperSpan(summary, summaryHighlight)))))

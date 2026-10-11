@@ -31,7 +31,8 @@ private const val STICKER_LIMIT = 3
 internal class TailoringViewModel @AssistedInject constructor(
     private val runner: TailoringRunner,
     applicationRepository: ApplicationRepository,
-    @Assisted val applicationId: String,
+    @Assisted("applicationId") val applicationId: String,
+    @Assisted("runId") runId: String,
 ) : ViewModel() {
 
     private val progressState = MutableStateFlow(0)
@@ -47,7 +48,7 @@ internal class TailoringViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            when (runner(applicationId)) {
+            when (runner(applicationId, runId)) {
                 TailoringResult.Success -> {
                     ramp.cancel()
                     progressState.value = PROGRESS_COMPLETE
@@ -90,6 +91,9 @@ internal class TailoringViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(applicationId: String): TailoringViewModel
+        fun create(
+            @Assisted("applicationId") applicationId: String,
+            @Assisted("runId") runId: String,
+        ): TailoringViewModel
     }
 }

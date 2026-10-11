@@ -107,6 +107,7 @@ class TailoringViewModelTest {
             runner = runner(tailorMillis = 10_000, failing = false),
             applicationRepository = applicationRepository,
             applicationId = "app-1",
+            runId = "run-1",
         )
         collectUiState(viewModel)
         runCurrent()
@@ -157,6 +158,7 @@ class TailoringViewModelTest {
             runner = runner(tailorMillis = 0, failing = false),
             applicationRepository = applicationRepository,
             applicationId = "app-1",
+            runId = "run-1",
         )
         collectUiState(viewModel)
         runCurrent()
@@ -180,6 +182,7 @@ class TailoringViewModelTest {
             runner = runner(tailorMillis = 0, failing = true),
             applicationRepository = applicationRepository,
             applicationId = "app-1",
+            runId = "run-1",
         )
         collectUiState(viewModel)
         runCurrent()
