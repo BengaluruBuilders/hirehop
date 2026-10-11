@@ -10,7 +10,6 @@ import com.tailormyresume.core.domain.PurchaseFailureReason
 import com.tailormyresume.core.domain.PurchaseRecord
 import com.tailormyresume.core.domain.PurchaseResult
 import com.tailormyresume.core.domain.PurchaseState
-import com.tailormyresume.core.model.CreditKind
 import com.tailormyresume.core.network.ApiError
 import com.tailormyresume.core.network.ApiException
 import com.tailormyresume.core.network.TailorMyResumeApi
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Instant
@@ -46,6 +44,9 @@ class RemotePaymentGateway @Inject constructor(
     private val reposts = mutableMapOf<String, Job>()
     private var generation = 0
 
+    @Volatile
+    private var listedProductIds: Set<String>? = null
+
     private class OwnedHistory(val uid: String?, val records: List<PurchaseRecord>)
 
     @Volatile
@@ -55,16 +56,20 @@ class RemotePaymentGateway @Inject constructor(
 
     internal fun repostCount() = synchronized(reposts) { reposts.size }
 
-    override suspend fun packs(): List<ApplicationPack> = apiResult { api.packs().packs }.getOrThrow().mapNotNull { pack ->
-        billing.productDetails(pack.productId)?.let { product ->
-            ApplicationPack(
-                id = pack.productId,
-                name = product.name,
-                credits = pack.credits,
-                priceInPaise = product.priceMicros / MICROS_PER_PAISE,
-                currencyCode = product.currencyCode,
-                creditsExpire = pack.creditsExpire,
-            )
+    override suspend fun packs(): List<ApplicationPack> {
+        val listed = apiResult { api.packs().packs }.getOrThrow()
+        listedProductIds = listed.map { it.productId }.toSet()
+        return listed.mapNotNull { pack ->
+            billing.productDetails(pack.productId)?.let { product ->
+                ApplicationPack(
+                    id = pack.productId,
+                    name = product.name,
+                    credits = pack.credits,
+                    priceInPaise = product.priceMicros / MICROS_PER_PAISE,
+                    currencyCode = product.currencyCode,
+                    creditsExpire = pack.creditsExpire,
+                )
+            }
         }
     }
 
@@ -109,6 +114,7 @@ class RemotePaymentGateway @Inject constructor(
     override suspend fun purchase(packId: String): PurchaseResult {
         val epoch = currentGeneration()
         val uid = uids.uid() ?: return failed(PurchaseFailureReason.PurchaseUnavailable)
+        if (listedProductIds?.contains(packId) == false) return failed(PurchaseFailureReason.PurchaseUnavailable)
         return when (val outcome = billing.launchPurchase(packId, obfuscatedAccountId(uid))) {
             PlayPurchaseResult.Cancelled -> PurchaseResult.Cancelled
             PlayPurchaseResult.Failed -> failed(PurchaseFailureReason.PaymentUnavailable)
@@ -123,20 +129,7 @@ class RemotePaymentGateway @Inject constructor(
         return entitlement()
     }
 
-    override suspend fun unlock(applicationId: String): CreditSpend {
-        val started = wallet.generation()
-        val result = apiResult {
-            api.unlock(applicationId).also { response -> if (!response.isSuccessful) throw HttpException(response) }
-        }
-        val response = result.getOrElse { failure ->
-            if ((failure as? ApiException)?.error == ApiError.NoCredit) return CreditSpend.NoCreditLeft
-            throw failure
-        }
-        val body = checkNotNull(response.body())
-        wallet.update(body.wallet, started)
-        val kind = if (response.code() == HTTP_CREATED) CreditKind.valueOf(body.unlock.creditKind.name) else null
-        return CreditSpend.Spent(body.wallet.toEntitlement(pending.value), kind)
-    }
+    override suspend fun unlock(applicationId: String): CreditSpend = CreditSpend.Spent(current(), kind = null)
 
     override suspend fun clearCredits(): PurchaseEntitlement {
         synchronized(reposts) {
@@ -241,7 +234,6 @@ class RemotePaymentGateway @Inject constructor(
 
     private companion object {
         const val MICROS_PER_PAISE = 10_000L
-        const val HTTP_CREATED = 201
         const val SETTLE_RETRIES = 2
         val REJECTIONS = setOf(ApiError.PurchaseInvalid, ApiError.Forbidden)
         const val RETRY_DELAY_MILLIS = 1_000L
