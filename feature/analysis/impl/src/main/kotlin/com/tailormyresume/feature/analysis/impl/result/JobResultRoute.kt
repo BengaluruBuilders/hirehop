@@ -16,6 +16,9 @@ internal fun JobResultRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val navigation = remember(navigator) { JobResultNavigation(navigator) }
-    LaunchedEffect(viewModel) { viewModel.events.collect(navigation::handle) }
+    LaunchedEffect(viewModel) {
+        viewModel.onShown()
+        viewModel.events.collect(navigation::handle)
+    }
     JobResultScreen(state = state, onTailor = viewModel::onTailor, modifier = modifier)
 }

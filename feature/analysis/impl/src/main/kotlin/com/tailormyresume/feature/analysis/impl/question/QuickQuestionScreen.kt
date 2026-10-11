@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.tailormyresume.core.designsystem.component.TmrWholeWordText
 import com.tailormyresume.core.designsystem.component.hero.TmrHeroCard
 import com.tailormyresume.core.designsystem.component.hero.TmrHeroColor
 import com.tailormyresume.core.designsystem.component.hero.TmrPaige
@@ -65,7 +65,7 @@ internal fun QuickQuestionScreen(
                 eyebrow = stringResource(R.string.feature_analysis_impl_question_label),
                 showArt = fontScale <= QUESTION_ART_FONT_SCALE,
             )
-            Text(
+            TmrWholeWordText(
                 text = state.why,
                 style = TmrTheme.typography.body,
                 color = TmrTheme.colors.textMuted,

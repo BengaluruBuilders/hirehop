@@ -8,6 +8,10 @@
     <string name="feature_analysis_impl_result_must_haves">Must-haves</string>
     <string name="feature_analysis_impl_result_unclear">Not clear in your resume. We\'ll ask you next.</string>
     <string name="feature_analysis_impl_result_unclear_mark">!</string>
+    <string name="feature_analysis_impl_result_met_mark">✓</string>
+    <string name="feature_analysis_impl_result_partial_mark">~</string>
+    <string name="feature_analysis_impl_result_status_partial">Partly in your resume</string>
+    <string name="feature_analysis_impl_result_status_unclear">Not clear yet</string>
     <string name="feature_analysis_impl_result_tailor">Tailor my resume</string>
     <string name="feature_analysis_impl_result_note_credits">Uses 1 credit · you have %1$d</string>
     <string name="feature_analysis_impl_result_note_no_credits">No credits left · get more to continue</string>

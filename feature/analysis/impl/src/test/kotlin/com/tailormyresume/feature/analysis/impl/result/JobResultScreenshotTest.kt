@@ -63,6 +63,17 @@ private val CREDITS_STATE = JobResultUiState.Ready(
     asksQuestion = true,
 )
 
+private const val LONG_WORD = "Internationalization"
+
+private val LONG_WORD_STATE = CREDITS_STATE.copy(
+    title = "$LONG_WORD Analyst",
+    company = LONG_WORD,
+    mustHaves = listOf(
+        MustHaveRow("r1", "$LONG_WORD of reporting", MatchStatus.MET, "Led $LONG_WORD at Infosys", false),
+        MustHaveRow("r2", LONG_WORD, MatchStatus.GAP, null, true),
+    ),
+)
+
 private val NO_CREDITS_STATE = CREDITS_STATE.copy(credits = 0)
 
 private val SCREENS: List<Pair<String, JobResultUiState.Ready>> = listOf(
@@ -93,6 +104,14 @@ class JobResultScreenshotTest {
     @Config(qualifiers = NARROW_QUALIFIERS)
     fun noClippedLabelsAtFont200() {
         setContent(CREDITS_STATE, NARROW_DEVICE)
+        assertNoTruncatedText()
+    }
+
+    @Test
+    @Config(qualifiers = NARROW_QUALIFIERS)
+    fun longWordNeverBreaksInsideAWordAtFont200At337dp() {
+        setContent(LONG_WORD_STATE, NARROW_DEVICE)
+        assertLongWordsStayWhole()
         assertNoTruncatedText()
     }
 
@@ -160,6 +179,21 @@ class JobResultScreenshotTest {
             )
             val ellipsized = (0 until layout.lineCount).filter { layout.isLineEllipsized(it) }
             assertTrue("$text has ellipsized lines $ellipsized", ellipsized.isEmpty())
+        }
+    }
+
+    private fun assertLongWordsStayWhole() {
+        val carriers = textLayouts().filter { (_, layout) -> LONG_WORD in layout.layoutInput.text.text }
+        assertTrue("no text carries the long word", carriers.isNotEmpty())
+        carriers.forEach { (_, layout) ->
+            val text = layout.layoutInput.text.text
+            (0 until layout.lineCount - 1).forEach { line ->
+                val end = layout.getLineEnd(line, visibleEnd = false)
+                assertFalse(
+                    "'$text' breaks inside a word at line $line",
+                    end in 1 until text.length && !text[end - 1].isWhitespace() && !text[end].isWhitespace(),
+                )
+            }
         }
     }
 

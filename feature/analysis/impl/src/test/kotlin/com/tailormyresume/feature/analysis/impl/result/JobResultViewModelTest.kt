@@ -14,6 +14,10 @@ import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.repository.TestCreditsRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.feature.analysis.impl.ResultTestData
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -161,6 +165,35 @@ class JobResultViewModelTest {
         }
     }
 
+    @Test
+    fun doubleTapOnTailorEmitsOneEvent() = runTest {
+        seed(ResultTestData.application(), credits = 1)
+        val viewModel = viewModel()
+
+        viewModel.events.test {
+            viewModel.onTailor()
+            viewModel.onTailor()
+            assertThat(awaitItem()).isEqualTo(JobResultEvent.QuickQuestion(ResultTestData.APP_ID))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun tailorWorksAgainAfterTheScreenIsShownAgain() = runTest {
+        seed(ResultTestData.application(), credits = 1)
+        val viewModel = viewModel()
+
+        viewModel.events.test {
+            viewModel.onTailor()
+            assertThat(awaitItem()).isEqualTo(JobResultEvent.QuickQuestion(ResultTestData.APP_ID))
+            viewModel.onShown()
+            viewModel.onTailor()
+            assertThat(awaitItem()).isEqualTo(JobResultEvent.QuickQuestion(ResultTestData.APP_ID))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     private fun assertTailorEvent(
         application: JobApplication,
         credits: Int,
@@ -185,8 +218,10 @@ class JobResultViewModelTest {
         creditsRepository.sendLedger(listOf(entry(CreditLedgerKind.FREE_GRANT, credits)))
     }
 
-    private fun viewModel() =
-        JobResultViewModel(applicationRepository, creditsRepository, ResultTestData.APP_ID)
+    private fun TestScope.viewModel() =
+        JobResultViewModel(applicationRepository, creditsRepository, ResultTestData.APP_ID).also {
+            backgroundScope.launch(UnconfinedTestDispatcher()) { it.uiState.collect() }
+        }
 
     private fun readyState(viewModel: JobResultViewModel): JobResultUiState.Ready {
         val state = viewModel.uiState.value

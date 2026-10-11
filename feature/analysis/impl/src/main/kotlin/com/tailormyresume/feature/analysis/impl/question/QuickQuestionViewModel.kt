@@ -29,6 +29,7 @@ internal class QuickQuestionViewModel @AssistedInject constructor(
     private val picked = MutableStateFlow<QuickChoice?>(null)
     private val detail = MutableStateFlow("")
     private val eventChannel = Channel<QuickQuestionEvent>(Channel.BUFFERED)
+    private var forwarding = false
 
     val uiState: StateFlow<QuickQuestionUiState> = combine(
         applicationRepository.observeApplication(applicationId),
@@ -41,7 +42,7 @@ internal class QuickQuestionViewModel @AssistedInject constructor(
         } else {
             QuickQuestionUiState.Ready(question.text, question.why, choice, currentDetail)
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, QuickQuestionUiState.Loading)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), QuickQuestionUiState.Loading)
 
     val events: Flow<QuickQuestionEvent> = eventChannel.receiveAsFlow()
 
@@ -62,15 +63,21 @@ internal class QuickQuestionViewModel @AssistedInject constructor(
             return
         }
         val answerDetail = if (choice.takesDetail) detail.value.trim() else ""
-        viewModelScope.launch {
-            if (save(choice, answerDetail)) eventChannel.send(QuickQuestionEvent.Tailor(applicationId))
-        }
+        saveThenForward(choice, answerDetail, forwardEvenIfUnsaved = false)
     }
 
-    fun onSkip() {
+    fun onSkip() = saveThenForward(null, "", forwardEvenIfUnsaved = true)
+
+    private fun saveThenForward(choice: QuickChoice?, answerDetail: String, forwardEvenIfUnsaved: Boolean) {
+        if (forwarding) return
+        forwarding = true
         viewModelScope.launch {
-            save(null, "")
-            eventChannel.send(QuickQuestionEvent.Tailor(applicationId))
+            val saved = save(choice, answerDetail)
+            if (saved || forwardEvenIfUnsaved) {
+                eventChannel.send(QuickQuestionEvent.Tailor(applicationId))
+            } else {
+                forwarding = false
+            }
         }
     }
 

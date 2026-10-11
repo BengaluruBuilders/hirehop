@@ -21,12 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.TmrBottomActionBar
 import com.tailormyresume.core.designsystem.component.TmrCard
 import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
+import com.tailormyresume.core.designsystem.component.TmrWholeWordText
 import com.tailormyresume.core.designsystem.component.content.TmrCoverageDelta
 import com.tailormyresume.core.designsystem.component.content.TmrKeywordChip
 import com.tailormyresume.core.designsystem.component.content.TmrKeywordState
@@ -88,12 +91,12 @@ internal fun JobResultScreen(
 @Composable
 private fun ResultHeader(state: JobResultUiState.Ready) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
+        TmrWholeWordText(
             text = state.title,
             style = TmrTheme.typography.headline,
             color = TmrTheme.colors.text,
         )
-        Text(
+        TmrWholeWordText(
             text = state.subtitle,
             style = TmrTheme.typography.body,
             color = TmrTheme.colors.textMuted,
@@ -191,7 +194,7 @@ private fun MustHaveItem(row: MustHaveRow) {
                 .padding(start = 10.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(
+            TmrWholeWordText(
                 text = row.text,
                 style = TmrTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = TmrTheme.colors.text,
@@ -201,7 +204,7 @@ private fun MustHaveItem(row: MustHaveRow) {
                 else -> row.reason
             }
             if (detail != null) {
-                Text(
+                TmrWholeWordText(
                     text = detail,
                     style = TmrTheme.typography.caption,
                     color = TmrTheme.colors.textMuted,
@@ -217,11 +220,24 @@ private fun MustHaveMarker(row: MustHaveRow) {
     val size = Modifier.size(MARKER_SIZE)
     val (fill, glyph) = when (row.marker) {
         MustHaveMarkerKind.UNCLEAR -> colors.amber to stringResource(R.string.feature_analysis_impl_result_unclear_mark)
-        MustHaveMarkerKind.MET -> colors.lime to "✓"
-        MustHaveMarkerKind.PARTIAL -> colors.limeSoft to "~"
+        MustHaveMarkerKind.MET -> colors.lime to stringResource(R.string.feature_analysis_impl_result_met_mark)
+        MustHaveMarkerKind.PARTIAL -> colors.limeSoft to stringResource(R.string.feature_analysis_impl_result_partial_mark)
         MustHaveMarkerKind.GAP -> colors.coral to stringResource(R.string.feature_analysis_impl_result_unclear_mark)
     }
-    Box(modifier = size.background(fill, CircleShape), contentAlignment = Alignment.Center) {
+    val status = stringResource(
+        when (row.marker) {
+            MustHaveMarkerKind.UNCLEAR -> R.string.feature_analysis_impl_result_status_unclear
+            MustHaveMarkerKind.MET -> R.string.feature_analysis_impl_result_legend_have
+            MustHaveMarkerKind.PARTIAL -> R.string.feature_analysis_impl_result_status_partial
+            MustHaveMarkerKind.GAP -> R.string.feature_analysis_impl_result_legend_missing
+        },
+    )
+    Box(
+        modifier = size
+            .background(fill, CircleShape)
+            .semantics { contentDescription = status },
+        contentAlignment = Alignment.Center,
+    ) {
         MarkerGlyph(glyph)
     }
 }

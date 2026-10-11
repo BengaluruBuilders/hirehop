@@ -8,7 +8,11 @@ import com.tailormyresume.core.model.QuickAnswer
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.feature.analysis.impl.ResultTestData
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -118,6 +122,47 @@ class QuickQuestionViewModelTest {
     }
 
     @Test
+    fun doubleTapOnContinueEmitsOneForward() = runTest {
+        val viewModel = seeded()
+        viewModel.onPick(QuickChoice.A_FEW_TIMES)
+
+        viewModel.events.test {
+            viewModel.onContinue()
+            viewModel.onContinue()
+            assertThat(awaitItem()).isEqualTo(QuickQuestionEvent.Tailor(ResultTestData.APP_ID))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun doubleTapOnSkipEmitsOneForward() = runTest {
+        val viewModel = seeded()
+
+        viewModel.events.test {
+            viewModel.onSkip()
+            viewModel.onSkip()
+            assertThat(awaitItem()).isEqualTo(QuickQuestionEvent.Tailor(ResultTestData.APP_ID))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun continueThenSkipEmitsOneForward() = runTest {
+        val viewModel = seeded()
+        viewModel.onPick(QuickChoice.A_FEW_TIMES)
+
+        viewModel.events.test {
+            viewModel.onContinue()
+            viewModel.onSkip()
+            assertThat(awaitItem()).isEqualTo(QuickQuestionEvent.Tailor(ResultTestData.APP_ID))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun skipStoresNoAnswerAndForwards() = runTest {
         val answered = ResultTestData.application(
             quickAnswer = QuickAnswer(ResultTestData.STAKEHOLDER_ID, "A_FEW_TIMES", ResultTestData.STAKEHOLDER_DETAIL),
@@ -171,7 +216,7 @@ class QuickQuestionViewModelTest {
         assertThat(stored().id).isEqualTo(ResultTestData.APP_ID)
     }
 
-    private suspend fun storedFor(
+    private suspend fun TestScope.storedFor(
         choice: QuickChoice,
         detail: String?,
     ): JobApplication {
@@ -187,12 +232,15 @@ class QuickQuestionViewModelTest {
         applicationRepository.sendApplications(listOf(application))
     }
 
-    private fun seeded(): QuickQuestionViewModel {
+    private fun TestScope.seeded(): QuickQuestionViewModel {
         seed(ResultTestData.application())
         return viewModel().also { readyState(it) }
     }
 
-    private fun viewModel() = QuickQuestionViewModel(applicationRepository, ResultTestData.APP_ID)
+    private fun TestScope.viewModel() =
+        QuickQuestionViewModel(applicationRepository, ResultTestData.APP_ID).also {
+            backgroundScope.launch(UnconfinedTestDispatcher()) { it.uiState.collect() }
+        }
 
     private suspend fun stored(): JobApplication =
         requireNotNull(applicationRepository.observeApplication(ResultTestData.APP_ID).first())

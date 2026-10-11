@@ -31,25 +31,31 @@ internal class JobResultViewModel @AssistedInject constructor(
 ) : ViewModel() {
 
     private val eventChannel = Channel<JobResultEvent>(Channel.BUFFERED)
+    private var tailorTapped = false
 
     val uiState: StateFlow<JobResultUiState> = combine(
         applicationRepository.observeApplication(applicationId),
         creditsRepository.observeBalance(),
     ) { application, credits ->
         toUiState(application, credits)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, JobResultUiState.Loading)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), JobResultUiState.Loading)
 
     val events: Flow<JobResultEvent> = eventChannel.receiveAsFlow()
 
     fun onTailor() {
         val state = uiState.value
-        if (state !is JobResultUiState.Ready) return
+        if (state !is JobResultUiState.Ready || tailorTapped) return
+        tailorTapped = true
         val event = when {
             state.credits <= 0 -> JobResultEvent.Paywall(applicationId)
             state.asksQuestion -> JobResultEvent.QuickQuestion(applicationId)
             else -> JobResultEvent.Tailor(applicationId)
         }
         viewModelScope.launch { eventChannel.send(event) }
+    }
+
+    fun onShown() {
+        tailorTapped = false
     }
 
     @AssistedFactory

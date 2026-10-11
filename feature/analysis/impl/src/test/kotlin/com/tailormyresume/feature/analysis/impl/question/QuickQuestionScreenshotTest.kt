@@ -49,12 +49,16 @@ private const val DETAIL =
 
 private const val HEADING = "One quick question"
 
+private const val LONG_WORD = "Internationalization"
+
 private val NONE_PICKED = QuickQuestionUiState.Ready(
     question = QUESTION,
     why = WHY,
     picked = null,
     detail = "",
 )
+
+private val LONG_WORD_STATE = NONE_PICKED.copy(why = "A must-have: $LONG_WORD experience is not on your resume.")
 
 private val PICKED_WITH_DETAIL = QuickQuestionUiState.Ready(
     question = QUESTION,
@@ -109,6 +113,15 @@ class QuickQuestionScreenshotTest {
             assertLabelsExist()
             assertNoTruncatedText()
         }
+    }
+
+    @Test
+    @Config(qualifiers = NARROW_QUALIFIERS)
+    fun longWordNeverBreaksInsideAWordAtFont200At337dp() {
+        show(NARROW_DEVICE)
+        setScreen(LONG_WORD_STATE)
+        assertLongWordsStayWhole()
+        assertNoTruncatedText()
     }
 
     private fun captureStates(device: TmrTestDevice) {
@@ -186,6 +199,21 @@ class QuickQuestionScreenshotTest {
             )
             val ellipsized = (0 until layout.lineCount).filter { layout.isLineEllipsized(it) }
             assertTrue("$text has ellipsized lines $ellipsized", ellipsized.isEmpty())
+        }
+    }
+
+    private fun assertLongWordsStayWhole() {
+        val carriers = textLayouts().filter { (_, layout) -> LONG_WORD in layout.layoutInput.text.text }
+        assertTrue("no text carries the long word", carriers.isNotEmpty())
+        carriers.forEach { (_, layout) ->
+            val text = layout.layoutInput.text.text
+            (0 until layout.lineCount - 1).forEach { line ->
+                val end = layout.getLineEnd(line, visibleEnd = false)
+                assertFalse(
+                    "'$text' breaks inside a word at line $line",
+                    end in 1 until text.length && !text[end - 1].isWhitespace() && !text[end].isWhitespace(),
+                )
+            }
         }
     }
 
