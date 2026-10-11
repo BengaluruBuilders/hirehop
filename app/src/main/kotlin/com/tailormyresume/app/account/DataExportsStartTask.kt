@@ -17,11 +17,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.hours
 
 class DataExportsStartTask internal constructor(
     private val directory: File,
     private val ioDispatcher: CoroutineDispatcher,
     private val scope: CoroutineScope,
+    private val nowMillis: () -> Long,
 ) : AppStartTask {
 
     @Inject
@@ -29,12 +31,19 @@ class DataExportsStartTask internal constructor(
         @ApplicationContext context: Context,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope,
-    ) : this(File(context.cacheDir, "data-exports"), ioDispatcher, scope)
+    ) : this(File(context.cacheDir, "data-exports"), ioDispatcher, scope, System::currentTimeMillis)
 
     override fun start() {
-        scope.launch { withContext(ioDispatcher) { directory.deleteRecursively() } }
+        scope.launch {
+            withContext(ioDispatcher) {
+                val cutoff = nowMillis() - MAX_ARCHIVE_AGE_MILLIS
+                directory.listFiles()?.filter { it.lastModified() < cutoff }?.forEach(File::deleteRecursively)
+            }
+        }
     }
 }
+
+private val MAX_ARCHIVE_AGE_MILLIS = 24.hours.inWholeMilliseconds
 
 @Module
 @InstallIn(SingletonComponent::class)

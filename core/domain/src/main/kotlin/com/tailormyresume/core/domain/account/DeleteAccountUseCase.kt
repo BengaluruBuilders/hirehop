@@ -118,7 +118,8 @@ class DeleteAccountUseCase @Inject constructor(
     private suspend fun serverAlreadyClosedThisAccount(): Boolean = try {
         val markerOwner = pendingWipe.uid()
         pendingWipe.state() == PendingWipeState.SERVER_CLOSED &&
-            (markerOwner == null || markerOwner == signInGateway.currentAccount()?.id)
+            markerOwner != null &&
+            markerOwner == signInGateway.currentAccount()?.id
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (failure: Exception) {

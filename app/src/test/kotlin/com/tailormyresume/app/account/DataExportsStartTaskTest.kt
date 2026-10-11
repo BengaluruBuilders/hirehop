@@ -14,15 +14,41 @@ class DataExportsStartTaskTest {
     @get:Rule
     val folder = TemporaryFolder()
 
+    private val now = 1_800_000_000_000L
+    private val hour = 3_600_000L
+
+    private fun archiveModified(hoursAgo: Long, name: String): File =
+        File(folder.root.resolve("data-exports").apply { mkdirs() }, name).apply {
+            writeText("x")
+            setLastModified(now - hoursAgo * hour)
+        }
+
+    private fun kotlinx.coroutines.test.TestScope.startTask() {
+        DataExportsStartTask(
+            File(folder.root, "data-exports"),
+            UnconfinedTestDispatcher(testScheduler),
+            TestScope(testScheduler),
+        ) { now }.start()
+        testScheduler.advanceUntilIdle()
+    }
+
     @Test
-    fun startRemovesAStaleArchiveAndLeavesTheRestOfTheCache() = runTest(UnconfinedTestDispatcher()) {
-        val archive = File(folder.newFolder("data-exports"), "tailormyresume-my-data.zip").apply { writeText("x") }
+    fun startRemovesAnArchiveOlderThanADayAndLeavesTheRestOfTheCache() = runTest(UnconfinedTestDispatcher()) {
+        val stale = archiveModified(hoursAgo = 25, name = "tailormyresume-my-data.zip")
         val resume = File(folder.newFolder("exports"), "resume.pdf").apply { writeText("x") }
 
-        DataExportsStartTask(File(folder.root, "data-exports"), UnconfinedTestDispatcher(testScheduler), TestScope(testScheduler)).start()
-        testScheduler.advanceUntilIdle()
+        startTask()
 
-        assertThat(archive.exists()).isFalse()
+        assertThat(stale.exists()).isFalse()
         assertThat(resume.exists()).isTrue()
+    }
+
+    @Test
+    fun startKeepsAnArchiveFromTheLastDaySoAColdStartedShareTargetCanStillReadIt() = runTest(UnconfinedTestDispatcher()) {
+        val fresh = archiveModified(hoursAgo = 23, name = "tailormyresume-my-data.zip")
+
+        startTask()
+
+        assertThat(fresh.exists()).isTrue()
     }
 }

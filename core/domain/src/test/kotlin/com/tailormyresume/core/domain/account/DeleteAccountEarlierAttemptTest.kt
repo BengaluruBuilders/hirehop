@@ -31,12 +31,14 @@ class DeleteAccountEarlierAttemptTest {
     private var deleteResult: Result<Unit> = Result.success(Unit)
     private var probe: Result<Boolean> = Result.success(true)
     private var uidAtServerCall: String? = null
+    private var serverDeleteCalls = 0
 
     private val deleter = object : ServerAccountDeleter {
         override val deletesRemoteData = true
 
         override suspend fun delete(): Result<Unit> {
             uidAtServerCall = marker.markerUid
+            serverDeleteCalls++
             return deleteResult
         }
 
@@ -120,6 +122,19 @@ class DeleteAccountEarlierAttemptTest {
         assertThat(marker.history).doesNotContain(PendingWipeState.REQUESTED)
         assertThat(finisher.runs).isEqualTo(1)
         assertThat(marker.current).isEqualTo(PendingWipeState.NONE)
+    }
+
+    @Test
+    fun anOwnerlessServerClosedMarkerStillRunsTheServerDeleteForTheSignedInAccount() = runTest {
+        session.sendAccount(SignInAccount(id = "uid-b", displayName = "B", email = "b@example.com"))
+        marker.current = PendingWipeState.SERVER_CLOSED
+        marker.markerUid = null
+
+        val result = useCase()()
+
+        assertThat(serverDeleteCalls).isEqualTo(1)
+        assertThat(uidAtServerCall).isEqualTo("uid-b")
+        assertThat(result).isInstanceOf(AccountDeletionResult.Deleted::class.java)
     }
 
     @Test

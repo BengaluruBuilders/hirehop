@@ -260,16 +260,17 @@ class AccountDataArchiveWriterTest {
     }
 
     @Test
-    fun writingRemovesEarlierFilesFromTheExportDirectory() {
-        val directory = folder.newFolder("data-exports")
-        val staleArchive = File(directory, "earlier-export.zip").apply { writeText("x") }
-        val staleTemporary = File(directory, "earlier-export.zip.tmp").apply { writeText("x") }
+    fun writingLeavesSiblingFilesUntouched() {
+        val directory = folder.newFolder("shared")
+        val sibling = File(directory, "someone-elses.txt").apply { writeText("keep") }
+        val siblingFolder = File(directory, "nested").apply { mkdirs() }
         val target = File(directory, "tailormyresume-my-data.zip")
 
         AccountDataArchiveWriter().write(data, target)
 
-        assertThat(directory.listFiles().orEmpty().toList()).containsExactly(target)
-        assertThat(staleArchive.exists()).isFalse()
-        assertThat(staleTemporary.exists()).isFalse()
+        assertThat(sibling.readText()).isEqualTo("keep")
+        assertThat(siblingFolder.isDirectory).isTrue()
+        assertThat(target.exists()).isTrue()
+        assertThat(File(directory, target.name + ".tmp").exists()).isFalse()
     }
 }

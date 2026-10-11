@@ -1,10 +1,12 @@
 package com.tailormyresume.feature.settings.impl.delete
 
 import com.tailormyresume.core.data.mock.NoMockLatency
+import com.tailormyresume.core.data.repository.PendingWipeState
 import com.tailormyresume.core.domain.account.AccountCreditBalance
 import com.tailormyresume.core.domain.account.DeleteAccountUseCase
 import com.tailormyresume.core.domain.account.ExportedFiles
 import com.tailormyresume.core.domain.account.ServerAccountDeleter
+import com.tailormyresume.core.model.SignInAccount
 import com.tailormyresume.core.testing.data.sampleApplication
 import com.tailormyresume.core.testing.gateway.TestPaymentGateway
 import com.tailormyresume.core.testing.gateway.TestSignInGateway
@@ -50,6 +52,12 @@ internal class DeleteFixture(
         repeat(applications) { index ->
             applicationRepository.upsertApplication(sampleApplication.copy(id = "application-$index"))
         }
+    }
+
+    fun signedInWithServerClosedMarker(uid: String): DeleteFixture = apply {
+        session.sendAccount(SignInAccount(id = uid, displayName = "Account", email = "account@example.com"))
+        pendingWipe.current = PendingWipeState.SERVER_CLOSED
+        pendingWipe.markerUid = uid
     }
 
     suspend fun remainingApplications(): Int = applicationRepository.observeApplications().first().size

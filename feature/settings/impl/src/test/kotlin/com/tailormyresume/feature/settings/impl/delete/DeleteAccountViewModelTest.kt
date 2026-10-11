@@ -225,8 +225,7 @@ class DeleteAccountViewModelTest {
     @Test
     fun retryAfterTheServerClosedTheAccountKeepsTheServerClosedMarker() = runTest {
         val deleter = RecordingServerAccountDeleter(failure = IOException("offline"), deletesRemoteData = true)
-        val fixture = DeleteFixture(deleter = deleter).seed()
-        fixture.pendingWipe.current = PendingWipeState.SERVER_CLOSED
+        val fixture = DeleteFixture(deleter = deleter).seed().signedInWithServerClosedMarker("uid-a")
         val viewModel = fixture.viewModel()
         keepSubscribed(viewModel.uiState)
         viewModel.onTextChanged("DELETE")

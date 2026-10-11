@@ -38,5 +38,5 @@ val LocalTmrSheetHost = staticCompositionLocalOf { TmrSheetHostState() }
 @Composable
 fun TmrSheetHost(state: TmrSheetHostState) {
     val sheet = state.current ?: return
-    TmrBottomSheet(onDismiss = state::dismiss, title = sheet.title, content = sheet.content)
+    TmrBottomSheet(onDismiss = state::dismiss, title = sheet.title, dismissible = state.dismissible, content = sheet.content)
 }
