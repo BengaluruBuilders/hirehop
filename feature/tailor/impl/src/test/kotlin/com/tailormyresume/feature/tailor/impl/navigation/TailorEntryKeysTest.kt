@@ -26,6 +26,7 @@ import com.tailormyresume.feature.tailor.api.navigation.TailoredNavKey
 import com.tailormyresume.feature.tailor.api.navigation.TailoringNavKey
 import com.tailormyresume.feature.tailor.impl.navigation.tailorEntry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +40,7 @@ class TailorEntryKeysTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val navigator = Navigator(NavigationState(NavBackStack<NavKey>(TailoringNavKey("app-1"))))
+    private val navigator = Navigator(NavigationState(NavBackStack<NavKey>(TailoringNavKey("app-1", "run-1"))))
 
     private val provider: (NavKey) -> NavEntry<NavKey> =
         entryProvider {
@@ -48,12 +49,21 @@ class TailorEntryKeysTest {
 
     private val keys: List<NavKey> =
         listOf(
-            TailoringNavKey("app-1"),
-            TailorFailedNavKey("app-1"),
-            TailoredNavKey("app-1"),
             EditResumeNavKey("app-1"),
             ExportedNavKey("app-1"),
         )
+
+    private val routedKeys: List<NavKey> =
+        listOf(
+            TailoringNavKey("app-1", "run-1"),
+            TailorFailedNavKey("app-1", "run-1"),
+            TailoredNavKey("app-1"),
+        )
+
+    @Test
+    fun routedKeysResolveToEntries() {
+        routedKeys.forEach { key -> assertNotNull("${key::class.simpleName} entry", provider(key)) }
+    }
 
     @Test
     fun everyKeyResolvesAndShowsNameInTextColour() {

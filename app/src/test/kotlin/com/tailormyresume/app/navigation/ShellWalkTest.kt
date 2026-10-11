@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation3.runtime.NavKey
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.designsystem.component.chrome.TmrTopBarLeading
 import com.tailormyresume.feature.analysis.api.navigation.JobNavKey
 import com.tailormyresume.feature.analysis.api.navigation.JobResultNavKey
 import com.tailormyresume.feature.analysis.api.navigation.QuickQuestionNavKey
@@ -51,14 +52,17 @@ class ShellWalkTest {
         rule.onNodeWithText(name(SignInNavKey())).assertExists()
         shell.assertChrome(rowOf(SignInNavKey()))
 
+        shell.root(UploadNavKey())
+        rule.onNodeWithText(name(UploadNavKey())).assertExists()
+        shell.assertChrome(rowOf(UploadNavKey()), leading = TmrTopBarLeading.None)
+
         listOf(
-            UploadNavKey(),
             ReadingNavKey(),
             ReviewProfileNavKey(),
             JobNavKey(),
             JobResultNavKey(ID),
             QuickQuestionNavKey(ID),
-            TailoringNavKey(ID),
+            TailoringNavKey(ID, "run-1"),
             TailoredNavKey(ID),
             ExportedNavKey(ID),
         ).forEach { key ->

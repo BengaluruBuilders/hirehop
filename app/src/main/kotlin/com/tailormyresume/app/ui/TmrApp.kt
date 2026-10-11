@@ -132,6 +132,7 @@ internal fun TmrShell(
     val sheetHost = remember { TmrSheetHostState() }
     val chromeActions = remember { ChromeActions() }
     val key = navigationState.currentKey
+    LaunchedEffect(key) { sheetHost.dismiss() }
     val chrome = chromeFor(key, entriesBelow = navigationState.stack.size - 1)
     val tabsVisible = key.isTopLevelDestination()
     val changesSaved = stringResource(R.string.shell_changes_saved)

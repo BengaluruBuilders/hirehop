@@ -14,6 +14,7 @@ import com.tailormyresume.feature.settings.api.navigation.CreditsNavKey
 import com.tailormyresume.feature.settings.api.navigation.SettingsNavKey
 import com.tailormyresume.feature.tailor.api.navigation.ExportedNavKey
 import com.tailormyresume.feature.tailor.api.navigation.TailoringNavKey
+import java.util.UUID
 
 const val SAMPLE_APPLICATION_ID = "sample-northwind-associate-analyst"
 
@@ -45,7 +46,7 @@ enum class DebugScenarioTarget(
         ApplicationDetail -> ApplicationDetailNavKey(SAMPLE_APPLICATION_ID, scenario)
         Profile -> ProfileNavKey(scenario = scenario)
         Analysis -> JobResultNavKey(SAMPLE_APPLICATION_ID, scenario)
-        Tailor -> TailoringNavKey(SAMPLE_APPLICATION_ID, scenario)
+        Tailor -> TailoringNavKey(SAMPLE_APPLICATION_ID, UUID.randomUUID().toString(), scenario)
         Exported -> ExportedNavKey(applicationId = SAMPLE_APPLICATION_ID, scenario = scenario)
         Credits -> CreditsNavKey(scenario = scenario)
         Settings -> SettingsNavKey(scenario = scenario)
