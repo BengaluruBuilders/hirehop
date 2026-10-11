@@ -119,10 +119,9 @@ class ProfileRealEntryWiringTest {
         }
         composeRule.waitForIdle()
         composeRule.runOnIdle { checkNotNull(chromeActions.handler).invoke() }
-        var attempts = 0
-        while (savedRoles().none { it.title == "Intern" } && attempts++ < 50) {
+        composeRule.waitUntil(5_000) {
             shadowOf(Looper.getMainLooper()).idle()
-            Thread.sleep(100)
+            savedRoles().any { it.title == "Intern" }
         }
 
         assertThat(savedRoles().single { it.title == "Intern" }.organization).isEqualTo("Acme")
