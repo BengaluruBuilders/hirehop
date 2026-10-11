@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.tailormyresume.core.designsystem.component.hero.TmrPaige
@@ -60,6 +61,8 @@ internal val SignInStories = listOf(
         TmrPaigePose.Signin3,
     ) { it.lime },
 )
+
+private const val ONE_PAGE_STICKER_MAX_FONT_SCALE = 1.3f
 
 private val TriangleShape = GenericShape { size, _ ->
     moveTo(size.width / 2f, 0f)
@@ -171,9 +174,11 @@ private fun BoxScope.TailoredArt() {
         Modifier.align(Alignment.BottomEnd).offset(x = (-30).dp, y = (-40).dp).size(18.dp).rotate(45f)
             .background(colors.cheek).border(BorderStroke(2.5.dp, colors.ink)),
     )
-    TmrSticker(
-        stringResource(R.string.feature_onboarding_impl_signin_art_one_page),
-        Modifier.align(Alignment.BottomStart).offset(x = 8.dp, y = (-34).dp),
-        rotationDegrees = -8f,
-    )
+    if (LocalDensity.current.fontScale <= ONE_PAGE_STICKER_MAX_FONT_SCALE) {
+        TmrSticker(
+            stringResource(R.string.feature_onboarding_impl_signin_art_one_page),
+            Modifier.align(Alignment.BottomStart).offset(x = 8.dp, y = (-34).dp),
+            rotationDegrees = -8f,
+        )
+    }
 }

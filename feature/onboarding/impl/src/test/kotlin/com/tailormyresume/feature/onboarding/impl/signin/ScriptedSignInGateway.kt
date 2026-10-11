@@ -4,7 +4,7 @@ import com.tailormyresume.core.domain.SignInAccount
 import com.tailormyresume.core.domain.SignInGateway
 import com.tailormyresume.core.domain.SignInResult
 
-internal class ScriptedSignInGateway(
+class ScriptedSignInGateway(
     private val script: suspend () -> SignInResult,
 ) : SignInGateway {
     var calls = 0
