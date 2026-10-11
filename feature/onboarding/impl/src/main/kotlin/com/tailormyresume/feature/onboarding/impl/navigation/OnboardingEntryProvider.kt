@@ -10,9 +10,10 @@ import com.tailormyresume.feature.onboarding.api.navigation.ReviewProfileNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.SignInNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.UploadErrorNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.UploadNavKey
+import com.tailormyresume.feature.onboarding.impl.signin.SignInRoute
 
 fun EntryProviderScope<NavKey>.onboardingEntry(navigator: Navigator) {
-    entry<SignInNavKey> { key -> NavKeyPlaceholder(key) }
+    entry<SignInNavKey> { SignInRoute() }
     entry<UploadNavKey> { key -> NavKeyPlaceholder(key) }
     entry<UploadErrorNavKey> { key -> NavKeyPlaceholder(key) }
     entry<PasteResumeNavKey> { key -> NavKeyPlaceholder(key) }
