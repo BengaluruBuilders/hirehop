@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
@@ -49,6 +50,7 @@ import com.tailormyresume.core.navigation.LocalChromeActions
 import com.tailormyresume.core.navigation.NavigationState
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.core.navigation.PendingNavigation
+import com.tailormyresume.core.navigation.PendingToast
 import com.tailormyresume.core.navigation.rememberNavigationState
 import com.tailormyresume.core.navigation.toEntries
 import com.tailormyresume.feature.analysis.api.navigation.newApp
@@ -155,6 +157,11 @@ internal fun TmrShell(
     val chromeActions = remember { ChromeActions() }
     val key = navigationState.currentKey
     LaunchedEffect(key) { sheetHost.dismiss() }
+    val context = LocalContext.current
+    val queuedToast = PendingToast.queued
+    LaunchedEffect(queuedToast) {
+        PendingToast.consume()?.let { message -> toastState.show(context.getString(message)) }
+    }
     val chrome = chromeFor(key, entriesBelow = navigationState.stack.size - 1)
     val tabsVisible = key.isTopLevelDestination()
     val changesSaved = stringResource(R.string.shell_changes_saved)
