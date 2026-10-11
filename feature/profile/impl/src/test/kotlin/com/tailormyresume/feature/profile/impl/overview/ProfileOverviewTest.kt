@@ -100,17 +100,17 @@ class YearsOfExperienceTest {
     }
 
     @Test
-    fun blankEndDate_skipsTheRole() {
+    fun blankEndDate_omitsYears() {
         val entries = listOf(experience("Jun 2020", ""), experience("Jan 2020", "Dec 2021"))
 
-        assertThat(yearsOfExperience(entries, clock)).isEqualTo(1)
+        assertThat(yearsOfExperience(entries, clock)).isNull()
     }
 
     @Test
-    fun unparsableEndDate_skipsTheRole() {
+    fun unparsableEndDate_omitsYears() {
         val entries = listOf(experience("Jun 2020", "whenever"))
 
-        assertThat(yearsOfExperience(entries, clock)).isEqualTo(0)
+        assertThat(yearsOfExperience(entries, clock)).isNull()
     }
 
     @Test

@@ -68,6 +68,8 @@ internal class EditRoleViewModel @AssistedInject constructor(
 
     private var finished = false
 
+    private var saving = false
+
     val uiState: StateFlow<EditRoleUiState> = combine(
         profileRepository.observeProfile(),
         draft,
@@ -129,30 +131,40 @@ internal class EditRoleViewModel @AssistedInject constructor(
     }
 
     fun save() {
+        if (finished || saving) return
+        saving = true
         viewModelScope.launch {
-            if (finished) return@launch
-            val profile = profileRepository.observeProfile().first() ?: return@launch
-            val roleDraft = draft.value ?: return@launch
-            if (!canSave(profile, roleDraft)) return@launch
-            val original = entryId?.let { id ->
-                profile.entries.firstOrNull { it.id == id && it.category == EntryCategory.EXPERIENCE }
-                    ?: return@launch
+            try {
+                write()
+            } finally {
+                saving = false
             }
-            val edited = if (original != null) {
-                roleDraft.toEntry(editedId = original.id, original = original, source = FactSource.USER_EDITED)
-            } else {
-                val newId = idAllocator.nextId(EntryCategory.EXPERIENCE, profile.entries, roleDraft.title.trim())
-                roleDraft.toEntry(editedId = newId, original = null, source = FactSource.USER_STATED)
-            }
-            val entries = if (original == null) {
-                profile.entries.withExperienceInserted(edited)
-            } else {
-                profile.entries.map { if (it.id == edited.id) edited else it }
-            }
-            finished = true
-            profileRepository.saveProfile(profile.copy(entries = entries))
-            channel.send(EditRoleEvent.Saved)
         }
+    }
+
+    private suspend fun write() {
+        if (finished) return
+        val profile = profileRepository.observeProfile().first() ?: return
+        val roleDraft = draft.value ?: return
+        if (!canSave(profile, roleDraft)) return
+        val original = entryId?.let { id ->
+            profile.entries.firstOrNull { it.id == id && it.category == EntryCategory.EXPERIENCE }
+                ?: return
+        }
+        val edited = if (original != null) {
+            roleDraft.toEntry(editedId = original.id, original = original, source = FactSource.USER_EDITED)
+        } else {
+            val newId = idAllocator.nextId(EntryCategory.EXPERIENCE, profile.entries, roleDraft.title.trim())
+            roleDraft.toEntry(editedId = newId, original = null, source = FactSource.USER_STATED)
+        }
+        val entries = if (original == null) {
+            profile.entries.withExperienceInserted(edited)
+        } else {
+            profile.entries.map { if (it.id == edited.id) edited else it }
+        }
+        finished = true
+        profileRepository.saveProfile(profile.copy(entries = entries))
+        channel.send(EditRoleEvent.Saved)
     }
 
     fun delete() {

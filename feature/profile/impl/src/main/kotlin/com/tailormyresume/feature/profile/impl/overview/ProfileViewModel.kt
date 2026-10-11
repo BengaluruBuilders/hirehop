@@ -85,8 +85,8 @@ internal fun yearsOfExperience(entries: List<ProfileEntry>, clock: Clock): Int? 
     val spans = mutableListOf<Pair<Int, Int>>()
     for (role in roles) {
         val start = monthIndex(role.startDate, JANUARY) ?: return null
-        val end = endMonthIndex(role.endDate, clock) ?: continue
-        if (end < start) continue
+        val end = endMonthIndex(role.endDate, clock) ?: return null
+        if (end < start) return null
         spans += start to end
     }
     return mergedMonthSpan(spans) / MONTHS_PER_YEAR

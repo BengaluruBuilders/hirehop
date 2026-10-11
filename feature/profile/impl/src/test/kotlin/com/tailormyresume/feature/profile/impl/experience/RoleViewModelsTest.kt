@@ -2,6 +2,7 @@ package com.tailormyresume.feature.profile.impl.experience
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.fact.FactIdAllocator
 import com.tailormyresume.core.domain.profile.ProfileCompleteness
 import com.tailormyresume.core.domain.profile.RequiredGaps
@@ -12,11 +13,15 @@ import com.tailormyresume.core.model.ProfileEntry
 import com.tailormyresume.core.testing.data.PrototypeFixtures
 import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -396,6 +401,47 @@ class EditRoleViewModelTest {
         val saved = checkNotNull(savedProfile())
         assertThat(saved.entries.map { it.id }).doesNotContain("exp-bajaj")
         assertThat(saved.entries).isEqualTo(profile.entries.filter { it.id != "exp-bajaj" })
+    }
+
+    @Test
+    fun doubleSaveInAddMode_writesOneRoleWithOneId() = runTest {
+        val base = PrototypeFixtures.returning().profile
+        profileRepository.sendProfile(base)
+        val slowRepository = object : ProfileRepository by profileRepository {
+            override fun observeProfile(): Flow<CandidateProfile?> = flow {
+                delay(10)
+                emit(profileRepository.observeProfile().first())
+            }
+        }
+        val viewModel = EditRoleViewModel(slowRepository, FactIdAllocator(), null)
+        collectUiState(viewModel)
+        advanceUntilIdle()
+        viewModel.onTitleChange("Intern")
+        viewModel.onCompanyChange("Acme")
+
+        viewModel.save()
+        viewModel.save()
+        advanceUntilIdle()
+
+        val entries = checkNotNull(savedProfile()).entries
+        assertThat(entries).hasSize(base.entries.size + 1)
+        assertThat(entries.map { it.id }).containsNoDuplicates()
+    }
+
+    @Test
+    fun deleteInAddMode_isNoop() = runTest {
+        val profile = PrototypeFixtures.returning().profile
+        profileRepository.sendProfile(profile)
+        val viewModel = viewModel(null)
+        collectUiState(viewModel)
+
+        viewModel.events.test {
+            viewModel.delete()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(savedProfile()).isEqualTo(profile)
     }
 
     @Test
