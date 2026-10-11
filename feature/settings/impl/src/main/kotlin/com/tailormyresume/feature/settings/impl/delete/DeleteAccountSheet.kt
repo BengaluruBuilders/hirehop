@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tailormyresume.core.designsystem.component.chrome.LocalTmrSheetHost
 import com.tailormyresume.core.designsystem.component.chrome.LocalTmrToast
 import com.tailormyresume.core.designsystem.component.hero.TmrPaige
 import com.tailormyresume.core.designsystem.component.hero.TmrPaigePose
@@ -105,6 +107,7 @@ internal fun DeleteAccountSheetContent(
             TmrSecondaryButton(
                 label = stringResource(R.string.feature_settings_impl_keep_account),
                 onClick = onKeep,
+                enabled = !state.deleting,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -119,7 +122,12 @@ internal fun DeleteAccountSheet(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val toast = LocalTmrToast.current
+    val sheetHost = LocalTmrSheetHost.current
     val failedMessage = stringResource(R.string.feature_settings_impl_toast_delete_failed)
+    DisposableEffect(viewModel) {
+        viewModel.onSheetOpened()
+        onDispose {}
+    }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
@@ -128,6 +136,8 @@ internal fun DeleteAccountSheet(
         }
     }
     DisposableEffect(viewModel) { onDispose(viewModel::onSheetClosed) }
+    val deleting = (state as? DeleteAccountUiState.Content)?.deleting == true
+    SideEffect { sheetHost.dismissible = !deleting }
     (state as? DeleteAccountUiState.Content)?.let { content ->
         DeleteAccountSheetContent(
             state = content,

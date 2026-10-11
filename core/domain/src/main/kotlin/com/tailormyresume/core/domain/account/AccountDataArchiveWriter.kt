@@ -32,6 +32,7 @@ class AccountDataArchiveWriter {
 
     fun write(data: AccountData, target: File, extraEntries: Map<String, String> = emptyMap()) {
         target.parentFile?.mkdirs()
+        target.parentFile?.listFiles()?.forEach(File::deleteRecursively)
         val temporary = File(target.parentFile, target.name + TEMPORARY_SUFFIX)
         try {
             ZipOutputStream(temporary.outputStream()).use { zip ->

@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
@@ -25,6 +27,7 @@ import com.tailormyresume.core.designsystem.component.chrome.TmrToastHost
 import com.tailormyresume.core.designsystem.component.chrome.TmrToastState
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.screenshot.TmrTestDevices
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -154,6 +157,48 @@ class DeleteAccountSheetTest {
         rule.onNodeWithText("Delete your account?").assertIsDisplayed()
         assertThat(host.current).isNotNull()
         assertThat(runBlocking { fixture.remainingApplications() }).isEqualTo(3)
+    }
+
+    @Test
+    fun keepAndDismissDoNothingWhileTheDeleteIsInFlight() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = DeleteFixture(deleter = RecordingServerAccountDeleter(gate = gate))
+        runBlocking { fixture.seed() }
+        showHosted(fixture)
+
+        rule.onNode(hasSetTextAction()).performTextInput("DELETE")
+        rule.waitForIdle()
+        rule.onNodeWithText("Delete account").performScrollTo().performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithText("Keep my account").performScrollTo().assertIsNotEnabled()
+        rule.onNode(hasTestTag("tmr_chrome_scrim")).performTouchInput { click(Offset(5f, 5f)) }
+        rule.waitForIdle()
+        assertThat(host.current).isNotNull()
+
+        gate.complete(Unit)
+        rule.waitForIdle()
+        assertThat(runBlocking { fixture.remainingApplications() }).isEqualTo(0)
+    }
+
+    @Test
+    fun keepIsAvailableAgainAfterAFailedDelete() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = DeleteFixture(deleter = RecordingServerAccountDeleter(failure = IOException("offline"), gate = gate))
+        runBlocking { fixture.seed() }
+        showHosted(fixture)
+        rule.onNode(hasSetTextAction()).performTextInput("DELETE")
+        rule.waitForIdle()
+        rule.onNodeWithText("Delete account").performScrollTo().performClick()
+        rule.waitForIdle()
+
+        gate.complete(Unit)
+        rule.waitForIdle()
+        rule.onNodeWithText("Keep my account").performScrollTo().assertIsEnabled()
+        rule.onNodeWithText("Keep my account").performClick()
+        rule.waitForIdle()
+
+        assertThat(host.current).isNull()
     }
 
     private fun contentState(

@@ -133,12 +133,13 @@ internal fun TmrRoot(
             }
         }
         if (entryProvider == null) {
-            TmrShell(navigationState = navigationState, navigator = navigator, modifier = modifier)
+            TmrShell(navigationState = navigationState, navigator = navigator, modifier = modifier, accountId = root.accountId)
         } else {
             TmrShell(
                 navigationState = navigationState,
                 navigator = navigator,
                 modifier = modifier,
+                accountId = root.accountId,
                 entryProvider = entryProvider(navigator),
             )
         }
@@ -150,6 +151,7 @@ internal fun TmrShell(
     navigationState: NavigationState,
     navigator: Navigator,
     modifier: Modifier = Modifier,
+    accountId: String? = null,
     entryProvider: (NavKey) -> NavEntry<NavKey> = remember(navigator) { sharedEntryProvider(navigator) },
 ) {
     val toastState = remember { TmrToastState() }
@@ -160,7 +162,7 @@ internal fun TmrShell(
     val context = LocalContext.current
     val queuedToast = PendingToast.queued
     LaunchedEffect(queuedToast) {
-        PendingToast.consume()?.let { message -> toastState.show(context.getString(message)) }
+        PendingToast.consumeFor(accountId)?.let { message -> toastState.show(context.getString(message)) }
     }
     val chrome = chromeFor(key, entriesBelow = navigationState.stack.size - 1)
     val tabsVisible = key.isTopLevelDestination()

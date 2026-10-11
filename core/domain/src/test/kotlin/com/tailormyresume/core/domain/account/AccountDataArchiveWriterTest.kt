@@ -258,4 +258,18 @@ class AccountDataArchiveWriterTest {
             "server.json",
         )
     }
+
+    @Test
+    fun writingRemovesEarlierFilesFromTheExportDirectory() {
+        val directory = folder.newFolder("data-exports")
+        val staleArchive = File(directory, "earlier-export.zip").apply { writeText("x") }
+        val staleTemporary = File(directory, "earlier-export.zip.tmp").apply { writeText("x") }
+        val target = File(directory, "tailormyresume-my-data.zip")
+
+        AccountDataArchiveWriter().write(data, target)
+
+        assertThat(directory.listFiles().orEmpty().toList()).containsExactly(target)
+        assertThat(staleArchive.exists()).isFalse()
+        assertThat(staleTemporary.exists()).isFalse()
+    }
 }

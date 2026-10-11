@@ -108,6 +108,21 @@ class DeleteAccountEarlierAttemptTest {
     }
 
     @Test
+    fun retryAfterTheServerClosedTheAccountOnlyRetriesTheLocalWipe() = runTest {
+        marker.current = PendingWipeState.SERVER_CLOSED
+        marker.markerUid = "uid-a"
+        deleteResult = Result.failure(java.io.IOException("offline"))
+        probe = Result.failure(java.io.IOException("offline"))
+
+        val result = useCase()()
+
+        assertThat(result).isInstanceOf(AccountDeletionResult.Deleted::class.java)
+        assertThat(marker.history).doesNotContain(PendingWipeState.REQUESTED)
+        assertThat(finisher.runs).isEqualTo(1)
+        assertThat(marker.current).isEqualTo(PendingWipeState.NONE)
+    }
+
+    @Test
     fun deathBetweenTheSessionClearAndTheMarkerClearLeavesAMarkerThatARestartFinishes() = runTest {
         val dyingOnClear = object : PendingAccountWipe by marker {
             override suspend fun clear() = throw CancellationException("process died")

@@ -205,4 +205,35 @@ class DeleteAccountViewModelTest {
         assertThat(fixture.deleter.deleteCalls).isEqualTo(0)
         assertThat(fixture.remainingApplications()).isEqualTo(3)
     }
+
+    @Test
+    fun aFailureAfterTheSheetClosedIsNotReplayedWhenTheSheetOpensAgain() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val deleter = RecordingServerAccountDeleter(failure = IOException("offline"), gate = gate)
+        val viewModel = DeleteFixture(deleter = deleter).seed().viewModel()
+        keepSubscribed(viewModel.uiState)
+        viewModel.onTextChanged("DELETE")
+        viewModel.onDelete()
+        viewModel.onSheetClosed()
+        gate.complete(Unit)
+
+        viewModel.onSheetOpened()
+
+        viewModel.events.test { expectNoEvents() }
+    }
+
+    @Test
+    fun retryAfterTheServerClosedTheAccountKeepsTheServerClosedMarker() = runTest {
+        val deleter = RecordingServerAccountDeleter(failure = IOException("offline"), deletesRemoteData = true)
+        val fixture = DeleteFixture(deleter = deleter).seed()
+        fixture.pendingWipe.current = PendingWipeState.SERVER_CLOSED
+        val viewModel = fixture.viewModel()
+        keepSubscribed(viewModel.uiState)
+        viewModel.onTextChanged("DELETE")
+
+        viewModel.onDelete()
+
+        assertThat(fixture.pendingWipe.history).doesNotContain(PendingWipeState.REQUESTED)
+        assertThat(deleter.deleteCalls).isEqualTo(0)
+    }
 }

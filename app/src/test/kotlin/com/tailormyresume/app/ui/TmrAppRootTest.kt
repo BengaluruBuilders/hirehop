@@ -189,6 +189,20 @@ class TmrAppRootTest {
     }
 
     @Test
+    fun toastQueuedWhileTheOutgoingRootIsLiveSurvivesToTheNewRoot() {
+        PendingToast.consume()
+
+        reRootAfterAccountLeaves {
+            PendingToast.set(SettingsR.string.feature_settings_impl_toast_signed_out)
+            rule.waitForIdle()
+            assertThat(PendingToast.queued).isNotNull()
+        }
+
+        rule.onNodeWithText("Signed out").assertIsDisplayed()
+        assertThat(PendingToast.queued).isNull()
+    }
+
+    @Test
     fun noQueuedToastShowsNothing() {
         PendingToast.consume()
 

@@ -25,18 +25,18 @@ import org.robolectric.annotation.GraphicsMode
 
 private val noActions = SettingsActions({}, {}, {}, {}, {}, {}, {}, {})
 
-internal fun deleteSheetState(typed: String) = DeleteAccountUiState.Content(
+internal fun deleteSheetState(typed: String, deleting: Boolean = false) = DeleteAccountUiState.Content(
     applications = 3,
     unusedCredits = 2,
     typed = typed,
     canDelete = typed.trim().equals("DELETE", ignoreCase = true),
-    deleting = false,
+    deleting = deleting,
 )
 
-internal fun settingsWithDeleteSheet(typed: String): @Composable () -> Unit = {
+internal fun settingsWithDeleteSheet(typed: String, deleting: Boolean = false): @Composable () -> Unit = {
     SettingsScreen(settingsContent(), versionName = "1.0.0", actions = noActions)
     TmrBottomSheet(onDismiss = {}, title = "Delete your account?") {
-        DeleteAccountSheetContent(deleteSheetState(typed), onTextChanged = {}, onDelete = {}, onKeep = {})
+        DeleteAccountSheetContent(deleteSheetState(typed, deleting), onTextChanged = {}, onDelete = {}, onKeep = {})
     }
 }
 
@@ -82,6 +82,15 @@ class DeleteAccountSheetScreenshotTest {
         rule.assertTexts("Delete your account?", "DELETE", "Keep my account")
         rule.assertNoTruncatedText()
         rule.capture("settings_delete_sheet_typed", TmrTestDevices.prototype)
+    }
+
+    @Test
+    @Config(qualifiers = TmrTestDevices.PROTOTYPE_QUALIFIERS)
+    fun settingsDeleteSheetDeleting() {
+        rule.setTmrContent(TmrTestDevices.prototype, settingsWithDeleteSheet(typed = "DELETE", deleting = true))
+        rule.assertTexts("Delete your account?", "DELETE", "Keep my account")
+        rule.assertNoTruncatedText()
+        rule.capture("settings_delete_sheet_deleting", TmrTestDevices.prototype)
     }
 }
 

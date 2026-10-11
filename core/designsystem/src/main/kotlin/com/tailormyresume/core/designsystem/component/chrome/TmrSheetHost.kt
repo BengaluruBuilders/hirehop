@@ -18,15 +18,18 @@ class TmrSheetHostState {
     var current: TmrHostedSheet? by mutableStateOf<TmrHostedSheet?>(null)
         private set
 
+    var dismissible: Boolean by mutableStateOf(true)
+
     fun show(
         title: String,
         content: @Composable ColumnScope.() -> Unit,
     ) {
+        dismissible = true
         current = TmrHostedSheet(title, content)
     }
 
     fun dismiss() {
-        current = null
+        if (dismissible) current = null
     }
 }
 

@@ -96,6 +96,10 @@ internal class DeleteAccountViewModel @Inject constructor(
         }
     }
 
+    fun onSheetOpened() {
+        while (eventChannel.tryReceive().isSuccess) continue
+    }
+
     fun onSheetClosed() {
         typed.value = ""
     }
