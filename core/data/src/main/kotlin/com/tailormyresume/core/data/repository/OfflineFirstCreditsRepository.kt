@@ -14,6 +14,7 @@ import javax.inject.Inject
 internal class OfflineFirstCreditsRepository @Inject constructor(
     private val creditLedgerDao: CreditLedgerDao,
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    private val remote: RemoteLedgerSource = NoRemoteLedger(),
 ) : CreditsRepository {
 
     override fun observeBalance(): Flow<Int> = creditLedgerDao.observeBalance().flowOn(ioDispatcher)

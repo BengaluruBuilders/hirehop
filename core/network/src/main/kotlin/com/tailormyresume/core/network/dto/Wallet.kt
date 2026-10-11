@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class WalletDto(
+    val credits: Int = 0,
     val freeCredits: Int,
     val purchasedCredits: Int,
     val analysesLeftToday: Int,

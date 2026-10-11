@@ -4,6 +4,7 @@ import com.tailormyresume.core.network.dto.AnalysisRequest
 import com.tailormyresume.core.network.dto.AnalysisResponse
 import com.tailormyresume.core.network.dto.ContentReportRequest
 import com.tailormyresume.core.network.dto.ContentReportResponse
+import com.tailormyresume.core.network.dto.CreditsResponse
 import com.tailormyresume.core.network.dto.DeletionResponse
 import com.tailormyresume.core.network.dto.JobImportRequest
 import com.tailormyresume.core.network.dto.JobImportResponse
@@ -53,6 +54,9 @@ interface TailorMyResumeApi {
 
     @POST("v1/tailormyresume/applications/{applicationId}/unlock")
     suspend fun unlock(@Path("applicationId") applicationId: String): Response<UnlockResponse>
+
+    @GET("v1/tailormyresume/credits")
+    suspend fun credits(): CreditsResponse
 
     @GET("v1/tailormyresume/packs")
     suspend fun packs(): PacksResponse
