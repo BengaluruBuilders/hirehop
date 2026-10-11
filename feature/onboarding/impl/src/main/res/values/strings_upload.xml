@@ -62,7 +62,10 @@
     <string name="feature_onboarding_impl_reading_row_achievements">Achievements</string>
     <string name="feature_onboarding_impl_reading_meta_reading">Reading…</string>
     <string name="feature_onboarding_impl_reading_meta_found">Found</string>
-    <string name="feature_onboarding_impl_reading_meta_found_count">%1$d found</string>
+    <plurals name="feature_onboarding_impl_reading_meta_found_count">
+        <item quantity="one">%1$d found</item>
+        <item quantity="other">%1$d found</item>
+    </plurals>
     <plurals name="feature_onboarding_impl_reading_meta_roles">
         <item quantity="one">%1$d role</item>
         <item quantity="other">%1$d roles</item>

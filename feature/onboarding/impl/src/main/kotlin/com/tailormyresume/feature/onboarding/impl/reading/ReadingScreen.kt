@@ -34,7 +34,7 @@ import com.tailormyresume.feature.onboarding.impl.importresume.ResumeFileCard
 import com.tailormyresume.feature.onboarding.impl.importresume.resumeFileMeta
 
 @Composable
-private fun ReadingRowLabel(kind: ReadingRowKind): String =
+private fun readingRowLabel(kind: ReadingRowKind): String =
     when (kind) {
         ReadingRowKind.Contact -> stringResource(R.string.feature_onboarding_impl_reading_row_contact)
         ReadingRowKind.Experience -> stringResource(R.string.feature_onboarding_impl_reading_row_experience)
@@ -44,7 +44,7 @@ private fun ReadingRowLabel(kind: ReadingRowKind): String =
     }
 
 @Composable
-private fun ReadingRowProgressState(state: ReadingRowState): TmrProgressState =
+private fun readingRowProgressState(state: ReadingRowState): TmrProgressState =
     when (state) {
         ReadingRowState.Done -> TmrProgressState.Done
         ReadingRowState.Active -> TmrProgressState.Active
@@ -52,7 +52,7 @@ private fun ReadingRowProgressState(state: ReadingRowState): TmrProgressState =
     }
 
 @Composable
-private fun ReadingRowMeta(row: ReadingRowUi): String? {
+private fun readingRowMeta(row: ReadingRowUi): String? {
     val count = row.count ?: 0
     return when (row.state) {
         ReadingRowState.Pending -> null
@@ -73,24 +73,24 @@ private fun ReadingRowMeta(row: ReadingRowUi): String? {
                         count,
                     )
                 ReadingRowKind.Skills ->
-                    stringResource(R.string.feature_onboarding_impl_reading_meta_found_count, count)
+                    pluralStringResource(R.plurals.feature_onboarding_impl_reading_meta_found_count, count, count)
                 ReadingRowKind.Achievements ->
-                    stringResource(R.string.feature_onboarding_impl_reading_meta_found_count, count)
+                    pluralStringResource(R.plurals.feature_onboarding_impl_reading_meta_found_count, count, count)
             }
     }
 }
 
 @Composable
-private fun ReadingProgressRows(state: ReadingUiState): TmrProgressRowsData {
+private fun readingProgressRows(state: ReadingUiState): TmrProgressRowsData {
     val metaBesideLabel = LocalDensity.current.fontScale < META_BESIDE_LABEL_MAX_FONT_SCALE
     return TmrProgressRowsData(
         rows = state.rows.map { row ->
-            val label = ReadingRowLabel(row.kind)
-            val meta = ReadingRowMeta(row)
+            val label = readingRowLabel(row.kind)
+            val meta = readingRowMeta(row)
             if (metaBesideLabel || meta == null) {
-                TmrProgressRow(label = label, state = ReadingRowProgressState(row.state), meta = meta)
+                TmrProgressRow(label = label, state = readingRowProgressState(row.state), meta = meta)
             } else {
-                TmrProgressRow(label = "$label · $meta", state = ReadingRowProgressState(row.state))
+                TmrProgressRow(label = "$label · $meta", state = readingRowProgressState(row.state))
             }
         },
         percent = state.percent,
@@ -144,7 +144,7 @@ internal fun ReadingScreen(
                     ),
                 )
             }
-            val progress = ReadingProgressRows(state)
+            val progress = readingProgressRows(state)
             TmrProgressRows(rows = progress.rows, percent = progress.percent)
             Text(
                 text = stringResource(R.string.feature_onboarding_impl_reading_takes),
