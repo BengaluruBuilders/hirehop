@@ -76,6 +76,7 @@ private fun toUiState(application: JobApplication?, credits: Int): JobResultUiSt
                 MustHaveRow(
                     requirementId = match.requirement.id,
                     text = match.requirement.text,
+                    status = match.status,
                     reason = match.keepReason(),
                     unclear = match.requirement.id == gap.question?.requirementId,
                 )

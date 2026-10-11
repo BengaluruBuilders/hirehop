@@ -144,18 +144,18 @@ class QuickQuestionViewModelTest {
         val blank = storedFor(QuickChoice.YES_REGULARLY, "   ")
         assertThat(blank.keywordCoverage)
             .isEqualTo(KeywordCoverageCalculator.compute(ResultTestData.matches, blank.quickAnswer, null))
-        assertThat(blank.keywordCoverage!!.upTo).isEqualTo(nullAnswerUpTo)
+        assertThat(blank.keywordCoverage?.upTo).isEqualTo(nullAnswerUpTo)
 
         val detailed = storedFor(QuickChoice.YES_REGULARLY, ResultTestData.STAKEHOLDER_DETAIL)
         assertThat(detailed.keywordCoverage)
             .isEqualTo(KeywordCoverageCalculator.compute(ResultTestData.matches, detailed.quickAnswer, null))
-        assertThat(detailed.keywordCoverage!!.upTo).isGreaterThan(nullAnswerUpTo)
+        assertThat(detailed.keywordCoverage?.upTo).isGreaterThan(nullAnswerUpTo)
 
         val notYet = storedFor(QuickChoice.NOT_YET, null)
-        assertThat(notYet.quickAnswer!!.detail).isEmpty()
+        assertThat(notYet.quickAnswer?.detail).isEmpty()
         assertThat(notYet.keywordCoverage)
             .isEqualTo(KeywordCoverageCalculator.compute(ResultTestData.matches, notYet.quickAnswer, null))
-        assertThat(notYet.keywordCoverage!!.upTo).isEqualTo(nullAnswerUpTo)
+        assertThat(notYet.keywordCoverage?.upTo).isEqualTo(nullAnswerUpTo)
     }
 
     @Test

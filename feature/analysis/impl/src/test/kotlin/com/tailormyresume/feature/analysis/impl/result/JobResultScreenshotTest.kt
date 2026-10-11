@@ -22,6 +22,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tailormyresume.core.designsystem.theme.TmrTheme
+import com.tailormyresume.core.model.MatchStatus
 import com.tailormyresume.core.screenshot.TmrTestDevice
 import com.tailormyresume.core.screenshot.TmrTestDevices
 import com.tailormyresume.core.screenshot.captureForDevice
@@ -47,12 +48,13 @@ private val CREDITS_STATE = JobResultUiState.Ready(
     have = listOf("SQL", "Excel", "Power BI", "Reporting", "Variance analysis"),
     missing = listOf("Tableau", "Forecasting", "Stakeholder management"),
     mustHaves = listOf(
-        MustHaveRow("r1", "2+ years in analytics", "You have 4 years", false),
-        MustHaveRow("r2", "Strong SQL and Excel", "Used at Infosys and Tata Digital", false),
-        MustHaveRow("r3", "Presenting to senior stakeholders", null, true),
+        MustHaveRow("r1", "2+ years in analytics", MatchStatus.MET, "You have 4 years", false),
+        MustHaveRow("r2", "Strong SQL and Excel", MatchStatus.MET, "Used at Infosys and Tata Digital", false),
+        MustHaveRow("r3", "Presenting to senior stakeholders", MatchStatus.GAP, null, true),
         MustHaveRow(
             "r4",
             "Financial reporting and variance analysis, including month-end close commentary",
+            MatchStatus.GAP,
             null,
             false,
         ),

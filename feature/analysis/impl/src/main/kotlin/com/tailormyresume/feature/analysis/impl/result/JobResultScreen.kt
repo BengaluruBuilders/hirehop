@@ -215,22 +215,14 @@ private fun MustHaveItem(row: MustHaveRow) {
 private fun MustHaveMarker(row: MustHaveRow) {
     val colors = TmrTheme.colors
     val size = Modifier.size(MARKER_SIZE)
-    when {
-        row.unclear -> Box(
-            modifier = size.background(colors.amber, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            MarkerGlyph(stringResource(R.string.feature_analysis_impl_result_unclear_mark))
-        }
-
-        row.reason != null -> Box(
-            modifier = size.background(colors.lime, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            MarkerGlyph("✓")
-        }
-
-        else -> Box(modifier = size.border(1.dp, colors.boundary, CircleShape))
+    val (fill, glyph) = when (row.marker) {
+        MustHaveMarkerKind.UNCLEAR -> colors.amber to stringResource(R.string.feature_analysis_impl_result_unclear_mark)
+        MustHaveMarkerKind.MET -> colors.lime to "✓"
+        MustHaveMarkerKind.PARTIAL -> colors.limeSoft to "~"
+        MustHaveMarkerKind.GAP -> colors.coral to stringResource(R.string.feature_analysis_impl_result_unclear_mark)
+    }
+    Box(modifier = size.background(fill, CircleShape), contentAlignment = Alignment.Center) {
+        MarkerGlyph(glyph)
     }
 }
 

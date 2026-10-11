@@ -53,11 +53,12 @@ class JobResultViewModelTest {
         val state = readyState(viewModel())
 
         assertThat(state.mustHaves).containsExactly(
-            MustHaveRow("r-sql", ResultTestData.sql.text, "Used SQL daily at your internship", false),
-            MustHaveRow("r-bi", ResultTestData.powerBi.text, "Power BI at your internship, no Tableau", false),
+            MustHaveRow("r-sql", ResultTestData.sql.text, MatchStatus.MET, "Used SQL daily at your internship", false),
+            MustHaveRow("r-bi", ResultTestData.powerBi.text, MatchStatus.PARTIAL, "Power BI at your internship, no Tableau", false),
             MustHaveRow(
                 ResultTestData.STAKEHOLDER_ID,
                 ResultTestData.stakeholders.text,
+                MatchStatus.GAP,
                 null,
                 true,
             ),
@@ -79,6 +80,24 @@ class JobResultViewModelTest {
         assertThat(rows.map { it.requirementId }).containsExactly("r-sql", "r-bi").inOrder()
         assertThat(rows[0].reason).isNull()
         assertThat(rows[1].reason).isEqualTo("No BI tool on the resume")
+    }
+
+    @Test
+    fun gapWithReasonShowsGapMarkerNotCheck() = runTest {
+        val matches = listOf(
+            RequirementMatch(ResultTestData.sql, MatchStatus.MET, listOf("e1"), "Used SQL daily"),
+            RequirementMatch(ResultTestData.powerBi, MatchStatus.PARTIAL, listOf("e2"), "No Tableau"),
+            RequirementMatch(ResultTestData.stakeholders, MatchStatus.GAP, emptyList(), "No stakeholder work on the resume"),
+        )
+        seed(ResultTestData.application(matches = matches, question = null))
+        val rows = readyState(viewModel()).mustHaves
+
+        assertThat(rows.map { it.marker }).containsExactly(
+            MustHaveMarkerKind.MET,
+            MustHaveMarkerKind.PARTIAL,
+            MustHaveMarkerKind.GAP,
+        ).inOrder()
+        assertThat(rows[2].reason).isNotNull()
     }
 
     @Test
