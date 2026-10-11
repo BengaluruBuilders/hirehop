@@ -48,12 +48,60 @@ class RemoteResumeTailorRunIdTest {
     }
 
     @Test
-    fun aNewRunIdDoesNotReuseTheRequestIdOfAnUnfinishedRun() = runTest {
+    fun aNewRunIdResendsTheRequestIdOfAnAbandonedUnfinishedRun() = runTest {
+        backend.reply(202, tailoringBody("RUNNING"))
         backend.fail(502, "AI_PROVIDER_ERROR")
         succeed()
 
         runCatching { tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-1") }
         tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-2")
+
+        val ids = List(3) { backend.server.takeRequest() }.filter { it.method == "POST" }
+            .map { requestIdOf(it.body.readUtf8()) }
+        assertThat(ids).hasSize(2)
+        assertThat(ids.distinct()).hasSize(1)
+    }
+
+    @Test
+    fun aNewRunIdAfterASucceededRunSendsANewRequestId() = runTest {
+        succeed()
+        succeed()
+
+        tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-1")
+        tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-2")
+
+        val ids = List(2) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
+        assertThat(ids.distinct()).hasSize(2)
+    }
+
+    @Test
+    fun aNewRunIdAfterAFailedRunSendsANewRequestId() = runTest {
+        backend.reply(200, tailoringBody("FAILED", ""","failureCode":"INTERRUPTED""""))
+        succeed()
+
+        runCatching { tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-1") }
+        tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-2")
+
+        val ids = List(2) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
+        assertThat(ids.distinct()).hasSize(2)
+    }
+
+    @Test
+    fun theUnfinishedPointerStaysUnderThePrefixSignOutWipes() = runTest {
+        backend.fail(502, "AI_PROVIDER_ERROR")
+
+        runCatching { tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-1") }
+
+        assertThat(store.read("tailoring.request.unfinished.app-1")).isNotNull()
+    }
+
+    @Test
+    fun aDifferentApplicationNeverAdoptsAnotherApplicationsPointer() = runTest {
+        backend.fail(502, "AI_PROVIDER_ERROR")
+        succeed()
+
+        runCatching { tailorOverStore().tailor(candidate, job, gap, "app-1", null, "run-1") }
+        tailorOverStore().tailor(candidate, job, gap, "app-2", null, "run-2")
 
         val ids = List(2) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
         assertThat(ids.distinct()).hasSize(2)

@@ -40,7 +40,7 @@ class RemoteResumeTailor @Inject constructor(
         runId: String,
     ): TailoredResume {
         val request = TailoringStartRequest(
-            requestId = pending.idFor(runId),
+            requestId = pending.idFor(runId, applicationId),
             applicationId = applicationId,
             job = job.toDto(),
             matches = gap.matches.map { it.toDto() },
@@ -51,12 +51,13 @@ class RemoteResumeTailor @Inject constructor(
             val finished = awaitFinished(start(request))
             val result = finished.result?.takeIf { finished.status == TailoringStatus.SUCCEEDED }
                 ?: run {
-                    pending.clear(runId)
+                    pending.clear(runId, applicationId)
                     throw AiException(finished.failureCode.toAiFailure())
                 }
+            pending.settle(applicationId)
             return result.toTailoredResume(profile)
         } catch (failure: AiException) {
-            if (failure.failure !in RESUMABLE) pending.clear(runId)
+            if (failure.failure !in RESUMABLE) pending.clear(runId, applicationId)
             throw failure
         }
     }

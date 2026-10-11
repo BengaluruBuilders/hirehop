@@ -105,15 +105,15 @@ class RemoteResumeTailorTest {
     }
 
     @Test
-    fun aFinishedJobForgetsItsRequestId() = runTest {
+    fun aSucceededJobKeepsItsRequestIdForTheSameRun() = runTest {
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
         backend.reply(202, tailoringBody("SUCCEEDED", tailoringResult(FACT_TEXT)))
 
         tailor.tailor(candidate, job, gap, "app-1", null, "run-1")
-        tailor.tailor(candidate, job, gap, "app-1", null, "run-2")
+        tailor.tailor(candidate, job, gap, "app-1", null, "run-1")
 
         val ids = List(2) { requestIdOf(backend.server.takeRequest().body.readUtf8()) }
-        assertThat(ids.distinct()).hasSize(2)
+        assertThat(ids.distinct()).hasSize(1)
     }
 
     @Test
