@@ -4,7 +4,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
@@ -15,6 +17,7 @@ import com.tailormyresume.app.navigation.registerComposeActivity
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.domain.onboarding.StartDestination
 import com.tailormyresume.core.navigation.Navigator
+import com.tailormyresume.core.navigation.PendingToast
 import com.tailormyresume.feature.applications.api.navigation.DefaultApplicationsNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.DefaultSignInNavKey
 import com.tailormyresume.feature.onboarding.api.navigation.UploadNavKey
@@ -23,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
+import com.tailormyresume.feature.settings.impl.R as SettingsR
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -152,5 +156,45 @@ class TmrAppRootTest {
         rule.waitForIdle()
 
         assertThat(accountOneProbe.cleared).isTrue()
+    }
+
+    private fun reRootAfterAccountLeaves(queue: () -> Unit) {
+        ready = AppRootState.Ready(StartDestination.Applications, "account-1")
+        show()
+        queue()
+        ready = AppRootState.Ready(StartDestination.SignIn, null)
+        rule.waitForIdle()
+    }
+
+    @Test
+    fun signedOutToastShowsInNewRoot() {
+        PendingToast.consume()
+
+        reRootAfterAccountLeaves {}
+        PendingToast.set(SettingsR.string.feature_settings_impl_toast_signed_out)
+        rule.waitForIdle()
+
+        rule.onNodeWithText("Signed out").assertIsDisplayed()
+        assertThat(PendingToast.queued).isNull()
+    }
+
+    @Test
+    fun accountDeletedToastShowsInNewRoot() {
+        PendingToast.consume()
+
+        reRootAfterAccountLeaves { PendingToast.set(SettingsR.string.feature_settings_impl_toast_account_deleted) }
+
+        rule.onNodeWithText("Account deleted").assertIsDisplayed()
+        assertThat(PendingToast.queued).isNull()
+    }
+
+    @Test
+    fun noQueuedToastShowsNothing() {
+        PendingToast.consume()
+
+        reRootAfterAccountLeaves {}
+
+        rule.onNodeWithText("Signed out").assertDoesNotExist()
+        rule.onNodeWithText("Account deleted").assertDoesNotExist()
     }
 }
