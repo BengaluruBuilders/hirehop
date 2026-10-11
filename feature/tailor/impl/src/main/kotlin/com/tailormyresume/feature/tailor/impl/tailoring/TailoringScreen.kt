@@ -25,7 +25,8 @@ import com.tailormyresume.core.designsystem.component.hero.TmrPaigePose
 import com.tailormyresume.core.designsystem.component.hero.TmrSticker
 import com.tailormyresume.feature.tailor.impl.R
 
-private const val HERO_HEIGHT_DP = 230
+private const val HERO_HEIGHT_DP = 286
+private const val PAIGE_MAX_FONT_SCALE = 1.3f
 
 private val StickerRotations = listOf(-8f, 7f, 5f)
 
@@ -66,21 +67,35 @@ internal fun TailoringScreen(state: TailoringUiState, modifier: Modifier = Modif
                 .fillMaxWidth()
                 .height((HERO_HEIGHT_DP * LocalDensity.current.fontScale.coerceAtLeast(1f)).dp),
         ) {
-            state.stickers.take(3).forEachIndexed { index, sticker ->
-                TmrSticker(
-                    text = sticker,
+            val enlarged = LocalDensity.current.fontScale > PAIGE_MAX_FONT_SCALE
+            if (enlarged) {
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    state.stickers.take(3).forEachIndexed { index, sticker ->
+                        TmrSticker(text = sticker, rotationDegrees = StickerRotations[index])
+                    }
+                }
+            } else {
+                state.stickers.take(3).forEachIndexed { index, sticker ->
+                    TmrSticker(
+                        text = sticker,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(StickerOffsets[index]),
+                        rotationDegrees = StickerRotations[index],
+                    )
+                }
+            }
+            if (!enlarged) {
+                TmrPaige(
+                    pose = TmrPaigePose.Tailoring,
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(StickerOffsets[index]),
-                    rotationDegrees = StickerRotations[index],
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 40.dp),
                 )
             }
-            TmrPaige(
-                pose = TmrPaigePose.Tailoring,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 40.dp),
-            )
         }
         TmrProgressRows(
             rows = state.rows.map { TmrProgressRow(label = tailoringRowLabel(it.kind, state.keywordCount), state = it.state) },

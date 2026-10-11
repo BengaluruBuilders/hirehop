@@ -18,6 +18,12 @@ import com.tailormyresume.feature.tailor.impl.result.TailoredViewModel
 import com.tailormyresume.feature.tailor.impl.tailoring.TailoringRoute
 import com.tailormyresume.feature.tailor.impl.tailoring.TailoringViewModel
 
+internal object TailorViewModelKeys {
+    fun tailor(applicationId: String) = "tailor-$applicationId"
+
+    fun tailored(applicationId: String) = "tailored-$applicationId"
+}
+
 fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
     entry<TailoringNavKey> { key ->
         TailoringRoute(
@@ -34,10 +40,10 @@ fun EntryProviderScope<NavKey>.tailorEntry(navigator: Navigator) {
     }
     entry<TailoredNavKey> { key ->
         TailoredRoute(
-            tailorViewModel = hiltViewModel<TailorViewModel, TailorViewModel.Factory>(key = key.applicationId) { factory ->
+            tailorViewModel = hiltViewModel<TailorViewModel, TailorViewModel.Factory>(key = TailorViewModelKeys.tailor(key.applicationId)) { factory ->
                 factory.create(key.applicationId, key.scenario)
             },
-            tailoredViewModel = hiltViewModel<TailoredViewModel, TailoredViewModel.Factory>(key = key.applicationId) { factory ->
+            tailoredViewModel = hiltViewModel<TailoredViewModel, TailoredViewModel.Factory>(key = TailorViewModelKeys.tailored(key.applicationId)) { factory ->
                 factory.create(key.applicationId)
             },
             onNavigate = navigator::navigate,

@@ -171,4 +171,44 @@ class TailoringRunnerTest {
         assertThat(thrown).isInstanceOf(CancellationException::class.java)
         assertThat(creditsRepository.observeLedger().first()).isEmpty()
     }
+
+    private val priorSpend = com.tailormyresume.core.model.CreditLedgerEntry(
+        CreditLedgerKind.SPEND,
+        -1,
+        "app-1",
+        null,
+        clock.now(),
+    )
+
+    @Test
+    fun restoredAfterFinishNeitherRerunsNorSpendsAgain() = runTest(dispatcher) {
+        seed()
+        val tailored = TailoredResume(bullets = listOf(bullet))
+        runner { tailored }("app-1")
+        var reruns = 0
+
+        val result = runner {
+            reruns++
+            tailored
+        }("app-1")
+
+        assertThat(result).isEqualTo(TailoringResult.Success)
+        assertThat(reruns).isEqualTo(0)
+        assertThat(creditsRepository.observeLedger().first()).hasSize(1)
+    }
+
+    @Test
+    fun crashBetweenSpendAndResultStillProducesTheResultWithoutASecondSpend() = runTest(dispatcher) {
+        seed()
+        creditsRepository.sendLedger(listOf(priorSpend))
+        val tailored = TailoredResume(bullets = listOf(bullet))
+
+        val result = runner { tailored }("app-1")
+
+        assertThat(result).isEqualTo(TailoringResult.Success)
+        assertThat(creditsRepository.observeLedger().first()).hasSize(1)
+        val stored = checkNotNull(applicationRepository.observeApplication("app-1").first())
+        assertThat(stored.tailoredResume?.bullets?.map { it.id }).containsExactly("b1")
+        assertThat(stored.keywordCoverage?.final).isNotNull()
+    }
 }

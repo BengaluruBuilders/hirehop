@@ -13,6 +13,8 @@ import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
 import com.tailormyresume.core.model.TailoredResume
+import com.tailormyresume.core.model.TailoredSkills
+import com.tailormyresume.core.model.TailoredText
 import com.tailormyresume.core.testing.repository.TestApplicationRepository
 import com.tailormyresume.core.testing.repository.TestProfileRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
@@ -110,6 +112,27 @@ class TailoredViewModelTest {
             .contains("Built an internal tool")
         assertThat(applicationRepository.observeApplication("app-1").first()?.tailoredResume?.bullets?.single()?.decision)
             .isEqualTo(BulletDecision.REJECTED)
+    }
+
+    @Test
+    fun rejectedSummaryShowsTheProfilesOriginalOnTheResumeTab() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
+        val summary = TailoredText("New summary", "Old", decision = BulletDecision.REJECTED)
+        val skills = TailoredSkills(listOf("Kafka"), listOf("Kotlin", "SQL"), decision = BulletDecision.REJECTED)
+        applicationRepository.sendApplications(
+            listOf(
+                testApplication(listOf(bullet), gap).copy(
+                    tailoredResume = TailoredResume(listOf(bullet), summary = summary, skills = skills),
+                ),
+            ),
+        )
+        profileRepository.sendProfile(testProfile(listOf(entryFor("exp-1", bullet))).copy(summary = "My own words."))
+
+        val lines = viewModel.ready().blocks.flatMap { it.lines }.map { line -> line.joinToString("") { it.text } }
+
+        assertThat(lines).contains("My own words.")
+        assertThat(lines).doesNotContain("New summary")
     }
 
     @Test

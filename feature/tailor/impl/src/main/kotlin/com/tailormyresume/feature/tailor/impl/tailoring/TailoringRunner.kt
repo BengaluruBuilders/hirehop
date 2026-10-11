@@ -8,6 +8,8 @@ import com.tailormyresume.core.data.repository.ProfileRepository
 import com.tailormyresume.core.domain.TailorResumeUseCase
 import com.tailormyresume.core.domain.TailoringCreditSpend
 import com.tailormyresume.core.domain.coverage.KeywordCoverageCalculator
+import com.tailormyresume.core.model.CreditLedgerKind
+import com.tailormyresume.core.model.TailoredResume
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -33,14 +35,24 @@ internal class TailoringRunner @Inject constructor(
         val application = checkNotNull(applicationRepository.observeApplication(applicationId).first())
         val profile = checkNotNull(profileRepository.observeProfile().first())
         val gap = checkNotNull(application.gapAnalysis)
-        val tailored = TailoringCreditSpend.forSuccess(
-            applicationId = applicationId,
-            clock = clock,
-            record = creditsRepository::record,
-        ) {
+        val alreadySpent = creditsRepository.observeLedger().first().any {
+            it.kind == CreditLedgerKind.SPEND && it.applicationId == applicationId
+        }
+        if (alreadySpent && application.keywordCoverage?.final != null) return TailoringResult.Success
+        val tailor: suspend () -> TailoredResume = {
             withContext(dispatcher) {
                 tailorResume(profile, application.job, gap, applicationId, quickAnswer = application.quickAnswer)
             }
+        }
+        val tailored = if (alreadySpent) {
+            tailor()
+        } else {
+            TailoringCreditSpend.forSuccess(
+                applicationId = applicationId,
+                clock = clock,
+                record = creditsRepository::record,
+                tailoring = tailor,
+            )
         }
         applicationRepository.upsertApplication(
             application.copy(
