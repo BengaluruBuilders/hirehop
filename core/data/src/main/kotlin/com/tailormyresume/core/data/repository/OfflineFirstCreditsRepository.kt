@@ -12,8 +12,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 internal class OfflineFirstCreditsRepository @Inject constructor(
     private val creditLedgerDao: CreditLedgerDao,
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -45,12 +48,16 @@ internal class OfflineFirstCreditsRepository @Inject constructor(
         }
 
     override suspend fun record(entry: CreditLedgerEntry) {
-        if (!remote.ownsLedger) creditLedgerDao.insert(entry.asEntity())
+        if (remote.ownsLedger) refresh() else creditLedgerDao.insert(entry.asEntity())
     }
 
     override suspend fun refresh() {
         if (!remote.ownsLedger) return
-        val (started, owner) = synchronized(lock) { generation to remote.owner() }
+        val (started, owner) = synchronized(lock) {
+            val current = remote.owner()
+            held.update { it?.takeIf { held -> held.owner == current } }
+            generation to current
+        }
         val snapshot = try {
             remote.fetch()
         } catch (cancellation: CancellationException) {

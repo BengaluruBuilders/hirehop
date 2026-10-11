@@ -1,6 +1,7 @@
 package com.tailormyresume.app.billing
 
 import com.tailormyresume.core.common.network.di.ApplicationScope
+import com.tailormyresume.core.data.repository.CreditsRepository
 import com.tailormyresume.core.domain.ApplicationPack
 import com.tailormyresume.core.domain.CreditSpend
 import com.tailormyresume.core.domain.FirebaseUidProvider
@@ -39,6 +40,7 @@ class RemotePaymentGateway @Inject constructor(
     private val billing: PlayBilling,
     private val uids: FirebaseUidProvider,
     @ApplicationScope private val scope: CoroutineScope,
+    private val credits: CreditsRepository,
 ) : PaymentGateway {
     private val pending = MutableStateFlow<List<String>>(emptyList())
     private val reposts = mutableMapOf<String, Job>()
@@ -205,11 +207,16 @@ class RemotePaymentGateway @Inject constructor(
     }
 
     private fun recorded(productId: String, response: PurchaseResponse, epoch: Int, started: Int): PurchaseResult {
-        synchronized(reposts) {
-            if (epoch != generation || !wallet.update(response.wallet, started)) return failed(PurchaseFailureReason.PaymentUnconfirmed)
-            pending.update { it - productId }
-            return PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
+        val result = synchronized(reposts) {
+            if (epoch != generation || !wallet.update(response.wallet, started)) {
+                failed(PurchaseFailureReason.PaymentUnconfirmed)
+            } else {
+                pending.update { it - productId }
+                PurchaseResult.Completed(response.wallet.toEntitlement(pending.value))
+            }
         }
+        if (result is PurchaseResult.Completed) scope.launch { credits.refresh() }
+        return result
     }
 
     private fun unconfirmed(productId: String, epoch: Int): PurchaseResult {

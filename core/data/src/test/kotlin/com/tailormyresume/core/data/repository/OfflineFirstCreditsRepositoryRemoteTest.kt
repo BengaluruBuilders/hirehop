@@ -10,6 +10,7 @@ import com.tailormyresume.core.model.CreditLedgerKind
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -141,5 +142,63 @@ class OfflineFirstCreditsRepositoryRemoteTest {
 
         assertThat(repository.observeBalance().first()).isEqualTo(3)
         assertThat(remote.fetches).isEqualTo(2)
+    }
+
+    @Test
+    fun liveCollectorDropsPreviousAccountWhenNextRefreshFails() = runTest {
+        remote.snapshot = CreditSnapshot(7, listOf(entry(CreditLedgerKind.PURCHASE, 7, 3)))
+        val repository = repository()
+        val seen = mutableListOf<Int>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { repository.observeBalance().toList(seen) }
+        repository.refresh()
+        assertThat(seen.last()).isEqualTo(7)
+
+        remote.owner = "uid-2"
+        remote.failure = java.io.IOException("offline")
+        repository.refresh()
+
+        assertThat(seen.last()).isEqualTo(0)
+    }
+
+    @Test
+    fun answerAfterClearIsDroppedEvenForTheSameOwner() = runTest {
+        remote.snapshot = CreditSnapshot(7, emptyList())
+        val repository = repository()
+        remote.gate = CompletableDeferred()
+        val late = launch(UnconfinedTestDispatcher(testScheduler)) { repository.refresh() }
+
+        repository.clear()
+        remote.gate?.complete(Unit)
+        late.join()
+
+        assertThat(repository.observeBalance().first()).isEqualTo(0)
+    }
+
+    @Test
+    fun answerForAnotherOwnerStaysDroppedWhenTheOwnerComesBack() = runTest {
+        remote.snapshot = CreditSnapshot(7, emptyList())
+        val repository = repository()
+        remote.gate = CompletableDeferred()
+        val late = launch(UnconfinedTestDispatcher(testScheduler)) { repository.refresh() }
+
+        remote.owner = "uid-2"
+        remote.gate?.complete(Unit)
+        late.join()
+        remote.owner = "uid-1"
+
+        assertThat(repository.observeBalance().first()).isEqualTo(0)
+    }
+
+    @Test
+    fun recordingInProdRefreshesFromTheServer() = runTest {
+        remote.snapshot = CreditSnapshot(6, emptyList())
+        val repository = repository()
+        repository.refresh()
+
+        remote.snapshot = CreditSnapshot(5, listOf(entry(CreditLedgerKind.SPEND, -1, 4)))
+        repository.record(entry(CreditLedgerKind.SPEND, -1, 4))
+
+        assertThat(repository.observeBalance().first()).isEqualTo(5)
+        assertThat(repository.observeLedger().first()).hasSize(1)
     }
 }

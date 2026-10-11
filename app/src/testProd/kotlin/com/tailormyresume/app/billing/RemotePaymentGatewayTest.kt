@@ -7,6 +7,7 @@ import com.tailormyresume.core.network.TailorMyResumeApiConfig
 import com.tailormyresume.core.network.tailormyresumeApi
 import com.tailormyresume.core.network.tailormyresumeJson
 import com.tailormyresume.core.network.tailormyresumeOkHttpClient
+import com.tailormyresume.core.testing.repository.TestCreditsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -45,7 +46,7 @@ class RemotePaymentGatewayTest {
         server.shutdown()
     }
 
-    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid), idleScope())
+    private fun gateway(uid: String? = "uid-1") = RemotePaymentGateway(api, source, billing, FakeUid(uid), idleScope(), TestCreditsRepository())
 
     private fun reply(code: Int, body: String) = server.enqueue(MockResponse().setResponseCode(code).setBody(body))
 
@@ -200,7 +201,7 @@ class RemotePaymentGatewayTest {
 
     private fun scriptedGateway(): RemotePaymentGateway {
         server.dispatcher = scripted
-        return RemotePaymentGateway(api, wallet, billing, FakeUid("uid-1"), clock)
+        return RemotePaymentGateway(api, wallet, billing, FakeUid("uid-1"), clock, TestCreditsRepository())
     }
 
     private fun recordedStep(gate: CountDownLatch? = null) =
@@ -388,7 +389,7 @@ class RemotePaymentGatewayTest {
     fun concurrentRecordedAndUnconfirmedRemovalsLoseNoConcurrentHold() = runTest {
         server.dispatcher = AnswerByToken(CyclicBarrier(CONCURRENT_REQUESTS))
         val stripedBilling = StripedBilling(billing, RACING_WRITERS)
-        val gateway = RemotePaymentGateway(api, wallet, stripedBilling, FakeUid("uid-1"), clock)
+        val gateway = RemotePaymentGateway(api, wallet, stripedBilling, FakeUid("uid-1"), clock, TestCreditsRepository())
         val settled = List(SETTLED_PACKS) { "settled_$it" }
         val extras = settled.indices.flatMap { index -> List(EXTRAS_PER_PACK) { "extra_${index}_$it" } }
         val filler = List(FILLER_PACKS) { "filler_$it" }
