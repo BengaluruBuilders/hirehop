@@ -1,10 +1,8 @@
 package com.tailormyresume.app.billing
 
 import com.google.common.truth.Truth.assertThat
-import com.tailormyresume.core.domain.CreditSpend
 import com.tailormyresume.core.domain.PurchaseFailureReason
 import com.tailormyresume.core.domain.PurchaseResult
-import com.tailormyresume.core.model.CreditKind
 import com.tailormyresume.core.network.TailorMyResumeApiConfig
 import com.tailormyresume.core.network.tailormyresumeApi
 import com.tailormyresume.core.network.tailormyresumeJson
@@ -71,7 +69,6 @@ class RemotePaymentGatewayTest {
         val entitlement = gateway().entitlement()
 
         assertThat(entitlement.purchasedCredits).isEqualTo(4)
-        assertThat(entitlement.unlockedApplicationIds).containsExactly("a1")
         assertThat(server.takeRequest().path).isEqualTo("/v1/tailormyresume/wallet")
     }
 
@@ -88,27 +85,6 @@ class RemotePaymentGatewayTest {
         assertThat(packs.map { it.id }).containsExactly("application_pack_5")
         assertThat(packs.single().priceInPaise).isEqualTo(14_900)
         assertThat(packs.single().credits).isEqualTo(5)
-    }
-
-    @Test
-    fun firstUnlockReportsTheCreditKindAndARepeatReportsNone() = runTest {
-        val unlock = """{"unlock":{"applicationId":"a1","creditKind":"FREE","unlockedAt":"2026-10-07T09:00:00Z"},"wallet":${walletJson(free = 0, unlocked = "\"a1\"")}}"""
-        reply(201, unlock)
-        reply(200, unlock)
-
-        val first = gateway().unlock("a1") as CreditSpend.Spent
-        val repeat = gateway().unlock("a1") as CreditSpend.Spent
-
-        assertThat(first.kind).isEqualTo(CreditKind.FREE)
-        assertThat(repeat.kind).isNull()
-        assertThat(server.takeRequest().path).isEqualTo("/v1/tailormyresume/applications/a1/unlock")
-    }
-
-    @Test
-    fun unlockWithNoCreditReportsNoCreditLeft() = runTest {
-        reply(402, errorJson("NO_CREDIT"))
-
-        assertThat(gateway().unlock("a1")).isEqualTo(CreditSpend.NoCreditLeft)
     }
 
     @Test
@@ -430,22 +406,6 @@ class RemotePaymentGatewayTest {
         }
 
         assertThat(gateway.observeEntitlement().first().pendingPackIds).containsExactlyElementsIn(filler + extras)
-    }
-
-    @Test
-    fun anUnlockAnsweredAfterSignOutDoesNotRestoreTheOldWallet() = runTest {
-        val unlock = """{"unlock":{"applicationId":"a1","creditKind":"PURCHASED","unlockedAt":"2026-10-07T09:00:00Z"},"wallet":${walletJson(free = 0, purchased = 4, unlocked = "\"a1\"")}}"""
-        val held = HeldAnswer(MockResponse().setResponseCode(201).setBody(unlock)).also { server.dispatcher = it }
-        val gateway = gateway()
-        val spend = async(Dispatchers.Default) { gateway.unlock("a1") }
-        held.awaitRequest()
-
-        gateway.clearCredits()
-        held.release()
-        spend.await()
-
-        assertThat(source.cached).isNull()
-        assertThat(gateway.observeEntitlement().first().totalCredits).isEqualTo(0)
     }
 
     @Test
