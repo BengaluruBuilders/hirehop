@@ -2,17 +2,20 @@ package com.tailormyresume.core.data.repository
 
 import com.tailormyresume.core.common.network.Dispatcher
 import com.tailormyresume.core.common.network.TmrDispatchers.IO
+import com.tailormyresume.core.common.network.di.ApplicationScope
 import com.tailormyresume.core.database.dao.CreditLedgerDao
 import com.tailormyresume.core.database.model.CreditLedgerEntity
 import com.tailormyresume.core.model.CreditLedgerEntry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +23,7 @@ import javax.inject.Singleton
 internal class OfflineFirstCreditsRepository @Inject constructor(
     private val creditLedgerDao: CreditLedgerDao,
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationScope private val scope: CoroutineScope,
     private val remote: RemoteLedgerSource = NoRemoteLedger(),
 ) : CreditsRepository {
     private class Held(val owner: String?, val snapshot: CreditSnapshot)
@@ -48,7 +52,7 @@ internal class OfflineFirstCreditsRepository @Inject constructor(
         }
 
     override suspend fun record(entry: CreditLedgerEntry) {
-        if (remote.ownsLedger) refresh() else creditLedgerDao.insert(entry.asEntity())
+        if (remote.ownsLedger) scope.launch { refresh() } else creditLedgerDao.insert(entry.asEntity())
     }
 
     override suspend fun refresh() {
@@ -56,7 +60,7 @@ internal class OfflineFirstCreditsRepository @Inject constructor(
         val (started, owner) = synchronized(lock) {
             val current = remote.owner()
             held.update { it?.takeIf { held -> held.owner == current } }
-            generation to current
+            ++generation to current
         }
         val snapshot = try {
             remote.fetch()

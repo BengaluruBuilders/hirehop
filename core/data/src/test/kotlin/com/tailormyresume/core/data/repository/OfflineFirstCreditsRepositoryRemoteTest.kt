@@ -8,6 +8,7 @@ import com.tailormyresume.core.database.createInMemoryTmrDatabase
 import com.tailormyresume.core.model.CreditLedgerEntry
 import com.tailormyresume.core.model.CreditLedgerKind
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
@@ -53,7 +54,7 @@ class OfflineFirstCreditsRepositoryRemoteTest {
     fun closeDatabase() = database.close()
 
     private fun repository(source: RemoteLedgerSource = remote) =
-        OfflineFirstCreditsRepository(database.creditLedgerDao(), UnconfinedTestDispatcher(), source)
+        OfflineFirstCreditsRepository(database.creditLedgerDao(), UnconfinedTestDispatcher(), CoroutineScope(UnconfinedTestDispatcher()), source)
 
     private fun entry(kind: CreditLedgerKind, amount: Int, day: Int) =
         CreditLedgerEntry(kind, amount, null, null, Instant.parse("2026-10-%02dT09:00:00Z".format(day)))
@@ -200,5 +201,45 @@ class OfflineFirstCreditsRepositoryRemoteTest {
 
         assertThat(repository.observeBalance().first()).isEqualTo(5)
         assertThat(repository.observeLedger().first()).hasSize(1)
+    }
+
+    @Test
+    fun recordReturnsBeforeASlowRefreshAndTheBalanceUpdatesWhenItFinishes() = runTest {
+        remote.snapshot = CreditSnapshot(6, emptyList())
+        val repository = repository()
+        repository.refresh()
+        remote.snapshot = CreditSnapshot(5, listOf(entry(CreditLedgerKind.SPEND, -1, 4)))
+        remote.gate = CompletableDeferred()
+
+        repository.record(entry(CreditLedgerKind.SPEND, -1, 4))
+        assertThat(repository.observeBalance().first()).isEqualTo(6)
+
+        remote.gate?.complete(Unit)
+        assertThat(repository.observeBalance().first()).isEqualTo(5)
+    }
+
+    @Test
+    fun anOlderRefreshFinishingLaterIsDropped() = runTest {
+        val older = CompletableDeferred<Unit>()
+        val newer = CompletableDeferred<Unit>()
+        val answers = ArrayDeque(listOf(older to CreditSnapshot(9, emptyList()), newer to CreditSnapshot(4, emptyList())))
+        val repository = repository(object : RemoteLedgerSource {
+            override val ownsLedger = true
+            override fun owner() = "uid-1"
+            override suspend fun fetch(): CreditSnapshot {
+                val (gate, snapshot) = answers.removeFirst()
+                gate.await()
+                return snapshot
+            }
+        })
+        val first = launch(UnconfinedTestDispatcher(testScheduler)) { repository.refresh() }
+        val second = launch(UnconfinedTestDispatcher(testScheduler)) { repository.refresh() }
+
+        newer.complete(Unit)
+        second.join()
+        older.complete(Unit)
+        first.join()
+
+        assertThat(repository.observeBalance().first()).isEqualTo(4)
     }
 }
