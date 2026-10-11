@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,38 +28,21 @@ import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.core.navigation.NavigationState
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.core.navigation.rememberNavigationState
-import com.tailormyresume.feature.analysis.api.navigation.JobLinkNavKey
-import com.tailormyresume.feature.analysis.api.navigation.JobNavKey
-import com.tailormyresume.feature.analysis.api.navigation.JobResultNavKey
-import com.tailormyresume.feature.analysis.api.navigation.QuickQuestionNavKey
-import com.tailormyresume.feature.applications.impl.navigation.applicationDetailEntry
-import com.tailormyresume.feature.applications.impl.navigation.applicationsEntry
-import com.tailormyresume.feature.onboarding.impl.navigation.onboardingEntry
-import com.tailormyresume.feature.profile.impl.navigation.profileEntry
-import com.tailormyresume.feature.settings.impl.navigation.settingsEntry
-import com.tailormyresume.feature.tailor.impl.navigation.tailorEntry
 import org.robolectric.Shadows.shadowOf
 
-private fun harnessEntries(navigator: Navigator): (NavKey) -> NavEntry<NavKey> =
-    entryProvider {
-        entry<JobNavKey> { key -> KeyLabel(key) }
-        entry<JobLinkNavKey> { key -> KeyLabel(key) }
-        entry<JobResultNavKey> { key -> KeyLabel(key) }
-        entry<QuickQuestionNavKey> { key -> KeyLabel(key) }
-        applicationsEntry(navigator)
-        applicationDetailEntry(navigator)
-        onboardingEntry(navigator)
-        profileEntry(navigator)
-        tailorEntry(navigator)
-        settingsEntry(navigator)
-    }
-
-@Composable
-private fun KeyLabel(key: NavKey) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = key::class.simpleName.orEmpty(), style = TmrTheme.typography.body, color = TmrTheme.colors.text)
-    }
-}
+private val PLACEHOLDER_ENTRIES: (NavKey) -> NavEntry<NavKey> = entryProvider(
+    fallback = { key ->
+        NavEntry(key) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = key::class.simpleName.orEmpty(),
+                    style = TmrTheme.typography.body,
+                    color = TmrTheme.colors.text,
+                )
+            }
+        }
+    },
+) {}
 
 private val STEP_DESCRIPTIONS = listOf("Step 1 of 3, Profile", "Step 2 of 3, Job", "Step 3 of 3, Tailor")
 
@@ -89,11 +71,11 @@ internal class ShellHarness(private val rule: ComposeContentTestRule) {
                     val shellNavigator = remember(navigationState) { shellNavigator(navigationState) { hasHome } }
                     state = navigationState
                     navigator = shellNavigator
-                    if (entries == null) {
-                        TmrShell(navigationState, shellNavigator, entryProvider = remember(shellNavigator) { harnessEntries(shellNavigator) })
-                    } else {
-                        TmrShell(navigationState, shellNavigator, entryProvider = entries(shellNavigator))
-                    }
+                    TmrShell(
+                        navigationState,
+                        shellNavigator,
+                        entryProvider = entries?.invoke(shellNavigator) ?: PLACEHOLDER_ENTRIES,
+                    )
                 }
             }
         }
