@@ -45,7 +45,7 @@ class SignInNarrowScreenshotTest {
             SignInRoute(SignInViewModel(ScriptedSignInGateway { SignInResult.Cancelled }))
         }
         composeRule.onNodeWithText("Continue with Google").performClick()
-        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.mainClock.advanceTimeBy(400)
         composeRule.captureSignIn("signin_cancelled_toast", NARROW_DEVICE)
     }
 }

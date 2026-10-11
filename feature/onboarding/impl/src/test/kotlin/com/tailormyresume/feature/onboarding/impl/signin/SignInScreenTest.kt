@@ -77,6 +77,7 @@ class SignInScreenTest {
         composeRule.onNodeWithTag(SignInTags.STORY_TOUCH, useUnmergedTree = true).performTouchInput {
             down(percentOffset(0.9f, 0.5f))
             advanceEventTime(400)
+            move()
         }
         composeRule.onNodeWithText("Paused", ignoreCase = true).assertIsDisplayed()
         composeRule.onNodeWithTag(SignInTags.STORY_TOUCH, useUnmergedTree = true).performTouchInput { up() }
@@ -94,6 +95,7 @@ class SignInScreenTest {
         composeRule.mainClock.advanceTimeBy(20_000)
         composeRule.onNodeWithText("Paige · 1 of 3", ignoreCase = true).assertIsDisplayed()
 
+        composeRule.mainClock.autoAdvance = true
         composeRule.onNodeWithTag(SignInTags.STORY_TOUCH, useUnmergedTree = true)
             .performTouchInput { click(percentOffset(0.9f, 0.5f)) }
         composeRule.onNodeWithText("Paige · 2 of 3", ignoreCase = true).assertIsDisplayed()
