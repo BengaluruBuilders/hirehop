@@ -316,7 +316,7 @@ class ExperienceScreenshotTest {
             "Experience",
             "Business Analyst",
             "Infosys",
-            "Jul 2022 – Now",
+            "Jul 2022 – Present",
             "Data Analyst Intern",
             "Jun 2021 – May 2022",
             "Finance Associate",

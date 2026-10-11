@@ -21,7 +21,7 @@
     <string name="feature_profile_impl_experience_heading">Experience</string>
     <string name="feature_profile_impl_add_role">+ Add role</string>
     <string name="feature_profile_impl_dates">%1$s – %2$s</string>
-    <string name="feature_profile_impl_dates_now">Now</string>
+    <string name="feature_profile_impl_dates_now">Present</string>
     <string name="feature_profile_impl_end_date_missing">end date?</string>
     <string name="feature_profile_impl_role_heading_edit">Edit role</string>
     <string name="feature_profile_impl_role_heading_add">Add role</string>

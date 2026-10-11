@@ -6,6 +6,7 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,6 +29,7 @@ import com.tailormyresume.core.testing.data.PrototypeFixtures
 import com.tailormyresume.feature.profile.api.navigation.EditRoleNavKey
 import com.tailormyresume.feature.profile.api.navigation.ExperienceNavKey
 import com.tailormyresume.feature.profile.api.navigation.ProfileNavKey
+import com.tailormyresume.feature.settings.api.navigation.SettingsNavKey
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -87,6 +89,16 @@ class ProfileRealEntryWiringTest {
             }
         }
         composeRule.waitForIdle()
+        composeRule.waitUntil(5_000) {
+            shadowOf(Looper.getMainLooper()).idle()
+            composeRule.onAllNodes(hasText(readyText(key))).fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun readyText(key: NavKey) = when (key) {
+        is ProfileNavKey -> "Experience"
+        else -> "+ Add role"
     }
 
     @Test
@@ -97,6 +109,29 @@ class ProfileRealEntryWiringTest {
         composeRule.waitForIdle()
 
         assertThat(state.stack.last()).isEqualTo(ExperienceNavKey())
+    }
+
+    @Test
+    fun settingsGearTap_opensSettings() {
+        show(ProfileNavKey())
+
+        composeRule.onNodeWithText("Settings").performClick()
+        composeRule.waitForIdle()
+
+        assertThat(state.stack.last()).isEqualTo(SettingsNavKey())
+    }
+
+    @Test
+    fun saveAction_isDisabledUntilTitleAndCompanyAreFilled() {
+        show(EditRoleNavKey(null))
+        assertThat(chromeActions.enabled).isFalse()
+
+        val fields = composeRule.onAllNodes(hasSetTextAction())
+        fields[0].performTextInput("Intern")
+        fields[1].performTextInput("Acme")
+        composeRule.waitForIdle()
+
+        assertThat(chromeActions.enabled).isTrue()
     }
 
     @Test

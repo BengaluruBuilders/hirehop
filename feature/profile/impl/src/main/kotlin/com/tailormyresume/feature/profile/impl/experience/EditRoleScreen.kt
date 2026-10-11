@@ -196,7 +196,10 @@ internal fun EditRoleRoute(
     val savedMessage = stringResource(R.string.feature_profile_impl_role_saved)
     val deletedMessage = stringResource(R.string.feature_profile_impl_role_deleted)
     val toast = LocalTmrToast.current
-    RegisterChromeAction { viewModel.save() }
+    RegisterChromeAction(
+        onAction = { viewModel.save() },
+        enabled = (state as? EditRoleUiState.Editing)?.canSave == true,
+    )
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             navigator.goBack()
