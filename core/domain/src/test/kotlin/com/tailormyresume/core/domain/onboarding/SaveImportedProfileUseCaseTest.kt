@@ -42,14 +42,10 @@ class SaveImportedProfileUseCaseTest {
 
     @Test
     fun continuationsKeepLinkAfterReid() = runTest {
-        val shared = listOf(
-            EvidenceBullet("p-b1", "Shipped the service."),
-            EvidenceBullet("q-b1", "Shipped the client."),
-        )
         val parsed = profile(
             entries = listOf(
-                entry("p", EntryCategory.EXPERIENCE, title = "Android developer", bullets = shared),
-                entry("q", EntryCategory.EXPERIENCE, title = "Android developer", bullets = shared),
+                entry("p", EntryCategory.EXPERIENCE, title = "Android developer", bullets = listOf(EvidenceBullet("p-b1", "Shipped the service."))),
+                entry("q", EntryCategory.EXPERIENCE, title = "Android developer", bullets = listOf(EvidenceBullet("q-b1", "Shipped the client."))),
             ),
         )
 
