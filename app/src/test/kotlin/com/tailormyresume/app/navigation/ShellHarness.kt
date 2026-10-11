@@ -3,8 +3,13 @@ package com.tailormyresume.app.navigation
 import android.app.Application
 import android.content.ComponentName
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
@@ -15,6 +20,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
 import androidx.test.core.app.ApplicationProvider
 import com.tailormyresume.app.ui.TmrShell
 import com.tailormyresume.core.designsystem.component.chrome.TmrTopBarLeading
@@ -23,6 +29,20 @@ import com.tailormyresume.core.navigation.NavigationState
 import com.tailormyresume.core.navigation.Navigator
 import com.tailormyresume.core.navigation.rememberNavigationState
 import org.robolectric.Shadows.shadowOf
+
+private val PLACEHOLDER_ENTRIES: (NavKey) -> NavEntry<NavKey> = entryProvider(
+    fallback = { key ->
+        NavEntry(key) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = key::class.simpleName.orEmpty(),
+                    style = TmrTheme.typography.body,
+                    color = TmrTheme.colors.text,
+                )
+            }
+        }
+    },
+) {}
 
 private val STEP_DESCRIPTIONS = listOf("Step 1 of 3, Profile", "Step 2 of 3, Job", "Step 3 of 3, Tailor")
 
@@ -51,11 +71,11 @@ internal class ShellHarness(private val rule: ComposeContentTestRule) {
                     val shellNavigator = remember(navigationState) { shellNavigator(navigationState) { hasHome } }
                     state = navigationState
                     navigator = shellNavigator
-                    if (entries == null) {
-                        TmrShell(navigationState, shellNavigator)
-                    } else {
-                        TmrShell(navigationState, shellNavigator, entryProvider = entries(shellNavigator))
-                    }
+                    TmrShell(
+                        navigationState,
+                        shellNavigator,
+                        entryProvider = entries?.invoke(shellNavigator) ?: PLACEHOLDER_ENTRIES,
+                    )
                 }
             }
         }
