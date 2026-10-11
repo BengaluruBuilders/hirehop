@@ -39,6 +39,7 @@ data class ExportedNavKey(
 ) : NavKey
 
 fun Navigator.navigateToTailoring(applicationId: String) {
+    if ((state.currentKey as? TailoringNavKey)?.applicationId == applicationId) return
     navigate(TailoringNavKey(applicationId, UUID.randomUUID().toString()))
 }
 
