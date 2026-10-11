@@ -8,12 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class AnswerChoice { YES_REGULARLY, A_FEW_TIMES, NOT_YET, SKIPPED }
 
-@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class AnswerDto(
     val requirementId: String,
     val choice: AnswerChoice,
-    @EncodeDefault(EncodeDefault.Mode.NEVER) val detail: String? = null,
+    val detail: String?,
 )
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -27,8 +26,18 @@ data class TailoringStartRequest(
     @EncodeDefault(EncodeDefault.Mode.NEVER) val answer: AnswerDto? = null,
 )
 
-@Serializable
-enum class TailoringStatus { RUNNING, SUCCEEDED, FAILED }
+internal object TailoringStatusSerializer :
+    LenientEnumSerializer<TailoringStatus>(
+        TailoringStatus.entries.toTypedArray(),
+        TailoringStatus.UNKNOWN,
+        "TailoringStatus",
+    )
+
+@Serializable(with = TailoringStatusSerializer::class)
+enum class TailoringStatus { RUNNING, SUCCEEDED, FAILED, UNKNOWN }
+
+internal object EditTypeSerializer :
+    LenientEnumSerializer<EditType>(EditType.entries.toTypedArray(), EditType.UNKNOWN, "EditType")
 
 internal object TailoringFailureCodeSerializer :
     LenientEnumSerializer<TailoringFailureCode>(
@@ -56,7 +65,10 @@ data class TailoredBulletDto(
     val entryId: String,
     val sourceIds: List<String>,
     val proposedText: String,
-    val editTypes: List<EditType>,
+    val editTypes: List<
+        @Serializable(with = EditTypeSerializer::class)
+        EditType,
+        >,
     val keywordsUsed: List<String>,
     val verification: BulletVerification,
 )

@@ -10,10 +10,15 @@ import com.tailormyresume.core.model.RequirementMatch
 import com.tailormyresume.core.model.RequirementPriority
 import com.tailormyresume.core.model.RequirementType
 import com.tailormyresume.core.network.dto.AnalysisRequest
+import com.tailormyresume.core.network.dto.AnswerChoice
 import com.tailormyresume.core.network.dto.TailoringStartRequest
 import com.tailormyresume.core.network.mapper.toAnswerDto
 import com.tailormyresume.core.network.mapper.toDto
 import com.tailormyresume.core.network.mapper.toFactsDto
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Test
 
 class AnalysisRequestJsonTest {
@@ -48,9 +53,38 @@ class AnalysisRequestJsonTest {
     }
 
     @Test
-    fun answerIsSentWithoutADetailKeyWhenBlank() {
-        val body = tailoringBody(QuickAnswer("req-1", "NOT_YET", "  "))
+    fun blankDetailIsSentAsNullNotOmitted() {
+        listOf("NOT_YET", "SKIPPED").forEach { choice ->
+            val body = tailoringBody(QuickAnswer("req-1", choice, "  "))
 
-        assertThat(body).contains(""""answer":{"requirementId":"req-1","choice":"NOT_YET"}""")
+            assertThat(body).contains(""""answer":{"requirementId":"req-1","choice":"$choice","detail":null}""")
+        }
+    }
+
+    @Test
+    fun everyAnswerChoiceCarriesTheThreeKeysTheServerRequires() {
+        AnswerChoice.entries.forEach { choice ->
+            listOf("", "Led SQL reporting.").forEach { detail ->
+                val request = Json.parseToJsonElement(tailoringBody(QuickAnswer("req-1", choice.name, detail))).jsonObject
+                val answer = request.getValue("answer").jsonObject
+
+                assertThat(answer.keys).containsExactly("requirementId", "choice", "detail")
+                assertThat(answer.getValue("choice").jsonPrimitive.content).isEqualTo(choice.name)
+                assertThat(request.keys).containsExactly("requestId", "applicationId", "job", "matches", "profile", "answer")
+            }
+        }
+    }
+
+    @Test
+    fun requiredKeysOfEveryOtherObjectAreSent() {
+        val request = Json.parseToJsonElement(tailoringBody(null)).jsonObject
+
+        assertThat(request.keys).containsExactly("requestId", "applicationId", "job", "matches", "profile")
+        assertThat(request.getValue("profile").jsonObject.keys).containsExactly("skills", "entries", "summary")
+        assertThat(request.getValue("job").jsonObject.keys).containsExactly("title", "company", "requirements")
+        assertThat(request.getValue("matches").jsonArray.single().jsonObject.keys)
+            .containsExactly("requirementId", "status", "evidenceIds")
+        assertThat(request.getValue("job").jsonObject.getValue("requirements").jsonArray.single().jsonObject.keys)
+            .containsExactly("id", "text", "type", "priority", "keywords")
     }
 }

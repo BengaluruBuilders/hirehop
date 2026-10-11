@@ -69,7 +69,7 @@ class RemoteJobAnalysisSource @Inject constructor(
                 server.requirement,
                 effectiveServerStatus,
                 evidence,
-                server.reason.takeIf { effectiveServerStatus == server.status },
+                server.reason.takeIf { effectiveServerStatus == server.status && evidence == server.evidenceIds },
             )
             upgradedMatch(effective, currentByRequirement[server.requirement.id], baseline[server.requirement.id])
                 ?: effective
