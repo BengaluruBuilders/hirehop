@@ -8,12 +8,12 @@ class PendingTailoringIds @Inject constructor(
     private val store: MockStateStore,
     private val ids: IdGenerator,
 ) {
-    suspend fun idFor(applicationId: String): String {
-        val key = keyOf(applicationId)
+    suspend fun idFor(runId: String): String {
+        val key = keyOf(runId)
         return store.read(key) ?: ids.newId().also { store.write(key, it) }
     }
 
-    suspend fun clear(applicationId: String) = store.remove(keyOf(applicationId))
+    suspend fun clear(runId: String) = store.remove(keyOf(runId))
 
-    private fun keyOf(applicationId: String) = "tailoring.request.$applicationId"
+    private fun keyOf(runId: String) = "tailoring.request.$runId"
 }
