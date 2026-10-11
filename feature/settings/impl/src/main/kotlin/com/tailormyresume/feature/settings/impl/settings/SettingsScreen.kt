@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -75,7 +76,7 @@ internal fun SettingsScreen(
             AccountIdentity(email = content.email)
             SettingsValueRow(
                 label = stringResource(R.string.feature_settings_impl_credits_row),
-                value = stringResource(R.string.feature_settings_impl_credits_left, content.credits),
+                value = pluralStringResource(R.plurals.feature_settings_impl_credits_left, content.credits, content.credits),
                 onClick = actions.onCredits,
                 showChevron = true,
                 showDivider = false,

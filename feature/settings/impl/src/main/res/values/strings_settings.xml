@@ -7,7 +7,10 @@
     <string name="feature_settings_impl_section_privacy">Privacy &amp; help</string>
     <string name="feature_settings_impl_signed_in_with_google">Signed in with Google</string>
     <string name="feature_settings_impl_credits_row">Credits &amp; purchases</string>
-    <string name="feature_settings_impl_credits_left">%1$d left</string>
+    <plurals name="feature_settings_impl_credits_left">
+        <item quantity="one">%1$d left</item>
+        <item quantity="other">%1$d left</item>
+    </plurals>
     <string name="feature_settings_impl_page_size">Page size</string>
     <string name="feature_settings_impl_page_a4" translatable="false">A4</string>
     <string name="feature_settings_impl_page_letter">Letter</string>
