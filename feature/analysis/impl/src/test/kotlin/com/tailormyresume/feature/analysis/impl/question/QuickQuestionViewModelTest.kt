@@ -187,7 +187,10 @@ class QuickQuestionViewModelTest {
         applicationRepository.sendApplications(listOf(application))
     }
 
-    private fun seeded() = viewModel().also { readyState(it) }
+    private fun seeded(): QuickQuestionViewModel {
+        seed(ResultTestData.application())
+        return viewModel().also { readyState(it) }
+    }
 
     private fun viewModel() = QuickQuestionViewModel(applicationRepository, ResultTestData.APP_ID)
 
