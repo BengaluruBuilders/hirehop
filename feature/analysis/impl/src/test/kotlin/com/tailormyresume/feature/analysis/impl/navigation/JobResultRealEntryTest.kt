@@ -140,7 +140,10 @@ class JobResultRealEntryTest {
         awaitText(SKIP)
 
         composeRule.onNodeWithText(SKIP).performClick()
-        composeRule.waitUntil(5_000) { state.stack.last() !is QuickQuestionNavKey }
+        composeRule.waitUntil(5_000) {
+            shadowOf(Looper.getMainLooper()).idle()
+            state.stack.last() !is QuickQuestionNavKey
+        }
 
         val last = state.stack.last()
         assertThat(last).isInstanceOf(TailoringNavKey::class.java)
