@@ -93,9 +93,8 @@ internal fun JobScreen(
                 readOnly = state is JobUiState.Analyzing,
                 modifier = Modifier.fillMaxWidth(),
             )
-            when (state) {
-                JobUiState.Empty -> JobPasteActions(fontScale = fontScale, onPaste = onPaste, onUseLink = onUseLink)
-                is JobUiState.Analyzing, is JobUiState.HasText -> Unit
+            if (state !is JobUiState.Analyzing && state.text.isBlank()) {
+                JobPasteActions(fontScale = fontScale, onPaste = onPaste, onUseLink = onUseLink)
             }
             if (!pinBottom) JobBottom(state, onAnalyze)
         }
@@ -134,7 +133,7 @@ private fun JobBottom(state: JobUiState, onAnalyze: () -> Unit) {
                 TmrPrimaryButton(
                     label = stringResource(R.string.feature_analysis_impl_job_analyze),
                     onClick = onAnalyze,
-                    enabled = true,
+                    enabled = state.text.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

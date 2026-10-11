@@ -4,9 +4,11 @@ import com.google.common.truth.Truth.assertThat
 import com.tailormyresume.core.domain.AiException
 import com.tailormyresume.core.domain.AiFailure
 import com.tailormyresume.core.domain.AnalyzeJobUseCase
+import com.tailormyresume.core.domain.ImportedJob
 import com.tailormyresume.core.domain.JobAnalysisResult
 import com.tailormyresume.core.domain.JobAnalysisSource
 import com.tailormyresume.core.domain.JobDescriptionAnalyzer
+import com.tailormyresume.core.domain.JobImporter
 import com.tailormyresume.core.domain.ProposeJobLabelUseCase
 import com.tailormyresume.core.domain.coverage.KeywordCoverageCalculator
 import com.tailormyresume.core.model.ApplicationStatus
@@ -26,6 +28,7 @@ import com.tailormyresume.core.testing.repository.TestSessionRepository
 import com.tailormyresume.core.testing.util.MainDispatcherRule
 import com.tailormyresume.core.testing.util.TestClock
 import com.tailormyresume.core.testing.util.TestIdGenerator
+import com.tailormyresume.feature.analysis.impl.joblink.JobLinkViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -455,6 +458,33 @@ class JobViewModelTest {
         assertThat(viewModel.uiState.value).isEqualTo(JobUiState.HasText(text = "", notAJobPost = true))
         assertThat(draftStore.draft.value).isNull()
         assertThat(events.filterIsInstance<JobEvent.Imported>()).isEmpty()
+    }
+
+    @Test
+    fun everyFailedLinkImportLandsOnBlankNotAJobPostState() = runTest(dispatcher) {
+        val importFailures: List<Pair<String, Throwable?>> = listOf(
+            "https://careers.example/a" to AiException(AiFailure.JobImportFailed),
+            "https://careers.example/a" to AiException(AiFailure.RateLimited, 30),
+            "https://careers.example/a" to RuntimeException("boom"),
+            "http://careers.example/a" to null,
+            "   " to null,
+        )
+
+        importFailures.forEach { (link, failure) ->
+            val draftStore = JobDraftStore(TestSessionRepository(), backgroundScope)
+            val importer = object : JobImporter {
+                override suspend fun import(url: String): ImportedJob = throw failure ?: AssertionError("importer called")
+            }
+            val viewModel = viewModel(draftStore = draftStore)
+
+            JobLinkViewModel(importer, draftStore).apply {
+                onLinkChange(link)
+                onImport()
+            }
+            advanceTimeBy(1_000)
+
+            assertThat(viewModel.uiState.value).isEqualTo(JobUiState.HasText(text = "", notAJobPost = true))
+        }
     }
 
     private suspend fun TestScope.viewModel(

@@ -123,6 +123,31 @@ class JobScreenTest {
     }
 
     @Test
+    fun blankNotAJobPostShowsPasteActionsAndDisabledAnalyze() {
+        val calls = Calls()
+        setScreen(JobUiState.HasText(text = "", notAJobPost = true), calls)
+        rule.onNodeWithText("This doesn't look like a job post").assertIsDisplayed()
+        rule.onNodeWithText("Paste from clipboard").assertIsDisplayed()
+        rule.onNodeWithText("Use a link").assertIsDisplayed()
+        val config = rule.onNodeWithText("Analyze job").fetchSemanticsNode().config
+        assertThat(config.getOrNull(SemanticsProperties.StateDescription)).isEqualTo(NOT_AVAILABLE)
+        rule.onNodeWithText("Paste from clipboard").performClick()
+        rule.onNodeWithText("Use a link").performClick()
+        rule.runOnIdle {
+            assertThat(calls.pastes).isEqualTo(1)
+            assertThat(calls.links).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun whitespaceOnlyTextDisablesAnalyze() {
+        setScreen(JobUiState.HasText(text = "   \n ", notAJobPost = true))
+        rule.onNodeWithText("Paste from clipboard").assertIsDisplayed()
+        val config = rule.onNodeWithText("Analyze job").fetchSemanticsNode().config
+        assertThat(config.getOrNull(SemanticsProperties.StateDescription)).isEqualTo(NOT_AVAILABLE)
+    }
+
+    @Test
     fun analyzingShowsPercentPill() {
         setScreen(JobUiState.Analyzing(text = jobText(200), percent = 37))
         rule.onNodeWithText(ANALYZING_37).assertIsDisplayed()

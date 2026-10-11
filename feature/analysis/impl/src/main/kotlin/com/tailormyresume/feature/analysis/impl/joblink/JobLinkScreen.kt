@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tailormyresume.core.designsystem.component.TmrPrimaryButton
+import com.tailormyresume.core.designsystem.component.input.TmrPrimaryButton
 import com.tailormyresume.core.designsystem.component.input.TmrTextField
 import com.tailormyresume.core.designsystem.theme.TmrTheme
 import com.tailormyresume.feature.analysis.impl.R
