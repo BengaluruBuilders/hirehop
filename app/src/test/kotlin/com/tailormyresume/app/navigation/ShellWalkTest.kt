@@ -62,7 +62,7 @@ class ShellWalkTest {
             JobNavKey(),
             JobResultNavKey(ID),
             QuickQuestionNavKey(ID),
-            TailoringNavKey(ID),
+            TailoringNavKey(ID, "run-1"),
             TailoredNavKey(ID),
             ExportedNavKey(ID),
         ).forEach { key ->
