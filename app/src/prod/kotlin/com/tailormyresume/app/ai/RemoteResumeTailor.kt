@@ -37,6 +37,7 @@ class RemoteResumeTailor @Inject constructor(
         gap: GapAnalysis,
         applicationId: String,
         answer: QuickAnswer?,
+        runId: String,
     ): TailoredResume {
         val request = TailoringStartRequest(
             requestId = pending.idFor(applicationId),

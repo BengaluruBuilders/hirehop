@@ -46,7 +46,7 @@ internal class TailoringRunner @Inject constructor(
             record = creditsRepository::record,
             tailoring = {
                 val tailored = withContext(dispatcher) {
-                    tailorResume(profile, application.job, gap, applicationId, quickAnswer = application.quickAnswer)
+                    tailorResume(profile, application.job, gap, applicationId, runId, quickAnswer = application.quickAnswer)
                 }
                 applicationRepository.upsertApplication(
                     application.copy(
